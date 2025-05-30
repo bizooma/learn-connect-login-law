@@ -84,9 +84,6 @@ const CourseCard = ({ course }: CourseCardProps) => {
             <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
             <span className="text-sm font-medium">{course.rating}</span>
           </div>
-          <div className="text-lg font-bold text-gray-900">
-            ${course.price}
-          </div>
         </div>
 
         <div className="flex flex-wrap gap-1">
@@ -101,7 +98,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
       <CardFooter className="pt-0">
         <Button className="w-full" size="sm">
           <BookOpen className="h-4 w-4 mr-2" />
-          Enroll Now
+          Start Course
         </Button>
       </CardFooter>
     </Card>
