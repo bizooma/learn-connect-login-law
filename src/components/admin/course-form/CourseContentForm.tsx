@@ -15,6 +15,8 @@ interface UnitData {
   description: string;
   content: string;
   video_url: string;
+  video_type: 'youtube' | 'upload';
+  video_file?: File;
   duration_minutes: number;
   sort_order: number;
 }
