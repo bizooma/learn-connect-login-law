@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -112,8 +111,8 @@ const CourseManagement = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header with search and add button */}
-      <div className="flex items-center justify-between">
+      {/* Header with search only */}
+      <div className="flex items-center">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
           <Input
@@ -123,14 +122,28 @@ const CourseManagement = () => {
             className="pl-10"
           />
         </div>
-        <Button className="ml-4">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Course
-        </Button>
       </div>
 
-      {/* Courses grid */}
+      {/* Courses grid with Add Course card */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Add Course Card */}
+        <Card className="hover:shadow-md transition-shadow border-2 border-dashed border-gray-300 hover:border-blue-400">
+          <CardContent className="flex flex-col items-center justify-center h-full min-h-[300px] p-6">
+            <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+              <Plus className="h-8 w-8 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">Add New Course</h3>
+            <p className="text-sm text-gray-600 text-center mb-4">
+              Create a new course to expand your curriculum
+            </p>
+            <Button className="w-full">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Course
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Existing Courses */}
         {filteredCourses.map((course) => (
           <Card key={course.id} className="hover:shadow-md transition-shadow">
             <CardHeader className="pb-3">
