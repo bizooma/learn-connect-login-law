@@ -11,6 +11,11 @@ const AuthPage = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
       <div className="w-full max-w-md p-8 bg-white rounded-lg shadow-lg">
         <div className="text-center mb-8">
+          <img 
+            src="/lovable-uploads/6f8c1259-11b1-4be9-a417-70350b17ddad.png" 
+            alt="New Frontier University"
+            className="mx-auto mb-4 h-20 w-auto"
+          />
           <h1 className="text-3xl font-bold text-gray-900">Learning Management System</h1>
           <p className="text-gray-600 mt-2">Access your legal education platform</p>
         </div>
