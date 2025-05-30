@@ -1,134 +1,152 @@
-import { useAuth } from '@/hooks/useAuth';
-import { Button } from '@/components/ui/button';
-import { LogOut, User, Shield } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { useAuth } from "@/hooks/useAuth";
+import { BookOpen, Users, Award, TrendingUp, LogOut } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
-  const [profile, setProfile] = useState<any>(null);
-  const [userRole, setUserRole] = useState<string>('user');
 
-  useEffect(() => {
-    if (user) {
-      fetchProfile();
-      fetchUserRole();
-    }
-  }, [user]);
-
-  const fetchProfile = async () => {
-    if (!user) return;
-    
-    const { data, error } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', user.id)
-      .single();
-    
-    if (error) {
-      console.error('Error fetching profile:', error);
-    } else {
-      setProfile(data);
-    }
-  };
-
-  const fetchUserRole = async () => {
-    if (!user) return;
-    
-    const { data, error } = await supabase
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id);
-    
-    if (error) {
-      console.error('Error fetching user roles:', error);
-      setUserRole('user'); // fallback to user role
-    } else {
-      // Check if user has admin role, otherwise default to user
-      const hasAdminRole = data?.some(roleData => roleData.role === 'admin');
-      setUserRole(hasAdminRole ? 'admin' : 'user');
-    }
-  };
-
-  const handleSignOut = async () => {
-    await signOut();
-  };
+  const stats = [
+    {
+      title: "Courses Enrolled",
+      value: "3",
+      description: "Active learning paths",
+      icon: BookOpen,
+      color: "text-blue-600",
+    },
+    {
+      title: "Hours Completed",
+      value: "24",
+      description: "This month",
+      icon: TrendingUp,
+      color: "text-green-600",
+    },
+    {
+      title: "Certificates",
+      value: "2",
+      description: "Earned this year",
+      icon: Award,
+      color: "text-yellow-600",
+    },
+    {
+      title: "Study Group",
+      value: "12",
+      description: "Active members",
+      icon: Users,
+      color: "text-purple-600",
+    },
+  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-white rounded-lg shadow-lg p-8">
-          <div className="flex justify-between items-center mb-8">
-            <div className="flex items-center space-x-4">
-              <img 
-                src="/lovable-uploads/6f8c1259-11b1-4be9-a417-70350b17ddad.png" 
-                alt="New Frontier University"
-                className="h-16 w-auto"
-              />
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">
-                  Welcome to NFU Portal
-                </h1>
-                <p className="text-gray-600">Your legal education platform</p>
-              </div>
-            </div>
-            
-            <Button 
-              onClick={handleSignOut}
-              variant="outline"
-              className="flex items-center space-x-2"
-            >
-              <LogOut className="h-4 w-4" />
-              <span>Sign Out</span>
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="bg-gray-50 rounded-lg p-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <User className="h-6 w-6 text-blue-600" />
-                <h2 className="text-xl font-semibold">Profile Information</h2>
-              </div>
-              
-              <div className="space-y-2">
-                <p><strong>Email:</strong> {user?.email}</p>
-                {profile && (
-                  <>
-                    <p><strong>First Name:</strong> {profile.first_name || 'Not provided'}</p>
-                    <p><strong>Last Name:</strong> {profile.last_name || 'Not provided'}</p>
-                  </>
-                )}
-              </div>
-            </div>
-
-            <div className="bg-gray-50 rounded-lg p-6">
-              <div className="flex items-center space-x-3 mb-4">
-                <Shield className="h-6 w-6 text-green-600" />
-                <h2 className="text-xl font-semibold">Access Level</h2>
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
-                  userRole === 'admin' 
-                    ? 'bg-red-100 text-red-800' 
-                    : 'bg-blue-100 text-blue-800'
-                }`}>
-                  {userRole.charAt(0).toUpperCase() + userRole.slice(1)}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          {userRole === 'admin' && (
-            <div className="mt-8 bg-red-50 border border-red-200 rounded-lg p-6">
-              <h3 className="text-lg font-semibold text-red-800 mb-2">
-                Administrator Access
-              </h3>
-              <p className="text-red-700">
-                You have administrator privileges. You can manage users and system settings.
+      {/* Header */}
+      <div className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900">
+                Welcome back, {user?.user_metadata?.first_name || "Student"}!
+              </h1>
+              <p className="text-gray-600 mt-1">
+                Continue your legal education journey
               </p>
             </div>
-          )}
+            <div className="flex items-center space-x-4">
+              <Link to="/courses">
+                <Button variant="outline" className="flex items-center">
+                  <BookOpen className="h-4 w-4 mr-2" />
+                  Browse Courses
+                </Button>
+              </Link>
+              <Button
+                variant="ghost"
+                onClick={signOut}
+                className="flex items-center text-gray-600 hover:text-gray-900"
+              >
+                <LogOut className="h-4 w-4 mr-2" />
+                Sign Out
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          {stats.map((stat) => (
+            <Card key={stat.title} className="bg-white">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-gray-600">
+                  {stat.title}
+                </CardTitle>
+                <stat.icon className={`h-5 w-5 ${stat.color}`} />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+                <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card className="bg-white">
+            <CardHeader>
+              <CardTitle>Continue Learning</CardTitle>
+              <CardDescription>
+                Pick up where you left off in your current courses
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <h4 className="font-semibold">Constitutional Law Fundamentals</h4>
+                    <p className="text-sm text-gray-600">Chapter 3: Federal Powers</p>
+                  </div>
+                  <Button size="sm">Continue</Button>
+                </div>
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <h4 className="font-semibold">Criminal Law Essentials</h4>
+                    <p className="text-sm text-gray-600">Chapter 5: Defense Strategies</p>
+                  </div>
+                  <Button size="sm">Continue</Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-white">
+            <CardHeader>
+              <CardTitle>Recommended Courses</CardTitle>
+              <CardDescription>
+                Based on your learning history and interests
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <h4 className="font-semibold">Advanced Contract Law</h4>
+                    <p className="text-sm text-gray-600">10 weeks • Advanced</p>
+                  </div>
+                  <Button size="sm" variant="outline">Enroll</Button>
+                </div>
+                <div className="flex items-center justify-between p-4 border rounded-lg">
+                  <div>
+                    <h4 className="font-semibold">Legal Research Methods</h4>
+                    <p className="text-sm text-gray-600">6 weeks • Beginner</p>
+                  </div>
+                  <Button size="sm" variant="outline">Enroll</Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
