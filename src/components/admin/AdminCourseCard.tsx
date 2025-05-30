@@ -4,20 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2 } from "lucide-react";
 import { getLevelColor } from "@/utils/courseUtils";
+import { Tables } from "@/integrations/supabase/types";
 
-interface Course {
-  id: string;
-  title: string;
-  description: string;
-  instructor: string;
-  duration: string;
-  level: string;
-  category: string;
-  rating: number;
-  students_enrolled: number;
-  image_url: string;
-  tags: string[];
-}
+type Course = Tables<'courses'>;
 
 interface AdminCourseCardProps {
   course: Course;
@@ -50,8 +39,8 @@ const AdminCourseCard = ({ course, onDelete }: AdminCourseCardProps) => {
         
         <div className="flex items-center justify-between text-sm text-gray-500 mb-4">
           <span>{course.duration}</span>
-          <span>{course.students_enrolled} students</span>
-          <span>★ {course.rating}</span>
+          <span>{course.students_enrolled || 0} students</span>
+          <span>★ {course.rating || 0}</span>
         </div>
 
         <div className="flex items-center justify-between">

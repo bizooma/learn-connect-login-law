@@ -3,20 +3,9 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Users, Star, BookOpen } from "lucide-react";
+import { Tables } from "@/integrations/supabase/types";
 
-interface Course {
-  id: string;
-  title: string;
-  description: string;
-  instructor: string;
-  duration: string;
-  level: string;
-  category: string;
-  rating: number;
-  students_enrolled: number;
-  image_url: string;
-  tags: string[];
-}
+type Course = Tables<'courses'>;
 
 interface CourseCardProps {
   course: Course;
@@ -40,7 +29,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 bg-white">
       <div className="relative">
         <img
-          src={course.image_url}
+          src={course.image_url || "/placeholder.svg"}
           alt={course.title}
           className="w-full h-48 object-cover"
         />
@@ -74,19 +63,19 @@ const CourseCard = ({ course }: CourseCardProps) => {
           </div>
           <div className="flex items-center">
             <Users className="h-4 w-4 mr-1" />
-            {course.students_enrolled.toLocaleString()}
+            {(course.students_enrolled || 0).toLocaleString()}
           </div>
         </div>
 
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center">
             <Star className="h-4 w-4 text-yellow-400 fill-current mr-1" />
-            <span className="text-sm font-medium">{course.rating}</span>
+            <span className="text-sm font-medium">{course.rating || 0}</span>
           </div>
         </div>
 
         <div className="flex flex-wrap gap-1">
-          {course.tags.slice(0, 3).map((tag) => (
+          {(course.tags || []).slice(0, 3).map((tag) => (
             <Badge key={tag} variant="secondary" className="text-xs">
               {tag}
             </Badge>

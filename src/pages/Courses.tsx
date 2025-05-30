@@ -7,20 +7,9 @@ import CourseCard from "@/components/CourseCard";
 import CourseFilters from "@/components/CourseFilters";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Tables } from "@/integrations/supabase/types";
 
-interface Course {
-  id: string;
-  title: string;
-  description: string;
-  instructor: string;
-  duration: string;
-  level: string;
-  category: string;
-  rating: number;
-  students_enrolled: number;
-  image_url: string;
-  tags: string[];
-}
+type Course = Tables<'courses'>;
 
 const Courses = () => {
   const navigate = useNavigate();
@@ -38,8 +27,7 @@ const Courses = () => {
 
   const fetchCourses = async () => {
     try {
-      // Use type assertion since courses table isn't in the generated types yet
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('courses')
         .select('*')
         .order('created_at', { ascending: false });
@@ -75,8 +63,8 @@ const Courses = () => {
     if (search) {
       filtered = filtered.filter(course =>
         course.title.toLowerCase().includes(search.toLowerCase()) ||
-        course.description.toLowerCase().includes(search.toLowerCase()) ||
-        course.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase()))
+        (course.description && course.description.toLowerCase().includes(search.toLowerCase())) ||
+        (course.tags && course.tags.some(tag => tag.toLowerCase().includes(search.toLowerCase())))
       );
     }
 

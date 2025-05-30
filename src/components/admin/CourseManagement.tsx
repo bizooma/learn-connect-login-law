@@ -5,20 +5,9 @@ import { useToast } from "@/hooks/use-toast";
 import AdminCourseCard from "./AdminCourseCard";
 import CourseSearch from "./CourseSearch";
 import CourseManagementLoading from "./CourseManagementLoading";
+import { Tables } from "@/integrations/supabase/types";
 
-interface Course {
-  id: string;
-  title: string;
-  description: string;
-  instructor: string;
-  duration: string;
-  level: string;
-  category: string;
-  rating: number;
-  students_enrolled: number;
-  image_url: string;
-  tags: string[];
-}
+type Course = Tables<'courses'>;
 
 const CourseManagement = () => {
   const [courses, setCourses] = useState<Course[]>([]);
@@ -32,8 +21,7 @@ const CourseManagement = () => {
 
   const fetchCourses = async () => {
     try {
-      // Use type assertion since courses table isn't in the generated types yet
-      const { data, error } = await (supabase as any)
+      const { data, error } = await supabase
         .from('courses')
         .select('*')
         .order('created_at', { ascending: false });
@@ -57,7 +45,7 @@ const CourseManagement = () => {
 
   const deleteCourse = async (courseId: string) => {
     try {
-      const { error } = await (supabase as any)
+      const { error } = await supabase
         .from('courses')
         .delete()
         .eq('id', courseId);
