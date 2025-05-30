@@ -1,10 +1,11 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
-import { BookOpen, Users, User, LogOut, Plus } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { BookOpen, Users, User, LogOut } from "lucide-react";
 import CourseManagement from "./admin/CourseManagement";
 import UserManagement from "./admin/UserManagement";
 import ProfileManagement from "./admin/ProfileManagement";
@@ -12,25 +13,65 @@ import ProfileManagement from "./admin/ProfileManagement";
 const AdminDashboard = () => {
   const { user, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState("courses");
+  const [stats, setStats] = useState({
+    totalCourses: 0,
+    totalUsers: 0,
+    activeEnrollments: 0
+  });
+
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      // Fetch total courses
+      const { count: coursesCount } = await supabase
+        .from('courses')
+        .select('*', { count: 'exact', head: true });
+
+      // Fetch total users
+      const { count: usersCount } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
+      // For now, we'll calculate active enrollments as sum of students_enrolled
+      // In the future, you might want to create an enrollments table
+      const { data: coursesData } = await supabase
+        .from('courses')
+        .select('students_enrolled');
+
+      const totalEnrollments = coursesData?.reduce((sum, course) => 
+        sum + (course.students_enrolled || 0), 0) || 0;
+
+      setStats({
+        totalCourses: coursesCount || 0,
+        totalUsers: usersCount || 0,
+        activeEnrollments: totalEnrollments
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
 
   const adminStats = [
     {
       title: "Total Courses",
-      value: "12",
+      value: stats.totalCourses.toString(),
       description: "Active courses",
       icon: BookOpen,
       color: "text-blue-600",
     },
     {
       title: "Total Users",
-      value: "1,234",
+      value: stats.totalUsers.toString(),
       description: "Registered users",
       icon: Users,
       color: "text-green-600",
     },
     {
       title: "Active Enrollments",
-      value: "3,456",
+      value: stats.activeEnrollments.toString(),
       description: "Current enrollments",
       icon: User,
       color: "text-purple-600",
