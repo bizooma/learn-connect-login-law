@@ -11,9 +11,10 @@ type Course = Tables<'courses'>;
 interface AdminCourseCardProps {
   course: Course;
   onDelete: (courseId: string) => void;
+  onEdit: (course: Course) => void;
 }
 
-const AdminCourseCard = ({ course, onDelete }: AdminCourseCardProps) => {
+const AdminCourseCard = ({ course, onDelete, onEdit }: AdminCourseCardProps) => {
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardHeader className="pb-3">
@@ -46,7 +47,11 @@ const AdminCourseCard = ({ course, onDelete }: AdminCourseCardProps) => {
         <div className="flex items-center justify-between">
           <Badge variant="secondary">{course.category}</Badge>
           <div className="flex space-x-2">
-            <Button size="sm" variant="outline">
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={() => onEdit(course)}
+            >
               <Edit className="h-4 w-4" />
             </Button>
             <Button 
