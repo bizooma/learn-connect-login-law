@@ -38,7 +38,8 @@ const Courses = () => {
 
   const fetchCourses = async () => {
     try {
-      const { data, error } = await supabase
+      // Use type assertion since courses table isn't in the generated types yet
+      const { data, error } = await (supabase as any)
         .from('courses')
         .select('*')
         .order('created_at', { ascending: false });

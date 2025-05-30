@@ -73,7 +73,7 @@ const UserManagement = () => {
     }
   };
 
-  const updateUserRole = async (userId: string, newRole: string) => {
+  const updateUserRole = async (userId: string, newRole: 'admin' | 'user') => {
     try {
       // First, remove existing roles for this user
       await supabase
@@ -184,7 +184,7 @@ const UserManagement = () => {
                 </div>
                 <Select 
                   value={getUserRole(user)} 
-                  onValueChange={(value) => updateUserRole(user.id, value)}
+                  onValueChange={(value: 'admin' | 'user') => updateUserRole(user.id, value)}
                 >
                   <SelectTrigger className="w-24">
                     <SelectValue />
