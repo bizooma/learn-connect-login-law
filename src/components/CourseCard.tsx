@@ -3,6 +3,7 @@ import { Card, CardContent, CardFooter, CardHeader } from "@/components/ui/card"
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Users, Star, BookOpen } from "lucide-react";
+import { getLevelColor, getLevelDisplayName } from "@/utils/courseUtils";
 import { Tables } from "@/integrations/supabase/types";
 
 type Course = Tables<'courses'>;
@@ -12,19 +13,6 @@ interface CourseCardProps {
 }
 
 const CourseCard = ({ course }: CourseCardProps) => {
-  const getLevelColor = (level: string) => {
-    switch (level) {
-      case "Beginner":
-        return "bg-green-100 text-green-800";
-      case "Intermediate":
-        return "bg-yellow-100 text-yellow-800";
-      case "Advanced":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
-
   return (
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 bg-white">
       <div className="relative">
@@ -35,7 +23,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
         />
         <div className="absolute top-3 right-3">
           <Badge className={getLevelColor(course.level)}>
-            {course.level}
+            {getLevelDisplayName(course.level)}
           </Badge>
         </div>
       </div>

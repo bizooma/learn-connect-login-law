@@ -10,11 +10,13 @@ import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
 
 type Course = Tables<'courses'>;
+type Level = Tables<'levels'>;
 
 const Courses = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [courses, setCourses] = useState<Course[]>([]);
+  const [levels, setLevels] = useState<Level[]>([]);
   const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -23,6 +25,7 @@ const Courses = () => {
 
   useEffect(() => {
     fetchCourses();
+    fetchLevels();
   }, []);
 
   const fetchCourses = async () => {
@@ -50,8 +53,28 @@ const Courses = () => {
     }
   };
 
+  const fetchLevels = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('levels')
+        .select('*')
+        .order('category', { ascending: true })
+        .order('sort_order', { ascending: true });
+
+      if (error) {
+        throw error;
+      }
+
+      setLevels(data || []);
+    } catch (error) {
+      console.error('Error fetching levels:', error);
+    }
+  };
+
   const categories = ["All", ...Array.from(new Set(courses.map(course => course.category)))];
-  const levels = ["All", "Beginner", "Intermediate", "Advanced"];
+  
+  // Create level options from the levels table
+  const levelOptions = ["All", ...levels.map(level => level.code)];
 
   const handleFilter = (search: string, category: string, level: string) => {
     setSearchTerm(search);
@@ -129,7 +152,7 @@ const Courses = () => {
         {/* Filters */}
         <CourseFilters
           categories={categories}
-          levels={levels}
+          levels={levelOptions}
           onFilter={handleFilter}
           searchTerm={searchTerm}
           selectedCategory={selectedCategory}

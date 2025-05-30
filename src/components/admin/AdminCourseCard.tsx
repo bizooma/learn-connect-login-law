@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Edit, Trash2 } from "lucide-react";
-import { getLevelColor } from "@/utils/courseUtils";
+import { getLevelColor, getLevelDisplayName } from "@/utils/courseUtils";
 import { Tables } from "@/integrations/supabase/types";
 
 type Course = Tables<'courses'>;
@@ -27,7 +27,7 @@ const AdminCourseCard = ({ course, onDelete }: AdminCourseCardProps) => {
             </p>
           </div>
           <Badge className={getLevelColor(course.level)}>
-            {course.level}
+            {getLevelDisplayName(course.level)}
           </Badge>
         </div>
       </CardHeader>

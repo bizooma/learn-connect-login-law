@@ -55,6 +55,44 @@ export type Database = {
           title?: string
           updated_at?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "fk_courses_level"
+            columns: ["level"]
+            isOneToOne: false
+            referencedRelation: "levels"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      levels: {
+        Row: {
+          category: string
+          code: string
+          created_at: string
+          id: string
+          name: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+          sort_order: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          sort_order?: number
+          updated_at?: string
+        }
         Relationships: []
       }
       profiles: {
