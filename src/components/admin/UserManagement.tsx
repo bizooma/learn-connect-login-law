@@ -1,14 +1,11 @@
 
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Mail, Calendar, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
+import UserSearch from "./user-management/UserSearch";
+import UserGrid from "./user-management/UserGrid";
+import { filterUsers } from "./user-management/userRoleUtils";
 
 interface UserProfile {
   id: string;
@@ -119,52 +116,7 @@ const UserManagement = () => {
     }
   };
 
-  const filteredUsers = users.filter(user =>
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const getUserRole = (user: UserProfile) => {
-    return user.roles?.[0]?.role || 'student';
-  };
-
-  const getRoleBadgeColor = (role: string) => {
-    switch (role) {
-      case 'admin':
-        return 'bg-red-100 text-red-800';
-      case 'owner':
-        return 'bg-purple-100 text-purple-800';
-      case 'student':
-        return 'bg-blue-100 text-blue-800';
-      case 'client':
-        return 'bg-green-100 text-green-800';
-      case 'free':
-        return 'bg-gray-100 text-gray-800';
-      default:
-        return 'bg-blue-100 text-blue-800'; // Default to student styling
-    }
-  };
-
-  const getAvailableRoles = () => {
-    if (isAdmin) {
-      // Admins can assign any role
-      return [
-        { value: 'free', label: 'Free' },
-        { value: 'student', label: 'Student' },
-        { value: 'client', label: 'Client' },
-        { value: 'owner', label: 'Owner' },
-        { value: 'admin', label: 'Admin' }
-      ];
-    } else if (isOwner) {
-      // Owners can only assign student, client, and free roles
-      return [
-        { value: 'free', label: 'Free' },
-        { value: 'student', label: 'Student' },
-        { value: 'client', label: 'Client' }
-      ];
-    }
-    return [];
-  };
+  const filteredUsers = filterUsers(users, searchTerm);
 
   if (loading) {
     return (
@@ -176,77 +128,14 @@ const UserManagement = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header with search */}
-      <div className="flex items-center justify-between">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-          <Input
-            placeholder="Search users..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-      </div>
-
-      {/* Users grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredUsers.map((user) => (
-          <Card key={user.id} className="hover:shadow-md transition-shadow">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex-1">
-                  <CardTitle className="text-lg">
-                    {user.first_name} {user.last_name}
-                  </CardTitle>
-                  <div className="flex items-center text-sm text-gray-600 mt-1">
-                    <Mail className="h-4 w-4 mr-1" />
-                    {user.email}
-                  </div>
-                </div>
-                <Badge className={getRoleBadgeColor(getUserRole(user))}>
-                  {getUserRole(user)}
-                </Badge>
-              </div>
-            </CardHeader>
-            
-            <CardContent>
-              <div className="flex items-center text-sm text-gray-500 mb-4">
-                <Calendar className="h-4 w-4 mr-1" />
-                Joined {new Date(user.created_at).toLocaleDateString()}
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <Shield className="h-4 w-4 mr-2 text-gray-400" />
-                  <span className="text-sm font-medium">Role:</span>
-                </div>
-                <Select 
-                  value={getUserRole(user)} 
-                  onValueChange={(value: 'admin' | 'owner' | 'student' | 'client' | 'free') => updateUserRole(user.id, value)}
-                >
-                  <SelectTrigger className="w-32">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {getAvailableRoles().map((role) => (
-                      <SelectItem key={role.value} value={role.value}>
-                        {role.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {filteredUsers.length === 0 && (
-        <div className="text-center py-8">
-          <p className="text-gray-500">No users found</p>
-        </div>
-      )}
+      <UserSearch 
+        searchTerm={searchTerm} 
+        onSearchChange={setSearchTerm} 
+      />
+      <UserGrid 
+        users={filteredUsers} 
+        onRoleUpdate={updateUserRole} 
+      />
     </div>
   );
 };
