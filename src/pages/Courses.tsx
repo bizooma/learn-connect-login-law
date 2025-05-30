@@ -1,107 +1,67 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CourseCard from "@/components/CourseCard";
 import CourseFilters from "@/components/CourseFilters";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
-// Mock course data
-const mockCourses = [
-  {
-    id: 1,
-    title: "Constitutional Law Fundamentals",
-    description: "Master the principles of constitutional law, including federal powers, individual rights, and judicial review.",
-    instructor: "Prof. Sarah Johnson",
-    duration: "12 weeks",
-    level: "Beginner",
-    category: "Constitutional Law",
-    price: 299,
-    rating: 4.8,
-    studentsEnrolled: 1250,
-    imageUrl: "https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=400&h=250&fit=crop",
-    tags: ["Constitution", "Federal Law", "Rights"]
-  },
-  {
-    id: 2,
-    title: "Advanced Contract Law",
-    description: "Deep dive into contract formation, interpretation, and enforcement in modern legal practice.",
-    instructor: "Prof. Michael Chen",
-    duration: "10 weeks",
-    level: "Advanced",
-    category: "Contract Law",
-    price: 399,
-    rating: 4.9,
-    studentsEnrolled: 890,
-    imageUrl: "https://images.unsplash.com/photo-1488590528505-98d2b5aba04b?w=400&h=250&fit=crop",
-    tags: ["Contracts", "Business Law", "Legal Practice"]
-  },
-  {
-    id: 3,
-    title: "Criminal Law Essentials",
-    description: "Comprehensive overview of criminal law principles, procedures, and defense strategies.",
-    instructor: "Prof. Elena Rodriguez",
-    duration: "8 weeks",
-    level: "Intermediate",
-    category: "Criminal Law",
-    price: 249,
-    rating: 4.7,
-    studentsEnrolled: 1100,
-    imageUrl: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=400&h=250&fit=crop",
-    tags: ["Criminal Law", "Defense", "Procedures"]
-  },
-  {
-    id: 4,
-    title: "Corporate Law & Governance",
-    description: "Understanding corporate structures, governance principles, and regulatory compliance.",
-    instructor: "Prof. David Kim",
-    duration: "14 weeks",
-    level: "Advanced",
-    category: "Corporate Law",
-    price: 449,
-    rating: 4.6,
-    studentsEnrolled: 670,
-    imageUrl: "https://images.unsplash.com/photo-1649972904349-6e44c42644a7?w=400&h=250&fit=crop",
-    tags: ["Corporate", "Governance", "Compliance"]
-  },
-  {
-    id: 5,
-    title: "Legal Research Methods",
-    description: "Master essential legal research skills using both traditional and digital resources.",
-    instructor: "Prof. Lisa Thompson",
-    duration: "6 weeks",
-    level: "Beginner",
-    category: "Legal Skills",
-    price: 199,
-    rating: 4.5,
-    studentsEnrolled: 1450,
-    imageUrl: "https://images.unsplash.com/photo-1487058792275-0ad4aaf24ca7?w=400&h=250&fit=crop",
-    tags: ["Research", "Legal Writing", "Skills"]
-  },
-  {
-    id: 6,
-    title: "Family Law Practice",
-    description: "Navigate family law matters including divorce, custody, and domestic relations.",
-    instructor: "Prof. Amanda Davis",
-    duration: "9 weeks",
-    level: "Intermediate",
-    category: "Family Law",
-    price: 329,
-    rating: 4.8,
-    studentsEnrolled: 820,
-    imageUrl: "https://images.unsplash.com/photo-1605810230434-7631ac76ec81?w=400&h=250&fit=crop",
-    tags: ["Family Law", "Divorce", "Custody"]
-  }
-];
+interface Course {
+  id: string;
+  title: string;
+  description: string;
+  instructor: string;
+  duration: string;
+  level: string;
+  category: string;
+  rating: number;
+  students_enrolled: number;
+  image_url: string;
+  tags: string[];
+}
 
 const Courses = () => {
   const navigate = useNavigate();
-  const [filteredCourses, setFilteredCourses] = useState(mockCourses);
+  const { toast } = useToast();
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedLevel, setSelectedLevel] = useState("All");
+  const [loading, setLoading] = useState(true);
 
-  const categories = ["All", ...Array.from(new Set(mockCourses.map(course => course.category)))];
+  useEffect(() => {
+    fetchCourses();
+  }, []);
+
+  const fetchCourses = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('courses')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        throw error;
+      }
+
+      setCourses(data || []);
+      setFilteredCourses(data || []);
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch courses",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const categories = ["All", ...Array.from(new Set(courses.map(course => course.category)))];
   const levels = ["All", "Beginner", "Intermediate", "Advanced"];
 
   const handleFilter = (search: string, category: string, level: string) => {
@@ -109,7 +69,7 @@ const Courses = () => {
     setSelectedCategory(category);
     setSelectedLevel(level);
 
-    let filtered = mockCourses;
+    let filtered = courses;
 
     if (search) {
       filtered = filtered.filter(course =>
@@ -129,6 +89,17 @@ const Courses = () => {
 
     setFilteredCourses(filtered);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading courses...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">

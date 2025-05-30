@@ -1,12 +1,15 @@
 
 import { useAuth, AuthProvider } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import AuthPage from "../components/AuthPage";
 import Dashboard from "../components/Dashboard";
+import AdminDashboard from "../components/AdminDashboard";
 
 const IndexContent = () => {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const { isAdmin, loading: roleLoading } = useUserRole();
 
-  if (loading) {
+  if (authLoading || roleLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
@@ -17,7 +20,11 @@ const IndexContent = () => {
     );
   }
 
-  return user ? <Dashboard /> : <AuthPage />;
+  if (!user) {
+    return <AuthPage />;
+  }
+
+  return isAdmin ? <AdminDashboard /> : <Dashboard />;
 };
 
 const Index = () => {

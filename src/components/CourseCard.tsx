@@ -5,17 +5,16 @@ import { Badge } from "@/components/ui/badge";
 import { Clock, Users, Star, BookOpen } from "lucide-react";
 
 interface Course {
-  id: number;
+  id: string;
   title: string;
   description: string;
   instructor: string;
   duration: string;
   level: string;
   category: string;
-  price: number;
   rating: number;
-  studentsEnrolled: number;
-  imageUrl: string;
+  students_enrolled: number;
+  image_url: string;
   tags: string[];
 }
 
@@ -41,7 +40,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
     <Card className="overflow-hidden hover:shadow-lg transition-shadow duration-300 bg-white">
       <div className="relative">
         <img
-          src={course.imageUrl}
+          src={course.image_url}
           alt={course.title}
           className="w-full h-48 object-cover"
         />
@@ -75,7 +74,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
           </div>
           <div className="flex items-center">
             <Users className="h-4 w-4 mr-1" />
-            {course.studentsEnrolled.toLocaleString()}
+            {course.students_enrolled.toLocaleString()}
           </div>
         </div>
 
