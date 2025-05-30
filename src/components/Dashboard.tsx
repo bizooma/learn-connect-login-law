@@ -1,4 +1,3 @@
-
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { LogOut, User, Shield } from 'lucide-react';
@@ -39,13 +38,15 @@ const Dashboard = () => {
     const { data, error } = await supabase
       .from('user_roles')
       .select('role')
-      .eq('user_id', user.id)
-      .single();
+      .eq('user_id', user.id);
     
     if (error) {
-      console.error('Error fetching user role:', error);
+      console.error('Error fetching user roles:', error);
+      setUserRole('user'); // fallback to user role
     } else {
-      setUserRole(data?.role || 'user');
+      // Check if user has admin role, otherwise default to user
+      const hasAdminRole = data?.some(roleData => roleData.role === 'admin');
+      setUserRole(hasAdminRole ? 'admin' : 'user');
     }
   };
 
