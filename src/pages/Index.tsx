@@ -7,7 +7,7 @@ import AdminDashboard from "../components/AdminDashboard";
 
 const IndexContent = () => {
   const { user, loading: authLoading } = useAuth();
-  const { isAdmin, loading: roleLoading } = useUserRole();
+  const { hasAdminPrivileges, loading: roleLoading } = useUserRole();
 
   if (authLoading || roleLoading) {
     return (
@@ -24,7 +24,7 @@ const IndexContent = () => {
     return <AuthPage />;
   }
 
-  return isAdmin ? <AdminDashboard /> : <Dashboard />;
+  return hasAdminPrivileges ? <AdminDashboard /> : <Dashboard />;
 };
 
 const Index = () => {

@@ -73,7 +73,7 @@ const UserManagement = () => {
     }
   };
 
-  const updateUserRole = async (userId: string, newRole: 'admin' | 'user') => {
+  const updateUserRole = async (userId: string, newRole: 'admin' | 'owner' | 'student' | 'client' | 'free') => {
     try {
       // First, remove existing roles for this user
       await supabase
@@ -113,15 +113,21 @@ const UserManagement = () => {
   );
 
   const getUserRole = (user: UserProfile) => {
-    return user.roles?.[0]?.role || 'user';
+    return user.roles?.[0]?.role || 'free';
   };
 
   const getRoleBadgeColor = (role: string) => {
     switch (role) {
       case 'admin':
         return 'bg-red-100 text-red-800';
-      case 'user':
+      case 'owner':
+        return 'bg-purple-100 text-purple-800';
+      case 'student':
         return 'bg-blue-100 text-blue-800';
+      case 'client':
+        return 'bg-green-100 text-green-800';
+      case 'free':
+        return 'bg-gray-100 text-gray-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -184,13 +190,16 @@ const UserManagement = () => {
                 </div>
                 <Select 
                   value={getUserRole(user)} 
-                  onValueChange={(value: 'admin' | 'user') => updateUserRole(user.id, value)}
+                  onValueChange={(value: 'admin' | 'owner' | 'student' | 'client' | 'free') => updateUserRole(user.id, value)}
                 >
-                  <SelectTrigger className="w-24">
+                  <SelectTrigger className="w-32">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="user">User</SelectItem>
+                    <SelectItem value="free">Free</SelectItem>
+                    <SelectItem value="student">Student</SelectItem>
+                    <SelectItem value="client">Client</SelectItem>
+                    <SelectItem value="owner">Owner</SelectItem>
                     <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>

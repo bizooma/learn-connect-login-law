@@ -26,21 +26,37 @@ export const useUserRole = () => {
 
       if (error) {
         console.error('Error fetching user role:', error);
-        setRole('user'); // Default to user role if no role found
+        setRole('free'); // Default to free role if no role found
       } else {
-        // Check if user has admin role, otherwise default to user
-        const hasAdminRole = data?.some(roleData => roleData.role === 'admin');
-        setRole(hasAdminRole ? 'admin' : 'user');
+        // Get the user's role or default to free
+        const userRole = data?.[0]?.role || 'free';
+        setRole(userRole);
       }
     } catch (error) {
       console.error('Error fetching user role:', error);
-      setRole('user');
+      setRole('free');
     } finally {
       setLoading(false);
     }
   };
 
   const isAdmin = role === 'admin';
+  const isOwner = role === 'owner';
+  const isStudent = role === 'student';
+  const isClient = role === 'client';
+  const isFree = role === 'free';
 
-  return { role, isAdmin, loading };
+  // Helper function to check if user has admin or owner privileges
+  const hasAdminPrivileges = isAdmin || isOwner;
+
+  return { 
+    role, 
+    isAdmin, 
+    isOwner, 
+    isStudent, 
+    isClient, 
+    isFree, 
+    hasAdminPrivileges,
+    loading 
+  };
 };
