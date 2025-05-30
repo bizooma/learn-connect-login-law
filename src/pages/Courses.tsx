@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CourseCard from "@/components/CourseCard";
 import CourseFilters from "@/components/CourseFilters";
@@ -124,8 +124,14 @@ const Courses = () => {
                 </p>
               </div>
             </div>
-            <div className="text-sm text-gray-500">
-              {filteredCourses.length} courses available
+            <div className="flex items-center space-x-4">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Course
+              </Button>
+              <div className="text-sm text-gray-500">
+                {filteredCourses.length} courses available
+              </div>
             </div>
           </div>
         </div>
