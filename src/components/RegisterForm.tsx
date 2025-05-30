@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "@/components/ui/use-toast";
 import { Mail, Lock, User, Building } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -14,6 +15,7 @@ const RegisterForm = () => {
     password: "",
     confirmPassword: "",
     lawFirmName: "",
+    userType: "",
   });
   const [isLoading, setIsLoading] = useState(false);
 
@@ -21,6 +23,13 @@ const RegisterForm = () => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
+    });
+  };
+
+  const handleUserTypeChange = (value: string) => {
+    setFormData({
+      ...formData,
+      userType: value,
     });
   };
 
@@ -48,6 +57,7 @@ const RegisterForm = () => {
             first_name: formData.firstName,
             last_name: formData.lastName,
             law_firm_name: formData.lawFirmName,
+            user_type: formData.userType,
           },
         },
       });
@@ -178,6 +188,36 @@ const RegisterForm = () => {
             required
           />
         </div>
+      </div>
+
+      <div className="space-y-3">
+        <Label>Which best describes you:</Label>
+        <RadioGroup value={formData.userType} onValueChange={handleUserTypeChange}>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="law-firm-employee" id="law-firm-employee" />
+            <Label htmlFor="law-firm-employee" className="text-sm font-normal">
+              Law Firm Employee - want to register for courses
+            </Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="law-firm-owner" id="law-firm-owner" />
+            <Label htmlFor="law-firm-owner" className="text-sm font-normal">
+              Law Firm Owner - want to register myself or my team for courses
+            </Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="client" id="client" />
+            <Label htmlFor="client" className="text-sm font-normal">
+              Client of New Frontier Immigration Law
+            </Label>
+          </div>
+          <div className="flex items-center space-x-2">
+            <RadioGroupItem value="free-resources" id="free-resources" />
+            <Label htmlFor="free-resources" className="text-sm font-normal">
+              Only want newsletters, podcasts, and other free resources
+            </Label>
+          </div>
+        </RadioGroup>
       </div>
 
       <Button type="submit" className="w-full" disabled={isLoading}>
