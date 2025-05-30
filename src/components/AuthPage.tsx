@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LoginForm from "./LoginForm";
@@ -14,9 +13,8 @@ const AuthPage = () => {
           <img 
             src="/lovable-uploads/6f8c1259-11b1-4be9-a417-70350b17ddad.png" 
             alt="New Frontier University"
-            className="mx-auto mb-4 h-20 w-auto"
+            className="mx-auto mb-6 h-32 w-auto"
           />
-          <h1 className="text-3xl font-bold text-gray-900">Learning Management System</h1>
           <p className="text-gray-600 mt-2">Access your legal education platform</p>
         </div>
 
