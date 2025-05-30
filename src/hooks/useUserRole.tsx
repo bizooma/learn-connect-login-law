@@ -26,15 +26,15 @@ export const useUserRole = () => {
 
       if (error) {
         console.error('Error fetching user role:', error);
-        setRole('free'); // Default to free role if no role found
+        setRole('student'); // Default to student role if no role found
       } else {
-        // Get the user's role or default to free
-        const userRole = data?.[0]?.role || 'free';
+        // Get the user's role or default to student
+        const userRole = data?.[0]?.role || 'student';
         setRole(userRole);
       }
     } catch (error) {
       console.error('Error fetching user role:', error);
-      setRole('free');
+      setRole('student');
     } finally {
       setLoading(false);
     }

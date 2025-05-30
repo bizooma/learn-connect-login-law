@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, Mail, Calendar, Shield } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface UserProfile {
   id: string;
@@ -23,6 +24,7 @@ const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { isAdmin, isOwner } = useUserRole();
 
   useEffect(() => {
     fetchUsers();
@@ -75,6 +77,16 @@ const UserManagement = () => {
 
   const updateUserRole = async (userId: string, newRole: 'admin' | 'owner' | 'student' | 'client' | 'free') => {
     try {
+      // Check if current user can assign this role
+      if (isOwner && !isAdmin && (newRole === 'admin' || newRole === 'owner')) {
+        toast({
+          title: "Access Denied",
+          description: "Owners cannot assign admin or owner roles",
+          variant: "destructive",
+        });
+        return;
+      }
+
       // First, remove existing roles for this user
       await supabase
         .from('user_roles')
@@ -113,7 +125,7 @@ const UserManagement = () => {
   );
 
   const getUserRole = (user: UserProfile) => {
-    return user.roles?.[0]?.role || 'free';
+    return user.roles?.[0]?.role || 'student';
   };
 
   const getRoleBadgeColor = (role: string) => {
@@ -129,8 +141,29 @@ const UserManagement = () => {
       case 'free':
         return 'bg-gray-100 text-gray-800';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-blue-100 text-blue-800'; // Default to student styling
     }
+  };
+
+  const getAvailableRoles = () => {
+    if (isAdmin) {
+      // Admins can assign any role
+      return [
+        { value: 'free', label: 'Free' },
+        { value: 'student', label: 'Student' },
+        { value: 'client', label: 'Client' },
+        { value: 'owner', label: 'Owner' },
+        { value: 'admin', label: 'Admin' }
+      ];
+    } else if (isOwner) {
+      // Owners can only assign student, client, and free roles
+      return [
+        { value: 'free', label: 'Free' },
+        { value: 'student', label: 'Student' },
+        { value: 'client', label: 'Client' }
+      ];
+    }
+    return [];
   };
 
   if (loading) {
@@ -196,11 +229,11 @@ const UserManagement = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="free">Free</SelectItem>
-                    <SelectItem value="student">Student</SelectItem>
-                    <SelectItem value="client">Client</SelectItem>
-                    <SelectItem value="owner">Owner</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
+                    {getAvailableRoles().map((role) => (
+                      <SelectItem key={role.value} value={role.value}>
+                        {role.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
