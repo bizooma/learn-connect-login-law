@@ -9,6 +9,53 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      course_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string
+          course_id: string
+          created_at: string
+          due_date: string | null
+          id: string
+          is_mandatory: boolean
+          notes: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by: string
+          course_id: string
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          is_mandatory?: boolean
+          notes?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string
+          course_id?: string
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          is_mandatory?: boolean
+          notes?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_assignments_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       course_calendars: {
         Row: {
           course_id: string
@@ -611,6 +658,14 @@ export type Database = {
       is_owner_user: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      mark_course_completed: {
+        Args: {
+          p_user_id: string
+          p_course_id: string
+          p_completion_date?: string
+        }
+        Returns: undefined
       }
     }
     Enums: {

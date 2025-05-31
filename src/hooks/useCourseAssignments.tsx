@@ -1,0 +1,164 @@
+
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+import { Tables } from "@/integrations/supabase/types";
+
+type CourseAssignment = Tables<'course_assignments'>;
+type Profile = Tables<'profiles'>;
+type Course = Tables<'courses'>;
+
+interface CourseAssignmentWithDetails extends CourseAssignment {
+  profiles?: Profile;
+  courses?: Course;
+}
+
+export const useCourseAssignments = () => {
+  const { toast } = useToast();
+  const [assignments, setAssignments] = useState<CourseAssignmentWithDetails[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchAssignments = async () => {
+    try {
+      setLoading(true);
+      
+      const { data, error } = await supabase
+        .from('course_assignments')
+        .select(`
+          *,
+          profiles (
+            id,
+            first_name,
+            last_name,
+            email
+          ),
+          courses (
+            id,
+            title,
+            category,
+            level
+          )
+        `)
+        .order('assigned_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching course assignments:', error);
+        throw error;
+      }
+
+      setAssignments(data || []);
+    } catch (error) {
+      console.error('Error fetching assignments:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load course assignments",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const assignCourse = async (userId: string, courseId: string, dueDate?: string, isM andatory: boolean = false, notes?: string) => {
+    try {
+      const { error } = await supabase
+        .from('course_assignments')
+        .insert({
+          user_id: userId,
+          course_id: courseId,
+          due_date: dueDate,
+          is_mandatory: isM andatory,
+          notes: notes
+        });
+
+      if (error) {
+        console.error('Error assigning course:', error);
+        throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: "Course assigned successfully",
+      });
+
+      await fetchAssignments();
+    } catch (error) {
+      console.error('Error assigning course:', error);
+      toast({
+        title: "Error",
+        description: "Failed to assign course",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const markCourseCompleted = async (userId: string, courseId: string, completionDate?: string) => {
+    try {
+      const { error } = await supabase.rpc('mark_course_completed', {
+        p_user_id: userId,
+        p_course_id: courseId,
+        p_completion_date: completionDate || new Date().toISOString()
+      });
+
+      if (error) {
+        console.error('Error marking course completed:', error);
+        throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: "Course marked as completed",
+      });
+
+      await fetchAssignments();
+    } catch (error) {
+      console.error('Error marking course completed:', error);
+      toast({
+        title: "Error",
+        description: "Failed to mark course as completed",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const removeAssignment = async (assignmentId: string) => {
+    try {
+      const { error } = await supabase
+        .from('course_assignments')
+        .delete()
+        .eq('id', assignmentId);
+
+      if (error) {
+        console.error('Error removing assignment:', error);
+        throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: "Assignment removed successfully",
+      });
+
+      await fetchAssignments();
+    } catch (error) {
+      console.error('Error removing assignment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove assignment",
+        variant: "destructive",
+      });
+    }
+  };
+
+  useEffect(() => {
+    fetchAssignments();
+  }, []);
+
+  return {
+    assignments,
+    loading,
+    assignCourse,
+    markCourseCompleted,
+    removeAssignment,
+    fetchAssignments
+  };
+};

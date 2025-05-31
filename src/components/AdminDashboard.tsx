@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +10,7 @@ import CourseManagement from "./admin/CourseManagement";
 import UserManagement from "./admin/UserManagement";
 import ProfileManagement from "./admin/ProfileManagement";
 import QuizManagement from "./admin/QuizManagement";
+import CourseAssignmentManagement from "./admin/CourseAssignmentManagement";
 
 const AdminDashboard = () => {
   const { user, signOut } = useAuth();
@@ -155,13 +155,14 @@ const AdminDashboard = () => {
           <CardHeader>
             <CardTitle>Management Console</CardTitle>
             <CardDescription>
-              Manage courses, users, quizzes, and system settings
+              Manage courses, users, quizzes, assignments, and system settings
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="courses">Course Management</TabsTrigger>
+                <TabsTrigger value="assignments">Course Assignments</TabsTrigger>
                 <TabsTrigger value="users">User Management</TabsTrigger>
                 <TabsTrigger value="quizzes">Quiz Management</TabsTrigger>
                 <TabsTrigger value="profile">Profile Settings</TabsTrigger>
@@ -169,6 +170,10 @@ const AdminDashboard = () => {
               
               <TabsContent value="courses" className="mt-6">
                 <CourseManagement />
+              </TabsContent>
+              
+              <TabsContent value="assignments" className="mt-6">
+                <CourseAssignmentManagement />
               </TabsContent>
               
               <TabsContent value="users" className="mt-6">
