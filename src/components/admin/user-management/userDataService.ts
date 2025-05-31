@@ -2,6 +2,21 @@
 import { supabase } from "@/integrations/supabase/client";
 import { UserProfile, DiagnosticInfo, ProfileData, OrphanedRoleData } from "./types";
 
+// Define the auth user type structure
+interface AuthUser {
+  id: string;
+  email?: string;
+  user_metadata?: {
+    first_name?: string;
+    last_name?: string;
+  };
+  created_at?: string;
+}
+
+interface AuthUsersResponse {
+  users: AuthUser[];
+}
+
 export const fetchUsersData = async (): Promise<{
   users: UserProfile[];
   diagnosticInfo: DiagnosticInfo;
@@ -20,7 +35,7 @@ export const fetchUsersData = async (): Promise<{
   // Get auth users count (this might fail with regular client)
   let authUsersCount = 0;
   try {
-    const { data: authData } = await supabase.auth.admin.listUsers();
+    const { data: authData } = await supabase.auth.admin.listUsers() as { data: AuthUsersResponse };
     authUsersCount = authData.users?.length || 0;
   } catch (authError) {
     console.log('Cannot access auth users with regular client');
@@ -50,12 +65,12 @@ export const fetchUsersData = async (): Promise<{
   let orphanedRoleEmails: string[] = [];
   if (orphanedRoles && orphanedRoles.length > 0) {
     try {
-      const { data: authUsers } = await supabase.auth.admin.listUsers();
+      const { data: authUsers } = await supabase.auth.admin.listUsers() as { data: AuthUsersResponse };
       if (authUsers?.users) {
         const orphanedUserIds = orphanedRoles.map((r: OrphanedRoleData) => r.user_id);
         orphanedRoleEmails = authUsers.users
-          .filter(user => orphanedUserIds.includes(user.id))
-          .map(user => user.email || 'No email')
+          .filter((user: AuthUser) => orphanedUserIds.includes(user.id))
+          .map((user: AuthUser) => user.email || 'No email')
           .slice(0, 10); // Show first 10 for display
       }
     } catch (error) {
@@ -147,7 +162,7 @@ export const createMissingProfiles = async (): Promise<number> => {
   console.log('Creating missing profiles for auth users...');
   
   // Get all auth users
-  const { data: authData } = await supabase.auth.admin.listUsers();
+  const { data: authData } = await supabase.auth.admin.listUsers() as { data: AuthUsersResponse };
   if (!authData?.users) {
     throw new Error('Cannot access auth users');
   }
@@ -162,11 +177,11 @@ export const createMissingProfiles = async (): Promise<number> => {
   }
 
   const existingProfileIds = new Set(
-    (existingProfiles || []).map((p: { id: string }) => p.id)
+    (existingProfiles || []).map((p: ProfileData) => p.id)
   );
   
   // Find users without profiles
-  const usersWithoutProfiles = authData.users.filter((user: { id: string }) => 
+  const usersWithoutProfiles = authData.users.filter((user: AuthUser) => 
     !existingProfileIds.has(user.id)
   );
 
@@ -175,7 +190,7 @@ export const createMissingProfiles = async (): Promise<number> => {
   }
 
   // Create missing profiles
-  const profilesToCreate = usersWithoutProfiles.map((user: any) => ({
+  const profilesToCreate = usersWithoutProfiles.map((user: AuthUser) => ({
     id: user.id,
     email: user.email || '',
     first_name: user.user_metadata?.first_name || '',
