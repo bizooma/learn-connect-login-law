@@ -49,6 +49,28 @@ export const handleCourseSubmission = async (
 
   console.log('Course created successfully:', courseDataResult);
 
+  // Create a default welcome calendar event for the new course
+  try {
+    const currentDate = new Date();
+    const welcomeDate = new Date(currentDate);
+    welcomeDate.setDate(currentDate.getDate() + 1); // Set for tomorrow
+
+    await supabase
+      .from('course_calendars')
+      .insert({
+        course_id: courseDataResult.id,
+        title: `Welcome to ${data.title}`,
+        description: 'Course introduction and overview',
+        event_date: welcomeDate.toISOString().split('T')[0],
+        event_type: 'general',
+      });
+
+    console.log('Default calendar event created for course');
+  } catch (error) {
+    console.error('Error creating default calendar event:', error);
+    // Don't throw here as it's not critical for course creation
+  }
+
   // Create sections and units if any
   if (sections.length > 0) {
     for (const section of sections) {

@@ -13,6 +13,7 @@ import { getLevelColor, getLevelDisplayName } from "@/utils/courseUtils";
 import CourseVideo from "@/components/course/CourseVideo";
 import CourseContent from "@/components/course/CourseContent";
 import CourseSidebar from "@/components/course/CourseSidebar";
+import CourseCalendar from "@/components/course/CourseCalendar";
 
 type Course = Tables<'courses'>;
 type Section = Tables<'sections'>;
@@ -31,12 +32,27 @@ const Course = () => {
   const [course, setCourse] = useState<CourseWithContent | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
     if (id) {
       fetchCourse();
+      checkAdminStatus();
     }
   }, [id]);
+
+  const checkAdminStatus = async () => {
+    try {
+      const { data: userRoles } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
+      
+      setIsAdmin(userRoles?.some(role => role.role === 'admin' || role.role === 'owner') || false);
+    } catch (error) {
+      console.error('Error checking admin status:', error);
+    }
+  };
 
   const fetchCourse = async () => {
     try {
@@ -192,9 +208,10 @@ const Course = () => {
           {/* Main Content Area */}
           <div className="lg:col-span-3">
             <Tabs defaultValue="video" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="video">Video</TabsTrigger>
                 <TabsTrigger value="content">Content</TabsTrigger>
+                <TabsTrigger value="calendar">Calendar</TabsTrigger>
               </TabsList>
 
               <TabsContent value="video" className="mt-6">
@@ -203,6 +220,10 @@ const Course = () => {
 
               <TabsContent value="content" className="mt-6">
                 <CourseContent unit={selectedUnit} />
+              </TabsContent>
+
+              <TabsContent value="calendar" className="mt-6">
+                <CourseCalendar courseId={course.id} isAdmin={isAdmin} />
               </TabsContent>
             </Tabs>
           </div>

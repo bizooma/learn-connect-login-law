@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
@@ -150,6 +151,38 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
     return publicUrl;
   };
 
+  const ensureCalendarExists = async (courseId: string) => {
+    try {
+      // Check if course already has calendar events
+      const { data: existingEvents } = await supabase
+        .from('course_calendars')
+        .select('id')
+        .eq('course_id', courseId)
+        .limit(1);
+
+      // If no events exist, create a default one
+      if (!existingEvents || existingEvents.length === 0) {
+        const currentDate = new Date();
+        const welcomeDate = new Date(currentDate);
+        welcomeDate.setDate(currentDate.getDate() + 1);
+
+        await supabase
+          .from('course_calendars')
+          .insert({
+            course_id: courseId,
+            title: `Course Updated`,
+            description: 'Course has been updated with new content',
+            event_date: welcomeDate.toISOString().split('T')[0],
+            event_type: 'general',
+          });
+
+        console.log('Default calendar event created for updated course');
+      }
+    } catch (error) {
+      console.error('Error ensuring calendar exists:', error);
+    }
+  };
+
   const onSubmit = async (data: CourseFormData) => {
     if (!course) return;
     
@@ -183,6 +216,9 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
         .eq('id', course.id);
 
       if (courseError) throw courseError;
+
+      // Ensure course has a calendar
+      await ensureCalendarExists(course.id);
 
       // Delete existing sections and units (CASCADE will handle units)
       const { error: deleteError } = await supabase
