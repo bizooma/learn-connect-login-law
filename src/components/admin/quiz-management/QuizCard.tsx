@@ -2,7 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Edit, Clock, Target, BookOpen } from "lucide-react";
+import { Trash2, Edit, Clock, Target, BookOpen, HelpCircle } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 
 type Quiz = Tables<'quizzes'>;
@@ -21,9 +21,10 @@ interface QuizCardProps {
   quiz: QuizWithDetails;
   onDelete: (quizId: string) => void;
   onEdit: (quiz: QuizWithDetails) => void;
+  onManageQuestions: (quiz: QuizWithDetails) => void;
 }
 
-const QuizCard = ({ quiz, onDelete, onEdit }: QuizCardProps) => {
+const QuizCard = ({ quiz, onDelete, onEdit, onManageQuestions }: QuizCardProps) => {
   const handleDelete = () => {
     if (confirm("Are you sure you want to delete this quiz?")) {
       onDelete(quiz.id);
@@ -38,6 +39,15 @@ const QuizCard = ({ quiz, onDelete, onEdit }: QuizCardProps) => {
             {quiz.title}
           </CardTitle>
           <div className="flex items-center space-x-1 ml-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => onManageQuestions(quiz)}
+              className="h-8 w-8 p-0"
+              title="Manage Questions"
+            >
+              <HelpCircle className="h-4 w-4" />
+            </Button>
             <Button
               variant="ghost"
               size="sm"

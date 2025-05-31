@@ -3,11 +3,12 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, ArrowLeft } from "lucide-react";
 import QuizCard from "./quiz-management/QuizCard";
 import QuizSearch from "./quiz-management/QuizSearch";
 import CreateQuizForm from "./quiz-management/CreateQuizForm";
 import EditQuizForm from "./quiz-management/EditQuizForm";
+import QuestionManagement from "./quiz-management/QuestionManagement";
 import { Tables } from "@/integrations/supabase/types";
 
 type Quiz = Tables<'quizzes'>;
@@ -29,6 +30,7 @@ const QuizManagement = () => {
   const [createFormOpen, setCreateFormOpen] = useState(false);
   const [editFormOpen, setEditFormOpen] = useState(false);
   const [selectedQuiz, setSelectedQuiz] = useState<QuizWithDetails | null>(null);
+  const [managingQuestions, setManagingQuestions] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -99,6 +101,16 @@ const QuizManagement = () => {
     setEditFormOpen(true);
   };
 
+  const handleManageQuestions = (quiz: QuizWithDetails) => {
+    setSelectedQuiz(quiz);
+    setManagingQuestions(true);
+  };
+
+  const handleBackToQuizzes = () => {
+    setManagingQuestions(false);
+    setSelectedQuiz(null);
+  };
+
   const filteredQuizzes = quizzes.filter(quiz =>
     quiz.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     quiz.unit.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -112,6 +124,26 @@ const QuizManagement = () => {
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading quizzes...</p>
         </div>
+      </div>
+    );
+  }
+
+  if (managingQuestions && selectedQuiz) {
+    return (
+      <div className="space-y-4">
+        <Button
+          variant="outline"
+          onClick={handleBackToQuizzes}
+          className="mb-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Quizzes
+        </Button>
+        
+        <QuestionManagement
+          quizId={selectedQuiz.id}
+          quizTitle={selectedQuiz.title}
+        />
       </div>
     );
   }
@@ -138,6 +170,7 @@ const QuizManagement = () => {
             quiz={quiz}
             onDelete={deleteQuiz}
             onEdit={handleEditQuiz}
+            onManageQuestions={handleManageQuestions}
           />
         ))}
       </div>
