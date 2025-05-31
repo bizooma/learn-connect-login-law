@@ -14,7 +14,7 @@ const UserManagementHeader = ({ usersCount, diagnosticInfo }: UserManagementHead
         <div>{usersCount} users loaded</div>
         {diagnosticInfo && (
           <div className="text-xs text-gray-500 mt-1">
-            DB: {diagnosticInfo.profilesCount} profiles, {diagnosticInfo.rolesCount} users with roles
+            DB: {diagnosticInfo.rolesCount} users with roles
             {diagnosticInfo.authUsersCount > 0 && `, ${diagnosticInfo.authUsersCount} auth users`}
             {diagnosticInfo.roleCounts && (
               <div className="text-xs mt-1">
