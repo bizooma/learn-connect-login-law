@@ -70,7 +70,28 @@ export const fetchOrphanedRoles = async (): Promise<{ orphanedRoles: OrphanedRol
 };
 
 export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
-  // First, fetch all user roles to get the complete list of users
+  console.log('Starting fetchUserProfiles...');
+  
+  // First, get all profiles from the profiles table
+  const { data: profiles, error: profilesError } = await supabase
+    .from('profiles')
+    .select(`
+      id,
+      email,
+      first_name,
+      last_name,
+      created_at
+    `)
+    .order('created_at', { ascending: false });
+
+  if (profilesError) {
+    console.error('Error fetching profiles:', profilesError);
+    throw profilesError;
+  }
+
+  console.log(`Found ${profiles?.length || 0} profiles in database`);
+
+  // Get all user roles
   const { data: userRoles, error: rolesError } = await supabase
     .from('user_roles')
     .select('user_id, role')
@@ -81,56 +102,50 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
     throw rolesError;
   }
 
-  if (!userRoles || userRoles.length === 0) {
-    console.log('No user roles found in database');
-    return [];
-  }
+  console.log(`Found ${userRoles?.length || 0} user roles`);
 
-  console.log(`Found ${userRoles.length} user roles`);
-
-  // Get unique user IDs from roles
-  const uniqueUserIds = [...new Set(userRoles.map(role => role.user_id))];
-  console.log(`Found ${uniqueUserIds.length} unique users with roles`);
-
-  // Fetch profiles for these users
-  const { data: profiles, error: profilesError } = await supabase
-    .from('profiles')
-    .select(`
-      id,
-      email,
-      first_name,
-      last_name,
-      created_at
-    `)
-    .in('id', uniqueUserIds)
-    .order('created_at', { ascending: false });
-
-  if (profilesError) {
-    console.error('Error fetching profiles:', profilesError);
-    // Don't throw here, continue with empty profiles
-  }
-
-  console.log(`Found ${profiles?.length || 0} profiles for users with roles`);
-
-  // Create user profiles, using role data as primary source
+  // Create a map of user profiles
   const userProfilesMap = new Map<string, UserProfile>();
 
-  // First, create entries for all users with roles
-  uniqueUserIds.forEach(userId => {
-    const existingProfile = profiles?.find(p => p.id === userId);
+  // First, add all users who have profiles
+  profiles?.forEach(profile => {
+    const userRolesForUser = userRoles?.filter(role => role.user_id === profile.id) || [];
     
-    userProfilesMap.set(userId, {
-      id: userId,
-      email: existingProfile?.email || `user-${userId.substring(0, 8)}@unknown.com`,
-      first_name: existingProfile?.first_name || 'Unknown',
-      last_name: existingProfile?.last_name || 'User',
-      created_at: existingProfile?.created_at || new Date().toISOString(),
-      roles: userRoles.filter(role => role.user_id === userId)
+    userProfilesMap.set(profile.id, {
+      id: profile.id,
+      email: profile.email,
+      first_name: profile.first_name || 'Unknown',
+      last_name: profile.last_name || 'User',
+      created_at: profile.created_at,
+      roles: userRolesForUser,
+      hasCompleteProfile: true
     });
   });
 
+  // Then, add any users who have roles but no profiles (this should be rare now)
+  const uniqueUserIds = [...new Set(userRoles?.map(role => role.user_id) || [])];
+  
+  uniqueUserIds.forEach(userId => {
+    if (!userProfilesMap.has(userId)) {
+      console.log(`Found user with role but no profile: ${userId}`);
+      const userRolesForUser = userRoles?.filter(role => role.user_id === userId) || [];
+      
+      userProfilesMap.set(userId, {
+        id: userId,
+        email: `missing-profile-${userId.substring(0, 8)}@example.com`,
+        first_name: 'Missing',
+        last_name: 'Profile',
+        created_at: new Date().toISOString(),
+        roles: userRolesForUser,
+        hasCompleteProfile: false
+      });
+    }
+  });
+
   const result = Array.from(userProfilesMap.values());
-  console.log(`Returning ${result.length} user profiles (including users without profile records)`);
+  console.log(`Returning ${result.length} user profiles total`);
+  console.log(`Complete profiles: ${result.filter(u => u.hasCompleteProfile).length}`);
+  console.log(`Incomplete profiles: ${result.filter(u => !u.hasCompleteProfile).length}`);
   
   return result;
 };

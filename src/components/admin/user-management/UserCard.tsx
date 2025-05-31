@@ -11,7 +11,7 @@ interface UserCardProps {
 
 const UserCard = ({ user, onRoleUpdate }: UserCardProps) => {
   const currentRole = user.roles?.[0]?.role || 'free';
-  const isIncompleteProfile = user.email.includes('@unknown.com');
+  const isIncompleteProfile = !user.hasCompleteProfile || user.email.includes('missing-profile');
 
   return (
     <Card className={`${isIncompleteProfile ? 'border-yellow-200 bg-yellow-50' : ''}`}>
