@@ -1,7 +1,6 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus, Home } from "lucide-react";
+import { ArrowLeft, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CourseCard from "@/components/CourseCard";
 import CourseFilters from "@/components/CourseFilters";
@@ -152,10 +151,6 @@ const Courses = () => {
               >
                 <Home className="h-4 w-4 mr-2" />
                 Back to Dashboard
-              </Button>
-              <Button>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Course
               </Button>
               <div className="text-sm text-gray-500">
                 {filteredCourses.length} courses available
