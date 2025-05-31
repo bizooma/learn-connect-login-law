@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +11,7 @@ import CourseManagement from "./admin/CourseManagement";
 import UserManagement from "./admin/UserManagement";
 import UserImport from "./admin/UserImport";
 import ProfileManagement from "./admin/ProfileManagement";
+import UserDatabaseDebug from "./admin/UserDatabaseDebug";
 
 const AdminDashboard = () => {
   const { user, signOut } = useAuth();
@@ -145,11 +147,12 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="courses">Course Management</TabsTrigger>
                 <TabsTrigger value="users">User Management</TabsTrigger>
                 <TabsTrigger value="import">User Import</TabsTrigger>
                 <TabsTrigger value="profile">Profile Settings</TabsTrigger>
+                <TabsTrigger value="debug">Debug</TabsTrigger>
               </TabsList>
               
               <TabsContent value="courses" className="mt-6">
@@ -166,6 +169,10 @@ const AdminDashboard = () => {
               
               <TabsContent value="profile" className="mt-6">
                 <ProfileManagement />
+              </TabsContent>
+              
+              <TabsContent value="debug" className="mt-6">
+                <UserDatabaseDebug />
               </TabsContent>
             </Tabs>
           </CardContent>
