@@ -4,10 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ProfileImageUpload from "./ProfileImageUpload";
+import UserCourseProgress from "../user/UserCourseProgress";
 
 const ProfileManagement = () => {
   const { user } = useAuth();
@@ -105,64 +107,77 @@ const ProfileManagement = () => {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <Card>
-        <CardHeader>
-          <CardTitle>Admin Profile Settings</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <ProfileImageUpload
-              currentImageUrl={formData.profile_image_url}
-              onImageUpdate={handleImageUpdate}
-            />
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="first_name">First Name</Label>
-                <Input
-                  id="first_name"
-                  name="first_name"
-                  type="text"
-                  value={formData.first_name}
-                  onChange={handleInputChange}
-                  placeholder="Enter your first name"
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="last_name">Last Name</Label>
-                <Input
-                  id="last_name"
-                  name="last_name"
-                  type="text"
-                  value={formData.last_name}
-                  onChange={handleInputChange}
-                  placeholder="Enter your last name"
-                />
-              </div>
-            </div>
+    <div className="max-w-4xl mx-auto">
+      <Tabs defaultValue="profile" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="profile">Profile Settings</TabsTrigger>
+          <TabsTrigger value="progress">Course Progress</TabsTrigger>
+        </TabsList>
 
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleInputChange}
-                placeholder="Enter your email address"
-              />
-            </div>
+        <TabsContent value="profile">
+          <Card>
+            <CardHeader>
+              <CardTitle>Profile Settings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <ProfileImageUpload
+                  currentImageUrl={formData.profile_image_url}
+                  onImageUpdate={handleImageUpdate}
+                />
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="first_name">First Name</Label>
+                    <Input
+                      id="first_name"
+                      name="first_name"
+                      type="text"
+                      value={formData.first_name}
+                      onChange={handleInputChange}
+                      placeholder="Enter your first name"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="last_name">Last Name</Label>
+                    <Input
+                      id="last_name"
+                      name="last_name"
+                      type="text"
+                      value={formData.last_name}
+                      onChange={handleInputChange}
+                      placeholder="Enter your last name"
+                    />
+                  </div>
+                </div>
 
-            <div className="flex justify-end">
-              <Button type="submit" disabled={loading}>
-                {loading ? "Updating..." : "Update Profile"}
-              </Button>
-            </div>
-          </form>
-        </CardContent>
-      </Card>
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input
+                    id="email"
+                    name="email"
+                    type="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    placeholder="Enter your email address"
+                  />
+                </div>
+
+                <div className="flex justify-end">
+                  <Button type="submit" disabled={loading}>
+                    {loading ? "Updating..." : "Update Profile"}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="progress">
+          {user && <UserCourseProgress userId={user.id} />}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

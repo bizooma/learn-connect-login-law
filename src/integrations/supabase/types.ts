@@ -377,6 +377,60 @@ export type Database = {
           },
         ]
       }
+      user_course_progress: {
+        Row: {
+          completed_at: string | null
+          course_id: string
+          created_at: string
+          id: string
+          last_accessed_at: string | null
+          progress_percentage: number
+          started_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          course_id: string
+          created_at?: string
+          id?: string
+          last_accessed_at?: string | null
+          progress_percentage?: number
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          course_id?: string
+          created_at?: string
+          id?: string
+          last_accessed_at?: string | null
+          progress_percentage?: number
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_course_progress_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_course_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_import_batches: {
         Row: {
           created_at: string
@@ -433,6 +487,61 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_unit_progress: {
+        Row: {
+          completed: boolean
+          completed_at: string | null
+          course_id: string
+          created_at: string
+          id: string
+          unit_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          completed?: boolean
+          completed_at?: string | null
+          course_id: string
+          created_at?: string
+          id?: string
+          unit_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          completed?: boolean
+          completed_at?: string | null
+          course_id?: string
+          created_at?: string
+          id?: string
+          unit_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_unit_progress_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_unit_progress_unit_id_fkey"
+            columns: ["unit_id"]
+            isOneToOne: false
+            referencedRelation: "units"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_unit_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

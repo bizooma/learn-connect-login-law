@@ -2,9 +2,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Eye } from "lucide-react";
 import { UserProfile } from "./types";
 import UserRoleSelect from "./UserRoleSelect";
 import DeleteUserDialog from "./DeleteUserDialog";
+import { useState } from "react";
+import UserCourseProgress from "../../user/UserCourseProgress";
 
 interface UserCardProps {
   user: UserProfile;
@@ -13,6 +17,7 @@ interface UserCardProps {
 }
 
 const UserCard = ({ user, onRoleUpdate, onUserDeleted }: UserCardProps) => {
+  const [showProgress, setShowProgress] = useState(false);
   const currentRole = user.roles?.[0]?.role || 'free';
 
   const getUserInitials = () => {
@@ -44,7 +49,16 @@ const UserCard = ({ user, onRoleUpdate, onUserDeleted }: UserCardProps) => {
               </p>
             </div>
           </div>
-          <DeleteUserDialog user={user} onUserDeleted={onUserDeleted} />
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowProgress(!showProgress)}
+            >
+              <Eye className="h-4 w-4" />
+            </Button>
+            <DeleteUserDialog user={user} onUserDeleted={onUserDeleted} />
+          </div>
         </div>
       </CardHeader>
       <CardContent className="pt-0">
@@ -78,6 +92,12 @@ const UserCard = ({ user, onRoleUpdate, onUserDeleted }: UserCardProps) => {
             <p>User ID: {user.id.substring(0, 8)}...</p>
             <p>Created: {new Date(user.created_at).toLocaleDateString()}</p>
           </div>
+
+          {showProgress && (
+            <div className="mt-4 border-t pt-4">
+              <UserCourseProgress userId={user.id} />
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
