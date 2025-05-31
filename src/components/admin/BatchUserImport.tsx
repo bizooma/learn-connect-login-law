@@ -1,8 +1,8 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, CheckCircle, AlertCircle } from "lucide-react";
@@ -14,6 +14,7 @@ interface ImportResult {
   successfulImports: number;
   failedImports: number;
   duplicateEmails: number;
+  updatedUsers: number;
   errors: Array<{ row: number; email: string; error: string }>;
 }
 
@@ -25,6 +26,7 @@ const BatchUserImport = () => {
   const [importing, setImporting] = useState(false);
   const [progress, setProgress] = useState(0);
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
+  const [updateExisting, setUpdateExisting] = useState(false);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = event.target.files?.[0];
@@ -61,6 +63,7 @@ const BatchUserImport = () => {
       
       const formData = new FormData();
       formData.append('file', file);
+      formData.append('updateExisting', updateExisting.toString());
 
       // Simulate progress updates
       const progressInterval = setInterval(() => {
@@ -87,9 +90,13 @@ const BatchUserImport = () => {
 
       if (data.success) {
         setImportResult(data.stats);
+        const successMessage = updateExisting 
+          ? `Import completed: ${data.stats.successfulImports} new users, ${data.stats.updatedUsers} updated users`
+          : `Successfully imported ${data.stats.successfulImports} users`;
+        
         toast({
           title: "Import completed",
-          description: `Successfully imported ${data.stats.successfulImports} users`,
+          description: successMessage,
         });
       } else {
         console.error('Batch import failed:', data.error);
@@ -164,6 +171,20 @@ const BatchUserImport = () => {
             </div>
           </div>
 
+          <div className="flex items-center space-x-2">
+            <Checkbox 
+              id="updateExisting" 
+              checked={updateExisting}
+              onCheckedChange={(checked) => setUpdateExisting(checked as boolean)}
+            />
+            <label 
+              htmlFor="updateExisting" 
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Update existing users (names and roles)
+            </label>
+          </div>
+
           {csvPreview.length > 0 && (
             <Card>
               <CardHeader>
@@ -218,7 +239,7 @@ const BatchUserImport = () => {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center">
-              {importResult.successfulImports > 0 ? (
+              {(importResult.successfulImports > 0 || importResult.updatedUsers > 0) ? (
                 <CheckCircle className="h-5 w-5 mr-2 text-green-600" />
               ) : (
                 <AlertCircle className="h-5 w-5 mr-2 text-red-600" />
@@ -227,7 +248,7 @@ const BatchUserImport = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-600">
                   {importResult.totalRows}
@@ -238,8 +259,16 @@ const BatchUserImport = () => {
                 <div className="text-2xl font-bold text-green-600">
                   {importResult.successfulImports}
                 </div>
-                <div className="text-sm text-gray-600">Successful</div>
+                <div className="text-sm text-gray-600">New Users</div>
               </div>
+              {updateExisting && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-blue-600">
+                    {importResult.updatedUsers || 0}
+                  </div>
+                  <div className="text-sm text-gray-600">Updated</div>
+                </div>
+              )}
               <div className="text-center">
                 <div className="text-2xl font-bold text-red-600">
                   {importResult.failedImports}
@@ -250,7 +279,7 @@ const BatchUserImport = () => {
                 <div className="text-2xl font-bold text-yellow-600">
                   {importResult.duplicateEmails}
                 </div>
-                <div className="text-sm text-gray-600">Duplicates</div>
+                <div className="text-sm text-gray-600">Skipped</div>
               </div>
             </div>
 

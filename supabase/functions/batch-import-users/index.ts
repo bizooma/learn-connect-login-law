@@ -1,4 +1,3 @@
-
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
@@ -19,6 +18,7 @@ interface ImportResult {
   successfulImports: number;
   failedImports: number;
   duplicateEmails: number;
+  updatedUsers: number;
   errors: Array<{ row: number; email: string; error: string }>;
 }
 
@@ -70,6 +70,7 @@ serve(async (req) => {
     // Parse request body
     const formData = await req.formData();
     const file = formData.get('file') as File;
+    const updateExisting = formData.get('updateExisting') === 'true';
     const filename = file?.name || 'unknown.csv';
 
     if (!file) {
@@ -77,7 +78,7 @@ serve(async (req) => {
     }
 
     const csvData = await file.text();
-    console.log(`Processing CSV file: ${filename}, ${csvData.length} characters`);
+    console.log(`Processing CSV file: ${filename}, ${csvData.length} characters, updateExisting: ${updateExisting}`);
     
     // Parse CSV data
     const users = parseCSV(csvData);
@@ -89,6 +90,7 @@ serve(async (req) => {
       successfulImports: 0,
       failedImports: 0,
       duplicateEmails: 0,
+      updatedUsers: 0,
       errors: []
     };
 
@@ -98,7 +100,7 @@ serve(async (req) => {
       const batch = users.slice(i, i + BATCH_SIZE);
       console.log(`Processing batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(users.length / BATCH_SIZE)}`);
       
-      await processBatch(supabaseAdmin, batch, i, stats);
+      await processBatch(supabaseAdmin, batch, i, stats, updateExisting);
     }
 
     // Log the import batch
@@ -124,7 +126,9 @@ serve(async (req) => {
       JSON.stringify({
         success: true,
         stats,
-        message: `Import completed: ${stats.successfulImports} successful, ${stats.failedImports} failed`
+        message: updateExisting 
+          ? `Import completed: ${stats.successfulImports} new, ${stats.updatedUsers} updated, ${stats.failedImports} failed`
+          : `Import completed: ${stats.successfulImports} successful, ${stats.failedImports} failed`
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -152,128 +156,183 @@ async function processBatch(
   supabase: any,
   batch: UserData[],
   startIndex: number,
-  stats: ImportResult
+  stats: ImportResult,
+  updateExisting: boolean
 ) {
-  // Check for existing profiles to identify duplicates
+  // Check for existing profiles
   const emails = batch.map(user => user.email);
   const { data: existingProfiles } = await supabase
     .from('profiles')
-    .select('email')
+    .select('id, email')
     .in('email', emails);
 
-  const existingEmails = new Set(existingProfiles?.map((p: any) => p.email) || []);
+  const existingEmailMap = new Map(existingProfiles?.map((p: any) => [p.email, p.id]) || []);
 
   const newUsers: UserData[] = [];
+  const usersToUpdate: Array<{ userData: UserData; profileId: string }> = [];
   
-  // Separate new users from duplicates
+  // Separate new users from existing ones
   batch.forEach((user, index) => {
-    if (existingEmails.has(user.email)) {
-      stats.failedImports++;
-      stats.duplicateEmails++;
-      stats.errors.push({
-        row: startIndex + index + 1,
-        email: user.email,
-        error: 'Email already exists'
-      });
+    const profileId = existingEmailMap.get(user.email);
+    
+    if (profileId) {
+      if (updateExisting) {
+        usersToUpdate.push({ userData: user, profileId });
+      } else {
+        stats.failedImports++;
+        stats.duplicateEmails++;
+        stats.errors.push({
+          row: startIndex + index + 1,
+          email: user.email,
+          error: 'Email already exists'
+        });
+      }
     } else {
       newUsers.push(user);
     }
   });
 
-  if (newUsers.length === 0) {
-    console.log('No new users in this batch');
-    return;
+  // Handle updates for existing users
+  if (usersToUpdate.length > 0) {
+    try {
+      // Update profiles
+      for (const { userData, profileId } of usersToUpdate) {
+        const { error: profileError } = await supabase
+          .from('profiles')
+          .update({
+            first_name: userData.first_name,
+            last_name: userData.last_name,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', profileId);
+
+        if (profileError) {
+          console.error('Profile update error:', profileError);
+          stats.failedImports++;
+          const rowIndex = batch.findIndex(u => u.email === userData.email) + startIndex + 1;
+          stats.errors.push({
+            row: rowIndex,
+            email: userData.email,
+            error: `Profile update failed: ${profileError.message}`
+          });
+          continue;
+        }
+
+        // Update or insert user role
+        const normalizedRole = normalizeRole(userData.role);
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .upsert({
+            user_id: profileId,
+            role: normalizedRole
+          }, {
+            onConflict: 'user_id,role'
+          });
+
+        if (roleError) {
+          console.error('Role update error:', roleError);
+          // Don't fail the entire operation if role update fails
+        }
+
+        stats.updatedUsers++;
+      }
+    } catch (error) {
+      console.error('Batch update error:', error);
+    }
   }
 
-  try {
-    // Create auth users in batch
-    const authResults = await Promise.allSettled(
-      newUsers.map(user => createAuthUser(supabase, user))
-    );
+  // Handle new users (existing logic)
+  if (newUsers.length > 0) {
+    try {
+      // Create auth users in batch
+      const authResults = await Promise.allSettled(
+        newUsers.map(user => createAuthUser(supabase, user))
+      );
 
-    const successfulAuthUsers: Array<{ user: UserData; authId: string }> = [];
+      const successfulAuthUsers: Array<{ user: UserData; authId: string }> = [];
 
-    authResults.forEach((result, index) => {
-      const user = newUsers[index];
-      const rowIndex = batch.indexOf(user) + startIndex + 1;
+      authResults.forEach((result, index) => {
+        const user = newUsers[index];
+        const rowIndex = batch.indexOf(user) + startIndex + 1;
 
-      if (result.status === 'fulfilled' && result.value.success) {
-        successfulAuthUsers.push({
-          user,
-          authId: result.value.authId
-        });
-      } else {
-        stats.failedImports++;
-        const error = result.status === 'rejected' 
-          ? result.reason.message 
-          : result.value.error;
-        stats.errors.push({
-          row: rowIndex,
-          email: user.email,
-          error: `Auth creation failed: ${error}`
-        });
-      }
-    });
-
-    if (successfulAuthUsers.length > 0) {
-      // Batch insert profiles
-      const profilesData = successfulAuthUsers.map(({ user, authId }) => ({
-        id: authId,
-        email: user.email,
-        first_name: user.first_name,
-        last_name: user.last_name
-      }));
-
-      const { error: profilesError } = await supabase
-        .from('profiles')
-        .insert(profilesData);
-
-      if (profilesError) {
-        console.error('Profiles batch insert error:', profilesError);
-        // Mark all as failed if profiles insert fails
-        successfulAuthUsers.forEach(({ user }) => {
+        if (result.status === 'fulfilled' && result.value.success) {
+          successfulAuthUsers.push({
+            user,
+            authId: result.value.authId
+          });
+        } else {
           stats.failedImports++;
-          const rowIndex = batch.indexOf(user) + startIndex + 1;
+          const error = result.status === 'rejected' 
+            ? result.reason.message 
+            : result.value.error;
           stats.errors.push({
             row: rowIndex,
             email: user.email,
-            error: `Profile creation failed: ${profilesError.message}`
+            error: `Auth creation failed: ${error}`
           });
-        });
-        return;
-      }
-
-      // Batch insert user roles
-      const rolesData = successfulAuthUsers.map(({ user, authId }) => ({
-        user_id: authId,
-        role: normalizeRole(user.role)
-      }));
-
-      const { error: rolesError } = await supabase
-        .from('user_roles')
-        .insert(rolesData);
-
-      if (rolesError) {
-        console.error('Roles batch insert error:', rolesError);
-        // Don't fail the entire operation if role assignment fails
-      }
-
-      // Mark successful imports
-      stats.successfulImports += successfulAuthUsers.length;
-      console.log(`Successfully processed ${successfulAuthUsers.length} users in batch`);
-    }
-
-  } catch (error) {
-    console.error('Batch processing error:', error);
-    newUsers.forEach((user, index) => {
-      stats.failedImports++;
-      const rowIndex = batch.indexOf(user) + startIndex + 1;
-      stats.errors.push({
-        row: rowIndex,
-        email: user.email,
-        error: `Batch processing failed: ${error.message}`
+        }
       });
-    });
+
+      if (successfulAuthUsers.length > 0) {
+        // Batch insert profiles
+        const profilesData = successfulAuthUsers.map(({ user, authId }) => ({
+          id: authId,
+          email: user.email,
+          first_name: user.first_name,
+          last_name: user.last_name
+        }));
+
+        const { error: profilesError } = await supabase
+          .from('profiles')
+          .insert(profilesData);
+
+        if (profilesError) {
+          console.error('Profiles batch insert error:', profilesError);
+          // Mark all as failed if profiles insert fails
+          successfulAuthUsers.forEach(({ user }) => {
+            stats.failedImports++;
+            const rowIndex = batch.indexOf(user) + startIndex + 1;
+            stats.errors.push({
+              row: rowIndex,
+              email: user.email,
+              error: `Profile creation failed: ${profilesError.message}`
+            });
+          });
+          return;
+        }
+
+        // Batch insert user roles
+        const rolesData = successfulAuthUsers.map(({ user, authId }) => ({
+          user_id: authId,
+          role: normalizeRole(user.role)
+        }));
+
+        const { error: rolesError } = await supabase
+          .from('user_roles')
+          .insert(rolesData);
+
+        if (rolesError) {
+          console.error('Roles batch insert error:', rolesError);
+          // Don't fail the entire operation if role assignment fails
+        }
+
+        // Mark successful imports
+        stats.successfulImports += successfulAuthUsers.length;
+        console.log(`Successfully processed ${successfulAuthUsers.length} new users in batch`);
+      }
+
+    } catch (error) {
+      console.error('Batch processing error:', error);
+      newUsers.forEach((user, index) => {
+        stats.failedImports++;
+        const rowIndex = batch.indexOf(user) + startIndex + 1;
+        stats.errors.push({
+          row: rowIndex,
+          email: user.email,
+          error: `Batch processing failed: ${error.message}`
+        });
+      });
+    }
   }
 }
 
