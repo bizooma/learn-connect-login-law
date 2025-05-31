@@ -1,153 +1,166 @@
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { parseCSVData } from './csvParser.ts';
+import { parseCSV } from './csvParser.ts';
 import { createUser } from './userCreator.ts';
-import { validateUserPermissions } from './auth.ts';
-import { ImportResult, ImportError } from './types.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface ImportStats {
+  totalRows: number;
+  successfulImports: number;
+  failedImports: number;
+  duplicateEmails: number;
+  errors: Array<{ row: number; email: string; error: string }>;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders });
+    return new Response('ok', { headers: corsHeaders });
   }
 
   try {
-    console.log('Starting user import process');
-    
-    const supabase = createClient(
+    // Get the authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('No authorization header');
+    }
+
+    // Create Supabase client with service role
+    const supabaseAdmin = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '',
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
     );
 
-    // Validate user permissions
-    const { user, error: authError } = await validateUserPermissions(
-      supabase,
-      req.headers.get('Authorization')
-    );
-
-    if (authError || !user) {
-      console.error('Authorization failed:', authError);
-      throw new Error(authError || 'Unauthorized');
+    // Verify the user making the request is authenticated and has admin privileges
+    const token = authHeader.replace('Bearer ', '');
+    const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
+    
+    if (userError || !user) {
+      throw new Error('Unauthorized');
     }
 
-    console.log(`Import initiated by user: ${user.id}`);
-
-    const { csvData, filename } = await req.json();
-    console.log(`Processing CSV import: ${filename}`);
-
-    if (!csvData) {
-      throw new Error('No CSV data provided');
-    }
-
-    // Parse CSV data
-    const { rows, errors } = parseCSVData(csvData);
-    console.log(`Parsed ${rows.length} valid rows with ${errors.length} parsing errors`);
-
-    // Create import batch record
-    const { data: batch, error: batchError } = await supabase
-      .from('user_import_batches')
-      .insert({
-        imported_by: user.id,
-        filename,
-        total_rows: csvData.trim().split('\n').length - 1, // Exclude header
-        import_errors: errors
-      })
-      .select()
+    // Check if user has admin role
+    const { data: userRole, error: roleError } = await supabaseAdmin
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
       .single();
 
-    if (batchError) {
-      console.error('Failed to create import batch:', batchError);
-      throw new Error(`Failed to create import batch: ${batchError.message}`);
+    if (roleError || !userRole || (userRole.role !== 'admin' && userRole.role !== 'owner')) {
+      throw new Error('Insufficient privileges');
     }
 
-    console.log(`Created import batch: ${batch.id}`);
+    // Get the form data
+    const formData = await req.formData();
+    const file = formData.get('file') as File;
+    const filename = file?.name || 'unknown.csv';
 
-    let successfulImports = 0;
-    let duplicateEmails = 0;
-    const allErrors: ImportError[] = [...errors];
+    if (!file) {
+      throw new Error('No file provided');
+    }
 
-    // Process valid rows with better error tracking
-    for (let i = 0; i < rows.length; i++) {
-      const row = rows[i];
-      console.log(`Processing user ${i + 1}/${rows.length}: ${row.email}`);
+    // Read and parse CSV
+    const csvText = await file.text();
+    console.log(`Processing CSV file: ${filename}`);
+    console.log(`CSV content length: ${csvText.length}`);
+    
+    const users = parseCSV(csvText);
+    console.log(`Parsed ${users.length} users from CSV`);
+
+    // Initialize stats
+    const stats: ImportStats = {
+      totalRows: users.length,
+      successfulImports: 0,
+      failedImports: 0,
+      duplicateEmails: 0,
+      errors: []
+    };
+
+    // Process each user
+    for (let i = 0; i < users.length; i++) {
+      const user = users[i];
+      console.log(`Processing user ${i + 1}/${users.length}: ${user.email}`);
       
-      const result = await createUser(supabase, row);
-      
-      if (result.success) {
-        successfulImports++;
-        console.log(`✓ Successfully imported: ${row.email} (${successfulImports}/${rows.length})`);
-      } else {
-        console.log(`✗ Failed to import: ${row.email} - ${result.error}`);
+      try {
+        const result = await createUser(supabaseAdmin, user);
         
-        if (result.error === 'Email already exists') {
-          duplicateEmails++;
+        if (result.success) {
+          stats.successfulImports++;
+          console.log(`✓ Successfully created user: ${user.email}`);
+        } else {
+          stats.failedImports++;
+          if (result.isDuplicate) {
+            stats.duplicateEmails++;
+          }
+          stats.errors.push({
+            row: i + 1,
+            email: user.email,
+            error: result.error || 'Unknown error'
+          });
+          console.log(`✗ Failed to create user ${user.email}: ${result.error}`);
         }
-        
-        // Try to find the original row number
-        const originalRowNumber = i + 2; // +1 for 0-based index, +1 for header row
-        
-        allErrors.push({
-          row: originalRowNumber,
-          email: row.email,
-          error: result.error || 'Unknown error'
+      } catch (error) {
+        stats.failedImports++;
+        stats.errors.push({
+          row: i + 1,
+          email: user.email,
+          error: `Unexpected error: ${error.message}`
         });
+        console.error(`✗ Unexpected error for user ${user.email}:`, error);
       }
     }
 
-    // Update batch with final results
-    const { error: updateError } = await supabase
+    // Log the import batch
+    const { error: batchError } = await supabaseAdmin
       .from('user_import_batches')
-      .update({
-        successful_imports: successfulImports,
-        failed_imports: allErrors.length - errors.length, // Exclude parsing errors
-        duplicate_emails: duplicateEmails,
-        import_errors: allErrors
-      })
-      .eq('id', batch.id);
+      .insert({
+        filename,
+        total_rows: stats.totalRows,
+        successful_imports: stats.successfulImports,
+        failed_imports: stats.failedImports,
+        duplicate_emails: stats.duplicateEmails,
+        import_errors: stats.errors,
+        imported_by: user.id
+      });
 
-    if (updateError) {
-      console.error('Failed to update batch results:', updateError);
+    if (batchError) {
+      console.error('Failed to log import batch:', batchError);
     }
 
-    const result: ImportResult = {
-      success: true,
-      totalRows: csvData.trim().split('\n').length - 1,
-      successfulImports,
-      failedImports: allErrors.length - errors.length,
-      duplicateEmails,
-      errors: allErrors,
-      batchId: batch.id
-    };
+    console.log('Import completed:', stats);
 
-    console.log(`Import completed: ${successfulImports} successful, ${allErrors.length - errors.length} failed, ${duplicateEmails} duplicates`);
-
-    return new Response(JSON.stringify(result), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      status: 200,
-    });
-
-  } catch (error) {
-    console.error('Import error:', error);
     return new Response(
-      JSON.stringify({ 
-        success: false, 
-        error: error.message,
-        totalRows: 0,
-        successfulImports: 0,
-        failedImports: 0,
-        duplicateEmails: 0,
-        errors: [],
-        batchId: ''
+      JSON.stringify({
+        success: true,
+        stats,
+        message: `Import completed: ${stats.successfulImports} successful, ${stats.failedImports} failed`
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      }
+    );
+
+  } catch (error) {
+    console.error('Import failed:', error);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: error.message
+      }),
+      {
         status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     );
   }

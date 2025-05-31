@@ -1,125 +1,170 @@
 
-import { SupabaseClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { CSVRow, ImportError } from './types.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+
+interface UserData {
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  password?: string;
+}
+
+interface CreateUserResult {
+  success: boolean;
+  user_id?: string;
+  error?: string;
+  isDuplicate?: boolean;
+}
 
 export async function createUser(
-  supabase: SupabaseClient,
-  row: CSVRow
-): Promise<{ success: boolean; error?: string }> {
+  supabaseAdmin: ReturnType<typeof createClient>,
+  userData: UserData
+): Promise<CreateUserResult> {
   try {
-    console.log(`Starting import for user: ${row.email}`);
+    console.log(`Creating user: ${userData.email}`);
+    
+    // First check if user already exists in auth.users
+    const { data: existingAuthUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers();
+    
+    if (listError) {
+      console.error('Error checking existing auth users:', listError);
+    } else {
+      const existingAuthUser = existingAuthUsers.users?.find(u => u.email === userData.email);
+      if (existingAuthUser) {
+        console.log(`User ${userData.email} already exists in auth.users`);
+        return {
+          success: false,
+          error: 'Email already exists in authentication system',
+          isDuplicate: true
+        };
+      }
+    }
 
-    // Check if email already exists in profiles first
-    const { data: existingProfile } = await supabase
+    // Check if user exists in profiles table
+    const { data: existingProfiles, error: profileCheckError } = await supabaseAdmin
       .from('profiles')
       .select('id')
-      .eq('email', row.email)
+      .eq('email', userData.email)
       .single();
 
-    if (existingProfile) {
-      console.log(`Email already exists in profiles: ${row.email}`);
-      return { success: false, error: 'Email already exists' };
+    if (!profileCheckError && existingProfiles) {
+      console.log(`User ${userData.email} already exists in profiles`);
+      return {
+        success: false,
+        error: 'Email already exists in profiles',
+        isDuplicate: true
+      };
     }
 
-    // Check if auth user already exists
-    const { data: existingAuthUsers } = await supabase.auth.admin.listUsers({
-      filter: `email.eq.${row.email}`
-    });
+    // Generate a temporary password if none provided
+    const password = userData.password || generateRandomPassword();
 
-    if (existingAuthUsers?.users && existingAuthUsers.users.length > 0) {
-      console.log(`Auth user already exists: ${row.email}`);
-      return { success: false, error: 'Email already exists' };
-    }
-
-    // Create auth user with proper metadata
-    console.log(`Creating auth user for: ${row.email}`);
-    const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
-      email: row.email,
-      email_confirm: true,
+    // Create user in auth.users
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email: userData.email,
+      password: password,
+      email_confirm: true, // Auto-confirm email
       user_metadata: {
-        first_name: row.firstName || '',
-        last_name: row.lastName || ''
+        first_name: userData.first_name,
+        last_name: userData.last_name
       }
     });
 
     if (authError) {
-      console.error(`Auth user creation failed for ${row.email}:`, authError);
-      return { success: false, error: `Failed to create auth user: ${authError.message}` };
+      console.error(`Auth creation failed for ${userData.email}:`, authError);
+      return {
+        success: false,
+        error: `Auth creation failed: ${authError.message}`,
+        isDuplicate: authError.message?.includes('already') || authError.message?.includes('duplicate')
+      };
     }
 
-    if (!authUser.user) {
-      console.error(`No user returned from auth creation for: ${row.email}`);
-      return { success: false, error: 'Failed to create auth user: No user returned' };
+    if (!authData.user) {
+      return {
+        success: false,
+        error: 'No user returned from auth creation'
+      };
     }
 
-    console.log(`Auth user created successfully for ${row.email}, ID: ${authUser.user.id}`);
+    console.log(`Auth user created for ${userData.email}, ID: ${authData.user.id}`);
 
-    // Wait a moment for the trigger to create the profile
-    await new Promise(resolve => setTimeout(resolve, 100));
+    // The trigger should automatically create the profile, but let's verify it exists
+    let profileCreated = false;
+    let attempts = 0;
+    const maxAttempts = 5;
 
-    // Check if profile was created by trigger
-    let profileExists = false;
-    let retries = 0;
-    const maxRetries = 5;
-
-    while (!profileExists && retries < maxRetries) {
-      const { data: profile, error: profileCheckError } = await supabase
+    while (!profileCreated && attempts < maxAttempts) {
+      attempts++;
+      
+      // Wait a bit for the trigger to fire
+      await new Promise(resolve => setTimeout(resolve, 500));
+      
+      const { data: profile, error: profileError } = await supabaseAdmin
         .from('profiles')
         .select('id')
-        .eq('id', authUser.user.id)
+        .eq('id', authData.user.id)
         .single();
 
-      if (profile) {
-        profileExists = true;
-        console.log(`Profile found for user: ${row.email}`);
-      } else {
-        retries++;
-        console.log(`Profile not found for ${row.email}, retry ${retries}/${maxRetries}`);
-        await new Promise(resolve => setTimeout(resolve, 200));
+      if (!profileError && profile) {
+        profileCreated = true;
+        console.log(`Profile found for ${userData.email} after ${attempts} attempts`);
+      } else if (attempts === maxAttempts) {
+        console.log(`Profile not found after ${maxAttempts} attempts, creating manually`);
+        
+        // Manually create profile if trigger didn't work
+        const { error: manualProfileError } = await supabaseAdmin
+          .from('profiles')
+          .insert({
+            id: authData.user.id,
+            email: userData.email,
+            first_name: userData.first_name,
+            last_name: userData.last_name
+          });
+
+        if (manualProfileError) {
+          console.error(`Manual profile creation failed for ${userData.email}:`, manualProfileError);
+          // Don't fail the entire operation if profile creation fails
+        } else {
+          profileCreated = true;
+          console.log(`Manual profile created for ${userData.email}`);
+        }
       }
     }
 
-    // If profile wasn't created by trigger, create it manually
-    if (!profileExists) {
-      console.log(`Creating profile manually for: ${row.email}`);
-      const { error: manualProfileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: authUser.user.id,
-          email: row.email,
-          first_name: row.firstName || null,
-          last_name: row.lastName || null
-        });
-
-      if (manualProfileError) {
-        console.error(`Manual profile creation failed for ${row.email}:`, manualProfileError);
-        // Try to clean up the auth user
-        await supabase.auth.admin.deleteUser(authUser.user.id);
-        return { success: false, error: `Failed to create profile: ${manualProfileError.message}` };
-      }
-      console.log(`Profile created manually for: ${row.email}`);
-    }
-
-    // Insert user role
-    console.log(`Assigning role '${row.role}' to user: ${row.email}`);
-    const { error: roleError } = await supabase
+    // Assign role
+    const { error: roleError } = await supabaseAdmin
       .from('user_roles')
-      .insert({
-        user_id: authUser.user.id,
-        role: row.role
+      .upsert({
+        user_id: authData.user.id,
+        role: userData.role as any
       });
 
     if (roleError) {
-      console.error(`Role assignment failed for ${row.email}:`, roleError);
-      // Don't fail the entire import for role assignment issues
-      console.log(`User ${row.email} created but role assignment failed`);
+      console.error(`Role assignment failed for ${userData.email}:`, roleError);
+      // Don't fail the entire operation if role assignment fails
+    } else {
+      console.log(`Role ${userData.role} assigned to ${userData.email}`);
     }
 
-    console.log(`Successfully imported user: ${row.email}`);
-    return { success: true };
+    return {
+      success: true,
+      user_id: authData.user.id
+    };
 
   } catch (error) {
-    console.error(`Unexpected error for user ${row.email}:`, error);
-    return { success: false, error: `Unexpected error: ${error.message}` };
+    console.error(`Unexpected error creating user ${userData.email}:`, error);
+    return {
+      success: false,
+      error: `Unexpected error: ${error.message}`
+    };
   }
+}
+
+function generateRandomPassword(): string {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*';
+  let password = '';
+  for (let i = 0; i < 12; i++) {
+    password += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return password;
 }
