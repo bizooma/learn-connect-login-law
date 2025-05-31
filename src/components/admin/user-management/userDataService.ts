@@ -39,4 +39,3 @@ export const fetchUsersData = async (): Promise<{
 
 // Re-export other operations
 export { cleanupOrphanedRoles, updateUserRole } from "./roleOperations";
-export { createMissingProfilesFromAuth as createMissingProfiles } from "./authHelpers";

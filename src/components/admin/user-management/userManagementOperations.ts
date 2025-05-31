@@ -3,9 +3,9 @@ import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
 import {
   cleanupOrphanedRoles as cleanupOrphanedRolesService,
-  createMissingProfiles as createMissingProfilesService,
   updateUserRole as updateUserRoleService
-} from "./userDataService";
+} from "./roleOperations";
+import { syncUserProfiles } from "./profileSyncService";
 
 export const useUserManagementOperations = (fetchUsers: () => Promise<void>) => {
   const { toast } = useToast();
@@ -55,19 +55,20 @@ export const useUserManagementOperations = (fetchUsers: () => Promise<void>) => 
     }
 
     try {
-      const createdCount = await createMissingProfilesService();
+      console.log('Starting profile sync...');
+      const result = await syncUserProfiles();
 
-      if (createdCount === 0) {
+      if (result.createdCount === 0) {
         toast({
           title: "Info",
-          description: "No missing profiles found",
+          description: result.message,
         });
         return;
       }
 
       toast({
         title: "Success",
-        description: `Created ${createdCount} missing profiles`,
+        description: `${result.message}. Details: ${result.details?.totalAuthUsers} total auth users, ${result.details?.existingProfiles} existing profiles, ${result.details?.profilesCreated} new profiles created.`,
       });
 
       // Refresh the data
@@ -76,7 +77,7 @@ export const useUserManagementOperations = (fetchUsers: () => Promise<void>) => 
       console.error('Error creating missing profiles:', error);
       toast({
         title: "Error",
-        description: "Failed to create missing profiles",
+        description: `Failed to create missing profiles: ${error.message}`,
         variant: "destructive",
       });
     }
