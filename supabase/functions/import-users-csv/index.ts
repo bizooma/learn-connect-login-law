@@ -18,6 +18,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Starting user import process');
+    
     const supabase = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -30,15 +32,22 @@ serve(async (req) => {
     );
 
     if (authError || !user) {
+      console.error('Authorization failed:', authError);
       throw new Error(authError || 'Unauthorized');
     }
+
+    console.log(`Import initiated by user: ${user.id}`);
 
     const { csvData, filename } = await req.json();
     console.log(`Processing CSV import: ${filename}`);
 
+    if (!csvData) {
+      throw new Error('No CSV data provided');
+    }
+
     // Parse CSV data
     const { rows, errors } = parseCSVData(csvData);
-    console.log(`Parsed ${rows.length} valid rows with ${errors.length} errors`);
+    console.log(`Parsed ${rows.length} valid rows with ${errors.length} parsing errors`);
 
     // Create import batch record
     const { data: batch, error: batchError } = await supabase
@@ -53,25 +62,38 @@ serve(async (req) => {
       .single();
 
     if (batchError) {
+      console.error('Failed to create import batch:', batchError);
       throw new Error(`Failed to create import batch: ${batchError.message}`);
     }
+
+    console.log(`Created import batch: ${batch.id}`);
 
     let successfulImports = 0;
     let duplicateEmails = 0;
     const allErrors: ImportError[] = [...errors];
 
-    // Process valid rows
-    for (const row of rows) {
+    // Process valid rows with better error tracking
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      console.log(`Processing user ${i + 1}/${rows.length}: ${row.email}`);
+      
       const result = await createUser(supabase, row);
       
       if (result.success) {
         successfulImports++;
+        console.log(`✓ Successfully imported: ${row.email} (${successfulImports}/${rows.length})`);
       } else {
+        console.log(`✗ Failed to import: ${row.email} - ${result.error}`);
+        
         if (result.error === 'Email already exists') {
           duplicateEmails++;
         }
+        
+        // Try to find the original row number
+        const originalRowNumber = i + 2; // +1 for 0-based index, +1 for header row
+        
         allErrors.push({
-          row: 0, // We've lost track of the original row number here
+          row: originalRowNumber,
           email: row.email,
           error: result.error || 'Unknown error'
         });
@@ -79,27 +101,31 @@ serve(async (req) => {
     }
 
     // Update batch with final results
-    await supabase
+    const { error: updateError } = await supabase
       .from('user_import_batches')
       .update({
         successful_imports: successfulImports,
-        failed_imports: allErrors.length,
+        failed_imports: allErrors.length - errors.length, // Exclude parsing errors
         duplicate_emails: duplicateEmails,
         import_errors: allErrors
       })
       .eq('id', batch.id);
 
+    if (updateError) {
+      console.error('Failed to update batch results:', updateError);
+    }
+
     const result: ImportResult = {
       success: true,
       totalRows: csvData.trim().split('\n').length - 1,
       successfulImports,
-      failedImports: allErrors.length,
+      failedImports: allErrors.length - errors.length,
       duplicateEmails,
       errors: allErrors,
       batchId: batch.id
     };
 
-    console.log(`Import completed: ${successfulImports} successful, ${allErrors.length} failed`);
+    console.log(`Import completed: ${successfulImports} successful, ${allErrors.length - errors.length} failed, ${duplicateEmails} duplicates`);
 
     return new Response(JSON.stringify(result), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -111,7 +137,13 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: error.message 
+        error: error.message,
+        totalRows: 0,
+        successfulImports: 0,
+        failedImports: 0,
+        duplicateEmails: 0,
+        errors: [],
+        batchId: ''
       }),
       {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
