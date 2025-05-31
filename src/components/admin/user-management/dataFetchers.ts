@@ -70,67 +70,68 @@ export const fetchOrphanedRoles = async (): Promise<{ orphanedRoles: OrphanedRol
 };
 
 export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
-  console.log('Starting fetchUserProfiles with JOIN approach...');
+  console.log('Starting fetchUserProfiles with separate queries approach...');
   
   try {
-    // Use a proper JOIN to get profiles with their roles in a single query
-    const { data: profilesWithRoles, error } = await supabase
+    // First, get all profiles
+    const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
-      .select(`
-        id,
-        email,
-        first_name,
-        last_name,
-        created_at,
-        user_roles!inner (
-          role
-        )
-      `)
+      .select('id, email, first_name, last_name, created_at')
       .order('created_at', { ascending: false });
 
-    if (error) {
-      console.error('Error fetching profiles with roles:', error);
-      throw error;
+    if (profilesError) {
+      console.error('Error fetching profiles:', profilesError);
+      throw profilesError;
     }
 
-    console.log(`Fetched ${profilesWithRoles?.length || 0} profile records with roles`);
+    console.log(`Fetched ${profiles?.length || 0} profiles`);
 
-    if (!profilesWithRoles || profilesWithRoles.length === 0) {
-      console.log('No profiles with roles found');
+    if (!profiles || profiles.length === 0) {
+      console.log('No profiles found');
       return [];
     }
 
-    // Group roles by user since the JOIN might create multiple rows per user
-    const userProfilesMap = new Map<string, UserProfile>();
+    // Get all user roles
+    const { data: userRoles, error: rolesError } = await supabase
+      .from('user_roles')
+      .select('user_id, role');
 
-    profilesWithRoles.forEach((record: any) => {
-      const userId = record.id;
-      
-      if (userProfilesMap.has(userId)) {
-        // Add role to existing user
-        const existingUser = userProfilesMap.get(userId)!;
-        existingUser.roles.push({ role: record.user_roles.role });
-      } else {
-        // Create new user profile
-        userProfilesMap.set(userId, {
-          id: record.id,
-          email: record.email,
-          first_name: record.first_name || 'Unknown',
-          last_name: record.last_name || 'User',
-          created_at: record.created_at,
-          roles: [{ role: record.user_roles.role }],
-          hasCompleteProfile: true
-        });
-      }
+    if (rolesError) {
+      console.error('Error fetching user roles:', rolesError);
+      throw rolesError;
+    }
+
+    console.log(`Fetched ${userRoles?.length || 0} user roles`);
+
+    // Create a map of user_id to roles for efficient lookup
+    const rolesMap = new Map<string, Array<{ role: string }>>();
+    
+    userRoles?.forEach(userRole => {
+      const existingRoles = rolesMap.get(userRole.user_id) || [];
+      existingRoles.push({ role: userRole.role });
+      rolesMap.set(userRole.user_id, existingRoles);
     });
 
-    const result = Array.from(userProfilesMap.values());
-    
-    console.log(`Returning ${result.length} unique user profiles`);
+    // Combine profiles with their roles
+    const userProfiles: UserProfile[] = profiles.map(profile => {
+      const userRoles = rolesMap.get(profile.id) || [{ role: 'free' }]; // Default to free if no role found
+      
+      return {
+        id: profile.id,
+        email: profile.email || 'unknown@example.com', // Fallback for null emails
+        first_name: profile.first_name || 'Unknown',
+        last_name: profile.last_name || 'User',
+        created_at: profile.created_at,
+        roles: userRoles,
+        hasCompleteProfile: true
+      };
+    });
+
+    console.log(`Returning ${userProfiles.length} user profiles`);
     
     // Log sample data for debugging
-    if (result.length > 0) {
-      const sample = result[0];
+    if (userProfiles.length > 0) {
+      const sample = userProfiles[0];
       console.log('Sample user profile:', {
         id: sample.id.substring(0, 8) + '...',
         email: sample.email,
@@ -141,7 +142,7 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
       });
     }
     
-    return result;
+    return userProfiles;
     
   } catch (error) {
     console.error('Error in fetchUserProfiles:', error);
