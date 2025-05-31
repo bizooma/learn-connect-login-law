@@ -112,6 +112,36 @@ export type Database = {
           },
         ]
       }
+      law_firms: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          owner_id: string
+          total_seats: number
+          updated_at: string
+          used_seats: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          owner_id: string
+          total_seats?: number
+          updated_at?: string
+          used_seats?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          owner_id?: string
+          total_seats?: number
+          updated_at?: string
+          used_seats?: number
+        }
+        Relationships: []
+      }
       levels: {
         Row: {
           category: string
@@ -149,6 +179,7 @@ export type Database = {
           first_name: string | null
           id: string
           last_name: string | null
+          law_firm_id: string | null
           profile_image_url: string | null
           updated_at: string | null
         }
@@ -158,6 +189,7 @@ export type Database = {
           first_name?: string | null
           id: string
           last_name?: string | null
+          law_firm_id?: string | null
           profile_image_url?: string | null
           updated_at?: string | null
         }
@@ -167,10 +199,19 @@ export type Database = {
           first_name?: string | null
           id?: string
           last_name?: string | null
+          law_firm_id?: string | null
           profile_image_url?: string | null
           updated_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_law_firm_id_fkey"
+            columns: ["law_firm_id"]
+            isOneToOne: false
+            referencedRelation: "law_firms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       quiz_question_options: {
         Row: {
@@ -548,6 +589,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_user_law_firm_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       has_role: {
         Args: {
           _user_id: string
@@ -556,6 +601,10 @@ export type Database = {
         Returns: boolean
       }
       is_admin_user: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_law_firm_owner: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
