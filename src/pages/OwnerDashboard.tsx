@@ -1,12 +1,13 @@
-
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useLawFirm } from "@/hooks/useLawFirm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Building2, Users, Settings } from "lucide-react";
+import { Calendar } from "@/components/ui/calendar";
+import { ArrowLeft, Building2, Users, Settings, Calendar as CalendarIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 import LawFirmSetup from "@/components/owner/LawFirmSetup";
 import EmployeeManagement from "@/components/owner/EmployeeManagement";
 import SeatManagement from "@/components/owner/SeatManagement";
@@ -16,6 +17,7 @@ const OwnerDashboard = () => {
   const { user, loading: authLoading } = useAuth();
   const { isOwner, loading: roleLoading } = useUserRole();
   const { lawFirm, loading: lawFirmLoading } = useLawFirm();
+  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
 
   // Show loading state while checking authentication and role
   if (authLoading || roleLoading) {
@@ -106,7 +108,7 @@ const OwnerDashboard = () => {
         ) : (
           // Show main dashboard with tabs
           <Tabs defaultValue="overview" className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
+            <TabsList className="grid w-full grid-cols-4">
               <TabsTrigger value="overview" className="flex items-center">
                 <Building2 className="h-4 w-4 mr-2" />
                 Overview
@@ -114,6 +116,10 @@ const OwnerDashboard = () => {
               <TabsTrigger value="employees" className="flex items-center">
                 <Users className="h-4 w-4 mr-2" />
                 Employees
+              </TabsTrigger>
+              <TabsTrigger value="calendar" className="flex items-center">
+                <CalendarIcon className="h-4 w-4 mr-2" />
+                Calendar
               </TabsTrigger>
               <TabsTrigger value="settings" className="flex items-center">
                 <Settings className="h-4 w-4 mr-2" />
@@ -183,6 +189,43 @@ const OwnerDashboard = () => {
                   <p className="text-gray-500">Please set up your law firm first.</p>
                 </div>
               )}
+            </TabsContent>
+
+            <TabsContent value="calendar">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <CalendarIcon className="h-6 w-6 mr-2" />
+                    Law Firm Calendar
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col lg:flex-row gap-6">
+                    <div className="flex-shrink-0">
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        className="rounded-md border"
+                      />
+                    </div>
+                    <div className="flex-1">
+                      <div className="space-y-4">
+                        <div>
+                          <h3 className="text-lg font-semibold mb-2">
+                            {selectedDate ? `Events for ${selectedDate.toLocaleDateString()}` : 'Select a date'}
+                          </h3>
+                          <div className="text-gray-500 text-center py-8">
+                            <CalendarIcon className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                            <p>Calendar functionality will be added here.</p>
+                            <p className="text-sm">Schedule meetings, deadlines, and important dates.</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="settings">
