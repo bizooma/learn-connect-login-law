@@ -4,15 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Mail, Calendar, Shield } from "lucide-react";
 import UserRoleSelect from "./UserRoleSelect";
 import { getUserRole, getRoleBadgeColor } from "./userRoleUtils";
-
-interface UserProfile {
-  id: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  created_at: string;
-  roles?: Array<{ role: string }>;
-}
+import { UserProfile } from "./types";
 
 interface UserCardProps {
   user: UserProfile;

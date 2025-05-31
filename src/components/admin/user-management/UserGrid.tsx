@@ -1,14 +1,6 @@
 
 import UserCard from "./UserCard";
-
-interface UserProfile {
-  id: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  created_at: string;
-  roles?: Array<{ role: string }>;
-}
+import { UserProfile } from "./types";
 
 interface UserGridProps {
   users: UserProfile[];

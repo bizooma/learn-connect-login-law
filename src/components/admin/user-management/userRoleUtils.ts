@@ -1,12 +1,5 @@
 
-interface UserProfile {
-  id: string;
-  email: string;
-  first_name: string;
-  last_name: string;
-  created_at: string;
-  roles?: Array<{ role: string }>;
-}
+import { UserProfile } from "./types";
 
 export const getUserRole = (user: UserProfile): string => {
   return user.roles?.[0]?.role || 'student';
