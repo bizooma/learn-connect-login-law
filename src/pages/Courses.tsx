@@ -148,7 +148,7 @@ const Courses = () => {
               <Button
                 variant="outline"
                 onClick={() => navigate("/")}
-                className="flex items-center border-white/20 text-white hover:bg-white/10"
+                className="flex items-center border-white/20 bg-white text-black hover:bg-gray-100"
               >
                 <Home className="h-4 w-4 mr-2" />
                 Back to Dashboard
