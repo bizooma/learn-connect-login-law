@@ -22,31 +22,48 @@ export const useCourseAssignments = () => {
     try {
       setLoading(true);
       
-      const { data, error } = await supabase
+      // First get the assignments
+      const { data: assignmentsData, error: assignmentsError } = await supabase
         .from('course_assignments')
-        .select(`
-          *,
-          profiles (
-            id,
-            first_name,
-            last_name,
-            email
-          ),
-          courses (
-            id,
-            title,
-            category,
-            level
-          )
-        `)
+        .select('*')
         .order('assigned_at', { ascending: false });
 
-      if (error) {
-        console.error('Error fetching course assignments:', error);
-        throw error;
+      if (assignmentsError) {
+        console.error('Error fetching course assignments:', assignmentsError);
+        throw assignmentsError;
       }
 
-      setAssignments(data || []);
+      // Then fetch profiles and courses separately to avoid foreign key issues
+      const userIds = assignmentsData?.map(a => a.user_id) || [];
+      const courseIds = assignmentsData?.map(a => a.course_id) || [];
+
+      const [profilesResponse, coursesResponse] = await Promise.all([
+        userIds.length > 0 ? supabase
+          .from('profiles')
+          .select('id, first_name, last_name, email')
+          .in('id', userIds) : { data: [], error: null },
+        courseIds.length > 0 ? supabase
+          .from('courses')
+          .select('id, title, category, level')
+          .in('id', courseIds) : { data: [], error: null }
+      ]);
+
+      if (profilesResponse.error) {
+        console.error('Error fetching profiles:', profilesResponse.error);
+      }
+
+      if (coursesResponse.error) {
+        console.error('Error fetching courses:', coursesResponse.error);
+      }
+
+      // Map the data together
+      const assignmentsWithDetails = assignmentsData?.map(assignment => ({
+        ...assignment,
+        profiles: profilesResponse.data?.find(p => p.id === assignment.user_id) || null,
+        courses: coursesResponse.data?.find(c => c.id === assignment.course_id) || null
+      })) || [];
+
+      setAssignments(assignmentsWithDetails);
     } catch (error) {
       console.error('Error fetching assignments:', error);
       toast({
