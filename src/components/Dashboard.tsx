@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -12,7 +11,7 @@ import UserCourseProgress from "./user/UserCourseProgress";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
-  const { isOwner } = useUserRole();
+  const { isOwner, isStudent } = useUserRole();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("courses");
   const [stats, setStats] = useState({
@@ -23,8 +22,14 @@ const Dashboard = () => {
   });
 
   useEffect(() => {
+    // Redirect students to their dedicated dashboard
+    if (isStudent) {
+      navigate("/student-dashboard");
+      return;
+    }
+    
     fetchStats();
-  }, []);
+  }, [isStudent, navigate]);
 
   const fetchStats = async () => {
     try {
@@ -77,8 +82,8 @@ const Dashboard = () => {
     },
   ];
 
-  // Don't render if user is not available
-  if (!user) {
+  // Don't render if user is not available or is a student (will redirect)
+  if (!user || isStudent) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
