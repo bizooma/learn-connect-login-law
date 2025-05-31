@@ -14,7 +14,7 @@ interface CourseFormData {
   category: string;
   level: string;
   duration: string;
-  image_url?: string;
+  image_file?: File;
 }
 
 interface SectionData {
@@ -50,7 +50,7 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
       category: "",
       level: "",
       duration: "",
-      image_url: "",
+      image_file: undefined,
     },
   });
 
@@ -108,11 +108,29 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
         category: course.category,
         level: course.level,
         duration: course.duration,
-        image_url: course.image_url || "",
+        image_file: course.image_url || undefined,
       });
       fetchCourseSections();
     }
   }, [course, open, form]);
+
+  const uploadImageFile = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `course-images/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('course-images')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('course-images')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
 
   const uploadVideoFile = async (file: File): Promise<string> => {
     const fileExt = file.name.split('.').pop();
@@ -137,6 +155,18 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
     
     setIsSubmitting(true);
     try {
+      let imageUrl = course.image_url; // Keep existing image by default
+      
+      // Upload new image file if provided
+      if (data.image_file) {
+        try {
+          imageUrl = await uploadImageFile(data.image_file);
+        } catch (error) {
+          console.error('Error uploading image:', error);
+          // Keep existing image if upload fails
+        }
+      }
+
       // Update the course
       const { error: courseError } = await supabase
         .from('courses')
@@ -147,7 +177,7 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
           category: data.category,
           level: data.level,
           duration: data.duration,
-          image_url: data.image_url || null,
+          image_url: imageUrl,
           updated_at: new Date().toISOString(),
         })
         .eq('id', course.id);

@@ -1,4 +1,3 @@
-
 import { Control } from "react-hook-form";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -17,7 +16,7 @@ interface CourseFormData {
   category: string;
   level: string;
   duration: string;
-  image_url?: string;
+  image_file?: File;
 }
 
 interface CourseBasicInfoFormProps {
@@ -138,12 +137,20 @@ const CourseBasicInfoForm = ({ control }: CourseBasicInfoFormProps) => {
 
       <FormField
         control={control}
-        name="image_url"
-        render={({ field }) => (
+        name="image_file"
+        render={({ field: { onChange, value, ...field } }) => (
           <FormItem>
-            <FormLabel>Image URL (Optional)</FormLabel>
+            <FormLabel>Course Image (Optional)</FormLabel>
             <FormControl>
-              <Input placeholder="https://example.com/image.jpg" {...field} />
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+                  onChange(file);
+                }}
+                {...field}
+              />
             </FormControl>
             <FormMessage />
           </FormItem>

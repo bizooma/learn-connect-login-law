@@ -10,7 +10,7 @@ interface CourseFormData {
   category: string;
   level: string;
   duration: string;
-  image_url?: string;
+  image_file?: File;
 }
 
 interface SectionData {
@@ -46,9 +46,27 @@ export const useCourseForm = (onSuccess: () => void) => {
       category: "",
       level: "",
       duration: "",
-      image_url: "",
+      image_file: undefined,
     },
   });
+
+  const uploadImageFile = async (file: File): Promise<string> => {
+    const fileExt = file.name.split('.').pop();
+    const fileName = `${Math.random()}.${fileExt}`;
+    const filePath = `course-images/${fileName}`;
+
+    const { error: uploadError } = await supabase.storage
+      .from('course-images')
+      .upload(filePath, file);
+
+    if (uploadError) throw uploadError;
+
+    const { data: { publicUrl } } = supabase.storage
+      .from('course-images')
+      .getPublicUrl(filePath);
+
+    return publicUrl;
+  };
 
   const uploadVideoFile = async (file: File): Promise<string> => {
     const fileExt = file.name.split('.').pop();
@@ -71,6 +89,18 @@ export const useCourseForm = (onSuccess: () => void) => {
   const onSubmit = async (data: CourseFormData) => {
     setIsSubmitting(true);
     try {
+      let imageUrl = null;
+      
+      // Upload image file if provided
+      if (data.image_file) {
+        try {
+          imageUrl = await uploadImageFile(data.image_file);
+        } catch (error) {
+          console.error('Error uploading image:', error);
+          // Continue without image if upload fails
+        }
+      }
+
       // Create the course first
       const { data: courseData, error: courseError } = await supabase
         .from('courses')
@@ -81,7 +111,7 @@ export const useCourseForm = (onSuccess: () => void) => {
           category: data.category,
           level: data.level,
           duration: data.duration,
-          image_url: data.image_url || null,
+          image_url: imageUrl,
           rating: 0,
           students_enrolled: 0,
         }])
