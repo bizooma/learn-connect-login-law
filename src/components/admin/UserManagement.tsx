@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -32,6 +31,13 @@ const UserManagement = () => {
       const { users: fetchedUsers, diagnosticInfo: fetchedDiagnosticInfo } = await fetchUsersData();
       setUsers(fetchedUsers);
       setDiagnosticInfo(fetchedDiagnosticInfo);
+      
+      // Show updated role counts in a toast
+      if (fetchedDiagnosticInfo) {
+        const adminCount = fetchedDiagnosticInfo.roleCounts.admin || 0;
+        const studentCount = fetchedDiagnosticInfo.roleCounts.student || 0;
+        console.log(`Role counts updated - Admins: ${adminCount}, Students: ${studentCount}`);
+      }
     } catch (error: any) {
       console.error('Error fetching users:', error);
       toast({
@@ -167,6 +173,11 @@ const UserManagement = () => {
             <div className="text-xs text-gray-500 mt-1">
               DB: {diagnosticInfo.profilesCount} profiles, {diagnosticInfo.rolesCount} roles
               {diagnosticInfo.authUsersCount > 0 && `, ${diagnosticInfo.authUsersCount} auth users`}
+              {diagnosticInfo.roleCounts && (
+                <div className="text-xs mt-1">
+                  Admins: {diagnosticInfo.roleCounts.admin || 0}, Students: {diagnosticInfo.roleCounts.student || 0}
+                </div>
+              )}
             </div>
           )}
         </div>
