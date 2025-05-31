@@ -5,6 +5,7 @@ interface SectionData {
   id?: string;
   title: string;
   description: string;
+  image_url?: string;
   sort_order: number;
   units: UnitData[];
 }

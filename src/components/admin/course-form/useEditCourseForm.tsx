@@ -1,9 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
+import { uploadImageFile, uploadVideoFile } from "./fileUploadUtils";
 
 type Course = Tables<'courses'>;
 type Unit = Tables<'units'>;
@@ -22,6 +22,7 @@ interface SectionData {
   id?: string;
   title: string;
   description: string;
+  image_url?: string;
   sort_order: number;
   units: UnitData[];
 }
@@ -82,6 +83,7 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
           id: section.id,
           title: section.title,
           description: section.description || "",
+          image_url: section.image_url || "",
           sort_order: section.sort_order,
           units: (section.units as Unit[])?.map(unit => ({
             id: unit.id,
@@ -109,47 +111,11 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
         category: course.category,
         level: course.level,
         duration: course.duration,
-        image_file: undefined, // Don't pre-populate file input
+        image_file: undefined,
       });
       fetchCourseSections();
     }
   }, [course, open, form]);
-
-  const uploadImageFile = async (file: File): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExt}`;
-    const filePath = `course-images/${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('course-images')
-      .upload(filePath, file);
-
-    if (uploadError) throw uploadError;
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('course-images')
-      .getPublicUrl(filePath);
-
-    return publicUrl;
-  };
-
-  const uploadVideoFile = async (file: File): Promise<string> => {
-    const fileExt = file.name.split('.').pop();
-    const fileName = `${Math.random()}.${fileExt}`;
-    const filePath = `course-videos/${fileName}`;
-
-    const { error: uploadError } = await supabase.storage
-      .from('course-videos')
-      .upload(filePath, file);
-
-    if (uploadError) throw uploadError;
-
-    const { data: { publicUrl } } = supabase.storage
-      .from('course-videos')
-      .getPublicUrl(filePath);
-
-    return publicUrl;
-  };
 
   const ensureCalendarExists = async (courseId: string) => {
     try {
@@ -188,19 +154,16 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
     
     setIsSubmitting(true);
     try {
-      let imageUrl = course.image_url; // Keep existing image by default
+      let imageUrl = course.image_url;
       
-      // Upload new image file if provided
       if (data.image_file) {
         try {
           imageUrl = await uploadImageFile(data.image_file);
         } catch (error) {
           console.error('Error uploading image:', error);
-          // Keep existing image if upload fails
         }
       }
 
-      // Update the course
       const { error: courseError } = await supabase
         .from('courses')
         .update({
@@ -217,10 +180,8 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
 
       if (courseError) throw courseError;
 
-      // Ensure course has a calendar
       await ensureCalendarExists(course.id);
 
-      // Delete existing sections and units (CASCADE will handle units)
       const { error: deleteError } = await supabase
         .from('sections')
         .delete()
@@ -228,7 +189,6 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
 
       if (deleteError) throw deleteError;
 
-      // Create new sections and units
       if (sections.length > 0) {
         for (const section of sections) {
           const { data: sectionData, error: sectionError } = await supabase
@@ -237,6 +197,7 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
               course_id: course.id,
               title: section.title,
               description: section.description,
+              image_url: section.image_url || null,
               sort_order: section.sort_order,
             }])
             .select()
@@ -244,19 +205,16 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
 
           if (sectionError) throw sectionError;
 
-          // Create units for this section
           if (section.units.length > 0) {
             const unitsToInsert = await Promise.all(
               section.units.map(async (unit) => {
                 let videoUrl = unit.video_url;
                 
-                // Upload video file if it's an upload type and has a file
                 if (unit.video_type === 'upload' && unit.video_file) {
                   try {
                     videoUrl = await uploadVideoFile(unit.video_file);
                   } catch (error) {
                     console.error('Error uploading video:', error);
-                    // Keep the original URL if upload fails
                   }
                 }
 

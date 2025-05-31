@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,11 +8,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Label } from "@/components/ui/label";
 import { Plus, Trash2, GripVertical, Play, Upload } from "lucide-react";
+import SectionImageUpload from "./SectionImageUpload";
 
 interface SectionData {
   id?: string;
   title: string;
   description: string;
+  image_url?: string;
   sort_order: number;
   units: UnitData[];
 }
@@ -42,6 +43,7 @@ const SectionManager = ({ sections, onSectionsChange }: SectionManagerProps) => 
     const newSection: SectionData = {
       title: "",
       description: "",
+      image_url: "",
       sort_order: sections.length,
       units: []
     };
@@ -121,6 +123,10 @@ const SectionManager = ({ sections, onSectionsChange }: SectionManagerProps) => 
     }
   };
 
+  const handleSectionImageUpdate = (sectionIndex: number, imageUrl: string | null) => {
+    updateSection(sectionIndex, 'image_url', imageUrl || '');
+  };
+
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
@@ -184,6 +190,12 @@ const SectionManager = ({ sections, onSectionsChange }: SectionManagerProps) => 
                 />
               </div>
             </div>
+
+            <SectionImageUpload
+              currentImageUrl={section.image_url}
+              onImageUpdate={(imageUrl) => handleSectionImageUpdate(sectionIndex, imageUrl)}
+              sectionIndex={sectionIndex}
+            />
 
             {expandedSections.has(sectionIndex) && (
               <div className="mt-6 space-y-4">

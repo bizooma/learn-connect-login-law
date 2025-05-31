@@ -8,6 +8,7 @@ import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Courses from "./pages/Courses";
 import Course from "./pages/Course";
+import Section from "./pages/Section";
 import OwnerDashboard from "./pages/OwnerDashboard";
 import StudentDashboard from "./components/StudentDashboard";
 import ClientDashboard from "./components/ClientDashboard";
@@ -28,6 +29,7 @@ const App = () => (
             <Route path="/" element={<Index />} />
             <Route path="/courses" element={<Courses />} />
             <Route path="/course/:id" element={<Course />} />
+            <Route path="/section/:id" element={<Section />} />
             <Route path="/owner-dashboard" element={<OwnerDashboard />} />
             <Route path="/student-dashboard" element={<StudentDashboard />} />
             <Route path="/client-dashboard" element={<ClientDashboard />} />
