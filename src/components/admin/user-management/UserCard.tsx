@@ -11,20 +11,14 @@ interface UserCardProps {
 
 const UserCard = ({ user, onRoleUpdate }: UserCardProps) => {
   const currentRole = user.roles?.[0]?.role || 'free';
-  const isIncompleteProfile = !user.hasCompleteProfile || user.email.includes('missing-profile');
 
   return (
-    <Card className={`${isIncompleteProfile ? 'border-yellow-200 bg-yellow-50' : ''}`}>
+    <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-base font-medium">
           {user.first_name} {user.last_name}
-          {isIncompleteProfile && (
-            <Badge variant="secondary" className="ml-2 text-xs">
-              Incomplete Profile
-            </Badge>
-          )}
         </CardTitle>
-        <p className={`text-sm ${isIncompleteProfile ? 'text-yellow-700' : 'text-gray-600'}`}>
+        <p className="text-sm text-gray-600">
           {user.email}
         </p>
       </CardHeader>
@@ -40,14 +34,24 @@ const UserCard = ({ user, onRoleUpdate }: UserCardProps) => {
             />
           </div>
           
+          {user.roles && user.roles.length > 1 && (
+            <div>
+              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                Additional Roles
+              </label>
+              <div className="flex flex-wrap gap-1 mt-1">
+                {user.roles.slice(1).map((role, index) => (
+                  <Badge key={index} variant="secondary" className="text-xs">
+                    {role.role}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          )}
+          
           <div className="text-xs text-gray-500">
             <p>User ID: {user.id.substring(0, 8)}...</p>
             <p>Created: {new Date(user.created_at).toLocaleDateString()}</p>
-            {isIncompleteProfile && (
-              <p className="text-yellow-600 font-medium mt-1">
-                ⚠️ Missing profile data
-              </p>
-            )}
           </div>
         </div>
       </CardContent>

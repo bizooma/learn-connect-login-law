@@ -70,98 +70,81 @@ export const fetchOrphanedRoles = async (): Promise<{ orphanedRoles: OrphanedRol
 };
 
 export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
-  console.log('Starting fetchUserProfiles...');
+  console.log('Starting fetchUserProfiles with JOIN approach...');
   
-  // First, get all user roles to understand what users we should have
-  const { data: userRoles, error: rolesError } = await supabase
-    .from('user_roles')
-    .select('user_id, role')
-    .order('user_id');
+  try {
+    // Use a proper JOIN to get profiles with their roles in a single query
+    const { data: profilesWithRoles, error } = await supabase
+      .from('profiles')
+      .select(`
+        id,
+        email,
+        first_name,
+        last_name,
+        created_at,
+        user_roles!inner (
+          role
+        )
+      `)
+      .order('created_at', { ascending: false });
 
-  if (rolesError) {
-    console.error('Error fetching user roles:', rolesError);
-    throw rolesError;
-  }
+    if (error) {
+      console.error('Error fetching profiles with roles:', error);
+      throw error;
+    }
 
-  console.log(`Found ${userRoles?.length || 0} user roles`);
+    console.log(`Fetched ${profilesWithRoles?.length || 0} profile records with roles`);
 
-  if (!userRoles || userRoles.length === 0) {
-    console.log('No user roles found, returning empty array');
-    return [];
-  }
+    if (!profilesWithRoles || profilesWithRoles.length === 0) {
+      console.log('No profiles with roles found');
+      return [];
+    }
 
-  // Get unique user IDs who have roles
-  const uniqueUserIds = [...new Set(userRoles.map(role => role.user_id))];
-  console.log(`Found ${uniqueUserIds.length} unique users with roles`);
+    // Group roles by user since the JOIN might create multiple rows per user
+    const userProfilesMap = new Map<string, UserProfile>();
 
-  // Fetch all profiles that correspond to users with roles
-  const { data: profiles, error: profilesError } = await supabase
-    .from('profiles')
-    .select(`
-      id,
-      email,
-      first_name,
-      last_name,
-      created_at
-    `)
-    .in('id', uniqueUserIds)
-    .order('created_at', { ascending: false });
+    profilesWithRoles.forEach((record: any) => {
+      const userId = record.id;
+      
+      if (userProfilesMap.has(userId)) {
+        // Add role to existing user
+        const existingUser = userProfilesMap.get(userId)!;
+        existingUser.roles.push({ role: record.user_roles.role });
+      } else {
+        // Create new user profile
+        userProfilesMap.set(userId, {
+          id: record.id,
+          email: record.email,
+          first_name: record.first_name || 'Unknown',
+          last_name: record.last_name || 'User',
+          created_at: record.created_at,
+          roles: [{ role: record.user_roles.role }],
+          hasCompleteProfile: true
+        });
+      }
+    });
 
-  if (profilesError) {
-    console.error('Error fetching profiles:', profilesError);
-    throw profilesError;
-  }
-
-  console.log(`Found ${profiles?.length || 0} profiles for users with roles`);
-
-  // Create a map of user profiles
-  const userProfilesMap = new Map<string, UserProfile>();
-
-  // Process each user who has roles
-  uniqueUserIds.forEach(userId => {
-    const userProfile = profiles?.find(p => p.id === userId);
-    const userRolesForUser = userRoles.filter(role => role.user_id === userId);
+    const result = Array.from(userProfilesMap.values());
     
-    if (userProfile) {
-      // User has a complete profile
-      userProfilesMap.set(userId, {
-        id: userProfile.id,
-        email: userProfile.email,
-        first_name: userProfile.first_name || 'Unknown',
-        last_name: userProfile.last_name || 'User',
-        created_at: userProfile.created_at,
-        roles: userRolesForUser,
-        hasCompleteProfile: true
-      });
-    } else {
-      // User has roles but no profile - this should be rare after sync
-      console.log(`Found user with role but no profile: ${userId}`);
-      userProfilesMap.set(userId, {
-        id: userId,
-        email: `missing-profile-${userId.substring(0, 8)}@example.com`,
-        first_name: 'Missing',
-        last_name: 'Profile',
-        created_at: new Date().toISOString(),
-        roles: userRolesForUser,
-        hasCompleteProfile: false
+    console.log(`Returning ${result.length} unique user profiles`);
+    
+    // Log sample data for debugging
+    if (result.length > 0) {
+      const sample = result[0];
+      console.log('Sample user profile:', {
+        id: sample.id.substring(0, 8) + '...',
+        email: sample.email,
+        firstName: sample.first_name,
+        lastName: sample.last_name,
+        roles: sample.roles.map(r => r.role),
+        hasCompleteProfile: sample.hasCompleteProfile
       });
     }
-  });
-
-  const result = Array.from(userProfilesMap.values());
-  console.log(`Returning ${result.length} user profiles total`);
-  console.log(`Complete profiles: ${result.filter(u => u.hasCompleteProfile).length}`);
-  console.log(`Incomplete profiles: ${result.filter(u => !u.hasCompleteProfile).length}`);
-  
-  // Log a sample of the data to debug
-  if (result.length > 0) {
-    console.log('Sample user data:', {
-      email: result[0].email,
-      hasCompleteProfile: result[0].hasCompleteProfile,
-      firstName: result[0].first_name,
-      lastName: result[0].last_name
-    });
+    
+    return result;
+    
+  } catch (error) {
+    console.error('Error in fetchUserProfiles:', error);
+    throw error;
   }
-  
-  return result;
 };
