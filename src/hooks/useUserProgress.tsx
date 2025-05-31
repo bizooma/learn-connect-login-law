@@ -119,11 +119,23 @@ export const useUserProgress = (userId?: string) => {
 
   const calculateCourseProgress = async (courseId: string) => {
     try {
-      // Get total units in course
+      // Get total units in course by first getting sections
+      const { data: sections, error: sectionsError } = await supabase
+        .from('sections')
+        .select('id')
+        .eq('course_id', courseId);
+
+      if (sectionsError) throw sectionsError;
+
+      const sectionIds = sections?.map(s => s.id) || [];
+      
+      if (sectionIds.length === 0) return;
+
+      // Get total units in these sections
       const { data: units, error: unitsError } = await supabase
         .from('units')
         .select('id')
-        .eq('section_id', 'in', `(SELECT id FROM sections WHERE course_id = '${courseId}')`);
+        .in('section_id', sectionIds);
 
       if (unitsError) throw unitsError;
 
@@ -149,7 +161,7 @@ export const useUserProgress = (userId?: string) => {
         progress_percentage: progressPercentage,
         status,
         ...(status === 'completed' && { completed_at: new Date().toISOString() }),
-        ...(status === 'in_progress' && !progressPercentage && { started_at: new Date().toISOString() })
+        ...(status === 'in_progress' && progressPercentage === 1 && { started_at: new Date().toISOString() })
       });
     } catch (error) {
       console.error('Error calculating course progress:', error);

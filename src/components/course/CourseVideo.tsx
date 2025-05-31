@@ -11,22 +11,21 @@ type Unit = Tables<'units'>;
 
 interface CourseVideoProps {
   unit: Unit | null;
+  courseId: string;
 }
 
-const CourseVideo = ({ unit }: CourseVideoProps) => {
+const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
   const { user } = useAuth();
   const { markUnitComplete } = useUserProgress(user?.id);
   const [isCompleted, setIsCompleted] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleMarkComplete = async () => {
-    if (!unit || !user) return;
+    if (!unit || !user || !courseId) return;
 
     setLoading(true);
     try {
-      // You would need to get the course_id from context or props
-      // For now, I'll use a placeholder - this should be passed down properly
-      await markUnitComplete(unit.id, unit.section_id); // Using section_id as placeholder
+      await markUnitComplete(unit.id, courseId);
       setIsCompleted(true);
     } catch (error) {
       console.error('Error marking unit complete:', error);
