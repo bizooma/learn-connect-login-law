@@ -6,6 +6,8 @@ export interface UserProfile {
   last_name: string;
   created_at: string;
   roles?: Array<{ role: string }>;
+  // Add flag to indicate if this user has a complete profile record
+  hasCompleteProfile?: boolean;
 }
 
 export interface DiagnosticInfo {

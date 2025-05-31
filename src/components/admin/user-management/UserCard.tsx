@@ -1,10 +1,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Mail, Calendar, Shield } from "lucide-react";
-import UserRoleSelect from "./UserRoleSelect";
-import { getUserRole, getRoleBadgeColor } from "./userRoleUtils";
 import { UserProfile } from "./types";
+import UserRoleSelect from "./UserRoleSelect";
 
 interface UserCardProps {
   user: UserProfile;
@@ -12,42 +10,45 @@ interface UserCardProps {
 }
 
 const UserCard = ({ user, onRoleUpdate }: UserCardProps) => {
-  const userRole = getUserRole(user);
+  const currentRole = user.roles?.[0]?.role || 'free';
+  const isIncompleteProfile = user.email.includes('@unknown.com');
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className={`${isIncompleteProfile ? 'border-yellow-200 bg-yellow-50' : ''}`}>
       <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <CardTitle className="text-lg">
-              {user.first_name} {user.last_name}
-            </CardTitle>
-            <div className="flex items-center text-sm text-gray-600 mt-1">
-              <Mail className="h-4 w-4 mr-1" />
-              {user.email}
-            </div>
-          </div>
-          <Badge className={getRoleBadgeColor(userRole)}>
-            {userRole}
-          </Badge>
-        </div>
+        <CardTitle className="text-base font-medium">
+          {user.first_name} {user.last_name}
+          {isIncompleteProfile && (
+            <Badge variant="secondary" className="ml-2 text-xs">
+              Incomplete Profile
+            </Badge>
+          )}
+        </CardTitle>
+        <p className={`text-sm ${isIncompleteProfile ? 'text-yellow-700' : 'text-gray-600'}`}>
+          {user.email}
+        </p>
       </CardHeader>
-      
-      <CardContent>
-        <div className="flex items-center text-sm text-gray-500 mb-4">
-          <Calendar className="h-4 w-4 mr-1" />
-          Joined {new Date(user.created_at).toLocaleDateString()}
-        </div>
-
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <Shield className="h-4 w-4 mr-2 text-gray-400" />
-            <span className="text-sm font-medium">Role:</span>
+      <CardContent className="pt-0">
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+              Current Role
+            </label>
+            <UserRoleSelect
+              currentRole={currentRole as 'admin' | 'owner' | 'student' | 'client' | 'free'}
+              onRoleChange={(newRole) => onRoleUpdate(user.id, newRole)}
+            />
           </div>
-          <UserRoleSelect
-            currentRole={userRole}
-            onRoleChange={(newRole) => onRoleUpdate(user.id, newRole)}
-          />
+          
+          <div className="text-xs text-gray-500">
+            <p>User ID: {user.id.substring(0, 8)}...</p>
+            <p>Created: {new Date(user.created_at).toLocaleDateString()}</p>
+            {isIncompleteProfile && (
+              <p className="text-yellow-600 font-medium mt-1">
+                ⚠️ Missing profile data
+              </p>
+            )}
+          </div>
         </div>
       </CardContent>
     </Card>
