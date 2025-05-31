@@ -1,0 +1,112 @@
+import { useState } from "react";
+import { UnitData, SectionData } from "./types";
+
+interface UseSectionManagerProps {
+  sections: SectionData[];
+  onSectionsChange: (sections: SectionData[]) => void;
+}
+
+export const useSectionManager = ({ sections, onSectionsChange }: UseSectionManagerProps) => {
+  const [expandedSections, setExpandedSections] = useState<Set<number>>(new Set());
+
+  const addSection = () => {
+    const newSection: SectionData = {
+      title: "",
+      description: "",
+      image_url: "",
+      sort_order: sections.length,
+      units: []
+    };
+    onSectionsChange([...sections, newSection]);
+  };
+
+  const updateSection = (index: number, field: keyof SectionData, value: any) => {
+    const updatedSections = sections.map((section, i) => 
+      i === index ? { ...section, [field]: value } : section
+    );
+    onSectionsChange(updatedSections);
+  };
+
+  const deleteSection = (index: number) => {
+    const updatedSections = sections.filter((_, i) => i !== index);
+    onSectionsChange(updatedSections);
+  };
+
+  const addUnit = (sectionIndex: number) => {
+    const newUnit: UnitData = {
+      title: "",
+      description: "",
+      content: "",
+      video_url: "",
+      video_type: 'youtube',
+      duration_minutes: 0,
+      sort_order: sections[sectionIndex].units.length
+    };
+    
+    const updatedSections = sections.map((section, i) => 
+      i === sectionIndex 
+        ? { ...section, units: [...section.units, newUnit] }
+        : section
+    );
+    onSectionsChange(updatedSections);
+  };
+
+  const updateUnit = (sectionIndex: number, unitIndex: number, field: keyof UnitData, value: any) => {
+    const updatedSections = sections.map((section, i) => 
+      i === sectionIndex 
+        ? {
+            ...section,
+            units: section.units.map((unit, j) => 
+              j === unitIndex ? { ...unit, [field]: value } : unit
+            )
+          }
+        : section
+    );
+    onSectionsChange(updatedSections);
+  };
+
+  const deleteUnit = (sectionIndex: number, unitIndex: number) => {
+    const updatedSections = sections.map((section, i) => 
+      i === sectionIndex 
+        ? { ...section, units: section.units.filter((_, j) => j !== unitIndex) }
+        : section
+    );
+    onSectionsChange(updatedSections);
+  };
+
+  const toggleSectionExpanded = (index: number) => {
+    const newExpanded = new Set(expandedSections);
+    if (newExpanded.has(index)) {
+      newExpanded.delete(index);
+    } else {
+      newExpanded.add(index);
+    }
+    setExpandedSections(newExpanded);
+  };
+
+  const handleVideoFileChange = (sectionIndex: number, unitIndex: number, file: File | null) => {
+    if (file) {
+      updateUnit(sectionIndex, unitIndex, 'video_file', file);
+      // Create a temporary URL for preview
+      const fileUrl = URL.createObjectURL(file);
+      updateUnit(sectionIndex, unitIndex, 'video_url', fileUrl);
+    }
+  };
+
+  const handleSectionImageUpdate = (sectionIndex: number, imageUrl: string | null) => {
+    updateSection(sectionIndex, 'image_url', imageUrl || '');
+  };
+
+  return {
+    expandedSections,
+    addSection,
+    updateSection,
+    deleteSection,
+    addUnit,
+    updateUnit,
+    deleteUnit,
+    toggleSectionExpanded,
+    handleVideoFileChange,
+    handleSectionImageUpdate,
+  };
+};
