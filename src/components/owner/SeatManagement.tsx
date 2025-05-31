@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
-import { Plus, Minus } from "lucide-react";
+import { Plus, Minus, Users } from "lucide-react";
 import { useState } from "react";
 import { Tables } from "@/integrations/supabase/types";
 import { useLawFirm } from "@/hooks/useLawFirm";
@@ -20,7 +20,7 @@ const SeatManagement = ({ lawFirm }: SeatManagementProps) => {
   const [newSeatCount, setNewSeatCount] = useState(lawFirm.total_seats);
   const [loading, setLoading] = useState(false);
 
-  const seatUtilization = (lawFirm.used_seats / lawFirm.total_seats) * 100;
+  const seatUsagePercentage = (lawFirm.used_seats / lawFirm.total_seats) * 100;
 
   const handleUpdateSeats = async () => {
     if (newSeatCount < lawFirm.used_seats) {
@@ -28,93 +28,108 @@ const SeatManagement = ({ lawFirm }: SeatManagementProps) => {
     }
 
     setLoading(true);
-    try {
-      await updateLawFirm({ total_seats: newSeatCount });
-    } finally {
-      setLoading(false);
+    await updateLawFirm({ total_seats: newSeatCount });
+    setLoading(false);
+  };
+
+  const adjustSeats = (adjustment: number) => {
+    const newCount = newSeatCount + adjustment;
+    if (newCount >= lawFirm.used_seats && newCount >= 1) {
+      setNewSeatCount(newCount);
     }
   };
 
-  const adjustSeats = (delta: number) => {
-    const newCount = Math.max(lawFirm.used_seats, newSeatCount + delta);
-    setNewSeatCount(newCount);
-  };
-
   return (
-    <div className="space-y-6">
-      <Card>
-        <CardHeader>
-          <CardTitle>Current Seat Usage</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between text-sm">
-            <span>Seats Used</span>
-            <span>{lawFirm.used_seats} of {lawFirm.total_seats}</span>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center">
+          <Users className="h-5 w-5 mr-2" />
+          Seat Management
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {/* Current Usage */}
+        <div className="space-y-3">
+          <div className="flex justify-between text-sm">
+            <span>Seat Usage</span>
+            <span>{lawFirm.used_seats} / {lawFirm.total_seats} seats used</span>
           </div>
-          <Progress value={seatUtilization} className="w-full" />
+          <Progress value={seatUsagePercentage} className="w-full" />
+          <div className="flex justify-between text-xs text-gray-500">
+            <span>0</span>
+            <span>{lawFirm.total_seats}</span>
+          </div>
+        </div>
+
+        {/* Seat Adjustment */}
+        <div className="space-y-4">
+          <Label htmlFor="seat-count">Adjust Total Seats</Label>
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => adjustSeats(-1)}
+              disabled={newSeatCount <= lawFirm.used_seats}
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
+            <Input
+              id="seat-count"
+              type="number"
+              value={newSeatCount}
+              onChange={(e) => {
+                const value = parseInt(e.target.value) || 0;
+                if (value >= lawFirm.used_seats) {
+                  setNewSeatCount(value);
+                }
+              }}
+              className="w-24 text-center"
+              min={lawFirm.used_seats}
+            />
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => adjustSeats(1)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
           <p className="text-sm text-gray-500">
-            {lawFirm.total_seats - lawFirm.used_seats} seats available
+            Minimum: {lawFirm.used_seats} seats (current usage)
           </p>
-        </CardContent>
-      </Card>
+        </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Manage Seats</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="seatCount">Total Seats</Label>
-            <div className="flex items-center space-x-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => adjustSeats(-1)}
-                disabled={newSeatCount <= lawFirm.used_seats}
-              >
-                <Minus className="h-4 w-4" />
-              </Button>
-              <Input
-                id="seatCount"
-                type="number"
-                min={lawFirm.used_seats}
-                value={newSeatCount}
-                onChange={(e) => setNewSeatCount(parseInt(e.target.value) || lawFirm.used_seats)}
-                className="text-center"
-              />
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => adjustSeats(1)}
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-            <p className="text-sm text-gray-500">
-              Minimum: {lawFirm.used_seats} (currently used seats)
-            </p>
-          </div>
-
+        {/* Update Button */}
+        {newSeatCount !== lawFirm.total_seats && (
           <Button 
-            onClick={handleUpdateSeats}
-            disabled={loading || newSeatCount === lawFirm.total_seats}
+            onClick={handleUpdateSeats} 
+            disabled={loading}
             className="w-full"
           >
-            {loading ? "Updating..." : "Update Seat Count"}
+            {loading ? "Updating..." : `Update to ${newSeatCount} Seats`}
           </Button>
+        )}
 
-          <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-            <h4 className="font-medium text-blue-900">Seat Pricing</h4>
-            <p className="text-sm text-blue-700 mt-1">
-              Additional seats: $10/month per seat
-            </p>
-            <p className="text-sm text-blue-700">
-              Current plan: {lawFirm.total_seats} seats
-            </p>
+        {/* Billing Information */}
+        <div className="pt-4 border-t">
+          <h4 className="font-medium mb-2">Billing Information</h4>
+          <div className="text-sm text-gray-600 space-y-1">
+            <div className="flex justify-between">
+              <span>Current plan:</span>
+              <span>{lawFirm.total_seats} seats</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Available seats:</span>
+              <span>{lawFirm.total_seats - lawFirm.used_seats}</span>
+            </div>
+            <div className="flex justify-between font-medium">
+              <span>Monthly cost:</span>
+              <span>${(lawFirm.total_seats * 10).toFixed(2)}</span>
+            </div>
           </div>
-        </CardContent>
-      </Card>
-    </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 };
 
