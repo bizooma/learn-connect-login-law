@@ -9,6 +9,7 @@ import { useNavigate } from "react-router-dom";
 import LawFirmSetup from "@/components/owner/LawFirmSetup";
 import OwnerDashboardHeader from "@/components/owner/OwnerDashboardHeader";
 import OwnerDashboardTabs from "@/components/owner/OwnerDashboardTabs";
+import NotificationBanner from "@/components/notifications/NotificationBanner";
 
 const OwnerDashboard = () => {
   const navigate = useNavigate();
@@ -54,6 +55,9 @@ const OwnerDashboard = () => {
       <OwnerDashboardHeader lawFirm={lawFirm} />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Notification Banner */}
+        <NotificationBanner />
+
         {!lawFirm && !lawFirmLoading ? (
           // Show law firm setup if no law firm exists
           <Card className="max-w-2xl mx-auto">

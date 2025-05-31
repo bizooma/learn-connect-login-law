@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Home } from "lucide-react";
@@ -7,6 +8,7 @@ import CourseFilters from "@/components/CourseFilters";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
+import NotificationBanner from "@/components/notifications/NotificationBanner";
 
 type Course = Tables<'courses'>;
 type Level = Tables<'levels'>;
@@ -161,6 +163,9 @@ const Courses = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Notification Banner */}
+        <NotificationBanner />
+
         {/* Filters */}
         <CourseFilters
           categories={categories}

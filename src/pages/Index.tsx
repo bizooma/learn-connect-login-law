@@ -4,6 +4,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import AuthPage from "../components/AuthPage";
 import Dashboard from "../components/Dashboard";
 import AdminDashboard from "../components/AdminDashboard";
+import NotificationBanner from "../components/notifications/NotificationBanner";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 
@@ -49,7 +50,12 @@ const IndexContent = () => {
   }
 
   // Show admin dashboard only for admins, not owners, students, clients, or free users
-  return isAdmin ? <AdminDashboard /> : <Dashboard />;
+  return (
+    <div>
+      {user && <NotificationBanner />}
+      {isAdmin ? <AdminDashboard /> : <Dashboard />}
+    </div>
+  );
 };
 
 const Index = () => {

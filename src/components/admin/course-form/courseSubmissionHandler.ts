@@ -49,6 +49,28 @@ export const handleCourseSubmission = async (
 
   console.log('Course created successfully:', courseDataResult);
 
+  // Create notification for new course
+  try {
+    const { error: notificationError } = await supabase
+      .from('notifications')
+      .insert({
+        title: 'New Course Available',
+        message: `A new course "${data.title}" has been added to the catalog. Check it out now!`,
+        type: 'info',
+        created_by: (await supabase.auth.getUser()).data.user?.id
+      });
+
+    if (notificationError) {
+      console.error('Error creating notification:', notificationError);
+      // Don't throw here as it's not critical for course creation
+    } else {
+      console.log('Notification created for new course');
+    }
+  } catch (error) {
+    console.error('Error creating notification:', error);
+    // Don't throw here as it's not critical for course creation
+  }
+
   // Create a default welcome calendar event for the new course
   try {
     const currentDate = new Date();
