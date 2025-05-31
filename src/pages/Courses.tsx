@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Plus } from "lucide-react";
+import { ArrowLeft, Plus, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CourseCard from "@/components/CourseCard";
 import CourseFilters from "@/components/CourseFilters";
@@ -145,6 +145,14 @@ const Courses = () => {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              <Button
+                variant="outline"
+                onClick={() => navigate("/")}
+                className="flex items-center"
+              >
+                <Home className="h-4 w-4 mr-2" />
+                Back to Dashboard
+              </Button>
               <Button>
                 <Plus className="h-4 w-4 mr-2" />
                 Add Course
