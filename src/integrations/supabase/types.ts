@@ -65,6 +65,7 @@ export type Database = {
           event_date: string
           event_type: string
           id: string
+          meeting_link: string | null
           start_time: string | null
           title: string
           updated_at: string
@@ -77,6 +78,7 @@ export type Database = {
           event_date: string
           event_type?: string
           id?: string
+          meeting_link?: string | null
           start_time?: string | null
           title: string
           updated_at?: string
@@ -89,6 +91,7 @@ export type Database = {
           event_date?: string
           event_type?: string
           id?: string
+          meeting_link?: string | null
           start_time?: string | null
           title?: string
           updated_at?: string
@@ -156,6 +159,56 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "levels"
             referencedColumns: ["code"]
+          },
+        ]
+      }
+      law_firm_calendars: {
+        Row: {
+          created_at: string
+          description: string | null
+          end_time: string | null
+          event_date: string
+          event_type: string
+          id: string
+          law_firm_id: string
+          meeting_link: string | null
+          start_time: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          end_time?: string | null
+          event_date: string
+          event_type?: string
+          id?: string
+          law_firm_id: string
+          meeting_link?: string | null
+          start_time?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          end_time?: string | null
+          event_date?: string
+          event_type?: string
+          id?: string
+          law_firm_id?: string
+          meeting_link?: string | null
+          start_time?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "law_firm_calendars_law_firm_id_fkey"
+            columns: ["law_firm_id"]
+            isOneToOne: false
+            referencedRelation: "law_firms"
+            referencedColumns: ["id"]
           },
         ]
       }

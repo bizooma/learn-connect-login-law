@@ -6,25 +6,25 @@ import { Tables } from "@/integrations/supabase/types";
 import { format, parseISO } from "date-fns";
 import MeetingLink from "@/components/calendar/MeetingLink";
 
-type CourseCalendarEvent = Tables<'course_calendars'>;
+type LawFirmCalendarEvent = Tables<'law_firm_calendars'>;
 
-interface CalendarEventCardProps {
-  event: CourseCalendarEvent;
+interface OwnerCalendarEventCardProps {
+  event: LawFirmCalendarEvent;
 }
 
-const CalendarEventCard = ({ event }: CalendarEventCardProps) => {
+const OwnerCalendarEventCard = ({ event }: OwnerCalendarEventCardProps) => {
   const getEventTypeColor = (type: string) => {
     switch (type) {
-      case 'lecture':
-        return 'bg-blue-100 text-blue-800';
-      case 'assignment':
-        return 'bg-red-100 text-red-800';
-      case 'exam':
-        return 'bg-purple-100 text-purple-800';
-      case 'deadline':
-        return 'bg-orange-100 text-orange-800';
       case 'meeting':
+        return 'bg-blue-100 text-blue-800';
+      case 'deadline':
+        return 'bg-red-100 text-red-800';
+      case 'court':
+        return 'bg-purple-100 text-purple-800';
+      case 'client':
         return 'bg-green-100 text-green-800';
+      case 'training':
+        return 'bg-orange-100 text-orange-800';
       default:
         return 'bg-gray-100 text-gray-800';
     }
@@ -60,4 +60,4 @@ const CalendarEventCard = ({ event }: CalendarEventCardProps) => {
   );
 };
 
-export default CalendarEventCard;
+export default OwnerCalendarEventCard;

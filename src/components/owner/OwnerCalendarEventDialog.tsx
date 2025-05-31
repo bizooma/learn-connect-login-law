@@ -7,22 +7,22 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon, Plus } from "lucide-react";
+import { Plus } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { validateMeetingUrl } from "@/utils/meetingUtils";
 
-interface CalendarEventDialogProps {
-  courseId: string;
+interface OwnerCalendarEventDialogProps {
+  lawFirmId: string;
   onEventAdded: () => void;
 }
 
-const CalendarEventDialog = ({ courseId, onEventAdded }: CalendarEventDialogProps) => {
+const OwnerCalendarEventDialog = ({ lawFirmId, onEventAdded }: OwnerCalendarEventDialogProps) => {
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [eventType, setEventType] = useState("lecture");
+  const [eventType, setEventType] = useState("general");
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
@@ -33,7 +33,7 @@ const CalendarEventDialog = ({ courseId, onEventAdded }: CalendarEventDialogProp
   const resetForm = () => {
     setTitle("");
     setDescription("");
-    setEventType("lecture");
+    setEventType("general");
     setSelectedDate(new Date());
     setStartTime("");
     setEndTime("");
@@ -65,7 +65,7 @@ const CalendarEventDialog = ({ courseId, onEventAdded }: CalendarEventDialogProp
 
     try {
       const eventData = {
-        course_id: courseId,
+        law_firm_id: lawFirmId,
         title: title.trim(),
         description: description.trim() || null,
         event_type: eventType,
@@ -76,7 +76,7 @@ const CalendarEventDialog = ({ courseId, onEventAdded }: CalendarEventDialogProp
       };
 
       const { error } = await supabase
-        .from('course_calendars')
+        .from('law_firm_calendars')
         .insert(eventData);
 
       if (error) throw error;
@@ -111,7 +111,7 @@ const CalendarEventDialog = ({ courseId, onEventAdded }: CalendarEventDialogProp
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Add Course Event</DialogTitle>
+          <DialogTitle>Add Law Firm Event</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -145,11 +145,11 @@ const CalendarEventDialog = ({ courseId, onEventAdded }: CalendarEventDialogProp
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="lecture">Lecture</SelectItem>
-                    <SelectItem value="assignment">Assignment</SelectItem>
-                    <SelectItem value="exam">Exam</SelectItem>
-                    <SelectItem value="deadline">Deadline</SelectItem>
                     <SelectItem value="meeting">Meeting</SelectItem>
+                    <SelectItem value="deadline">Deadline</SelectItem>
+                    <SelectItem value="court">Court Date</SelectItem>
+                    <SelectItem value="client">Client Meeting</SelectItem>
+                    <SelectItem value="training">Training</SelectItem>
                     <SelectItem value="general">General</SelectItem>
                   </SelectContent>
                 </Select>
@@ -215,4 +215,4 @@ const CalendarEventDialog = ({ courseId, onEventAdded }: CalendarEventDialogProp
   );
 };
 
-export default CalendarEventDialog;
+export default OwnerCalendarEventDialog;
