@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Home } from "lucide-react";
@@ -126,7 +125,7 @@ const Courses = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       {/* Header */}
-      <div className="bg-white shadow-sm">
+      <div className="shadow-sm" style={{ backgroundColor: '#213C82' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -134,13 +133,13 @@ const Courses = () => {
                 variant="ghost"
                 size="icon"
                 onClick={() => navigate("/")}
-                className="hover:bg-gray-100"
+                className="hover:bg-white/10 text-white"
               >
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Course Catalog</h1>
-                <p className="text-gray-600 mt-1">
+                <h1 className="text-3xl font-bold text-white">Course Catalog</h1>
+                <p className="text-white/90 mt-1">
                   Discover comprehensive legal education courses
                 </p>
               </div>
@@ -149,12 +148,12 @@ const Courses = () => {
               <Button
                 variant="outline"
                 onClick={() => navigate("/")}
-                className="flex items-center"
+                className="flex items-center border-white/20 text-white hover:bg-white/10"
               >
                 <Home className="h-4 w-4 mr-2" />
                 Back to Dashboard
               </Button>
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-white/80">
                 {filteredCourses.length} courses available
               </div>
             </div>
