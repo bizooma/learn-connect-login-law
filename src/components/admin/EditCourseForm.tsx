@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CourseBasicInfoForm from "./course-form/CourseBasicInfoForm";
 import CourseContentForm from "./course-form/CourseContentForm";
@@ -34,6 +34,9 @@ const EditCourseForm = ({ open, onOpenChange, course, onCourseUpdated }: EditCou
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Course</DialogTitle>
+          <DialogDescription>
+            Update the course details and content. Changes will be saved when you click Update Course.
+          </DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="basic" className="w-full">

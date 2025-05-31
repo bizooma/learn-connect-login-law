@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CourseBasicInfoForm from "./course-form/CourseBasicInfoForm";
 import CourseContentForm from "./course-form/CourseContentForm";
@@ -24,6 +24,9 @@ const CreateCourseForm = ({ open, onOpenChange, onCourseCreated }: CreateCourseF
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Create New Course</DialogTitle>
+          <DialogDescription>
+            Fill in the course details and content to create a new course for students.
+          </DialogDescription>
         </DialogHeader>
 
         <Tabs defaultValue="basic" className="w-full">

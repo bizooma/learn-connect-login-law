@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { CourseFormData, SectionData } from "./types";
 import { uploadImageFile, uploadVideoFile } from "./fileUploadUtils";
@@ -11,10 +12,12 @@ export const handleCourseSubmission = async (
   // Upload image file if provided
   if (data.image_file) {
     try {
+      console.log('Starting image upload...');
       imageUrl = await uploadImageFile(data.image_file);
+      console.log('Image upload completed:', imageUrl);
     } catch (error) {
       console.error('Error uploading image:', error);
-      // Continue without image if upload fails
+      throw new Error(`Failed to upload image: ${error.message}`);
     }
   }
 
@@ -31,17 +34,26 @@ export const handleCourseSubmission = async (
     students_enrolled: 0,
   };
 
+  console.log('Creating course with data:', courseData);
+
   const { data: courseDataResult, error: courseError } = await supabase
     .from('courses')
     .insert(courseData)
     .select()
     .single();
 
-  if (courseError) throw courseError;
+  if (courseError) {
+    console.error('Error creating course:', courseError);
+    throw new Error(`Failed to create course: ${courseError.message}`);
+  }
+
+  console.log('Course created successfully:', courseDataResult);
 
   // Create sections and units if any
   if (sections.length > 0) {
     for (const section of sections) {
+      console.log('Creating section:', section.title);
+      
       const { data: sectionData, error: sectionError } = await supabase
         .from('sections')
         .insert({
@@ -53,7 +65,10 @@ export const handleCourseSubmission = async (
         .select()
         .single();
 
-      if (sectionError) throw sectionError;
+      if (sectionError) {
+        console.error('Error creating section:', sectionError);
+        throw new Error(`Failed to create section: ${sectionError.message}`);
+      }
 
       // Create units for this section
       if (section.units.length > 0) {
@@ -64,10 +79,11 @@ export const handleCourseSubmission = async (
             // Upload video file if it's an upload type and has a file
             if (unit.video_type === 'upload' && unit.video_file) {
               try {
+                console.log('Uploading video for unit:', unit.title);
                 videoUrl = await uploadVideoFile(unit.video_file);
               } catch (error) {
                 console.error('Error uploading video:', error);
-                // Keep the original URL if upload fails
+                throw new Error(`Failed to upload video for unit "${unit.title}": ${error.message}`);
               }
             }
 
@@ -87,8 +103,13 @@ export const handleCourseSubmission = async (
           .from('units')
           .insert(unitsToInsert);
 
-        if (unitsError) throw unitsError;
+        if (unitsError) {
+          console.error('Error creating units:', unitsError);
+          throw new Error(`Failed to create units: ${unitsError.message}`);
+        }
       }
     }
   }
+
+  console.log('Course creation completed successfully');
 };
