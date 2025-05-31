@@ -71,10 +71,19 @@ const Courses = () => {
     }
   };
 
-  const categories = ["All", ...Array.from(new Set(courses.map(course => course.category)))];
+  // Filter out empty/null categories and ensure unique valid values
+  const validCourseCategories = courses
+    .map(course => course.category)
+    .filter(category => category && category.trim() !== "");
   
-  // Create level options from the levels table
-  const levelOptions = ["All", ...levels.map(level => level.code)];
+  const categories = ["All", ...Array.from(new Set(validCourseCategories))];
+  
+  // Create level options from the levels table, filtering out empty codes
+  const validLevelCodes = levels
+    .map(level => level.code)
+    .filter(code => code && code.trim() !== "");
+    
+  const levelOptions = ["All", ...validLevelCodes];
 
   const handleFilter = (search: string, category: string, level: string) => {
     setSearchTerm(search);

@@ -39,6 +39,10 @@ const CourseFilters = ({
 
   const hasActiveFilters = searchTerm || selectedCategory !== "All" || selectedLevel !== "All";
 
+  // Filter out empty strings and ensure we have valid values
+  const validCategories = categories.filter(category => category && category.trim() !== "");
+  const validLevels = levels.filter(level => level && level.trim() !== "");
+
   return (
     <div className="bg-white rounded-lg shadow-sm p-6 border">
       <div className="flex items-center mb-4">
@@ -75,7 +79,7 @@ const CourseFilters = ({
             <SelectValue placeholder="Select category" />
           </SelectTrigger>
           <SelectContent>
-            {categories.map((category) => (
+            {validCategories.map((category) => (
               <SelectItem key={category} value={category}>
                 {category}
               </SelectItem>
@@ -89,7 +93,7 @@ const CourseFilters = ({
             <SelectValue placeholder="Select level" />
           </SelectTrigger>
           <SelectContent>
-            {levels.map((level) => (
+            {validLevels.map((level) => (
               <SelectItem key={level} value={level}>
                 {level}
               </SelectItem>
