@@ -61,21 +61,37 @@ serve(async (req) => {
       throw new Error('Insufficient privileges');
     }
 
-    // Get the form data
-    const formData = await req.formData();
-    const file = formData.get('file') as File;
-    const filename = file?.name || 'unknown.csv';
+    // Parse request body to get CSV data
+    const contentType = req.headers.get('content-type') || '';
+    let csvData = '';
+    let filename = 'unknown.csv';
 
-    if (!file) {
-      throw new Error('No file provided');
+    if (contentType.includes('multipart/form-data')) {
+      // Handle FormData (file upload)
+      const formData = await req.formData();
+      const file = formData.get('file') as File;
+      filename = file?.name || 'unknown.csv';
+
+      if (!file) {
+        throw new Error('No file provided');
+      }
+
+      csvData = await file.text();
+    } else {
+      // Handle JSON payload with CSV data
+      const body = await req.json();
+      csvData = body.csvData;
+      filename = body.filename || 'unknown.csv';
     }
 
-    // Read and parse CSV
-    const csvText = await file.text();
+    if (!csvData) {
+      throw new Error('No CSV data provided');
+    }
+
     console.log(`Processing CSV file: ${filename}`);
-    console.log(`CSV content length: ${csvText.length}`);
+    console.log(`CSV content length: ${csvData.length}`);
     
-    const users = parseCSV(csvText);
+    const users = parseCSV(csvData);
     console.log(`Parsed ${users.length} users from CSV`);
 
     // Initialize stats

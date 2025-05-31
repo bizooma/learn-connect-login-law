@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -56,25 +55,23 @@ const UserImport = () => {
 
     setImporting(true);
     try {
-      const csvData = await file.text();
-      
+      const formData = new FormData();
+      formData.append('file', file);
+
       const { data, error } = await supabase.functions.invoke('import-users-csv', {
-        body: {
-          csvData,
-          filename: file.name
-        }
+        body: formData
       });
 
       if (error) {
         throw new Error(error.message);
       }
 
-      setImportResult(data);
+      setImportResult(data.stats);
       
       if (data.success) {
         toast({
           title: "Import completed",
-          description: `Successfully imported ${data.successfulImports} users`,
+          description: `Successfully imported ${data.stats.successfulImports} users`,
         });
       } else {
         toast({

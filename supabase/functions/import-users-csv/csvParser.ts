@@ -1,86 +1,113 @@
 
-import { CSVRow, ImportError } from './types.ts';
+interface UserData {
+  email: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+}
 
-export function parseCSVData(csvData: string): { rows: CSVRow[]; errors: ImportError[] } {
-  const lines = csvData.trim().split('\n');
+export function parseCSV(csvContent: string): UserData[] {
+  console.log('Starting CSV parsing...');
+  
+  const lines = csvContent.trim().split('\n');
+  console.log(`Found ${lines.length} lines in CSV`);
   
   if (lines.length === 0) {
     throw new Error('CSV file is empty');
   }
 
-  const headers = lines[0].split(',').map((h: string) => h.trim().replace(/"/g, ''));
+  // Skip header row if it exists
+  const dataLines = lines.slice(1);
+  console.log(`Processing ${dataLines.length} data rows`);
   
-  // Validate headers
-  if (headers.length < 4) {
-    throw new Error('CSV must have at least 4 columns: role, First Name, Last Name, email address');
-  }
-
-  console.log(`CSV headers: ${headers.join(', ')}`);
-  console.log(`Processing ${lines.length - 1} data rows`);
-
-  const rows: CSVRow[] = [];
-  const errors: ImportError[] = [];
-
-  // Process each row (skip header)
-  for (let i = 1; i < lines.length; i++) {
-    const line = lines[i].trim();
-    if (!line) {
-      console.log(`Skipping empty line ${i + 1}`);
-      continue;
-    }
-
-    // Split and handle quoted values properly
-    const values = line.split(',').map((v: string) => v.trim().replace(/^"|"$/g, ''));
+  const users: UserData[] = [];
+  
+  for (let i = 0; i < dataLines.length; i++) {
+    const line = dataLines[i].trim();
+    if (!line) continue; // Skip empty lines
     
-    // Ensure we have at least 4 values, padding with empty strings if necessary
-    while (values.length < 4) {
-      values.push('');
-    }
-
-    const [role, firstName, lastName, email] = values.slice(0, 4);
-
-    // Validate required fields - email is mandatory
-    if (!email || email.trim() === '') {
-      errors.push({
-        row: i + 1,
-        email: email || 'empty',
-        error: 'Email address is required'
-      });
-      continue;
-    }
-
-    // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) {
-      errors.push({
-        row: i + 1,
-        email,
-        error: 'Invalid email format'
-      });
-      continue;
-    }
-
-    // Validate role - default to 'student' if empty
-    let validatedRole = role ? role.toLowerCase().trim() : 'student';
+    console.log(`Processing line ${i + 1}: ${line}`);
     
-    const validRoles = ['admin', 'owner', 'student', 'client', 'free'];
-    if (!validRoles.includes(validatedRole)) {
-      errors.push({
-        row: i + 1,
-        email,
-        error: `Invalid role: ${role}. Must be one of: ${validRoles.join(', ')} or leave empty for default 'student'`
-      });
+    // Parse CSV line - handle quoted fields
+    const fields = parseCSVLine(line);
+    
+    if (fields.length < 4) {
+      console.warn(`Line ${i + 1} has insufficient columns: ${fields.length}, skipping`);
       continue;
     }
-
-    rows.push({
-      role: validatedRole,
-      firstName: firstName ? firstName.trim() : '',
-      lastName: lastName ? lastName.trim() : '',
-      email: email.toLowerCase().trim()
+    
+    const [role, firstName, lastName, email] = fields;
+    
+    // Email is required
+    if (!email || !email.trim()) {
+      console.warn(`Line ${i + 1} missing email, skipping`);
+      continue;
+    }
+    
+    // Clean and validate email
+    const cleanEmail = email.trim().toLowerCase();
+    if (!isValidEmail(cleanEmail)) {
+      console.warn(`Line ${i + 1} has invalid email: ${cleanEmail}, skipping`);
+      continue;
+    }
+    
+    users.push({
+      email: cleanEmail,
+      first_name: firstName?.trim() || '',
+      last_name: lastName?.trim() || '',
+      role: role?.trim() || 'student'
     });
+    
+    console.log(`Added user: ${cleanEmail} with role: ${role?.trim() || 'student'}`);
   }
+  
+  console.log(`Successfully parsed ${users.length} users from CSV`);
+  return users;
+}
 
-  console.log(`Parsed ${rows.length} valid rows with ${errors.length} errors`);
-  return { rows, errors };
+function parseCSVLine(line: string): string[] {
+  const fields: string[] = [];
+  let current = '';
+  let inQuotes = false;
+  let i = 0;
+  
+  while (i < line.length) {
+    const char = line[i];
+    
+    if (char === '"') {
+      if (inQuotes && line[i + 1] === '"') {
+        // Escaped quote
+        current += '"';
+        i += 2;
+      } else {
+        // Toggle quote state
+        inQuotes = !inQuotes;
+        i++;
+      }
+    } else if (char === ',' && !inQuotes) {
+      // End of field
+      fields.push(current.trim());
+      current = '';
+      i++;
+    } else {
+      current += char;
+      i++;
+    }
+  }
+  
+  // Add the last field
+  fields.push(current.trim());
+  
+  // Clean up quotes from fields
+  return fields.map(field => {
+    if (field.startsWith('"') && field.endsWith('"')) {
+      return field.slice(1, -1);
+    }
+    return field;
+  });
+}
+
+function isValidEmail(email: string): boolean {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
 }
