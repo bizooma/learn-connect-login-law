@@ -27,6 +27,9 @@ const AdminCourseCard = ({ course, onDelete, onEdit }: AdminCourseCardProps) => 
       {/* Glassy overlay */}
       <div className="absolute inset-0 bg-white/80 backdrop-blur-sm"></div>
       
+      {/* Additional white semi-transparent layer behind text */}
+      <div className="absolute inset-0 bg-white/30"></div>
+      
       {/* Content with relative positioning to appear above overlay */}
       <div className="relative z-10">
         <CardHeader className="pb-3">
