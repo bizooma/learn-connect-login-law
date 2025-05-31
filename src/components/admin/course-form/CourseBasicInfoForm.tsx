@@ -44,7 +44,6 @@ const CourseBasicInfoForm = ({ control }: CourseBasicInfoFormProps) => {
       <FormField
         control={control}
         name="title"
-        rules={{ required: "Title is required" }}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Title</FormLabel>
@@ -59,7 +58,6 @@ const CourseBasicInfoForm = ({ control }: CourseBasicInfoFormProps) => {
       <FormField
         control={control}
         name="description"
-        rules={{ required: "Description is required" }}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Description</FormLabel>
@@ -74,7 +72,6 @@ const CourseBasicInfoForm = ({ control }: CourseBasicInfoFormProps) => {
       <FormField
         control={control}
         name="instructor"
-        rules={{ required: "Instructor is required" }}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Instructor</FormLabel>
@@ -89,7 +86,6 @@ const CourseBasicInfoForm = ({ control }: CourseBasicInfoFormProps) => {
       <FormField
         control={control}
         name="category"
-        rules={{ required: "Category is required" }}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Category</FormLabel>
@@ -104,7 +100,6 @@ const CourseBasicInfoForm = ({ control }: CourseBasicInfoFormProps) => {
       <FormField
         control={control}
         name="level"
-        rules={{ required: "Level is required" }}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Level</FormLabel>
@@ -130,7 +125,6 @@ const CourseBasicInfoForm = ({ control }: CourseBasicInfoFormProps) => {
       <FormField
         control={control}
         name="duration"
-        rules={{ required: "Duration is required" }}
         render={({ field }) => (
           <FormItem>
             <FormLabel>Duration</FormLabel>
