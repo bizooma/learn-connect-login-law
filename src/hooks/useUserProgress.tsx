@@ -18,10 +18,15 @@ export const useUserProgress = (userId?: string) => {
   const [loading, setLoading] = useState(true);
 
   const fetchUserProgress = async () => {
-    if (!userId) return;
+    if (!userId) {
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
+      
+      console.log('Fetching user progress for user:', userId);
       
       // Fetch all course progress for the user
       const { data: progressData, error: progressError } = await supabase
@@ -33,24 +38,36 @@ export const useUserProgress = (userId?: string) => {
         .eq('user_id', userId)
         .order('last_accessed_at', { ascending: false });
 
-      if (progressError) throw progressError;
+      if (progressError) {
+        console.error('Error fetching progress:', progressError);
+        throw progressError;
+      }
+
+      console.log('Progress data fetched:', progressData);
 
       // Transform the data to include course information
-      const coursesWithProgress = progressData?.map(progress => ({
-        ...progress.courses,
-        progress: {
-          id: progress.id,
-          user_id: progress.user_id,
-          course_id: progress.course_id,
-          status: progress.status,
-          progress_percentage: progress.progress_percentage,
-          started_at: progress.started_at,
-          completed_at: progress.completed_at,
-          last_accessed_at: progress.last_accessed_at,
-          created_at: progress.created_at,
-          updated_at: progress.updated_at
+      const coursesWithProgress = progressData?.map(progress => {
+        if (!progress.courses) {
+          console.warn('Course data missing for progress:', progress);
+          return null;
         }
-      })) || [];
+        
+        return {
+          ...progress.courses,
+          progress: {
+            id: progress.id,
+            user_id: progress.user_id,
+            course_id: progress.course_id,
+            status: progress.status,
+            progress_percentage: progress.progress_percentage,
+            started_at: progress.started_at,
+            completed_at: progress.completed_at,
+            last_accessed_at: progress.last_accessed_at,
+            created_at: progress.created_at,
+            updated_at: progress.updated_at
+          }
+        };
+      }).filter(Boolean) || [];
 
       setCourseProgress(coursesWithProgress);
     } catch (error) {
@@ -60,15 +77,21 @@ export const useUserProgress = (userId?: string) => {
         description: "Failed to load course progress",
         variant: "destructive",
       });
+      setCourseProgress([]);
     } finally {
       setLoading(false);
     }
   };
 
   const updateCourseProgress = async (courseId: string, updates: Partial<CourseProgress>) => {
-    if (!userId) return;
+    if (!userId) {
+      console.warn('Cannot update course progress: no user ID');
+      return;
+    }
 
     try {
+      console.log('Updating course progress:', { courseId, updates });
+      
       const { error } = await supabase
         .from('user_course_progress')
         .upsert({
@@ -78,7 +101,10 @@ export const useUserProgress = (userId?: string) => {
           updated_at: new Date().toISOString()
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error updating course progress:', error);
+        throw error;
+      }
       
       // Refresh progress data
       await fetchUserProgress();
@@ -93,9 +119,14 @@ export const useUserProgress = (userId?: string) => {
   };
 
   const markUnitComplete = async (unitId: string, courseId: string) => {
-    if (!userId) return;
+    if (!userId) {
+      console.warn('Cannot mark unit complete: no user ID');
+      return;
+    }
 
     try {
+      console.log('Marking unit complete:', { unitId, courseId });
+      
       const { error } = await supabase
         .from('user_unit_progress')
         .upsert({
@@ -107,7 +138,10 @@ export const useUserProgress = (userId?: string) => {
           updated_at: new Date().toISOString()
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error marking unit complete:', error);
+        throw error;
+      }
 
       // Calculate overall course progress
       await calculateCourseProgress(courseId);
@@ -122,20 +156,31 @@ export const useUserProgress = (userId?: string) => {
   };
 
   const calculateCourseProgress = async (courseId: string) => {
-    if (!userId) return;
+    if (!userId) {
+      console.warn('Cannot calculate course progress: no user ID');
+      return;
+    }
 
     try {
+      console.log('Calculating course progress for:', courseId);
+      
       // Get total units in course by first getting sections
       const { data: sections, error: sectionsError } = await supabase
         .from('sections')
         .select('id')
         .eq('course_id', courseId);
 
-      if (sectionsError) throw sectionsError;
+      if (sectionsError) {
+        console.error('Error fetching sections:', sectionsError);
+        throw sectionsError;
+      }
 
       const sectionIds = sections?.map(s => s.id) || [];
       
-      if (sectionIds.length === 0) return;
+      if (sectionIds.length === 0) {
+        console.log('No sections found for course:', courseId);
+        return;
+      }
 
       // Get total units in these sections
       const { data: units, error: unitsError } = await supabase
@@ -143,7 +188,10 @@ export const useUserProgress = (userId?: string) => {
         .select('id')
         .in('section_id', sectionIds);
 
-      if (unitsError) throw unitsError;
+      if (unitsError) {
+        console.error('Error fetching units:', unitsError);
+        throw unitsError;
+      }
 
       // Get completed units for user
       const { data: completedUnits, error: completedError } = await supabase
@@ -153,11 +201,16 @@ export const useUserProgress = (userId?: string) => {
         .eq('course_id', courseId)
         .eq('completed', true);
 
-      if (completedError) throw completedError;
+      if (completedError) {
+        console.error('Error fetching completed units:', completedError);
+        throw completedError;
+      }
 
       const totalUnits = units?.length || 0;
       const completedCount = completedUnits?.length || 0;
       const progressPercentage = totalUnits > 0 ? Math.round((completedCount / totalUnits) * 100) : 0;
+
+      console.log('Progress calculation:', { totalUnits, completedCount, progressPercentage });
 
       // Update course progress
       const status = progressPercentage === 100 ? 'completed' : 
@@ -176,7 +229,11 @@ export const useUserProgress = (userId?: string) => {
 
   useEffect(() => {
     if (userId) {
+      console.log('useUserProgress: Starting to fetch progress for user:', userId);
       fetchUserProgress();
+    } else {
+      console.log('useUserProgress: No user ID provided');
+      setLoading(false);
     }
   }, [userId]);
 

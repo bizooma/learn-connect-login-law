@@ -25,26 +25,48 @@ const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchEvents();
+    if (courseId) {
+      console.log('CourseCalendar: Fetching events for course:', courseId);
+      fetchEvents();
+    }
   }, [courseId]);
 
   useEffect(() => {
     if (selectedDate) {
-      const dateString = format(selectedDate, 'yyyy-MM-dd');
-      const dayEvents = events.filter(event => event.event_date === dateString);
-      setSelectedEvents(dayEvents);
+      try {
+        const dateString = format(selectedDate, 'yyyy-MM-dd');
+        const dayEvents = events.filter(event => event.event_date === dateString);
+        console.log('Selected date events:', { dateString, dayEvents });
+        setSelectedEvents(dayEvents);
+      } catch (error) {
+        console.error('Error filtering events by date:', error);
+        setSelectedEvents([]);
+      }
     }
   }, [selectedDate, events]);
 
   const fetchEvents = async () => {
+    if (!courseId) {
+      console.warn('CourseCalendar: No course ID provided');
+      setLoading(false);
+      return;
+    }
+
     try {
+      console.log('Fetching calendar events for course:', courseId);
+      
       const { data, error } = await supabase
         .from('course_calendars')
         .select('*')
         .eq('course_id', courseId)
         .order('event_date', { ascending: true });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching calendar events:', error);
+        throw error;
+      }
+
+      console.log('Calendar events fetched:', data);
       setEvents(data || []);
     } catch (error) {
       console.error('Error fetching course calendar events:', error);
@@ -53,13 +75,26 @@ const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
         description: "Failed to load calendar events",
         variant: "destructive",
       });
+      setEvents([]);
     } finally {
       setLoading(false);
     }
   };
 
   const getEventDates = () => {
-    return events.map(event => parseISO(event.event_date));
+    try {
+      return events.map(event => {
+        try {
+          return parseISO(event.event_date);
+        } catch (dateError) {
+          console.error('Error parsing event date:', event.event_date, dateError);
+          return new Date(); // fallback to current date
+        }
+      }).filter(date => !isNaN(date.getTime()));
+    } catch (error) {
+      console.error('Error getting event dates:', error);
+      return [];
+    }
   };
 
   if (loading) {
