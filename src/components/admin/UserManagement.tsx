@@ -89,15 +89,15 @@ const UserManagement = () => {
           user_id,
           role
         `)
-        .not('user_id', 'in', `(SELECT id FROM profiles)`) as { data: OrphanedRoleData[] | null };
+        .not('user_id', 'in', `(SELECT id FROM profiles)`);
 
       // Get auth users to find emails for orphaned roles
       let orphanedRoleEmails: string[] = [];
-      if (orphanedRoles?.data && orphanedRoles.data.length > 0) {
+      if (orphanedRoles && orphanedRoles.length > 0) {
         try {
           const { data: authUsers } = await supabase.auth.admin.listUsers();
           if (authUsers?.users) {
-            const orphanedUserIds = orphanedRoles.data.map(r => r.user_id);
+            const orphanedUserIds = orphanedRoles.map((r: OrphanedRoleData) => r.user_id);
             orphanedRoleEmails = authUsers.users
               .filter(user => orphanedUserIds.includes(user.id))
               .map(user => user.email || 'No email')
@@ -110,14 +110,14 @@ const UserManagement = () => {
 
       console.log(`Found ${profilesCount} profiles, ${rolesCount} user roles, ${authUsersCount} auth users`);
       console.log('Role distribution:', roleCounts);
-      console.log(`Orphaned roles: ${orphanedRoles?.data?.length || 0}`);
+      console.log(`Orphaned roles: ${orphanedRoles?.length || 0}`);
       
       setDiagnosticInfo({
         profilesCount: profilesCount || 0,
         rolesCount: rolesCount || 0,
         authUsersCount,
         roleCounts,
-        orphanedRolesCount: orphanedRoles?.data?.length || 0,
+        orphanedRolesCount: orphanedRoles?.length || 0,
         missingProfilesCount: Math.max(0, authUsersCount - (profilesCount || 0)),
         timestamp: new Date().toISOString(),
         orphanedRoleEmails
@@ -250,7 +250,7 @@ const UserManagement = () => {
       // Get existing profile IDs
       const { data: existingProfiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id') as { data: ProfileData[] | null; error: any };
+        .select('id');
 
       if (profilesError) {
         throw profilesError;
