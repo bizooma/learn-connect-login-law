@@ -161,7 +161,9 @@ export const createMissingProfiles = async (): Promise<number> => {
     throw profilesError;
   }
 
-  const existingProfileIds = new Set((existingProfiles || []).map((p: ProfileData) => p.id));
+  const existingProfileIds = new Set(
+    (existingProfiles || []).map((p: { id: string }) => p.id)
+  );
   
   // Find users without profiles
   const usersWithoutProfiles = authData.users.filter(user => 
