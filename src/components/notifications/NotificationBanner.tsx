@@ -5,6 +5,9 @@ import { Button } from "@/components/ui/button";
 import { X, Bell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { Tables } from "@/integrations/supabase/types";
+
+type NotificationRow = Tables<'notifications'>;
 
 interface Notification {
   id: string;
@@ -36,7 +39,10 @@ const NotificationBanner = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setNotifications(data || []);
+      
+      // Type assertion to ensure proper typing
+      const typedNotifications = (data || []) as Notification[];
+      setNotifications(typedNotifications);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     }

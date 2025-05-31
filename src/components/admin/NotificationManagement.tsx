@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +10,9 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Plus, Edit, Trash2, Bell } from "lucide-react";
+import { Tables } from "@/integrations/supabase/types";
+
+type NotificationRow = Tables<'notifications'>;
 
 interface Notification {
   id: string;
@@ -48,7 +50,10 @@ const NotificationManagement = () => {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      setNotifications(data || []);
+      
+      // Type assertion to ensure proper typing
+      const typedNotifications = (data || []) as Notification[];
+      setNotifications(typedNotifications);
     } catch (error) {
       console.error('Error fetching notifications:', error);
       toast({
