@@ -11,7 +11,7 @@ import UserCourseProgress from "./user/UserCourseProgress";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
-  const { isOwner, isStudent, isClient } = useUserRole();
+  const { isOwner, isStudent, isClient, isFree } = useUserRole();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("courses");
   const [stats, setStats] = useState({
@@ -33,9 +33,15 @@ const Dashboard = () => {
       navigate("/client-dashboard");
       return;
     }
+
+    // Redirect free users to their dedicated dashboard
+    if (isFree) {
+      navigate("/free-dashboard");
+      return;
+    }
     
     fetchStats();
-  }, [isStudent, isClient, navigate]);
+  }, [isStudent, isClient, isFree, navigate]);
 
   const fetchStats = async () => {
     try {
@@ -88,8 +94,8 @@ const Dashboard = () => {
     },
   ];
 
-  // Don't render if user is not available or is a student/client (will redirect)
-  if (!user || isStudent || isClient) {
+  // Don't render if user is not available or is a student/client/free user (will redirect)
+  if (!user || isStudent || isClient || isFree) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>

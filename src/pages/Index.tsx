@@ -9,7 +9,7 @@ import { useEffect } from "react";
 
 const IndexContent = () => {
   const { user, loading: authLoading } = useAuth();
-  const { isAdmin, isOwner, isStudent, isClient, loading: roleLoading } = useUserRole();
+  const { isAdmin, isOwner, isStudent, isClient, isFree, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -26,8 +26,12 @@ const IndexContent = () => {
       else if (isClient) {
         navigate("/client-dashboard");
       }
+      // Redirect free users to their dedicated dashboard
+      else if (isFree) {
+        navigate("/free-dashboard");
+      }
     }
-  }, [user, isOwner, isStudent, isClient, authLoading, roleLoading, navigate]);
+  }, [user, isOwner, isStudent, isClient, isFree, authLoading, roleLoading, navigate]);
 
   if (authLoading || roleLoading) {
     return (
@@ -44,7 +48,7 @@ const IndexContent = () => {
     return <AuthPage />;
   }
 
-  // Show admin dashboard only for admins, not owners, students, or clients
+  // Show admin dashboard only for admins, not owners, students, clients, or free users
   return isAdmin ? <AdminDashboard /> : <Dashboard />;
 };
 

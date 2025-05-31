@@ -11,6 +11,7 @@ import Course from "./pages/Course";
 import OwnerDashboard from "./pages/OwnerDashboard";
 import StudentDashboard from "./components/StudentDashboard";
 import ClientDashboard from "./components/ClientDashboard";
+import FreeDashboard from "./components/FreeDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +30,7 @@ const App = () => (
             <Route path="/owner-dashboard" element={<OwnerDashboard />} />
             <Route path="/student-dashboard" element={<StudentDashboard />} />
             <Route path="/client-dashboard" element={<ClientDashboard />} />
+            <Route path="/free-dashboard" element={<FreeDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
