@@ -9,8 +9,8 @@ type Profile = Tables<'profiles'>;
 type Course = Tables<'courses'>;
 
 interface CourseAssignmentWithDetails extends CourseAssignment {
-  profiles?: Profile;
-  courses?: Course;
+  profiles?: Profile | null;
+  courses?: Course | null;
 }
 
 export const useCourseAssignments = () => {
@@ -61,11 +61,18 @@ export const useCourseAssignments = () => {
 
   const assignCourse = async (userId: string, courseId: string, dueDate?: string, isMandatory: boolean = false, notes?: string) => {
     try {
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        throw new Error('User not authenticated');
+      }
+
       const { error } = await supabase
         .from('course_assignments')
         .insert({
           user_id: userId,
           course_id: courseId,
+          assigned_by: user.id,
           due_date: dueDate,
           is_mandatory: isMandatory,
           notes: notes
