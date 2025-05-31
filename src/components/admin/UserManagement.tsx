@@ -243,7 +243,7 @@ const UserManagement = () => {
         .from('profiles')
         .select('id');
 
-      const existingProfileIds = new Set(existingProfiles?.map(p => p.id) || []);
+      const existingProfileIds = new Set((existingProfiles || []).map(p => p.id));
       
       // Find users without profiles
       const usersWithoutProfiles = authData.users.filter(user => 
