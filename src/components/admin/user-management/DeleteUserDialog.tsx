@@ -49,9 +49,12 @@ const DeleteUserDialog = ({ user, onUserDeleted }: DeleteUserDialogProps) => {
   return (
     <AlertDialog>
       <AlertDialogTrigger asChild>
-        <Button variant="destructive" size="sm" className="flex items-center gap-1">
-          <Trash2 className="h-3 w-3" />
-          Delete
+        <Button 
+          size="sm" 
+          variant="outline"
+          className="border-red-500 text-red-500 hover:bg-red-50"
+        >
+          <Trash2 className="h-4 w-4" />
         </Button>
       </AlertDialogTrigger>
       <AlertDialogContent>
