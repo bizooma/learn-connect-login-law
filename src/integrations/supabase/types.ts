@@ -207,6 +207,42 @@ export type Database = {
           },
         ]
       }
+      user_import_batches: {
+        Row: {
+          created_at: string
+          duplicate_emails: number
+          failed_imports: number
+          filename: string
+          id: string
+          import_errors: Json | null
+          imported_by: string
+          successful_imports: number
+          total_rows: number
+        }
+        Insert: {
+          created_at?: string
+          duplicate_emails?: number
+          failed_imports?: number
+          filename: string
+          id?: string
+          import_errors?: Json | null
+          imported_by: string
+          successful_imports?: number
+          total_rows: number
+        }
+        Update: {
+          created_at?: string
+          duplicate_emails?: number
+          failed_imports?: number
+          filename?: string
+          id?: string
+          import_errors?: Json | null
+          imported_by?: string
+          successful_imports?: number
+          total_rows?: number
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
