@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
@@ -102,26 +101,20 @@ export const useCourseForm = (onSuccess: () => void) => {
         }
       }
 
-      // Create the course first - temporarily remove level constraint
-      const courseData = {
-        title: data.title,
-        description: data.description,
-        instructor: data.instructor,
-        category: data.category,
-        duration: data.duration,
-        image_url: imageUrl,
-        rating: 0,
-        students_enrolled: 0,
-      };
-
-      // Only add level if it's provided and not empty
-      if (data.level && data.level.trim() !== '') {
-        (courseData as any).level = data.level;
-      }
-
+      // Create the course first
       const { data: courseDataResult, error: courseError } = await supabase
         .from('courses')
-        .insert([courseData])
+        .insert([{
+          title: data.title,
+          description: data.description,
+          instructor: data.instructor,
+          category: data.category,
+          level: data.level || 'beginner', // Provide default level if empty
+          duration: data.duration,
+          image_url: imageUrl,
+          rating: 0,
+          students_enrolled: 0,
+        }])
         .select()
         .single();
 
