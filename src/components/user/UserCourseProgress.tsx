@@ -15,9 +15,11 @@ interface CourseWithProgress extends Course {
 
 interface UserCourseProgressProps {
   userId: string;
+  showOnlyAssigned?: boolean;
+  showOnlyCompleted?: boolean;
 }
 
-const UserCourseProgress = ({ userId }: UserCourseProgressProps) => {
+const UserCourseProgress = ({ userId, showOnlyAssigned = false, showOnlyCompleted = false }: UserCourseProgressProps) => {
   const { completedCourses, currentCourse, loading } = useUserProgress(userId);
 
   if (loading) {
@@ -53,10 +55,20 @@ const UserCourseProgress = ({ userId }: UserCourseProgressProps) => {
     }
   };
 
+  // Filter courses based on props
+  let coursesToShow = [];
+  if (showOnlyCompleted) {
+    coursesToShow = completedCourses;
+  } else if (showOnlyAssigned) {
+    coursesToShow = currentCourse ? [currentCourse] : [];
+  } else {
+    coursesToShow = currentCourse ? [currentCourse, ...completedCourses] : completedCourses;
+  }
+
   return (
     <div className="space-y-6">
-      {/* Current Course */}
-      {currentCourse && (
+      {/* Current Course - only show if not filtering for completed only */}
+      {currentCourse && !showOnlyCompleted && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -99,7 +111,7 @@ const UserCourseProgress = ({ userId }: UserCourseProgressProps) => {
       )}
 
       {/* Completed Courses */}
-      {completedCourses.length > 0 && (
+      {completedCourses.length > 0 && !showOnlyAssigned && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -144,13 +156,21 @@ const UserCourseProgress = ({ userId }: UserCourseProgressProps) => {
       )}
 
       {/* Empty State */}
-      {!currentCourse && completedCourses.length === 0 && (
+      {coursesToShow.length === 0 && (
         <Card>
           <CardContent className="py-8">
             <div className="text-center">
               <BookOpen className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">No course progress yet</h3>
-              <p className="text-gray-600">This user hasn't started any courses.</p>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">
+                {showOnlyCompleted ? "No completed courses yet" : 
+                 showOnlyAssigned ? "No assigned courses yet" : 
+                 "No course progress yet"}
+              </h3>
+              <p className="text-gray-600">
+                {showOnlyCompleted ? "Complete some courses to see them here." :
+                 showOnlyAssigned ? "Courses will appear here when assigned." :
+                 "This user hasn't started any courses."}
+              </p>
             </div>
           </CardContent>
         </Card>

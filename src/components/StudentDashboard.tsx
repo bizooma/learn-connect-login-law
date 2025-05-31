@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -34,35 +35,21 @@ const StudentDashboard = () => {
   const fetchStats = async () => {
     setLoading(true);
     try {
-      // Fetch total assigned courses (assuming you have a way to track this)
-      const { count: assignedCoursesCount } = await supabase
-        .from('courses')
-        .select('*', { count: 'exact', head: true })
-        .eq('assigned_to', user?.id); // Replace 'assigned_to' with your actual column
+      // Fetch user course progress for actual stats
+      const { data: progressData } = await supabase
+        .from('user_course_progress')
+        .select('*')
+        .eq('user_id', user?.id);
 
-      // Fetch completed courses (assuming you have a way to track this)
-      const { count: completedCoursesCount } = await supabase
-        .from('courses')
-        .select('*', { count: 'exact', head: true })
-        .eq('completed_by', user?.id); // Replace 'completed_by' with your actual column
-
-      // Fetch in progress courses (assuming you have a way to track this)
-      const { count: inProgressCoursesCount } = await supabase
-        .from('courses')
-        .select('*', { count: 'exact', head: true })
-        .eq('in_progress_by', user?.id); // Replace 'in_progress_by' with your actual column
-
-      // Fetch certificates earned (assuming you have a way to track this)
-      const { count: certificatesEarnedCount } = await supabase
-        .from('certificates')
-        .select('*', { count: 'exact', head: true })
-        .eq('user_id', user?.id); // Replace 'user_id' with your actual column
+      const assignedCoursesCount = progressData?.length || 0;
+      const completedCoursesCount = progressData?.filter(p => p.status === 'completed').length || 0;
+      const inProgressCoursesCount = progressData?.filter(p => p.status === 'in_progress').length || 0;
 
       setStats({
-        assignedCourses: assignedCoursesCount || 0,
-        completedCourses: completedCoursesCount || 0,
-        inProgressCourses: inProgressCoursesCount || 0,
-        certificatesEarned: certificatesEarnedCount || 0
+        assignedCourses: assignedCoursesCount,
+        completedCourses: completedCoursesCount,
+        inProgressCourses: inProgressCoursesCount,
+        certificatesEarned: completedCoursesCount // For now, assume 1 certificate per completed course
       });
     } catch (error) {
       console.error('Error fetching student stats:', error);
