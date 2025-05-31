@@ -32,7 +32,7 @@ export const fetchUsersData = async (): Promise<{
     .select('role')
     .order('role');
 
-  const roleCounts = roleDistribution?.reduce((acc, { role }) => {
+  const roleCounts = roleDistribution?.reduce((acc: Record<string, number>, { role }: { role: string }) => {
     acc[role] = (acc[role] || 0) + 1;
     return acc;
   }, {} as Record<string, number>) || {};
@@ -166,7 +166,7 @@ export const createMissingProfiles = async (): Promise<number> => {
   );
   
   // Find users without profiles
-  const usersWithoutProfiles = authData.users.filter(user => 
+  const usersWithoutProfiles = authData.users.filter((user: { id: string }) => 
     !existingProfileIds.has(user.id)
   );
 
@@ -175,7 +175,7 @@ export const createMissingProfiles = async (): Promise<number> => {
   }
 
   // Create missing profiles
-  const profilesToCreate = usersWithoutProfiles.map(user => ({
+  const profilesToCreate = usersWithoutProfiles.map((user: any) => ({
     id: user.id,
     email: user.email || '',
     first_name: user.user_metadata?.first_name || '',
