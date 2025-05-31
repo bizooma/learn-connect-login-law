@@ -21,45 +21,68 @@ export const fetchUsersData = async (): Promise<{
   users: UserProfile[];
   diagnosticInfo: DiagnosticInfo;
 }> => {
-  console.log('Fetching all users and analyzing data inconsistencies...');
+  console.log('=== FETCHING FRESH USER DATA ===');
+  console.log('Timestamp:', new Date().toISOString());
   
-  // Get basic counts for debugging
-  const { count: profilesCount } = await supabase
+  // Force fresh data by adding timestamp to queries
+  const timestamp = Date.now();
+  
+  // Get basic counts for debugging with forced refresh
+  const { count: profilesCount, error: profilesCountError } = await supabase
     .from('profiles')
     .select('*', { count: 'exact', head: true });
 
-  const { count: rolesCount } = await supabase
+  console.log('Profiles count query result:', { profilesCount, profilesCountError });
+
+  const { count: rolesCount, error: rolesCountError } = await supabase
     .from('user_roles')
     .select('*', { count: 'exact', head: true });
+
+  console.log('Roles count query result:', { rolesCount, rolesCountError });
 
   // Get auth users count (this might fail with regular client)
   let authUsersCount = 0;
   try {
     const { data: authData } = await supabase.auth.admin.listUsers() as { data: AuthUsersResponse };
     authUsersCount = authData.users?.length || 0;
+    console.log('Auth users count:', authUsersCount);
   } catch (authError) {
-    console.log('Cannot access auth users with regular client');
+    console.log('Cannot access auth users with regular client:', authError);
   }
 
-  // Get role distribution
-  const { data: roleDistribution } = await supabase
+  // Get role distribution with detailed logging
+  const { data: roleDistribution, error: roleDistError } = await supabase
     .from('user_roles')
     .select('role')
     .order('role');
+
+  console.log('Role distribution query:', { 
+    data: roleDistribution, 
+    error: roleDistError,
+    count: roleDistribution?.length 
+  });
 
   const roleCounts = roleDistribution?.reduce((acc: Record<string, number>, { role }: { role: string }) => {
     acc[role] = (acc[role] || 0) + 1;
     return acc;
   }, {} as Record<string, number>) || {};
 
+  console.log('Calculated role counts:', roleCounts);
+
   // Get orphaned roles with email information
-  const { data: orphanedRoles } = await supabase
+  const { data: orphanedRoles, error: orphanedError } = await supabase
     .from('user_roles')
     .select(`
       user_id,
       role
     `)
     .not('user_id', 'in', `(SELECT id FROM profiles)`);
+
+  console.log('Orphaned roles query:', { 
+    data: orphanedRoles, 
+    error: orphanedError,
+    count: orphanedRoles?.length 
+  });
 
   // Get auth users to find emails for orphaned roles
   let orphanedRoleEmails: string[] = [];
@@ -78,9 +101,12 @@ export const fetchUsersData = async (): Promise<{
     }
   }
 
-  console.log(`Found ${profilesCount} profiles, ${rolesCount} user roles, ${authUsersCount} auth users`);
-  console.log('Role distribution:', roleCounts);
+  console.log(`=== FINAL COUNTS ===`);
+  console.log(`Profiles: ${profilesCount}`);
+  console.log(`Roles: ${rolesCount}`);
+  console.log(`Auth users: ${authUsersCount}`);
   console.log(`Orphaned roles: ${orphanedRoles?.length || 0}`);
+  console.log('Role distribution:', roleCounts);
   
   const diagnosticInfo: DiagnosticInfo = {
     profilesCount: profilesCount || 0,
@@ -136,6 +162,7 @@ export const fetchUsersData = async (): Promise<{
   }));
 
   console.log('Users with roles:', usersWithRoles.length);
+  console.log('=== END FETCH ===');
   
   return { users: usersWithRoles, diagnosticInfo };
 };
