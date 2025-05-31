@@ -12,6 +12,9 @@ import { filterUsers } from "./user-management/userRoleUtils";
 import { UserProfile, DiagnosticInfo } from "./user-management/types";
 import { fetchUsersData } from "./user-management/userDataService";
 import { useUserManagementOperations } from "./user-management/userManagementOperations";
+import { usePagination } from "./user-management/usePagination";
+
+const ITEMS_PER_PAGE = 10;
 
 const UserManagement = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
@@ -27,6 +30,9 @@ const UserManagement = () => {
       const { users: fetchedUsers, diagnosticInfo: fetchedDiagnosticInfo } = await fetchUsersData();
       setUsers(fetchedUsers);
       setDiagnosticInfo(fetchedDiagnosticInfo);
+      
+      // Reset pagination when users data changes
+      resetPagination();
       
       // Show updated role counts in a toast
       if (fetchedDiagnosticInfo) {
@@ -53,6 +59,24 @@ const UserManagement = () => {
   }, []);
 
   const filteredUsers = filterUsers(users, searchTerm);
+  
+  const {
+    currentPage,
+    totalPages,
+    paginatedData,
+    goToPage,
+    hasNextPage,
+    hasPreviousPage,
+    resetPagination,
+  } = usePagination({
+    data: filteredUsers,
+    itemsPerPage: ITEMS_PER_PAGE,
+  });
+
+  // Reset pagination when search term changes
+  useEffect(() => {
+    resetPagination();
+  }, [searchTerm, resetPagination]);
 
   if (loading) {
     return <LoadingState />;
@@ -76,8 +100,14 @@ const UserManagement = () => {
       />
       
       <UserGrid 
-        users={filteredUsers} 
-        onRoleUpdate={updateUserRole} 
+        users={paginatedData}
+        onRoleUpdate={updateUserRole}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalUsers={filteredUsers.length}
+        onPageChange={goToPage}
+        hasNextPage={hasNextPage}
+        hasPreviousPage={hasPreviousPage}
       />
       
       {users.length === 0 && (
