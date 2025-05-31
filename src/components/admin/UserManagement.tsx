@@ -27,6 +27,15 @@ interface DiagnosticInfo {
   orphanedRoleEmails?: string[];
 }
 
+interface ProfileData {
+  id: string;
+}
+
+interface OrphanedRoleData {
+  user_id: string;
+  role: string;
+}
+
 const UserManagement = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -80,15 +89,15 @@ const UserManagement = () => {
           user_id,
           role
         `)
-        .not('user_id', 'in', `(SELECT id FROM profiles)`);
+        .not('user_id', 'in', `(SELECT id FROM profiles)`) as { data: OrphanedRoleData[] | null };
 
       // Get auth users to find emails for orphaned roles
       let orphanedRoleEmails: string[] = [];
-      if (orphanedRoles && orphanedRoles.length > 0) {
+      if (orphanedRoles?.data && orphanedRoles.data.length > 0) {
         try {
           const { data: authUsers } = await supabase.auth.admin.listUsers();
           if (authUsers?.users) {
-            const orphanedUserIds = orphanedRoles.map(r => r.user_id);
+            const orphanedUserIds = orphanedRoles.data.map(r => r.user_id);
             orphanedRoleEmails = authUsers.users
               .filter(user => orphanedUserIds.includes(user.id))
               .map(user => user.email || 'No email')
@@ -101,14 +110,14 @@ const UserManagement = () => {
 
       console.log(`Found ${profilesCount} profiles, ${rolesCount} user roles, ${authUsersCount} auth users`);
       console.log('Role distribution:', roleCounts);
-      console.log(`Orphaned roles: ${orphanedRoles?.length || 0}`);
+      console.log(`Orphaned roles: ${orphanedRoles?.data?.length || 0}`);
       
       setDiagnosticInfo({
         profilesCount: profilesCount || 0,
         rolesCount: rolesCount || 0,
         authUsersCount,
         roleCounts,
-        orphanedRolesCount: orphanedRoles?.length || 0,
+        orphanedRolesCount: orphanedRoles?.data?.length || 0,
         missingProfilesCount: Math.max(0, authUsersCount - (profilesCount || 0)),
         timestamp: new Date().toISOString(),
         orphanedRoleEmails
@@ -239,11 +248,15 @@ const UserManagement = () => {
       }
 
       // Get existing profile IDs
-      const { data: existingProfiles } = await supabase
+      const { data: existingProfiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id');
+        .select('id') as { data: ProfileData[] | null; error: any };
 
-      const existingProfileIds = new Set((existingProfiles || []).map(p => p.id));
+      if (profilesError) {
+        throw profilesError;
+      }
+
+      const existingProfileIds = new Set((existingProfiles || []).map((p: ProfileData) => p.id));
       
       // Find users without profiles
       const usersWithoutProfiles = authData.users.filter(user => 
