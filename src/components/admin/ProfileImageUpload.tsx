@@ -59,10 +59,6 @@ const ProfileImageUpload = ({ currentImageUrl, onImageUpdate }: ProfileImageUplo
       }
 
       onImageUpdate(imageUrl);
-      toast({
-        title: "Success",
-        description: "Profile image updated successfully",
-      });
     } catch (error) {
       console.error('Error uploading image:', error);
       toast({

@@ -67,6 +67,7 @@ const ProfileManagement = () => {
           first_name: formData.first_name,
           last_name: formData.last_name,
           email: formData.email,
+          profile_image_url: formData.profile_image_url,
           updated_at: new Date().toISOString(),
         })
         .eq('id', user?.id);
@@ -104,6 +105,12 @@ const ProfileManagement = () => {
       ...prev,
       profile_image_url: imageUrl || ''
     }));
+    
+    // Show success message since the ProfileImageUpload already updated the database
+    toast({
+      title: "Success",
+      description: "Profile image updated successfully",
+    });
   };
 
   return (
