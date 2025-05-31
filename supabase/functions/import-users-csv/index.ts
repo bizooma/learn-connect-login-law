@@ -181,43 +181,75 @@ serve(async (req) => {
           continue
         }
 
-        // Generate a UUID for the user
-        const userId = crypto.randomUUID()
-
-        // Insert into profiles table with null for empty names
-        const { error: profileError } = await supabase
-          .from('profiles')
-          .insert({
-            id: userId,
-            email: row.email,
+        // Create auth user first
+        const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
+          email: row.email,
+          email_confirm: true, // Auto-confirm email
+          user_metadata: {
             first_name: row.firstName || null,
             last_name: row.lastName || null
-          })
+          }
+        })
 
-        if (profileError) {
+        if (authError) {
+          console.error('Auth user creation error:', authError)
           errors.push({
             row: 0,
             email: row.email,
-            error: `Failed to create profile: ${profileError.message}`
+            error: `Failed to create auth user: ${authError.message}`
           })
           continue
+        }
+
+        if (!authUser.user) {
+          errors.push({
+            row: 0,
+            email: row.email,
+            error: 'Failed to create auth user: No user returned'
+          })
+          continue
+        }
+
+        // The profile should be created automatically by the trigger
+        // But let's make sure it exists and update it if needed
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', authUser.user.id)
+          .single()
+
+        if (!profile) {
+          // If profile wasn't created by trigger, create it manually
+          const { error: manualProfileError } = await supabase
+            .from('profiles')
+            .insert({
+              id: authUser.user.id,
+              email: row.email,
+              first_name: row.firstName || null,
+              last_name: row.lastName || null
+            })
+
+          if (manualProfileError) {
+            console.error('Manual profile creation error:', manualProfileError)
+            errors.push({
+              row: 0,
+              email: row.email,
+              error: `Failed to create profile: ${manualProfileError.message}`
+            })
+            continue
+          }
         }
 
         // Insert role
         const { error: roleError } = await supabase
           .from('user_roles')
           .insert({
-            user_id: userId,
+            user_id: authUser.user.id,
             role: row.role
           })
 
         if (roleError) {
-          // If role insertion fails, we should delete the profile to maintain consistency
-          await supabase
-            .from('profiles')
-            .delete()
-            .eq('id', userId)
-
+          console.error('Role assignment error:', roleError)
           errors.push({
             row: 0,
             email: row.email,
@@ -227,7 +259,9 @@ serve(async (req) => {
         }
 
         successfulImports++
+        console.log(`Successfully imported user: ${row.email}`)
       } catch (error) {
+        console.error('Unexpected error for user:', row.email, error)
         errors.push({
           row: 0,
           email: row.email,
