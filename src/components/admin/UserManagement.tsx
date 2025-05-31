@@ -160,7 +160,7 @@ const UserManagement = () => {
       console.log('Users with roles:', usersWithRoles.length);
       setUsers(usersWithRoles);
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching users:', error);
       toast({
         title: "Error",
@@ -207,7 +207,7 @@ const UserManagement = () => {
 
       // Refresh the data
       await fetchUsers();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error cleaning up orphaned roles:', error);
       toast({
         title: "Error",
@@ -282,7 +282,7 @@ const UserManagement = () => {
 
       // Refresh the data
       await fetchUsers();
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating missing profiles:', error);
       toast({
         title: "Error",
@@ -334,7 +334,7 @@ const UserManagement = () => {
         title: "Success",
         description: "User role updated successfully",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error updating user role:', error);
       toast({
         title: "Error",
