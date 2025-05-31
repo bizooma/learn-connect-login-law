@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +12,8 @@ import UserManagement from "./admin/UserManagement";
 import ProfileManagement from "./admin/ProfileManagement";
 import QuizManagement from "./admin/QuizManagement";
 import CourseAssignmentManagement from "./admin/CourseAssignmentManagement";
+import NotificationManagement from "./admin/NotificationManagement";
+import NotificationBanner from "./notifications/NotificationBanner";
 
 const AdminDashboard = () => {
   const { user, signOut } = useAuth();
@@ -132,6 +135,9 @@ const AdminDashboard = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Notification Banner */}
+        <NotificationBanner />
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {adminStats.map((stat) => (
@@ -155,17 +161,18 @@ const AdminDashboard = () => {
           <CardHeader>
             <CardTitle>Management Console</CardTitle>
             <CardDescription>
-              Manage courses, users, quizzes, assignments, and system settings
+              Manage courses, users, quizzes, assignments, notifications, and system settings
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-5">
-                <TabsTrigger value="courses">Course Management</TabsTrigger>
-                <TabsTrigger value="assignments">Course Assignments</TabsTrigger>
-                <TabsTrigger value="users">User Management</TabsTrigger>
-                <TabsTrigger value="quizzes">Quiz Management</TabsTrigger>
-                <TabsTrigger value="profile">Profile Settings</TabsTrigger>
+              <TabsList className="grid w-full grid-cols-6">
+                <TabsTrigger value="courses">Courses</TabsTrigger>
+                <TabsTrigger value="assignments">Assignments</TabsTrigger>
+                <TabsTrigger value="users">Users</TabsTrigger>
+                <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
+                <TabsTrigger value="notifications">Notifications</TabsTrigger>
+                <TabsTrigger value="profile">Profile</TabsTrigger>
               </TabsList>
               
               <TabsContent value="courses" className="mt-6">
@@ -182,6 +189,10 @@ const AdminDashboard = () => {
               
               <TabsContent value="quizzes" className="mt-6">
                 <QuizManagement />
+              </TabsContent>
+              
+              <TabsContent value="notifications" className="mt-6">
+                <NotificationManagement />
               </TabsContent>
               
               <TabsContent value="profile" className="mt-6">

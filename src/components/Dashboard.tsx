@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -8,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { BookOpen, Users, User, LogOut, Library, Building2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import UserCourseProgress from "./user/UserCourseProgress";
+import NotificationBanner from "./notifications/NotificationBanner";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
@@ -150,6 +152,9 @@ const Dashboard = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Notification Banner */}
+        <NotificationBanner />
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {userStats.map((stat) => (

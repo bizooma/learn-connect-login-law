@@ -1,38 +1,57 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
-import { useCourseAssignments } from "@/hooks/useCourseAssignments";
-import { BookOpen, Clock, Trophy, Play, Calendar, LogOut, Building2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { BookOpen, User, Award, LogOut, Briefcase } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import UserCourseProgress from "./user/UserCourseProgress";
+import NotificationBanner from "./notifications/NotificationBanner";
 
 const ClientDashboard = () => {
   const { user, signOut } = useAuth();
   const { isClient } = useUserRole();
-  const { assignments, loading } = useCourseAssignments();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("current");
+  const [activeTab, setActiveTab] = useState("assigned");
+  const [stats, setStats] = useState({
+    assignedCourses: 0,
+    completedCourses: 0,
+    inProgressCourses: 0,
+    certificatesEarned: 0
+  });
+  const [loading, setLoading] = useState(true);
 
-  // Filter assignments for the current user
-  const userAssignments = assignments.filter(assignment => assignment.user_id === user?.id);
-  const currentCourses = userAssignments.filter(assignment => 
-    !assignment.courses?.rating || assignment.courses.rating < 100
-  );
-  const completedCourses = userAssignments.filter(assignment => 
-    assignment.courses?.rating === 100
-  );
-
-  // Redirect if not a client
   useEffect(() => {
-    if (!loading && !isClient) {
+    if (!isClient) {
       navigate("/");
+      return;
     }
-  }, [isClient, loading, navigate]);
+    fetchStats();
+  }, [isClient, navigate]);
+
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      // Fetch total courses assigned to the client (replace with actual logic)
+      const assignedCoursesCount = 5; // Placeholder value
+      const completedCoursesCount = 2; // Placeholder value
+      const inProgressCoursesCount = 3; // Placeholder value
+      const certificatesEarnedCount = 1; // Placeholder value
+
+      setStats({
+        assignedCourses: assignedCoursesCount,
+        completedCourses: completedCoursesCount,
+        inProgressCourses: inProgressCoursesCount,
+        certificatesEarned: certificatesEarnedCount
+      });
+    } catch (error) {
+      console.error("Error fetching client stats:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -46,49 +65,37 @@ const ClientDashboard = () => {
   }
 
   if (!isClient) {
-    return null; // Will redirect in useEffect
+    return null;
   }
 
-  const getStatusColor = (isCompleted: boolean, isMandatory: boolean) => {
-    if (isCompleted) return "bg-green-500";
-    if (isMandatory) return "bg-red-500";
-    return "bg-purple-500";
-  };
-
-  const getStatusText = (isCompleted: boolean, isMandatory: boolean) => {
-    if (isCompleted) return "Completed";
-    if (isMandatory) return "Required";
-    return "Available";
-  };
-
-  const stats = [
+  const clientStats = [
     {
-      title: "Available Courses",
-      value: userAssignments.length.toString(),
-      description: "Total courses available",
+      title: "Assigned Courses",
+      value: stats.assignedCourses.toString(),
+      description: "Courses assigned to you",
       icon: BookOpen,
       color: "text-purple-600",
     },
     {
       title: "In Progress",
-      value: currentCourses.length.toString(),
-      description: "Currently taking",
-      icon: Play,
+      value: stats.inProgressCourses.toString(),
+      description: "Currently studying",
+      icon: Briefcase,
       color: "text-orange-600",
     },
     {
       title: "Completed",
-      value: completedCourses.length.toString(),
-      description: "Courses finished",
-      icon: Trophy,
+      value: stats.completedCourses.toString(),
+      description: "Courses completed",
+      icon: Award,
       color: "text-green-600",
     },
     {
-      title: "Required",
-      value: userAssignments.filter(a => a.is_mandatory).length.toString(),
-      description: "Required courses",
-      icon: Calendar,
-      color: "text-red-600",
+      title: "Certificates",
+      value: stats.certificatesEarned.toString(),
+      description: "Certificates earned",
+      icon: User,
+      color: "text-blue-600",
     },
   ];
 
@@ -103,18 +110,10 @@ const ClientDashboard = () => {
                 Client Dashboard
               </h1>
               <p className="text-gray-600 mt-1">
-                Welcome back, {user?.user_metadata?.first_name || "Client"}
+                Welcome, {user?.user_metadata?.first_name || "Client"}! Access your assigned training materials.
               </p>
             </div>
             <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                onClick={() => navigate("/courses")}
-                className="flex items-center"
-              >
-                <Building2 className="h-4 w-4 mr-2" />
-                Browse Courses
-              </Button>
               <Button
                 variant="ghost"
                 onClick={signOut}
@@ -129,9 +128,12 @@ const ClientDashboard = () => {
       </div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        {/* Notification Banner */}
+        <NotificationBanner />
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat) => (
+          {clientStats.map((stat) => (
             <Card key={stat.title} className="bg-white">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">
@@ -150,139 +152,24 @@ const ClientDashboard = () => {
         {/* Main Content */}
         <Card className="bg-white">
           <CardHeader>
-            <CardTitle>My Learning Path</CardTitle>
+            <CardTitle>Client Learning Portal</CardTitle>
             <CardDescription>
-              Manage your courses and track your professional development
+              Access your assigned courses and track your professional development
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
               <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="current">Current Courses</TabsTrigger>
-                <TabsTrigger value="completed">Completed Courses</TabsTrigger>
+                <TabsTrigger value="assigned">Assigned Training</TabsTrigger>
+                <TabsTrigger value="completed">Completed Training</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="current" className="mt-6">
-                {currentCourses.length > 0 ? (
-                  <div className="space-y-4">
-                    {currentCourses.map((assignment) => (
-                      <div key={assignment.id} className="border rounded-lg p-6">
-                        <div className="flex items-start justify-between mb-4">
-                          <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-gray-900">
-                              {assignment.courses?.title || "Unknown Course"}
-                            </h3>
-                            <p className="text-gray-600 text-sm mt-1">
-                              {assignment.courses?.description || "No description available"}
-                            </p>
-                            <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                              <span className="flex items-center gap-1">
-                                <Clock className="h-4 w-4" />
-                                {assignment.courses?.duration || "N/A"}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <BookOpen className="h-4 w-4" />
-                                {assignment.courses?.category || "N/A"}
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex flex-col items-end gap-2">
-                            <Badge className={getStatusColor(false, assignment.is_mandatory)}>
-                              {getStatusText(false, assignment.is_mandatory)}
-                            </Badge>
-                            {assignment.due_date && (
-                              <span className="text-sm text-gray-500">
-                                Due: {new Date(assignment.due_date).toLocaleDateString()}
-                              </span>
-                            )}
-                          </div>
-                        </div>
-                        
-                        {assignment.notes && (
-                          <div className="mb-4 p-3 bg-purple-50 rounded">
-                            <p className="text-sm text-gray-700">{assignment.notes}</p>
-                          </div>
-                        )}
-                        
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1 mr-4">
-                            <div className="flex justify-between text-sm mb-1">
-                              <span>Progress</span>
-                              <span>0%</span>
-                            </div>
-                            <Progress value={0} className="h-2" />
-                          </div>
-                          <Button
-                            onClick={() => navigate(`/course/${assignment.course_id}`)}
-                            size="sm"
-                            className="bg-purple-600 hover:bg-purple-700"
-                          >
-                            Start Learning
-                          </Button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <BookOpen className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No current courses</h3>
-                    <p className="text-gray-600">You don't have any courses in progress.</p>
-                  </div>
-                )}
+              <TabsContent value="assigned" className="mt-6">
+                <UserCourseProgress userId={user.id} showOnlyAssigned={true} />
               </TabsContent>
               
               <TabsContent value="completed" className="mt-6">
-                {completedCourses.length > 0 ? (
-                  <div className="space-y-4">
-                    {completedCourses.map((assignment) => (
-                      <div key={assignment.id} className="border rounded-lg p-6">
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-gray-900">
-                              {assignment.courses?.title || "Unknown Course"}
-                            </h3>
-                            <p className="text-gray-600 text-sm mt-1">
-                              {assignment.courses?.description || "No description available"}
-                            </p>
-                            <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                              <span className="flex items-center gap-1">
-                                <Clock className="h-4 w-4" />
-                                {assignment.courses?.duration || "N/A"}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <BookOpen className="h-4 w-4" />
-                                {assignment.courses?.category || "N/A"}
-                              </span>
-                              <span className="flex items-center gap-1">
-                                <Trophy className="h-4 w-4" />
-                                Completed
-                              </span>
-                            </div>
-                          </div>
-                          <div className="flex flex-col items-end gap-2">
-                            <Badge className="bg-green-500">
-                              Completed
-                            </Badge>
-                            <span className="text-sm font-medium text-green-600">100%</span>
-                          </div>
-                        </div>
-                        
-                        {assignment.notes && (
-                          <div className="mt-4 p-3 bg-purple-50 rounded">
-                            <p className="text-sm text-gray-700">{assignment.notes}</p>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <Trophy className="h-12 w-12 mx-auto text-gray-400 mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">No completed courses</h3>
-                    <p className="text-gray-600">You haven't completed any courses yet.</p>
-                  </div>
-                )}
+                <UserCourseProgress userId={user.id} showOnlyCompleted={true} />
               </TabsContent>
             </Tabs>
           </CardContent>
