@@ -10,9 +10,6 @@ const UserManagementHeader = ({ usersCount, diagnosticInfo }: UserManagementHead
   return (
     <div className="flex items-center justify-between">
       <h2 className="text-2xl font-bold">User Management</h2>
-      <div className="text-sm text-gray-600">
-        <div>{usersCount} users loaded</div>
-      </div>
     </div>
   );
 };
