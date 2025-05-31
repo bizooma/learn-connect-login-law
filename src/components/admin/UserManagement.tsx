@@ -87,7 +87,11 @@ const UserManagement = () => {
 
   return (
     <div className="space-y-6">
-      <UserManagementHeader usersCount={users.length} diagnosticInfo={diagnosticInfo} />
+      <UserManagementHeader 
+        usersCount={users.length} 
+        diagnosticInfo={diagnosticInfo} 
+        onUserAdded={fetchUsers}
+      />
 
       <DiagnosticPanel
         diagnosticInfo={diagnosticInfo}
@@ -105,6 +109,7 @@ const UserManagement = () => {
       <UserGrid 
         users={paginatedUsers}
         onRoleUpdate={updateUserRole}
+        onUserDeleted={fetchUsers}
         currentPage={currentPage}
         totalPages={totalPages}
         totalUsers={filteredUsers.length}
