@@ -66,11 +66,13 @@ export const useUserProgress = (userId?: string) => {
   };
 
   const updateCourseProgress = async (courseId: string, updates: Partial<CourseProgress>) => {
+    if (!userId) return;
+
     try {
       const { error } = await supabase
         .from('user_course_progress')
         .upsert({
-          user_id: userId!,
+          user_id: userId,
           course_id: courseId,
           ...updates,
           updated_at: new Date().toISOString()
@@ -91,11 +93,13 @@ export const useUserProgress = (userId?: string) => {
   };
 
   const markUnitComplete = async (unitId: string, courseId: string) => {
+    if (!userId) return;
+
     try {
       const { error } = await supabase
         .from('user_unit_progress')
         .upsert({
-          user_id: userId!,
+          user_id: userId,
           unit_id: unitId,
           course_id: courseId,
           completed: true,
@@ -118,6 +122,8 @@ export const useUserProgress = (userId?: string) => {
   };
 
   const calculateCourseProgress = async (courseId: string) => {
+    if (!userId) return;
+
     try {
       // Get total units in course by first getting sections
       const { data: sections, error: sectionsError } = await supabase
@@ -143,7 +149,7 @@ export const useUserProgress = (userId?: string) => {
       const { data: completedUnits, error: completedError } = await supabase
         .from('user_unit_progress')
         .select('id')
-        .eq('user_id', userId!)
+        .eq('user_id', userId)
         .eq('course_id', courseId)
         .eq('completed', true);
 
