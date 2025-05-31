@@ -18,9 +18,10 @@ interface CourseSidebarProps {
   sections: SectionWithUnits[];
   selectedUnit: Unit | null;
   onUnitSelect: (unit: Unit) => void;
+  isAdmin: boolean;
 }
 
-const CourseSidebar = ({ sections, selectedUnit, onUnitSelect }: CourseSidebarProps) => {
+const CourseSidebar = ({ sections, selectedUnit, onUnitSelect, isAdmin }: CourseSidebarProps) => {
   const [openSections, setOpenSections] = useState<Set<string>>(new Set(sections.map(s => s.id)));
 
   const toggleSection = (sectionId: string) => {
