@@ -84,18 +84,26 @@ serve(async (req) => {
       const line = lines[i].trim()
       if (!line) continue
 
+      // Split and pad with empty strings if needed
       const values = line.split(',').map((v: string) => v.trim().replace(/"/g, ''))
       
-      if (values.length !== 4) {
+      // Ensure we have exactly 4 values, padding with empty strings if necessary
+      while (values.length < 4) {
+        values.push('')
+      }
+
+      // If there are more than 4 columns, take only the first 4
+      const [role, firstName, lastName, email] = values.slice(0, 4)
+
+      // Validate required fields - email is mandatory
+      if (!email || email.trim() === '') {
         errors.push({
           row: i + 1,
-          email: values[3] || 'unknown',
-          error: 'Row must have exactly 4 columns'
+          email: email || 'empty',
+          error: 'Email address is required'
         })
         continue
       }
-
-      const [role, firstName, lastName, email] = values
 
       // Validate email format
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -108,22 +116,27 @@ serve(async (req) => {
         continue
       }
 
-      // Validate role
+      // Validate role - default to 'student' if empty
+      let validatedRole = role.toLowerCase().trim()
+      if (!validatedRole) {
+        validatedRole = 'student' // Default role for empty cells
+      }
+
       const validRoles = ['admin', 'owner', 'student', 'client', 'free']
-      if (!validRoles.includes(role.toLowerCase())) {
+      if (!validRoles.includes(validatedRole)) {
         errors.push({
           row: i + 1,
           email,
-          error: `Invalid role: ${role}. Must be one of: ${validRoles.join(', ')}`
+          error: `Invalid role: ${role}. Must be one of: ${validRoles.join(', ')} or leave empty for default 'student'`
         })
         continue
       }
 
       rows.push({
-        role: role.toLowerCase(),
-        firstName,
-        lastName,
-        email: email.toLowerCase()
+        role: validatedRole,
+        firstName: firstName.trim() || '', // Allow empty first name
+        lastName: lastName.trim() || '',   // Allow empty last name
+        email: email.toLowerCase().trim()
       })
     }
 
@@ -171,14 +184,14 @@ serve(async (req) => {
         // Generate a UUID for the user
         const userId = crypto.randomUUID()
 
-        // Insert into profiles table
+        // Insert into profiles table with null for empty names
         const { error: profileError } = await supabase
           .from('profiles')
           .insert({
             id: userId,
             email: row.email,
-            first_name: row.firstName,
-            last_name: row.lastName
+            first_name: row.firstName || null,
+            last_name: row.lastName || null
           })
 
         if (profileError) {

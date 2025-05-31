@@ -136,9 +136,12 @@ const UserImport = () => {
               onChange={handleFileSelect}
               className="cursor-pointer"
             />
-            <p className="text-sm text-gray-500 mt-2">
-              CSV should have 4 columns: role, First Name, Last Name, email address
-            </p>
+            <div className="text-sm text-gray-500 mt-2 space-y-1">
+              <p>CSV should have 4 columns: role, First Name, Last Name, email address</p>
+              <p className="text-blue-600">• Email address is required</p>
+              <p className="text-blue-600">• Empty role defaults to 'student'</p>
+              <p className="text-blue-600">• First Name and Last Name can be empty</p>
+            </div>
           </div>
 
           {csvPreview.length > 0 && (
@@ -157,7 +160,7 @@ const UserImport = () => {
                         <tr key={index} className={index === 0 ? "bg-gray-50 font-medium" : ""}>
                           {row.map((cell, cellIndex) => (
                             <td key={cellIndex} className="border border-gray-300 px-3 py-2 text-sm">
-                              {cell}
+                              {cell || (index > 0 ? <span className="text-gray-400 italic">empty</span> : cell)}
                             </td>
                           ))}
                         </tr>
