@@ -12,7 +12,6 @@ import { filterUsers } from "./user-management/userRoleUtils";
 import { UserProfile, DiagnosticInfo } from "./user-management/types";
 import { fetchUsersData } from "./user-management/userDataService";
 import { useUserManagementOperations } from "./user-management/userManagementOperations";
-import { usePagination } from "./user-management/usePagination";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -22,17 +21,20 @@ const UserManagement = () => {
   const [loading, setLoading] = useState(true);
   const [diagnosticInfo, setDiagnosticInfo] = useState<DiagnosticInfo | null>(null);
   const [isCleaningUp, setIsCleaningUp] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
   const { isAdmin } = useUserRole();
 
   const fetchUsers = async () => {
     try {
+      console.log('Fetching users data...');
       const { users: fetchedUsers, diagnosticInfo: fetchedDiagnosticInfo } = await fetchUsersData();
+      console.log('Fetched users:', fetchedUsers.length);
       setUsers(fetchedUsers);
       setDiagnosticInfo(fetchedDiagnosticInfo);
       
       // Reset pagination when users data changes
-      resetPagination();
+      setCurrentPage(1);
       
       // Show updated role counts in a toast
       if (fetchedDiagnosticInfo) {
@@ -58,25 +60,26 @@ const UserManagement = () => {
     fetchUsers();
   }, []);
 
+  // Filter users based on search term
   const filteredUsers = filterUsers(users, searchTerm);
   
-  const {
-    currentPage,
-    totalPages,
-    paginatedData,
-    goToPage,
-    hasNextPage,
-    hasPreviousPage,
-    resetPagination,
-  } = usePagination({
-    data: filteredUsers,
-    itemsPerPage: ITEMS_PER_PAGE,
-  });
+  // Calculate pagination values
+  const totalPages = Math.ceil(filteredUsers.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
 
   // Reset pagination when search term changes
   useEffect(() => {
-    resetPagination();
-  }, [searchTerm, resetPagination]);
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+      console.log(`Changed to page ${page} of ${totalPages}`);
+    }
+  };
 
   if (loading) {
     return <LoadingState />;
@@ -100,14 +103,14 @@ const UserManagement = () => {
       />
       
       <UserGrid 
-        users={paginatedData}
+        users={paginatedUsers}
         onRoleUpdate={updateUserRole}
         currentPage={currentPage}
         totalPages={totalPages}
         totalUsers={filteredUsers.length}
-        onPageChange={goToPage}
-        hasNextPage={hasNextPage}
-        hasPreviousPage={hasPreviousPage}
+        onPageChange={handlePageChange}
+        hasNextPage={currentPage < totalPages}
+        hasPreviousPage={currentPage > 1}
       />
       
       {users.length === 0 && (
