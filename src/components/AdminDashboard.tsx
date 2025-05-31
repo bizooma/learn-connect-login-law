@@ -9,7 +9,6 @@ import { BookOpen, Users, User, LogOut, Library } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CourseManagement from "./admin/CourseManagement";
 import UserManagement from "./admin/UserManagement";
-import UserImport from "./admin/UserImport";
 import ProfileManagement from "./admin/ProfileManagement";
 import UserDatabaseDebug from "./admin/UserDatabaseDebug";
 
@@ -147,10 +146,9 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-5">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="courses">Course Management</TabsTrigger>
                 <TabsTrigger value="users">User Management</TabsTrigger>
-                <TabsTrigger value="import">User Import</TabsTrigger>
                 <TabsTrigger value="profile">Profile Settings</TabsTrigger>
                 <TabsTrigger value="debug">Debug</TabsTrigger>
               </TabsList>
@@ -161,10 +159,6 @@ const AdminDashboard = () => {
               
               <TabsContent value="users" className="mt-6">
                 <UserManagement />
-              </TabsContent>
-              
-              <TabsContent value="import" className="mt-6">
-                <UserImport />
               </TabsContent>
               
               <TabsContent value="profile" className="mt-6">
