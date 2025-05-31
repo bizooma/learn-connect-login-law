@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { UnitData, SectionData } from "./types";
 
@@ -29,7 +30,12 @@ export const useSectionManager = ({ sections, onSectionsChange }: UseSectionMana
 
   const deleteSection = (index: number) => {
     const updatedSections = sections.filter((_, i) => i !== index);
-    onSectionsChange(updatedSections);
+    // Update sort orders
+    const reorderedSections = updatedSections.map((section, i) => ({
+      ...section,
+      sort_order: i
+    }));
+    onSectionsChange(reorderedSections);
   };
 
   const addUnit = (sectionIndex: number) => {
@@ -68,7 +74,11 @@ export const useSectionManager = ({ sections, onSectionsChange }: UseSectionMana
   const deleteUnit = (sectionIndex: number, unitIndex: number) => {
     const updatedSections = sections.map((section, i) => 
       i === sectionIndex 
-        ? { ...section, units: section.units.filter((_, j) => j !== unitIndex) }
+        ? { 
+            ...section, 
+            units: section.units.filter((_, j) => j !== unitIndex)
+              .map((unit, index) => ({ ...unit, sort_order: index }))
+          }
         : section
     );
     onSectionsChange(updatedSections);
@@ -97,6 +107,54 @@ export const useSectionManager = ({ sections, onSectionsChange }: UseSectionMana
     updateSection(sectionIndex, 'image_url', imageUrl || '');
   };
 
+  // New drag-and-drop methods
+  const moveSectionToPosition = (fromIndex: number, toIndex: number) => {
+    const newSections = [...sections];
+    const [movedSection] = newSections.splice(fromIndex, 1);
+    newSections.splice(toIndex, 0, movedSection);
+    
+    // Update sort orders
+    const reorderedSections = newSections.map((section, index) => ({
+      ...section,
+      sort_order: index
+    }));
+    
+    onSectionsChange(reorderedSections);
+  };
+
+  const moveUnitToPosition = (fromSectionIndex: number, fromUnitIndex: number, toSectionIndex: number, toUnitIndex: number) => {
+    const newSections = [...sections];
+    const [movedUnit] = newSections[fromSectionIndex].units.splice(fromUnitIndex, 1);
+    newSections[toSectionIndex].units.splice(toUnitIndex, 0, movedUnit);
+    
+    // Update sort orders for both sections
+    newSections[fromSectionIndex].units = newSections[fromSectionIndex].units.map((unit, index) => ({
+      ...unit,
+      sort_order: index
+    }));
+    
+    newSections[toSectionIndex].units = newSections[toSectionIndex].units.map((unit, index) => ({
+      ...unit,
+      sort_order: index
+    }));
+    
+    onSectionsChange(newSections);
+  };
+
+  const moveUnitWithinSection = (sectionIndex: number, fromIndex: number, toIndex: number) => {
+    const newSections = [...sections];
+    const [movedUnit] = newSections[sectionIndex].units.splice(fromIndex, 1);
+    newSections[sectionIndex].units.splice(toIndex, 0, movedUnit);
+    
+    // Update sort orders
+    newSections[sectionIndex].units = newSections[sectionIndex].units.map((unit, index) => ({
+      ...unit,
+      sort_order: index
+    }));
+    
+    onSectionsChange(newSections);
+  };
+
   return {
     expandedSections,
     addSection,
@@ -108,5 +166,8 @@ export const useSectionManager = ({ sections, onSectionsChange }: UseSectionMana
     toggleSectionExpanded,
     handleVideoFileChange,
     handleSectionImageUpdate,
+    moveSectionToPosition,
+    moveUnitToPosition,
+    moveUnitWithinSection,
   };
 };

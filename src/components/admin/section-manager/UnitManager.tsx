@@ -1,3 +1,4 @@
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -5,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trash2, Play, Upload } from "lucide-react";
+import { Trash2, Play, Upload, GripVertical } from "lucide-react";
 import { UnitData } from "./types";
 
 interface UnitManagerProps {
@@ -15,6 +16,8 @@ interface UnitManagerProps {
   onUpdateUnit: (sectionIndex: number, unitIndex: number, field: keyof UnitData, value: any) => void;
   onDeleteUnit: (sectionIndex: number, unitIndex: number) => void;
   onVideoFileChange: (sectionIndex: number, unitIndex: number, file: File | null) => void;
+  dragHandleProps?: any;
+  isDragging?: boolean;
 }
 
 const UnitManager = ({ 
@@ -23,13 +26,20 @@ const UnitManager = ({
   sectionIndex, 
   onUpdateUnit, 
   onDeleteUnit, 
-  onVideoFileChange 
+  onVideoFileChange,
+  dragHandleProps,
+  isDragging,
 }: UnitManagerProps) => {
   return (
-    <Card className="border-l-4 border-l-blue-200">
+    <Card className={`border-l-4 border-l-blue-200 ${isDragging ? 'shadow-lg' : ''}`}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-4">
-          <h5 className="font-medium">Unit {unitIndex + 1}</h5>
+          <div className="flex items-center space-x-2">
+            <div {...dragHandleProps} className="cursor-grab active:cursor-grabbing">
+              <GripVertical className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+            </div>
+            <h5 className="font-medium">Unit {unitIndex + 1}</h5>
+          </div>
           <Button
             variant="ghost"
             size="sm"
