@@ -108,7 +108,7 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
         category: course.category,
         level: course.level,
         duration: course.duration,
-        image_file: course.image_url || undefined,
+        image_file: undefined, // Don't pre-populate file input
       });
       fetchCourseSections();
     }
