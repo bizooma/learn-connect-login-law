@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -55,25 +56,43 @@ const UserImport = () => {
 
     setImporting(true);
     try {
+      console.log('Starting import process...');
+      
       const formData = new FormData();
       formData.append('file', file);
 
-      const { data, error } = await supabase.functions.invoke('import-users-csv', {
+      console.log('Calling import function...');
+      
+      // Add timeout to prevent hanging
+      const importPromise = supabase.functions.invoke('import-users-csv', {
         body: formData
       });
+      
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Import request timeout')), 120000) // 2 minutes
+      );
+      
+      const { data, error } = await Promise.race([importPromise, timeoutPromise]) as any;
+
+      console.log('Import response received:', { data, error });
 
       if (error) {
-        throw new Error(error.message);
+        console.error('Import error:', error);
+        throw new Error(error.message || 'Import request failed');
       }
 
-      setImportResult(data.stats);
-      
+      if (!data) {
+        throw new Error('No response data received');
+      }
+
       if (data.success) {
+        setImportResult(data.stats);
         toast({
           title: "Import completed",
           description: `Successfully imported ${data.stats.successfulImports} users`,
         });
       } else {
+        console.error('Import failed:', data.error);
         toast({
           title: "Import failed",
           description: data.error || "Unknown error occurred",
@@ -82,9 +101,10 @@ const UserImport = () => {
       }
     } catch (error) {
       console.error('Import error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to import users';
       toast({
         title: "Import failed",
-        description: error.message || "Failed to import users",
+        description: errorMessage,
         variant: "destructive",
       });
     } finally {
@@ -137,7 +157,7 @@ const UserImport = () => {
             disabled={!file || importing}
             className="w-full"
           >
-            {importing ? "Importing..." : "Import Users"}
+            {importing ? "Importing... (this may take a few minutes)" : "Import Users"}
           </Button>
         </CardContent>
       </Card>

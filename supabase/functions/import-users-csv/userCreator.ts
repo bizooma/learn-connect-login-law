@@ -23,31 +23,14 @@ export async function createUser(
   try {
     console.log(`Creating user: ${userData.email}`);
     
-    // First check if user already exists in auth.users
-    const { data: existingAuthUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers();
-    
-    if (listError) {
-      console.error('Error checking existing auth users:', listError);
-    } else {
-      const existingAuthUser = existingAuthUsers.users?.find(u => u.email === userData.email);
-      if (existingAuthUser) {
-        console.log(`User ${userData.email} already exists in auth.users`);
-        return {
-          success: false,
-          error: 'Email already exists in authentication system',
-          isDuplicate: true
-        };
-      }
-    }
-
-    // Check if user exists in profiles table
-    const { data: existingProfiles, error: profileCheckError } = await supabaseAdmin
+    // First check if user already exists in profiles table (faster check)
+    const { data: existingProfile, error: profileCheckError } = await supabaseAdmin
       .from('profiles')
       .select('id')
       .eq('email', userData.email)
-      .single();
+      .maybeSingle();
 
-    if (!profileCheckError && existingProfiles) {
+    if (existingProfile) {
       console.log(`User ${userData.email} already exists in profiles`);
       return {
         success: false,
@@ -56,10 +39,20 @@ export async function createUser(
       };
     }
 
+    if (profileCheckError && profileCheckError.code !== 'PGRST116') {
+      console.error('Error checking existing profiles:', profileCheckError);
+      return {
+        success: false,
+        error: `Profile check failed: ${profileCheckError.message}`
+      };
+    }
+
     // Generate a temporary password if none provided
     const password = userData.password || generateRandomPassword();
 
-    // Create user in auth.users
+    console.log(`Creating auth user for: ${userData.email}`);
+
+    // Create user in auth.users with timeout
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
       email: userData.email,
       password: password,
@@ -72,14 +65,19 @@ export async function createUser(
 
     if (authError) {
       console.error(`Auth creation failed for ${userData.email}:`, authError);
+      const isDuplicate = authError.message?.toLowerCase().includes('already') || 
+                          authError.message?.toLowerCase().includes('duplicate') ||
+                          authError.message?.toLowerCase().includes('exists');
+      
       return {
         success: false,
         error: `Auth creation failed: ${authError.message}`,
-        isDuplicate: authError.message?.includes('already') || authError.message?.includes('duplicate')
+        isDuplicate
       };
     }
 
     if (!authData.user) {
+      console.error(`No user returned from auth creation for ${userData.email}`);
       return {
         success: false,
         error: 'No user returned from auth creation'
@@ -88,62 +86,55 @@ export async function createUser(
 
     console.log(`Auth user created for ${userData.email}, ID: ${authData.user.id}`);
 
-    // The trigger should automatically create the profile, but let's verify it exists
-    let profileCreated = false;
-    let attempts = 0;
-    const maxAttempts = 5;
+    // Wait a moment for the trigger to potentially fire
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
-    while (!profileCreated && attempts < maxAttempts) {
-      attempts++;
+    // Check if profile was created by trigger
+    const { data: triggerProfile } = await supabaseAdmin
+      .from('profiles')
+      .select('id')
+      .eq('id', authData.user.id)
+      .maybeSingle();
+
+    if (!triggerProfile) {
+      console.log(`Profile not created by trigger for ${userData.email}, creating manually`);
       
-      // Wait a bit for the trigger to fire
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      const { data: profile, error: profileError } = await supabaseAdmin
+      // Manually create profile
+      const { error: manualProfileError } = await supabaseAdmin
         .from('profiles')
-        .select('id')
-        .eq('id', authData.user.id)
-        .single();
+        .insert({
+          id: authData.user.id,
+          email: userData.email,
+          first_name: userData.first_name,
+          last_name: userData.last_name
+        });
 
-      if (!profileError && profile) {
-        profileCreated = true;
-        console.log(`Profile found for ${userData.email} after ${attempts} attempts`);
-      } else if (attempts === maxAttempts) {
-        console.log(`Profile not found after ${maxAttempts} attempts, creating manually`);
-        
-        // Manually create profile if trigger didn't work
-        const { error: manualProfileError } = await supabaseAdmin
-          .from('profiles')
-          .insert({
-            id: authData.user.id,
-            email: userData.email,
-            first_name: userData.first_name,
-            last_name: userData.last_name
-          });
-
-        if (manualProfileError) {
-          console.error(`Manual profile creation failed for ${userData.email}:`, manualProfileError);
-          // Don't fail the entire operation if profile creation fails
-        } else {
-          profileCreated = true;
-          console.log(`Manual profile created for ${userData.email}`);
-        }
+      if (manualProfileError) {
+        console.error(`Manual profile creation failed for ${userData.email}:`, manualProfileError);
+        // Still continue - the auth user was created successfully
+      } else {
+        console.log(`Manual profile created for ${userData.email}`);
       }
+    } else {
+      console.log(`Profile found for ${userData.email} (created by trigger)`);
     }
 
-    // Assign role
+    // Assign role - normalize role values
+    const normalizedRole = normalizeRole(userData.role);
+    console.log(`Assigning role "${normalizedRole}" to ${userData.email}`);
+    
     const { error: roleError } = await supabaseAdmin
       .from('user_roles')
       .upsert({
         user_id: authData.user.id,
-        role: userData.role as any
+        role: normalizedRole
       });
 
     if (roleError) {
       console.error(`Role assignment failed for ${userData.email}:`, roleError);
       // Don't fail the entire operation if role assignment fails
     } else {
-      console.log(`Role ${userData.role} assigned to ${userData.email}`);
+      console.log(`Role ${normalizedRole} assigned to ${userData.email}`);
     }
 
     return {
@@ -153,11 +144,32 @@ export async function createUser(
 
   } catch (error) {
     console.error(`Unexpected error creating user ${userData.email}:`, error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
     return {
       success: false,
-      error: `Unexpected error: ${error.message}`
+      error: `Unexpected error: ${errorMessage}`
     };
   }
+}
+
+function normalizeRole(role: string): string {
+  if (!role || typeof role !== 'string') {
+    return 'student';
+  }
+  
+  const normalizedRole = role.toLowerCase().trim();
+  
+  // Map common role variations to valid enum values
+  const roleMap: Record<string, string> = {
+    'admin': 'admin',
+    'administrator': 'admin',
+    'owner': 'admin', // Map owner to admin since owner might not be in enum
+    'student': 'student',
+    'user': 'student',
+    'member': 'student'
+  };
+  
+  return roleMap[normalizedRole] || 'student';
 }
 
 function generateRandomPassword(): string {

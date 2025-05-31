@@ -24,6 +24,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Import request received');
+    
     // Get the authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
@@ -47,8 +49,11 @@ serve(async (req) => {
     const { data: { user }, error: userError } = await supabaseAdmin.auth.getUser(token);
     
     if (userError || !user) {
+      console.error('Authentication failed:', userError);
       throw new Error('Unauthorized');
     }
+
+    console.log('User authenticated:', user.email);
 
     // Check if user has admin role
     const { data: userRole, error: roleError } = await supabaseAdmin
@@ -58,8 +63,11 @@ serve(async (req) => {
       .single();
 
     if (roleError || !userRole || (userRole.role !== 'admin' && userRole.role !== 'owner')) {
+      console.error('Insufficient privileges for user:', user.email);
       throw new Error('Insufficient privileges');
     }
+
+    console.log('User has required permissions');
 
     // Parse request body to get CSV data
     const contentType = req.headers.get('content-type') || '';
@@ -67,7 +75,7 @@ serve(async (req) => {
     let filename = 'unknown.csv';
 
     if (contentType.includes('multipart/form-data')) {
-      // Handle FormData (file upload)
+      console.log('Processing FormData');
       const formData = await req.formData();
       const file = formData.get('file') as File;
       filename = file?.name || 'unknown.csv';
@@ -78,7 +86,7 @@ serve(async (req) => {
 
       csvData = await file.text();
     } else {
-      // Handle JSON payload with CSV data
+      console.log('Processing JSON payload');
       const body = await req.json();
       csvData = body.csvData;
       filename = body.filename || 'unknown.csv';
@@ -89,10 +97,17 @@ serve(async (req) => {
     }
 
     console.log(`Processing CSV file: ${filename}`);
-    console.log(`CSV content length: ${csvData.length}`);
+    console.log(`CSV content length: ${csvData.length} characters`);
     
-    const users = parseCSV(csvData);
-    console.log(`Parsed ${users.length} users from CSV`);
+    // Parse CSV with error handling
+    let users;
+    try {
+      users = parseCSV(csvData);
+      console.log(`Successfully parsed ${users.length} users from CSV`);
+    } catch (parseError) {
+      console.error('CSV parsing failed:', parseError);
+      throw new Error(`CSV parsing failed: ${parseError.message}`);
+    }
 
     // Initialize stats
     const stats: ImportStats = {
@@ -103,17 +118,25 @@ serve(async (req) => {
       errors: []
     };
 
-    // Process each user
+    console.log(`Starting to process ${users.length} users`);
+
+    // Process each user with timeout and error handling
     for (let i = 0; i < users.length; i++) {
-      const user = users[i];
-      console.log(`Processing user ${i + 1}/${users.length}: ${user.email}`);
+      const userData = users[i];
+      console.log(`Processing user ${i + 1}/${users.length}: ${userData.email}`);
       
       try {
-        const result = await createUser(supabaseAdmin, user);
+        // Add timeout to prevent hanging
+        const createUserPromise = createUser(supabaseAdmin, userData);
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('User creation timeout')), 30000)
+        );
+        
+        const result = await Promise.race([createUserPromise, timeoutPromise]) as any;
         
         if (result.success) {
           stats.successfulImports++;
-          console.log(`✓ Successfully created user: ${user.email}`);
+          console.log(`✓ Successfully created user: ${userData.email}`);
         } else {
           stats.failedImports++;
           if (result.isDuplicate) {
@@ -121,40 +144,52 @@ serve(async (req) => {
           }
           stats.errors.push({
             row: i + 1,
-            email: user.email,
+            email: userData.email,
             error: result.error || 'Unknown error'
           });
-          console.log(`✗ Failed to create user ${user.email}: ${result.error}`);
+          console.log(`✗ Failed to create user ${userData.email}: ${result.error}`);
         }
       } catch (error) {
         stats.failedImports++;
+        const errorMessage = error instanceof Error ? error.message : 'Unknown error';
         stats.errors.push({
           row: i + 1,
-          email: user.email,
-          error: `Unexpected error: ${error.message}`
+          email: userData.email,
+          error: `Unexpected error: ${errorMessage}`
         });
-        console.error(`✗ Unexpected error for user ${user.email}:`, error);
+        console.error(`✗ Unexpected error for user ${userData.email}:`, error);
+      }
+
+      // Log progress every 10 users
+      if ((i + 1) % 10 === 0) {
+        console.log(`Progress: ${i + 1}/${users.length} users processed`);
       }
     }
 
     // Log the import batch
-    const { error: batchError } = await supabaseAdmin
-      .from('user_import_batches')
-      .insert({
-        filename,
-        total_rows: stats.totalRows,
-        successful_imports: stats.successfulImports,
-        failed_imports: stats.failedImports,
-        duplicate_emails: stats.duplicateEmails,
-        import_errors: stats.errors,
-        imported_by: user.id
-      });
+    try {
+      const { error: batchError } = await supabaseAdmin
+        .from('user_import_batches')
+        .insert({
+          filename,
+          total_rows: stats.totalRows,
+          successful_imports: stats.successfulImports,
+          failed_imports: stats.failedImports,
+          duplicate_emails: stats.duplicateEmails,
+          import_errors: stats.errors,
+          imported_by: user.id
+        });
 
-    if (batchError) {
-      console.error('Failed to log import batch:', batchError);
+      if (batchError) {
+        console.error('Failed to log import batch:', batchError);
+      } else {
+        console.log('Import batch logged successfully');
+      }
+    } catch (batchLogError) {
+      console.error('Error logging import batch:', batchLogError);
     }
 
-    console.log('Import completed:', stats);
+    console.log('Import completed with stats:', stats);
 
     return new Response(
       JSON.stringify({
@@ -168,11 +203,14 @@ serve(async (req) => {
     );
 
   } catch (error) {
-    console.error('Import failed:', error);
+    console.error('Import failed with error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
+    
     return new Response(
       JSON.stringify({
         success: false,
-        error: error.message
+        error: errorMessage,
+        details: error instanceof Error ? error.stack : undefined
       }),
       {
         status: 400,
