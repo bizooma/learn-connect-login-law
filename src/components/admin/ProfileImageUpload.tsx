@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,20 +20,26 @@ const ProfileImageUpload = ({ currentImageUrl, onImageUpdate }: ProfileImageUplo
   const { user } = useAuth();
   const { toast } = useToast();
 
+  // Update preview when currentImageUrl changes
+  useEffect(() => {
+    setPreviewUrl(currentImageUrl || null);
+  }, [currentImageUrl]);
+
   const uploadImage = async (file: File) => {
     if (!user) return;
 
     setUploading(true);
     try {
-      // Create a unique filename
+      // Create a unique filename with timestamp to avoid caching issues
       const fileExt = file.name.split('.').pop();
-      const fileName = `${user.id}/profile.${fileExt}`;
+      const timestamp = Date.now();
+      const fileName = `${user.id}/profile_${timestamp}.${fileExt}`;
 
       // Upload file to Supabase Storage
       const { error: uploadError } = await supabase.storage
         .from('profile-images')
         .upload(fileName, file, {
-          upsert: true,
+          upsert: false,
         });
 
       if (uploadError) {
@@ -46,19 +52,31 @@ const ProfileImageUpload = ({ currentImageUrl, onImageUpdate }: ProfileImageUplo
         .getPublicUrl(fileName);
 
       const imageUrl = data.publicUrl;
+      console.log('Uploaded image URL:', imageUrl);
+      
+      // Update the preview immediately
       setPreviewUrl(imageUrl);
 
       // Update the profile in the database
       const { error: updateError } = await supabase
         .from('profiles')
-        .update({ profile_image_url: imageUrl })
+        .update({ 
+          profile_image_url: imageUrl,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', user.id);
 
       if (updateError) {
         throw updateError;
       }
 
+      // Call the callback to update parent component
       onImageUpdate(imageUrl);
+
+      toast({
+        title: "Success",
+        description: "Profile image updated successfully",
+      });
     } catch (error) {
       console.error('Error uploading image:', error);
       toast({
@@ -76,26 +94,33 @@ const ProfileImageUpload = ({ currentImageUrl, onImageUpdate }: ProfileImageUplo
 
     setUploading(true);
     try {
-      // Remove from storage
-      if (currentImageUrl) {
-        const fileName = `${user.id}/profile.${currentImageUrl.split('.').pop()}`;
-        await supabase.storage
-          .from('profile-images')
-          .remove([fileName]);
-      }
-
-      // Update the profile in the database
+      // Update the profile in the database first
       const { error } = await supabase
         .from('profiles')
-        .update({ profile_image_url: null })
+        .update({ 
+          profile_image_url: null,
+          updated_at: new Date().toISOString()
+        })
         .eq('id', user.id);
 
       if (error) {
         throw error;
       }
 
+      // Try to remove from storage (don't fail if file doesn't exist)
+      if (currentImageUrl) {
+        const urlParts = currentImageUrl.split('/');
+        const fileName = urlParts[urlParts.length - 1];
+        const filePath = `${user.id}/${fileName}`;
+        
+        await supabase.storage
+          .from('profile-images')
+          .remove([filePath]);
+      }
+
       setPreviewUrl(null);
       onImageUpdate(null);
+      
       toast({
         title: "Success",
         description: "Profile image removed successfully",
