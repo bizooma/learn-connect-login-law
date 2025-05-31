@@ -71,8 +71,9 @@ const AdminCourseCard = ({ course, onDelete, onEdit }: AdminCourseCardProps) => 
               </Button>
               <Button 
                 size="sm" 
-                variant="destructive"
+                variant="outline"
                 onClick={() => onDelete(course.id)}
+                className="border-red-500 text-red-500 hover:bg-red-50"
               >
                 <Trash2 className="h-4 w-4" />
               </Button>
