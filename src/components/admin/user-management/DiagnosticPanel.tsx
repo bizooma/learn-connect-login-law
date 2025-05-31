@@ -26,7 +26,7 @@ const DiagnosticPanel = ({
         <div className="grid grid-cols-3 gap-4">
           <div>
             <p className="font-medium">Profiles: {diagnosticInfo.profilesCount}</p>
-            <p className="font-medium">Roles: {diagnosticInfo.rolesCount}</p>
+            <p className="font-medium">Users with roles: {diagnosticInfo.rolesCount}</p>
             <p className="font-medium">Auth Users: {diagnosticInfo.authUsersCount}</p>
           </div>
           <div>

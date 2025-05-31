@@ -12,7 +12,7 @@ const EmptyUserState = ({ diagnosticInfo, onRefresh }: EmptyUserStateProps) => {
       <p className="text-gray-500 mb-2">No users found in the database</p>
       {diagnosticInfo && (
         <div className="text-xs text-gray-400 mb-4">
-          Database shows {diagnosticInfo.profilesCount} profiles and {diagnosticInfo.rolesCount} roles
+          Database shows {diagnosticInfo.profilesCount} profiles and {diagnosticInfo.rolesCount} users with roles
           <br />
           {diagnosticInfo.authUsersCount} auth users detected
         </div>
