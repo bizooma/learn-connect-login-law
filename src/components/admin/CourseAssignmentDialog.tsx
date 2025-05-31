@@ -16,7 +16,7 @@ type Course = Tables<'courses'>;
 interface CourseAssignmentDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAssignCourse: (userId: string, courseId: string, dueDate?: string, isM andatory?: boolean, notes?: string) => Promise<void>;
+  onAssignCourse: (userId: string, courseId: string, dueDate?: string, isMandatory?: boolean, notes?: string) => Promise<void>;
 }
 
 const CourseAssignmentDialog = ({ open, onOpenChange, onAssignCourse }: CourseAssignmentDialogProps) => {
@@ -25,7 +25,7 @@ const CourseAssignmentDialog = ({ open, onOpenChange, onAssignCourse }: CourseAs
   const [selectedUserId, setSelectedUserId] = useState("");
   const [selectedCourseId, setSelectedCourseId] = useState("");
   const [dueDate, setDueDate] = useState("");
-  const [isM andatory, setIsM andatory] = useState(false);
+  const [isMandatory, setIsMandatory] = useState(false);
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -74,7 +74,7 @@ const CourseAssignmentDialog = ({ open, onOpenChange, onAssignCourse }: CourseAs
         selectedUserId,
         selectedCourseId,
         dueDate || undefined,
-        isM andatory,
+        isMandatory,
         notes || undefined
       );
       
@@ -82,7 +82,7 @@ const CourseAssignmentDialog = ({ open, onOpenChange, onAssignCourse }: CourseAs
       setSelectedUserId("");
       setSelectedCourseId("");
       setDueDate("");
-      setIsM andatory(false);
+      setIsMandatory(false);
       setNotes("");
       onOpenChange(false);
     } catch (error) {
@@ -144,8 +144,8 @@ const CourseAssignmentDialog = ({ open, onOpenChange, onAssignCourse }: CourseAs
           <div className="flex items-center space-x-2">
             <Switch
               id="mandatory"
-              checked={isM andatory}
-              onCheckedChange={setIsM andatory}
+              checked={isMandatory}
+              onCheckedChange={setIsMandatory}
             />
             <Label htmlFor="mandatory">Mandatory Course</Label>
           </div>

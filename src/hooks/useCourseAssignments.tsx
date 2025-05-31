@@ -59,7 +59,7 @@ export const useCourseAssignments = () => {
     }
   };
 
-  const assignCourse = async (userId: string, courseId: string, dueDate?: string, isM andatory: boolean = false, notes?: string) => {
+  const assignCourse = async (userId: string, courseId: string, dueDate?: string, isMandatory: boolean = false, notes?: string) => {
     try {
       const { error } = await supabase
         .from('course_assignments')
@@ -67,7 +67,7 @@ export const useCourseAssignments = () => {
           user_id: userId,
           course_id: courseId,
           due_date: dueDate,
-          is_mandatory: isM andatory,
+          is_mandatory: isMandatory,
           notes: notes
         });
 
