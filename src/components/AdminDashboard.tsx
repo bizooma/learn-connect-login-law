@@ -5,13 +5,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { BookOpen, Users, User, LogOut } from "lucide-react";
+import { BookOpen, Users, User, LogOut, Library } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import CourseManagement from "./admin/CourseManagement";
 import UserManagement from "./admin/UserManagement";
 import ProfileManagement from "./admin/ProfileManagement";
 
 const AdminDashboard = () => {
   const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("courses");
   const [stats, setStats] = useState({
     totalCourses: 0,
@@ -93,6 +95,14 @@ const AdminDashboard = () => {
               </p>
             </div>
             <div className="flex items-center space-x-4">
+              <Button
+                variant="outline"
+                onClick={() => navigate("/courses")}
+                className="flex items-center"
+              >
+                <Library className="h-4 w-4 mr-2" />
+                Course Catalog
+              </Button>
               <Button
                 variant="ghost"
                 onClick={signOut}
