@@ -3,24 +3,31 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { UserProfile } from "./types";
 import UserRoleSelect from "./UserRoleSelect";
+import DeleteUserDialog from "./DeleteUserDialog";
 
 interface UserCardProps {
   user: UserProfile;
   onRoleUpdate: (userId: string, newRole: 'admin' | 'owner' | 'student' | 'client' | 'free') => void;
+  onUserDeleted: () => void;
 }
 
-const UserCard = ({ user, onRoleUpdate }: UserCardProps) => {
+const UserCard = ({ user, onRoleUpdate, onUserDeleted }: UserCardProps) => {
   const currentRole = user.roles?.[0]?.role || 'free';
 
   return (
     <Card>
       <CardHeader className="pb-3">
-        <CardTitle className="text-base font-medium">
-          {user.first_name} {user.last_name}
-        </CardTitle>
-        <p className="text-sm text-gray-600">
-          {user.email}
-        </p>
+        <div className="flex items-start justify-between">
+          <div className="flex-1">
+            <CardTitle className="text-base font-medium">
+              {user.first_name} {user.last_name}
+            </CardTitle>
+            <p className="text-sm text-gray-600">
+              {user.email}
+            </p>
+          </div>
+          <DeleteUserDialog user={user} onUserDeleted={onUserDeleted} />
+        </div>
       </CardHeader>
       <CardContent className="pt-0">
         <div className="space-y-3">

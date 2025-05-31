@@ -6,6 +6,7 @@ import { UserProfile } from "./types";
 interface UserGridProps {
   users: UserProfile[];
   onRoleUpdate: (userId: string, newRole: 'admin' | 'owner' | 'student' | 'client' | 'free') => void;
+  onUserDeleted: () => void;
   currentPage: number;
   totalPages: number;
   totalUsers: number;
@@ -16,7 +17,8 @@ interface UserGridProps {
 
 const UserGrid = ({ 
   users, 
-  onRoleUpdate, 
+  onRoleUpdate,
+  onUserDeleted,
   currentPage, 
   totalPages, 
   totalUsers,
@@ -49,6 +51,7 @@ const UserGrid = ({
             key={user.id}
             user={user}
             onRoleUpdate={onRoleUpdate}
+            onUserDeleted={onUserDeleted}
           />
         ))}
       </div>

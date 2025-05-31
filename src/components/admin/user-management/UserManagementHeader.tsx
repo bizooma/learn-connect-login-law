@@ -1,41 +1,38 @@
 
 import { DiagnosticInfo } from "./types";
+import AddUserDialog from "./AddUserDialog";
 
 interface UserManagementHeaderProps {
   usersCount: number;
   diagnosticInfo: DiagnosticInfo | null;
+  onUserAdded: () => void;
 }
 
-const UserManagementHeader = ({ usersCount, diagnosticInfo }: UserManagementHeaderProps) => {
-  // Calculate unique users from role counts
-  const uniqueUsersWithRoles = diagnosticInfo ? 
-    Object.keys(diagnosticInfo.roleCounts).length > 0 ? 
-      new Set(Object.entries(diagnosticInfo.roleCounts).map(([role]) => role)).size 
-    : 0 
-  : 0;
-
+const UserManagementHeader = ({ usersCount, diagnosticInfo, onUserAdded }: UserManagementHeaderProps) => {
   return (
-    <div className="mb-6">
-      <h2 className="text-2xl font-bold text-gray-900 mb-2">User Management</h2>
-      <div className="flex items-center space-x-4 text-sm text-gray-600">
-        <span>Displaying {usersCount} users</span>
-        {diagnosticInfo && (
-          <>
-            <span>•</span>
-            <span>{diagnosticInfo.rolesCount} total roles assigned</span>
-            <span>•</span>
-            <span>{diagnosticInfo.profilesCount} complete profiles</span>
-            {diagnosticInfo.missingProfilesCount > 0 && (
-              <>
-                <span>•</span>
-                <span className="text-yellow-600 font-medium">
-                  {diagnosticInfo.missingProfilesCount} incomplete profiles
+    <div className="flex items-center justify-between">
+      <div>
+        <h2 className="text-2xl font-bold text-gray-900">User Management</h2>
+        <p className="text-gray-600 mt-1">
+          {usersCount > 0 ? (
+            <>
+              Managing {usersCount} users
+              {diagnosticInfo && (
+                <span className="ml-2 text-sm">
+                  (Admin: {diagnosticInfo.roleCounts.admin || 0}, 
+                  Student: {diagnosticInfo.roleCounts.student || 0}, 
+                  Client: {diagnosticInfo.roleCounts.client || 0}, 
+                  Free: {diagnosticInfo.roleCounts.free || 0})
                 </span>
-              </>
-            )}
-          </>
-        )}
+              )}
+            </>
+          ) : (
+            "No users found"
+          )}
+        </p>
       </div>
+      
+      <AddUserDialog onUserAdded={onUserAdded} />
     </div>
   );
 };
