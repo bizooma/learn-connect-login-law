@@ -1,7 +1,9 @@
 
 import { Tables } from "@/integrations/supabase/types";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CourseSidebar from "./CourseSidebar";
 import CourseContent from "./CourseContent";
+import CourseCalendar from "./CourseCalendar";
 
 type Section = Tables<'sections'>;
 type Unit = Tables<'units'>;
@@ -33,7 +35,18 @@ const CourseMainContent = ({
           />
         </div>
         <div className="lg:col-span-3">
-          <CourseContent unit={selectedUnit} courseId={courseId} />
+          <Tabs defaultValue="content" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="content">Course Content</TabsTrigger>
+              <TabsTrigger value="calendar">Calendar</TabsTrigger>
+            </TabsList>
+            <TabsContent value="content">
+              <CourseContent unit={selectedUnit} courseId={courseId} />
+            </TabsContent>
+            <TabsContent value="calendar">
+              <CourseCalendar courseId={courseId} isAdmin={isAdmin} />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>
