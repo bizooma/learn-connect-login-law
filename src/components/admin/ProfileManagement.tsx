@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import ProfileImageUpload from "./ProfileImageUpload";
 
 const ProfileManagement = () => {
   const { user } = useAuth();
@@ -16,6 +17,7 @@ const ProfileManagement = () => {
     first_name: '',
     last_name: '',
     email: '',
+    profile_image_url: '',
   });
 
   useEffect(() => {
@@ -40,6 +42,7 @@ const ProfileManagement = () => {
         first_name: data.first_name || '',
         last_name: data.last_name || '',
         email: data.email || '',
+        profile_image_url: data.profile_image_url || '',
       });
     } catch (error) {
       console.error('Error fetching profile:', error);
@@ -94,6 +97,13 @@ const ProfileManagement = () => {
     }));
   };
 
+  const handleImageUpdate = (imageUrl: string | null) => {
+    setFormData(prev => ({
+      ...prev,
+      profile_image_url: imageUrl || ''
+    }));
+  };
+
   return (
     <div className="max-w-2xl mx-auto">
       <Card>
@@ -102,6 +112,11 @@ const ProfileManagement = () => {
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
+            <ProfileImageUpload
+              currentImageUrl={formData.profile_image_url}
+              onImageUpdate={handleImageUpdate}
+            />
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="first_name">First Name</Label>

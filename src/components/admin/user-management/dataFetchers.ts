@@ -105,7 +105,7 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
     // Now try to fetch all profiles
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
-      .select('id, email, first_name, last_name, created_at')
+      .select('id, email, first_name, last_name, profile_image_url, created_at')
       .order('created_at', { ascending: false });
 
     if (profilesError) {
@@ -150,6 +150,7 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
         email: profile.email || 'unknown@example.com', // Fallback for null emails
         first_name: profile.first_name || 'Unknown',
         last_name: profile.last_name || 'User',
+        profile_image_url: profile.profile_image_url || undefined,
         created_at: profile.created_at,
         roles: userRoles,
         hasCompleteProfile: true
@@ -166,6 +167,7 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
         email: sample.email,
         firstName: sample.first_name,
         lastName: sample.last_name,
+        hasProfileImage: !!sample.profile_image_url,
         roles: sample.roles.map(r => r.role),
         hasCompleteProfile: sample.hasCompleteProfile
       });

@@ -5,6 +5,7 @@ export interface UserProfile {
   first_name: string;
   last_name: string;
   created_at: string;
+  profile_image_url?: string;
   roles?: Array<{ role: string }>;
   // Add flag to indicate if this user has a complete profile record
   hasCompleteProfile?: boolean;

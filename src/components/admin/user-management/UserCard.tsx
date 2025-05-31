@@ -1,6 +1,7 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { UserProfile } from "./types";
 import UserRoleSelect from "./UserRoleSelect";
 import DeleteUserDialog from "./DeleteUserDialog";
@@ -14,17 +15,34 @@ interface UserCardProps {
 const UserCard = ({ user, onRoleUpdate, onUserDeleted }: UserCardProps) => {
   const currentRole = user.roles?.[0]?.role || 'free';
 
+  const getUserInitials = () => {
+    if (!user.first_name && !user.last_name) {
+      return user.email?.charAt(0).toUpperCase() || "U";
+    }
+    const firstName = user.first_name || "";
+    const lastName = user.last_name || "";
+    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
+  };
+
   return (
     <Card>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <CardTitle className="text-base font-medium">
-              {user.first_name} {user.last_name}
-            </CardTitle>
-            <p className="text-sm text-gray-600">
-              {user.email}
-            </p>
+          <div className="flex items-center space-x-3 flex-1">
+            <Avatar className="h-10 w-10">
+              <AvatarImage src={user.profile_image_url || ""} alt={`${user.first_name} ${user.last_name}`} />
+              <AvatarFallback className="text-sm">
+                {getUserInitials()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex-1">
+              <CardTitle className="text-base font-medium">
+                {user.first_name} {user.last_name}
+              </CardTitle>
+              <p className="text-sm text-gray-600">
+                {user.email}
+              </p>
+            </div>
           </div>
           <DeleteUserDialog user={user} onUserDeleted={onUserDeleted} />
         </div>
