@@ -2,9 +2,10 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2 } from "lucide-react";
+import { Edit, Trash2, Eye } from "lucide-react";
 import { getLevelColor, getLevelDisplayName } from "@/utils/courseUtils";
 import { Tables } from "@/integrations/supabase/types";
+import { useNavigate } from "react-router-dom";
 
 type Course = Tables<'courses'>;
 
@@ -15,6 +16,12 @@ interface AdminCourseCardProps {
 }
 
 const AdminCourseCard = ({ course, onDelete, onEdit }: AdminCourseCardProps) => {
+  const navigate = useNavigate();
+
+  const handleViewCourse = () => {
+    navigate(`/course/${course.id}`);
+  };
+
   return (
     <Card 
       className="hover:shadow-md transition-shadow relative overflow-hidden"
@@ -62,6 +69,14 @@ const AdminCourseCard = ({ course, onDelete, onEdit }: AdminCourseCardProps) => 
           <div className="flex items-center justify-between">
             <Badge variant="secondary" className="bg-white/50">{course.category}</Badge>
             <div className="flex space-x-2">
+              <Button 
+                size="sm" 
+                variant="outline"
+                onClick={handleViewCourse}
+                className="border-blue-500 text-blue-500 hover:bg-blue-50"
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
               <Button 
                 size="sm" 
                 variant="outline"
