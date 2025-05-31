@@ -5,11 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { BookOpen, Users, User, LogOut, Library } from "lucide-react";
+import { BookOpen, Users, User, LogOut, Library, HelpCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import CourseManagement from "./admin/CourseManagement";
 import UserManagement from "./admin/UserManagement";
 import ProfileManagement from "./admin/ProfileManagement";
+import QuizManagement from "./admin/QuizManagement";
 
 const AdminDashboard = () => {
   const { user, signOut } = useAuth();
@@ -18,7 +19,8 @@ const AdminDashboard = () => {
   const [stats, setStats] = useState({
     totalCourses: 0,
     totalUsers: 0,
-    activeEnrollments: 0
+    activeEnrollments: 0,
+    totalQuizzes: 0
   });
 
   useEffect(() => {
@@ -37,6 +39,11 @@ const AdminDashboard = () => {
         .from('profiles')
         .select('*', { count: 'exact', head: true });
 
+      // Fetch total quizzes
+      const { count: quizzesCount } = await supabase
+        .from('quizzes')
+        .select('*', { count: 'exact', head: true });
+
       // For now, we'll calculate active enrollments as sum of students_enrolled
       // In the future, you might want to create an enrollments table
       const { data: coursesData } = await supabase
@@ -49,7 +56,8 @@ const AdminDashboard = () => {
       setStats({
         totalCourses: coursesCount || 0,
         totalUsers: usersCount || 0,
-        activeEnrollments: totalEnrollments
+        activeEnrollments: totalEnrollments,
+        totalQuizzes: quizzesCount || 0
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
@@ -77,6 +85,13 @@ const AdminDashboard = () => {
       description: "Current enrollments",
       icon: User,
       color: "text-purple-600",
+    },
+    {
+      title: "Total Quizzes",
+      value: stats.totalQuizzes.toString(),
+      description: "Available quizzes",
+      icon: HelpCircle,
+      color: "text-orange-600",
     },
   ];
 
@@ -118,7 +133,7 @@ const AdminDashboard = () => {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           {adminStats.map((stat) => (
             <Card key={stat.title} className="bg-white">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -140,14 +155,15 @@ const AdminDashboard = () => {
           <CardHeader>
             <CardTitle>Management Console</CardTitle>
             <CardDescription>
-              Manage courses, users, and system settings
+              Manage courses, users, quizzes, and system settings
             </CardDescription>
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="courses">Course Management</TabsTrigger>
                 <TabsTrigger value="users">User Management</TabsTrigger>
+                <TabsTrigger value="quizzes">Quiz Management</TabsTrigger>
                 <TabsTrigger value="profile">Profile Settings</TabsTrigger>
               </TabsList>
               
@@ -157,6 +173,10 @@ const AdminDashboard = () => {
               
               <TabsContent value="users" className="mt-6">
                 <UserManagement />
+              </TabsContent>
+              
+              <TabsContent value="quizzes" className="mt-6">
+                <QuizManagement />
               </TabsContent>
               
               <TabsContent value="profile" className="mt-6">
