@@ -30,9 +30,9 @@ const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      console.log('Fetching all users from profiles table...');
+      console.log('Fetching all users and analyzing data inconsistencies...');
       
-      // First, let's get basic counts for debugging
+      // Get basic counts for debugging
       const { count: profilesCount } = await supabase
         .from('profiles')
         .select('*', { count: 'exact', head: true });
@@ -41,15 +41,46 @@ const UserManagement = () => {
         .from('user_roles')
         .select('*', { count: 'exact', head: true });
 
-      console.log(`Found ${profilesCount} profiles and ${rolesCount} user roles`);
+      // Get auth users count (this might fail with regular client)
+      let authUsersCount = 0;
+      try {
+        const { data: authData } = await supabase.auth.admin.listUsers();
+        authUsersCount = authData.users?.length || 0;
+      } catch (authError) {
+        console.log('Cannot access auth users with regular client');
+      }
+
+      // Get role distribution
+      const { data: roleDistribution } = await supabase
+        .from('user_roles')
+        .select('role')
+        .order('role');
+
+      const roleCounts = roleDistribution?.reduce((acc, { role }) => {
+        acc[role] = (acc[role] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>) || {};
+
+      // Check for orphaned roles (roles without profiles)
+      const { data: orphanedRoles } = await supabase
+        .from('user_roles')
+        .select('user_id')
+        .not('user_id', 'in', `(SELECT id FROM profiles)`);
+
+      console.log(`Found ${profilesCount} profiles, ${rolesCount} user roles, ${authUsersCount} auth users`);
+      console.log('Role distribution:', roleCounts);
+      console.log(`Orphaned roles: ${orphanedRoles?.length || 0}`);
       
       setDebugInfo({
         profilesCount,
         rolesCount,
+        authUsersCount,
+        roleCounts,
+        orphanedRolesCount: orphanedRoles?.length || 0,
         timestamp: new Date().toISOString()
       });
 
-      // Fetch all profiles with proper error handling
+      // Fetch all profiles
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select(`
@@ -74,7 +105,7 @@ const UserManagement = () => {
 
       console.log(`Found ${profiles.length} profiles`);
 
-      // Fetch all user roles separately to avoid join issues
+      // Fetch all user roles
       const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
         .select('user_id, role');
@@ -104,6 +135,47 @@ const UserManagement = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const cleanupOrphanedRoles = async () => {
+    if (!isAdmin) {
+      toast({
+        title: "Access Denied",
+        description: "Only admins can cleanup orphaned roles",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      console.log('Cleaning up orphaned roles...');
+      
+      // Delete roles that don't have corresponding profiles
+      const { error } = await supabase
+        .from('user_roles')
+        .delete()
+        .not('user_id', 'in', `(SELECT id FROM profiles)`);
+
+      if (error) {
+        console.error('Error cleaning up orphaned roles:', error);
+        throw error;
+      }
+
+      toast({
+        title: "Success",
+        description: "Orphaned roles have been cleaned up",
+      });
+
+      // Refresh the data
+      await fetchUsers();
+    } catch (error) {
+      console.error('Error cleaning up orphaned roles:', error);
+      toast({
+        title: "Error",
+        description: "Failed to cleanup orphaned roles",
+        variant: "destructive",
+      });
     }
   };
 
@@ -179,10 +251,35 @@ const UserManagement = () => {
           {debugInfo && (
             <div className="text-xs text-gray-500 mt-1">
               DB: {debugInfo.profilesCount} profiles, {debugInfo.rolesCount} roles
+              {debugInfo.authUsersCount > 0 && `, ${debugInfo.authUsersCount} auth users`}
             </div>
           )}
         </div>
       </div>
+
+      {/* Data Analysis Panel */}
+      {debugInfo && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+          <h3 className="font-semibold text-yellow-800 mb-2">Data Analysis</h3>
+          <div className="text-sm text-yellow-700 space-y-1">
+            <p>Profiles: {debugInfo.profilesCount} | Roles: {debugInfo.rolesCount} | Auth Users: {debugInfo.authUsersCount}</p>
+            <p>Role Distribution: {Object.entries(debugInfo.roleCounts).map(([role, count]) => `${role}: ${count}`).join(', ')}</p>
+            {debugInfo.orphanedRolesCount > 0 && (
+              <div className="mt-2">
+                <p className="text-red-600 font-medium">⚠️ Found {debugInfo.orphanedRolesCount} orphaned roles (roles without profiles)</p>
+                {isAdmin && (
+                  <button 
+                    onClick={cleanupOrphanedRoles}
+                    className="mt-2 px-3 py-1 bg-red-600 text-white text-xs rounded hover:bg-red-700"
+                  >
+                    Cleanup Orphaned Roles
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       
       <UserSearch 
         searchTerm={searchTerm} 
