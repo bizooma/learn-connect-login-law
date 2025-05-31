@@ -24,20 +24,16 @@ export const handleCourseSubmission = async (
     description: data.description,
     instructor: data.instructor,
     category: data.category,
+    level: data.level || 'beginner', // Ensure level is always provided
     duration: data.duration,
     image_url: imageUrl,
     rating: 0,
     students_enrolled: 0,
   };
 
-  // Only add level if it's provided and not empty
-  if (data.level && data.level.trim() !== '') {
-    (courseData as any).level = data.level;
-  }
-
   const { data: courseDataResult, error: courseError } = await supabase
     .from('courses')
-    .insert([courseData])
+    .insert(courseData)
     .select()
     .single();
 
@@ -48,12 +44,12 @@ export const handleCourseSubmission = async (
     for (const section of sections) {
       const { data: sectionData, error: sectionError } = await supabase
         .from('sections')
-        .insert([{
+        .insert({
           course_id: courseDataResult.id,
           title: section.title,
           description: section.description,
           sort_order: section.sort_order,
-        }])
+        })
         .select()
         .single();
 
