@@ -72,26 +72,7 @@ export const fetchOrphanedRoles = async (): Promise<{ orphanedRoles: OrphanedRol
 export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
   console.log('Starting fetchUserProfiles...');
   
-  // First, get all profiles from the profiles table
-  const { data: profiles, error: profilesError } = await supabase
-    .from('profiles')
-    .select(`
-      id,
-      email,
-      first_name,
-      last_name,
-      created_at
-    `)
-    .order('created_at', { ascending: false });
-
-  if (profilesError) {
-    console.error('Error fetching profiles:', profilesError);
-    throw profilesError;
-  }
-
-  console.log(`Found ${profiles?.length || 0} profiles in database`);
-
-  // Get all user roles
+  // First, get all user roles to understand what users we should have
   const { data: userRoles, error: rolesError } = await supabase
     .from('user_roles')
     .select('user_id, role')
@@ -104,32 +85,57 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
 
   console.log(`Found ${userRoles?.length || 0} user roles`);
 
+  if (!userRoles || userRoles.length === 0) {
+    console.log('No user roles found, returning empty array');
+    return [];
+  }
+
+  // Get unique user IDs who have roles
+  const uniqueUserIds = [...new Set(userRoles.map(role => role.user_id))];
+  console.log(`Found ${uniqueUserIds.length} unique users with roles`);
+
+  // Fetch all profiles that correspond to users with roles
+  const { data: profiles, error: profilesError } = await supabase
+    .from('profiles')
+    .select(`
+      id,
+      email,
+      first_name,
+      last_name,
+      created_at
+    `)
+    .in('id', uniqueUserIds)
+    .order('created_at', { ascending: false });
+
+  if (profilesError) {
+    console.error('Error fetching profiles:', profilesError);
+    throw profilesError;
+  }
+
+  console.log(`Found ${profiles?.length || 0} profiles for users with roles`);
+
   // Create a map of user profiles
   const userProfilesMap = new Map<string, UserProfile>();
 
-  // First, add all users who have profiles
-  profiles?.forEach(profile => {
-    const userRolesForUser = userRoles?.filter(role => role.user_id === profile.id) || [];
-    
-    userProfilesMap.set(profile.id, {
-      id: profile.id,
-      email: profile.email,
-      first_name: profile.first_name || 'Unknown',
-      last_name: profile.last_name || 'User',
-      created_at: profile.created_at,
-      roles: userRolesForUser,
-      hasCompleteProfile: true
-    });
-  });
-
-  // Then, add any users who have roles but no profiles (this should be rare now)
-  const uniqueUserIds = [...new Set(userRoles?.map(role => role.user_id) || [])];
-  
+  // Process each user who has roles
   uniqueUserIds.forEach(userId => {
-    if (!userProfilesMap.has(userId)) {
+    const userProfile = profiles?.find(p => p.id === userId);
+    const userRolesForUser = userRoles.filter(role => role.user_id === userId);
+    
+    if (userProfile) {
+      // User has a complete profile
+      userProfilesMap.set(userId, {
+        id: userProfile.id,
+        email: userProfile.email,
+        first_name: userProfile.first_name || 'Unknown',
+        last_name: userProfile.last_name || 'User',
+        created_at: userProfile.created_at,
+        roles: userRolesForUser,
+        hasCompleteProfile: true
+      });
+    } else {
+      // User has roles but no profile - this should be rare after sync
       console.log(`Found user with role but no profile: ${userId}`);
-      const userRolesForUser = userRoles?.filter(role => role.user_id === userId) || [];
-      
       userProfilesMap.set(userId, {
         id: userId,
         email: `missing-profile-${userId.substring(0, 8)}@example.com`,
@@ -146,6 +152,16 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
   console.log(`Returning ${result.length} user profiles total`);
   console.log(`Complete profiles: ${result.filter(u => u.hasCompleteProfile).length}`);
   console.log(`Incomplete profiles: ${result.filter(u => !u.hasCompleteProfile).length}`);
+  
+  // Log a sample of the data to debug
+  if (result.length > 0) {
+    console.log('Sample user data:', {
+      email: result[0].email,
+      hasCompleteProfile: result[0].hasCompleteProfile,
+      firstName: result[0].first_name,
+      lastName: result[0].last_name
+    });
+  }
   
   return result;
 };
