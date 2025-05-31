@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload } from "lucide-react";
@@ -9,6 +10,7 @@ import { useAuth } from "@/hooks/useAuth";
 import CSVFileUpload from "./user-import/CSVFileUpload";
 import CSVPreview from "./user-import/CSVPreview";
 import ImportResults from "./user-import/ImportResults";
+import BatchUserImport from "./BatchUserImport";
 
 interface ImportResult {
   success: boolean;
@@ -46,7 +48,7 @@ const UserImport = () => {
 
     // Preview first few rows
     const text = await selectedFile.text();
-    const lines = text.trim().split('\n').slice(0, 6); // First 6 rows including header
+    const lines = text.trim().split('\n').slice(0, 6);
     const preview = lines.map(line => line.split(',').map(cell => cell.trim().replace(/"/g, '')));
     setCsvPreview(preview);
   };
@@ -63,13 +65,12 @@ const UserImport = () => {
 
       console.log('Calling import function...');
       
-      // Add timeout to prevent hanging
       const importPromise = supabase.functions.invoke('import-users-csv', {
         body: formData
       });
       
       const timeoutPromise = new Promise((_, reject) => 
-        setTimeout(() => reject(new Error('Import request timeout')), 120000) // 2 minutes
+        setTimeout(() => reject(new Error('Import request timeout')), 120000)
       );
       
       const { data, error } = await Promise.race([importPromise, timeoutPromise]) as any;
@@ -144,30 +145,41 @@ const UserImport = () => {
             Import Users from CSV
           </CardTitle>
           <CardDescription>
-            Upload a CSV file to bulk import users. Expected format: Role, First Name, Last Name, Email Address
+            Choose between regular import or fast batch processing
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <CSVFileUpload onFileSelect={handleFileSelect} />
-
-          <CSVPreview csvPreview={csvPreview} />
-
-          <Button
-            onClick={handleImport}
-            disabled={!file || importing}
-            className="w-full"
-          >
-            {importing ? "Importing... (this may take a few minutes)" : "Import Users"}
-          </Button>
+        <CardContent>
+          <Tabs defaultValue="batch" className="w-full">
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="batch">Batch Import (Recommended)</TabsTrigger>
+              <TabsTrigger value="regular">Regular Import</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="batch" className="mt-6">
+              <BatchUserImport />
+            </TabsContent>
+            
+            <TabsContent value="regular" className="mt-6 space-y-4">
+              <CSVFileUpload onFileSelect={handleFileSelect} />
+              <CSVPreview csvPreview={csvPreview} />
+              <Button
+                onClick={handleImport}
+                disabled={!file || importing}
+                className="w-full"
+              >
+                {importing ? "Importing... (this may take a few minutes)" : "Import Users"}
+              </Button>
+              
+              {importResult && (
+                <ImportResults 
+                  importResult={importResult} 
+                  onDownloadErrorReport={downloadErrorReport}
+                />
+              )}
+            </TabsContent>
+          </Tabs>
         </CardContent>
       </Card>
-
-      {importResult && (
-        <ImportResults 
-          importResult={importResult} 
-          onDownloadErrorReport={downloadErrorReport}
-        />
-      )}
     </div>
   );
 };
