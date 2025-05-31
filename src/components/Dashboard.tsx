@@ -1,65 +1,115 @@
 
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
-import { BookOpen, Users, Award, TrendingUp, LogOut } from "lucide-react";
-import { Link } from "react-router-dom";
+import { useUserRole } from "@/hooks/useUserRole";
+import { supabase } from "@/integrations/supabase/client";
+import { BookOpen, Users, User, LogOut, Library, Building2 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import UserCourseProgress from "./user/UserCourseProgress";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
+  const { isOwner } = useUserRole();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("courses");
+  const [stats, setStats] = useState({
+    totalCourses: 0,
+    enrolledCourses: 0,
+    completedCourses: 0,
+    certificatesEarned: 0
+  });
 
-  const stats = [
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      // Fetch total courses
+      const { count: coursesCount } = await supabase
+        .from('courses')
+        .select('*', { count: 'exact', head: true });
+
+      // For now, we'll use placeholder values for user-specific stats
+      // In the future, you might want to create actual enrollment tracking
+      setStats({
+        totalCourses: coursesCount || 0,
+        enrolledCourses: 0, // TODO: Implement actual enrollment tracking
+        completedCourses: 0, // TODO: Implement actual completion tracking
+        certificatesEarned: 0 // TODO: Implement actual certificate tracking
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
+
+  const userStats = [
     {
-      title: "Courses Enrolled",
-      value: "3",
-      description: "Active learning paths",
+      title: "Available Courses",
+      value: stats.totalCourses.toString(),
+      description: "Courses to explore",
       icon: BookOpen,
       color: "text-blue-600",
     },
     {
-      title: "Hours Completed",
-      value: "24",
-      description: "This month",
-      icon: TrendingUp,
+      title: "Enrolled Courses",
+      value: stats.enrolledCourses.toString(),
+      description: "Currently enrolled",
+      icon: User,
       color: "text-green-600",
     },
     {
-      title: "Certificates",
-      value: "2",
-      description: "Earned this year",
-      icon: Award,
-      color: "text-yellow-600",
-    },
-    {
-      title: "Study Group",
-      value: "12",
-      description: "Active members",
+      title: "Completed",
+      value: stats.completedCourses.toString(),
+      description: "Courses completed",
       icon: Users,
       color: "text-purple-600",
+    },
+    {
+      title: "Certificates",
+      value: stats.certificatesEarned.toString(),
+      description: "Earned certificates",
+      icon: Library,
+      color: "text-orange-600",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100">
       {/* Header */}
-      <div className="bg-white shadow-sm">
+      <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">
-                Welcome back, {user?.user_metadata?.first_name || "Student"}!
+                Dashboard
               </h1>
               <p className="text-gray-600 mt-1">
-                Continue your legal education journey
+                Welcome back, {user?.user_metadata?.first_name || "Student"}
               </p>
             </div>
             <div className="flex items-center space-x-4">
-              <Link to="/courses">
-                <Button variant="outline" className="flex items-center">
-                  <BookOpen className="h-4 w-4 mr-2" />
-                  Browse Courses
+              <Button
+                variant="outline"
+                onClick={() => navigate("/courses")}
+                className="flex items-center"
+              >
+                <Library className="h-4 w-4 mr-2" />
+                Browse Courses
+              </Button>
+              {isOwner && (
+                <Button
+                  variant="outline"
+                  onClick={() => navigate("/owner-dashboard")}
+                  className="flex items-center"
+                >
+                  <Building2 className="h-4 w-4 mr-2" />
+                  Owner Dashboard
                 </Button>
-              </Link>
+              )}
               <Button
                 variant="ghost"
                 onClick={signOut}
@@ -76,7 +126,7 @@ const Dashboard = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {stats.map((stat) => (
+          {userStats.map((stat) => (
             <Card key={stat.title} className="bg-white">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium text-gray-600">
@@ -92,62 +142,33 @@ const Dashboard = () => {
           ))}
         </div>
 
-        {/* Quick Actions */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <Card className="bg-white">
-            <CardHeader>
-              <CardTitle>Continue Learning</CardTitle>
-              <CardDescription>
-                Pick up where you left off in your current courses
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h4 className="font-semibold">Constitutional Law Fundamentals</h4>
-                    <p className="text-sm text-gray-600">Chapter 3: Federal Powers</p>
-                  </div>
-                  <Button size="sm">Continue</Button>
+        {/* Main Content Tabs */}
+        <Card className="bg-white">
+          <CardHeader>
+            <CardTitle>Learning Dashboard</CardTitle>
+            <CardDescription>
+              Track your progress and continue your learning journey
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs value={activeTab} onValueChange={setActiveTab}>
+              <TabsList className="grid w-full grid-cols-2">
+                <TabsTrigger value="courses">My Courses</TabsTrigger>
+                <TabsTrigger value="progress">Progress</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="courses" className="mt-6">
+                <UserCourseProgress />
+              </TabsContent>
+              
+              <TabsContent value="progress" className="mt-6">
+                <div className="text-center py-8">
+                  <p className="text-gray-500">Progress tracking coming soon...</p>
                 </div>
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h4 className="font-semibold">Criminal Law Essentials</h4>
-                    <p className="text-sm text-gray-600">Chapter 5: Defense Strategies</p>
-                  </div>
-                  <Button size="sm">Continue</Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          <Card className="bg-white">
-            <CardHeader>
-              <CardTitle>Recommended Courses</CardTitle>
-              <CardDescription>
-                Based on your learning history and interests
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h4 className="font-semibold">Advanced Contract Law</h4>
-                    <p className="text-sm text-gray-600">10 weeks • Advanced</p>
-                  </div>
-                  <Button size="sm" variant="outline">Enroll</Button>
-                </div>
-                <div className="flex items-center justify-between p-4 border rounded-lg">
-                  <div>
-                    <h4 className="font-semibold">Legal Research Methods</h4>
-                    <p className="text-sm text-gray-600">6 weeks • Beginner</p>
-                  </div>
-                  <Button size="sm" variant="outline">Enroll</Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

@@ -4,10 +4,20 @@ import { useUserRole } from "@/hooks/useUserRole";
 import AuthPage from "../components/AuthPage";
 import Dashboard from "../components/Dashboard";
 import AdminDashboard from "../components/AdminDashboard";
+import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 
 const IndexContent = () => {
   const { user, loading: authLoading } = useAuth();
-  const { hasAdminPrivileges, loading: roleLoading } = useUserRole();
+  const { isAdmin, isOwner, loading: roleLoading } = useUserRole();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    // Redirect owners to their dedicated dashboard
+    if (!authLoading && !roleLoading && user && isOwner) {
+      navigate("/owner-dashboard");
+    }
+  }, [user, isOwner, authLoading, roleLoading, navigate]);
 
   if (authLoading || roleLoading) {
     return (
@@ -24,7 +34,8 @@ const IndexContent = () => {
     return <AuthPage />;
   }
 
-  return hasAdminPrivileges ? <AdminDashboard /> : <Dashboard />;
+  // Show admin dashboard only for admins, not owners
+  return isAdmin ? <AdminDashboard /> : <Dashboard />;
 };
 
 const Index = () => {
