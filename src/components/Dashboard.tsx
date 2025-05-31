@@ -77,6 +77,15 @@ const Dashboard = () => {
     },
   ];
 
+  // Don't render if user is not available
+  if (!user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100">
       {/* Header */}
@@ -158,7 +167,7 @@ const Dashboard = () => {
               </TabsList>
               
               <TabsContent value="courses" className="mt-6">
-                <UserCourseProgress />
+                <UserCourseProgress userId={user.id} />
               </TabsContent>
               
               <TabsContent value="progress" className="mt-6">
