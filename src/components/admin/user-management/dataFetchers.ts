@@ -70,10 +70,39 @@ export const fetchOrphanedRoles = async (): Promise<{ orphanedRoles: OrphanedRol
 };
 
 export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
-  console.log('Starting fetchUserProfiles with separate queries approach...');
+  console.log('Starting fetchUserProfiles with RLS policy debugging...');
   
   try {
-    // First, get all profiles
+    // First, check current user's role to understand RLS context
+    const { data: { user } } = await supabase.auth.getUser();
+    console.log('Current user ID:', user?.id);
+
+    // Check if current user has admin privileges
+    const { data: currentUserRoles, error: currentUserRolesError } = await supabase
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user?.id);
+
+    console.log('Current user roles:', { 
+      roles: currentUserRoles, 
+      error: currentUserRolesError,
+      isAdmin: currentUserRoles?.some(r => r.role === 'admin'),
+      isOwner: currentUserRoles?.some(r => r.role === 'owner')
+    });
+
+    // Test the RLS functions directly
+    const { data: isAdminResult, error: isAdminError } = await supabase
+      .rpc('is_admin_user');
+    
+    const { data: isOwnerResult, error: isOwnerError } = await supabase
+      .rpc('is_owner_user');
+
+    console.log('RLS function results:', {
+      isAdmin: { result: isAdminResult, error: isAdminError },
+      isOwner: { result: isOwnerResult, error: isOwnerError }
+    });
+
+    // Now try to fetch all profiles
     const { data: profiles, error: profilesError } = await supabase
       .from('profiles')
       .select('id, email, first_name, last_name, created_at')
@@ -84,10 +113,10 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
       throw profilesError;
     }
 
-    console.log(`Fetched ${profiles?.length || 0} profiles`);
+    console.log(`Successfully fetched ${profiles?.length || 0} profiles with RLS policies applied`);
 
     if (!profiles || profiles.length === 0) {
-      console.log('No profiles found');
+      console.log('No profiles found - this might indicate RLS is blocking access');
       return [];
     }
 
@@ -127,7 +156,7 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
       };
     });
 
-    console.log(`Returning ${userProfiles.length} user profiles`);
+    console.log(`Returning ${userProfiles.length} user profiles after RLS policy application`);
     
     // Log sample data for debugging
     if (userProfiles.length > 0) {
