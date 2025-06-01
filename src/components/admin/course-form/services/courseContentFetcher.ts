@@ -70,7 +70,7 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
         duration_minutes: unit.duration_minutes || 0,
         sort_order: unit.sort_order,
         quiz_id: unitQuizMap.get(unit.id) || undefined,
-        image_url: unit.image_url || "",
+        image_url: "", // Units don't have image_url in the database yet
         file_url: unit.file_url || "",
         file_name: unit.file_name || "",
         file_size: unit.file_size || 0,

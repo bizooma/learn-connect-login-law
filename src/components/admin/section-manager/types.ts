@@ -1,3 +1,4 @@
+
 export interface SectionData {
   id?: string;
   title: string;
@@ -21,6 +22,7 @@ export interface UnitData {
   duration_minutes: number;
   sort_order: number;
   quiz_id?: string;
+  image_url?: string;
   file_url?: string;
   file_name?: string;
   file_size?: number;

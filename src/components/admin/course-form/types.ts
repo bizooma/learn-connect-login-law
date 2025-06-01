@@ -1,3 +1,4 @@
+
 export interface ModuleData {
   id?: string;
   title: string;
@@ -75,4 +76,14 @@ export interface OptionData {
   option_text: string;
   is_correct: boolean;
   sort_order: number;
+}
+
+export interface CourseFormData {
+  title: string;
+  description: string;
+  instructor: string;
+  category: string;
+  level: string;
+  duration: string;
+  image_file?: File;
 }
