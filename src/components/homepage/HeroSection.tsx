@@ -8,10 +8,10 @@ const HeroSection = () => {
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center min-h-[80vh]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start min-h-[80vh]">
           {/* Left Side - Content */}
           <div className="text-white">
-            <h1 className="text-5xl md:text-6xl font-bold mb-8 leading-tight">
+            <h1 className="text-5xl md:text-6xl font-bold mb-8 leading-tight whitespace-nowrap">
               Immigration Law Firm Training
             </h1>
             
@@ -38,12 +38,13 @@ const HeroSection = () => {
           </div>
 
           {/* Right Side - Professional Woman Image */}
-          <div className="relative">
-            <div className="relative z-10">
+          <div className="relative h-full flex items-end">
+            <div className="relative z-10 w-full">
               <img 
-                src="/lovable-uploads/8824b54f-412f-4fa9-9ec4-a10b1d510a25.png" 
-                alt="Professional woman with tablet" 
-                className="w-full max-w-lg mx-auto"
+                src="/lovable-uploads/61c3f405-c372-43ea-a6e7-a12bcd703981.png" 
+                alt="Professional woman with laptop" 
+                className="w-full max-w-lg mx-auto object-cover object-bottom"
+                style={{ height: 'calc(100vh - 10rem)' }}
               />
             </div>
           </div>
