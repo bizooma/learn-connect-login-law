@@ -30,7 +30,7 @@ export const useUserRole = () => {
         
         // Set the role directly as a string
         setRole(userRole);
-        console.log('useUserRole: Role set in state');
+        console.log('useUserRole: Role set in state:', userRole);
       }
     } catch (error) {
       console.error('useUserRole: Error in fetchUserRole:', error);
@@ -58,17 +58,16 @@ export const useUserRole = () => {
     }
   };
 
-  // Simple direct comparisons
+  // Compute values with explicit logging
   const isAdmin = role === 'admin';
   const isOwner = role === 'owner';
   const isStudent = role === 'student';
   const isClient = role === 'client';
   const isFree = role === 'free';
-
-  // Helper function to check if user has admin or owner privileges
   const hasAdminPrivileges = isAdmin || isOwner;
 
-  console.log('useUserRole: Current state:', { 
+  // Log every time these values are computed
+  console.log('useUserRole: Computing values:', { 
     role,
     isAdmin,
     isOwner,
