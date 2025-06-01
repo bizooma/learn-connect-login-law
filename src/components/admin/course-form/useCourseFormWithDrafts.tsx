@@ -2,17 +2,48 @@
 import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
-import { CourseFormData, SectionData } from "./types";
+import { CourseFormData } from "./types";
 import { handleCourseSubmission } from "./courseSubmissionHandler";
 import { useDraftManager } from "@/hooks/useDraftManager";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { Tables } from "@/integrations/supabase/types";
 
+interface ModuleData {
+  id?: string;
+  title: string;
+  description: string;
+  image_url?: string;
+  sort_order: number;
+  lessons: LessonData[];
+}
+
+interface LessonData {
+  id?: string;
+  title: string;
+  description: string;
+  image_url?: string;
+  sort_order: number;
+  units: UnitData[];
+}
+
+interface UnitData {
+  id?: string;
+  title: string;
+  description: string;
+  content: string;
+  video_url: string;
+  video_type: 'youtube' | 'upload';
+  video_file?: File;
+  duration_minutes: number;
+  sort_order: number;
+  quiz_id?: string;
+}
+
 type CourseDraft = Tables<'course_drafts'>;
 
 export const useCourseFormWithDrafts = (onSuccess: () => void) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [sections, setSections] = useState<SectionData[]>([]);
+  const [modules, setModules] = useState<ModuleData[]>([]);
   const [saveStatus, setSaveStatus] = useState<'saving' | 'saved' | 'error' | 'idle'>('idle');
   const [lastSaved, setLastSaved] = useState<Date | undefined>();
   const [showDraftDialog, setShowDraftDialog] = useState(false);
@@ -50,7 +81,7 @@ export const useCourseFormWithDrafts = (onSuccess: () => void) => {
         level: data.level || '',
         duration: data.duration || '',
         image_url: data.image_url || '',
-        sections: sections
+        modules: modules
       });
       setSaveStatus('saved');
       setLastSaved(new Date());
@@ -58,7 +89,7 @@ export const useCourseFormWithDrafts = (onSuccess: () => void) => {
       setSaveStatus('error');
       throw error;
     }
-  }, [saveAsDraft, sections]);
+  }, [saveAsDraft, modules]);
 
   const { debouncedSave, saveNow } = useAutoSave({
     onSave: handleAutoSave,
@@ -72,13 +103,10 @@ export const useCourseFormWithDrafts = (onSuccess: () => void) => {
   useEffect(() => {
     const currentData = {
       ...watchedValues,
-      sections
+      modules
     };
     debouncedSave(currentData);
-  }, [watchedValues, sections, debouncedSave]);
-
-  // Remove automatic draft dialog showing
-  // Users can manually access drafts if needed
+  }, [watchedValues, modules, debouncedSave]);
 
   const handleLoadDraft = useCallback(async (draft: CourseDraft) => {
     await loadDraft(draft.id);
@@ -93,8 +121,8 @@ export const useCourseFormWithDrafts = (onSuccess: () => void) => {
       image_file: undefined,
     });
 
-    if (draft.draft_data && (draft.draft_data as any).sections) {
-      setSections((draft.draft_data as any).sections);
+    if (draft.draft_data && (draft.draft_data as any).modules) {
+      setModules((draft.draft_data as any).modules);
     }
 
     toast({
@@ -107,13 +135,21 @@ export const useCourseFormWithDrafts = (onSuccess: () => void) => {
     const formData = form.getValues();
     await saveNow({
       ...formData,
-      sections
+      modules
     });
-  }, [form, sections, saveNow]);
+  }, [form, modules, saveNow]);
 
   const onSubmit = async (data: CourseFormData) => {
     setIsSubmitting(true);
     try {
+      // Convert modules structure to sections structure for backward compatibility
+      const sections = modules.flatMap(module => 
+        module.lessons.map(lesson => ({
+          ...lesson,
+          units: lesson.units
+        }))
+      );
+
       await handleCourseSubmission(data, sections);
 
       // Delete current draft after successful submission
@@ -127,7 +163,7 @@ export const useCourseFormWithDrafts = (onSuccess: () => void) => {
       });
 
       form.reset();
-      setSections([]);
+      setModules([]);
       onSuccess();
     } catch (error) {
       console.error('Error creating course:', error);
@@ -143,7 +179,7 @@ export const useCourseFormWithDrafts = (onSuccess: () => void) => {
 
   const handleStartNew = useCallback(() => {
     form.reset();
-    setSections([]);
+    setModules([]);
     setSaveStatus('idle');
     setLastSaved(undefined);
   }, [form]);
@@ -151,8 +187,8 @@ export const useCourseFormWithDrafts = (onSuccess: () => void) => {
   return {
     form,
     isSubmitting,
-    sections,
-    setSections,
+    modules,
+    setModules,
     onSubmit,
     saveStatus,
     lastSaved,

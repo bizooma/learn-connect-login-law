@@ -86,7 +86,7 @@ const DraftRecoveryDialog = ({
                   <div className="flex items-center">
                     <FileText className="h-4 w-4 mr-1" />
                     <span>
-                      {(draft.draft_data as any)?.sections?.length || 0} sections
+                      {(draft.draft_data as any)?.modules?.length || 0} modules
                     </span>
                   </div>
                 )}

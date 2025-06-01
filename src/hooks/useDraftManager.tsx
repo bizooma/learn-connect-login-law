@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -91,7 +90,7 @@ export const useDraftManager = (courseId?: string) => {
           image_url: draftData.image_url || null,
           draft_data: {
             modules: draftData.modules || []
-          }
+          } as any
         })
         .select()
         .single();
@@ -130,7 +129,7 @@ export const useDraftManager = (courseId?: string) => {
           image_url: draftData.image_url,
           draft_data: {
             modules: draftData.modules || []
-          },
+          } as any,
           updated_at: new Date().toISOString()
         })
         .eq('id', draftId)
