@@ -9,6 +9,7 @@ import TrustedBrandsSection from "./homepage/TrustedBrandsSection";
 import TestimonialsSection from "./homepage/TestimonialsSection";
 import PricingSection from "./homepage/PricingSection";
 import NewsletterSection from "./homepage/NewsletterSection";
+import PodcastSection from "./homepage/PodcastSection";
 
 const Homepage = () => {
   return (
@@ -40,6 +41,9 @@ const Homepage = () => {
 
       {/* Pricing Section */}
       <PricingSection />
+
+      {/* Podcast Section */}
+      <PodcastSection />
 
       {/* Newsletter Section */}
       <NewsletterSection />
