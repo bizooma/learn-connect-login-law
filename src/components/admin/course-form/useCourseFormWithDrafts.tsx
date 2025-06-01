@@ -77,12 +77,8 @@ export const useCourseFormWithDrafts = (onSuccess: () => void) => {
     debouncedSave(currentData);
   }, [watchedValues, sections, debouncedSave]);
 
-  // Show draft recovery dialog on component mount if drafts exist
-  useEffect(() => {
-    if (drafts.length > 0 && !currentDraft) {
-      setShowDraftDialog(true);
-    }
-  }, [drafts, currentDraft]);
+  // Remove automatic draft dialog showing
+  // Users can manually access drafts if needed
 
   const handleLoadDraft = useCallback(async (draft: CourseDraft) => {
     await loadDraft(draft.id);
