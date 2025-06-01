@@ -35,9 +35,24 @@ const CourseMainContent = ({
         </div>
         <div className="lg:col-span-3">
           <Tabs defaultValue="content" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="content">Course Content</TabsTrigger>
-              <TabsTrigger value="calendar">Calendar</TabsTrigger>
+            <TabsList 
+              className="grid w-full grid-cols-2" 
+              style={{ backgroundColor: '#FFDA00' }}
+            >
+              <TabsTrigger 
+                value="content"
+                className="data-[state=active]:bg-white data-[state=active]:text-black"
+                style={{ color: 'black' }}
+              >
+                Course Content
+              </TabsTrigger>
+              <TabsTrigger 
+                value="calendar"
+                className="data-[state=active]:bg-white data-[state=active]:text-black"
+                style={{ color: 'black' }}
+              >
+                Calendar
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="content">
               <CourseContent unit={selectedUnit} courseId={courseId} />
