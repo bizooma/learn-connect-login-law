@@ -13,6 +13,30 @@ interface SectionMainContentProps {
   onUnitSelect: (unit: Unit) => void;
 }
 
+const getYouTubeEmbedUrl = (url: string): string => {
+  if (!url) return url;
+  
+  // If it's already an embed URL, return as is
+  if (url.includes('/embed/')) return url;
+  
+  // Handle different YouTube URL formats
+  let videoId = '';
+  
+  if (url.includes('youtube.com/watch?v=')) {
+    videoId = url.split('watch?v=')[1].split('&')[0];
+  } else if (url.includes('youtu.be/')) {
+    videoId = url.split('youtu.be/')[1].split('?')[0];
+  } else if (url.includes('youtube.com/embed/')) {
+    return url; // Already in embed format
+  }
+  
+  if (videoId) {
+    return `https://www.youtube.com/embed/${videoId}`;
+  }
+  
+  return url; // Return original if not a YouTube URL
+};
+
 const SectionMainContent = ({ units, selectedUnit, onUnitSelect }: SectionMainContentProps) => {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -80,19 +104,13 @@ const SectionMainContent = ({ units, selectedUnit, onUnitSelect }: SectionMainCo
                 {selectedUnit.video_url && (
                   <div className="mb-6">
                     <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                      {selectedUnit.video_url.includes('youtube.com') || selectedUnit.video_url.includes('youtu.be') ? (
-                        <iframe
-                          src={selectedUnit.video_url.replace('watch?v=', 'embed/')}
-                          className="w-full h-full rounded-lg"
-                          allowFullScreen
-                        />
-                      ) : (
-                        <video
-                          src={selectedUnit.video_url}
-                          controls
-                          className="w-full h-full rounded-lg"
-                        />
-                      )}
+                      <iframe
+                        src={getYouTubeEmbedUrl(selectedUnit.video_url)}
+                        className="w-full h-full rounded-lg"
+                        allowFullScreen
+                        title={selectedUnit.title}
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      />
                     </div>
                   </div>
                 )}

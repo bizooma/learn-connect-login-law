@@ -14,6 +14,30 @@ interface CourseVideoProps {
   courseId: string;
 }
 
+const getYouTubeEmbedUrl = (url: string): string => {
+  if (!url) return url;
+  
+  // If it's already an embed URL, return as is
+  if (url.includes('/embed/')) return url;
+  
+  // Handle different YouTube URL formats
+  let videoId = '';
+  
+  if (url.includes('youtube.com/watch?v=')) {
+    videoId = url.split('watch?v=')[1].split('&')[0];
+  } else if (url.includes('youtu.be/')) {
+    videoId = url.split('youtu.be/')[1].split('?')[0];
+  } else if (url.includes('youtube.com/embed/')) {
+    return url; // Already in embed format
+  }
+  
+  if (videoId) {
+    return `https://www.youtube.com/embed/${videoId}`;
+  }
+  
+  return url; // Return original if not a YouTube URL
+};
+
 const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
   const { user } = useAuth();
   const { markUnitComplete } = useUserProgress(user?.id);
@@ -48,6 +72,8 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
     );
   }
 
+  const embedUrl = unit.video_url ? getYouTubeEmbedUrl(unit.video_url) : '';
+
   return (
     <div className="space-y-6">
       <Card>
@@ -72,10 +98,11 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
             <div className="space-y-4">
               <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
                 <iframe
-                  src={unit.video_url}
+                  src={embedUrl}
                   className="w-full h-full rounded-lg"
                   allowFullScreen
                   title={unit.title}
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 />
               </div>
               
