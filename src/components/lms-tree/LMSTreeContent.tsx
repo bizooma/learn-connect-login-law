@@ -1,6 +1,7 @@
 
 import { DndContext, DragEndEvent, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
+import { BookOpen } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import CourseTreeNode from "./CourseTreeNode";
 
