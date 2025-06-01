@@ -1,4 +1,6 @@
 
+import LessonManager from "../LessonManager";
+
 interface SectionData {
   id?: string;
   title: string;
