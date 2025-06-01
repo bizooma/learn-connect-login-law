@@ -10,6 +10,7 @@ import TestimonialsSection from "./homepage/TestimonialsSection";
 import PricingSection from "./homepage/PricingSection";
 import NewsletterSection from "./homepage/NewsletterSection";
 import PodcastSection from "./homepage/PodcastSection";
+import Footer from "./homepage/Footer";
 
 const Homepage = () => {
   return (
@@ -47,6 +48,9 @@ const Homepage = () => {
 
       {/* Newsletter Section */}
       <NewsletterSection />
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 };
