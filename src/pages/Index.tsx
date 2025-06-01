@@ -14,27 +14,31 @@ const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Only redirect if we have a user and roles are loaded
     if (!authLoading && !roleLoading && user) {
+      console.log('User authenticated, redirecting based on role:', { isOwner, isStudent, isClient, isFree, isAdmin });
+      
       // Redirect owners to their dedicated dashboard
       if (isOwner) {
-        navigate("/owner-dashboard");
+        navigate("/owner-dashboard", { replace: true });
       }
       // Redirect students to their dedicated dashboard
       else if (isStudent) {
-        navigate("/student-dashboard");
+        navigate("/student-dashboard", { replace: true });
       }
       // Redirect clients to their dedicated dashboard
       else if (isClient) {
-        navigate("/client-dashboard");
+        navigate("/client-dashboard", { replace: true });
       }
       // Redirect free users to their dedicated dashboard
       else if (isFree) {
-        navigate("/free-dashboard");
+        navigate("/free-dashboard", { replace: true });
       }
     }
-  }, [user, isOwner, isStudent, isClient, isFree, authLoading, roleLoading, navigate]);
+  }, [user, isOwner, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate]);
 
-  if (authLoading || roleLoading) {
+  // Show loading while checking auth state
+  if (authLoading || (user && roleLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
@@ -45,14 +49,16 @@ const Index = () => {
     );
   }
 
+  // If no user, show auth page
   if (!user) {
+    console.log('No user found, showing auth page');
     return <AuthPage />;
   }
 
   // Show admin dashboard only for admins, not owners, students, clients, or free users
   return (
     <div>
-      {user && <NotificationBanner />}
+      <NotificationBanner />
       {isAdmin ? <AdminDashboard /> : <Dashboard />}
     </div>
   );
