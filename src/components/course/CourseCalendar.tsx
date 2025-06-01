@@ -7,7 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
 import { format, parseISO } from "date-fns";
-import CalendarEventDialog from "./CalendarEventDialog";
+import EnhancedCalendarEventDialog from "./EnhancedCalendarEventDialog";
 import CalendarEventList from "./CalendarEventList";
 
 type CourseCalendarEvent = Tables<'course_calendars'>;
@@ -97,6 +97,24 @@ const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
     }
   };
 
+  const getMeetingDates = () => {
+    try {
+      return events
+        .filter(event => ['meeting', 'lecture', 'workshop', 'presentation', 'review'].includes(event.event_type))
+        .map(event => {
+          try {
+            return parseISO(event.event_date);
+          } catch (dateError) {
+            console.error('Error parsing meeting date:', event.event_date, dateError);
+            return new Date();
+          }
+        }).filter(date => !isNaN(date.getTime()));
+    } catch (error) {
+      console.error('Error getting meeting dates:', error);
+      return [];
+    }
+  };
+
   if (loading) {
     return (
       <Card>
@@ -121,10 +139,10 @@ const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center">
             <CalendarIcon className="h-5 w-5 mr-2" />
-            Course Calendar
+            Course Calendar & Meetings
           </CardTitle>
           {isAdmin && (
-            <CalendarEventDialog courseId={courseId} onEventAdded={fetchEvents} />
+            <EnhancedCalendarEventDialog courseId={courseId} onEventAdded={fetchEvents} />
           )}
         </div>
       </CardHeader>
@@ -136,10 +154,16 @@ const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
               selected={selectedDate}
               onSelect={setSelectedDate}
               modifiers={{
-                event: getEventDates()
+                event: getEventDates(),
+                meeting: getMeetingDates()
               }}
               modifiersStyles={{
                 event: { 
+                  backgroundColor: '#e0e7ff', 
+                  color: 'black',
+                  fontWeight: 'bold'
+                },
+                meeting: { 
                   backgroundColor: '#3b82f6', 
                   color: 'white',
                   fontWeight: 'bold'
@@ -147,6 +171,16 @@ const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
               }}
               className="rounded-md border"
             />
+            <div className="mt-3 text-xs text-gray-500 space-y-1">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-blue-500 rounded"></div>
+                <span>Meetings & Sessions</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 bg-indigo-200 border border-indigo-300 rounded"></div>
+                <span>Other Events</span>
+              </div>
+            </div>
           </div>
           <div>
             <CalendarEventList 
