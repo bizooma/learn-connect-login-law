@@ -7,6 +7,37 @@ import { Tables } from '@/integrations/supabase/types';
 
 type CourseDraft = Tables<'course_drafts'>;
 
+interface ModuleData {
+  id?: string;
+  title: string;
+  description: string;
+  image_url?: string;
+  sort_order: number;
+  lessons: LessonData[];
+}
+
+interface LessonData {
+  id?: string;
+  title: string;
+  description: string;
+  image_url?: string;
+  sort_order: number;
+  units: UnitData[];
+}
+
+interface UnitData {
+  id?: string;
+  title: string;
+  description: string;
+  content: string;
+  video_url: string;
+  video_type: 'youtube' | 'upload';
+  video_file?: File;
+  duration_minutes: number;
+  sort_order: number;
+  quiz_id?: string;
+}
+
 interface DraftData {
   title: string;
   description: string;
@@ -15,7 +46,7 @@ interface DraftData {
   level: string;
   duration: string;
   image_url?: string;
-  sections: any[];
+  modules: ModuleData[];
 }
 
 export const useDraftManager = (courseId?: string) => {
@@ -59,7 +90,7 @@ export const useDraftManager = (courseId?: string) => {
           duration: draftData.duration || '',
           image_url: draftData.image_url || null,
           draft_data: {
-            sections: draftData.sections || []
+            modules: draftData.modules || []
           }
         })
         .select()
@@ -98,7 +129,7 @@ export const useDraftManager = (courseId?: string) => {
           duration: draftData.duration,
           image_url: draftData.image_url,
           draft_data: {
-            sections: draftData.sections || []
+            modules: draftData.modules || []
           },
           updated_at: new Date().toISOString()
         })
