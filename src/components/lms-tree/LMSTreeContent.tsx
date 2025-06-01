@@ -1,27 +1,11 @@
 
 import { DndContext, closestCenter } from '@dnd-kit/core';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { Tables } from "@/integrations/supabase/types";
 import CourseTreeNode from "./CourseTreeNode";
 import EmptyCoursesState from "./EmptyCoursesState";
 import { useDragHandler } from "./hooks/useDragHandler";
 import { collectDraggableItems } from "./utils/draggableUtils";
-
-type Course = Tables<'courses'>;
-type Module = Tables<'modules'>;
-type Lesson = Tables<'lessons'>;
-type Unit = Tables<'units'>;
-type Quiz = Tables<'quizzes'>;
-
-interface CourseWithContent extends Course {
-  modules: (Module & {
-    lessons: (Lesson & {
-      units: (Unit & {
-        quizzes: Quiz[];
-      })[];
-    })[];
-  })[];
-}
+import { CourseWithContent } from "@/hooks/useLMSTreeData";
 
 interface LMSTreeContentProps {
   courses: CourseWithContent[];

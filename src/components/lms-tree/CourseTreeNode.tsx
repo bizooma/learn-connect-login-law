@@ -5,24 +5,8 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { ChevronDown, ChevronRight, BookOpen, GripVertical, Users, Clock, Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Tables } from "@/integrations/supabase/types";
 import ModuleTreeNode from "./ModuleTreeNode";
-
-type Course = Tables<'courses'>;
-type Module = Tables<'modules'>;
-type Lesson = Tables<'lessons'>;
-type Unit = Tables<'units'>;
-type Quiz = Tables<'quizzes'>;
-
-interface CourseWithContent extends Course {
-  modules: (Module & {
-    lessons: (Lesson & {
-      units: (Unit & {
-        quizzes: Quiz[];
-      })[];
-    })[];
-  })[];
-}
+import { CourseWithContent } from "@/hooks/useLMSTreeData";
 
 interface CourseTreeNodeProps {
   course: CourseWithContent;
