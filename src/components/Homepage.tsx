@@ -7,6 +7,7 @@ import AboutSection from "./homepage/AboutSection";
 import HillarySection from "./homepage/HillarySection";
 import TrustedBrandsSection from "./homepage/TrustedBrandsSection";
 import TestimonialsSection from "./homepage/TestimonialsSection";
+import PricingSection from "./homepage/PricingSection";
 
 const Homepage = () => {
   return (
@@ -35,6 +36,9 @@ const Homepage = () => {
 
       {/* Testimonials Section */}
       <TestimonialsSection />
+
+      {/* Pricing Section */}
+      <PricingSection />
     </div>
   );
 };
