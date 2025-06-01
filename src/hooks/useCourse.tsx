@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 
 type Course = Tables<'courses'>;
 type Section = Tables<'sections'>;
@@ -18,47 +19,12 @@ interface CourseWithContent extends Course {
 export const useCourse = (id: string | undefined) => {
   const { toast } = useToast();
   const { user } = useAuth();
+  const { hasAdminPrivileges, loading: roleLoading } = useUserRole();
   const [course, setCourse] = useState<CourseWithContent | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [adminLoading, setAdminLoading] = useState(true);
 
-  const checkAdminStatus = async () => {
-    try {
-      if (!user?.id) {
-        console.log('useCourse: No user ID, setting admin to false');
-        setIsAdmin(false);
-        setAdminLoading(false);
-        return;
-      }
-
-      console.log('useCourse: Checking admin status for user:', user.id);
-      setAdminLoading(true);
-      
-      const { data: userRoles, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id);
-      
-      if (error) {
-        console.error('useCourse: Error checking admin status:', error);
-        setIsAdmin(false);
-        setAdminLoading(false);
-        return;
-      }
-
-      const hasAdminRole = userRoles?.some(role => role.role === 'admin' || role.role === 'owner') || false;
-      console.log('useCourse: User roles found:', userRoles);
-      console.log('useCourse: Admin status determined:', hasAdminRole);
-      setIsAdmin(hasAdminRole);
-      setAdminLoading(false);
-    } catch (error) {
-      console.error('useCourse: Error in checkAdminStatus:', error);
-      setIsAdmin(false);
-      setAdminLoading(false);
-    }
-  };
+  console.log('useCourse: Using useUserRole - hasAdminPrivileges:', hasAdminPrivileges, 'roleLoading:', roleLoading);
 
   const fetchCourse = async () => {
     if (!id) {
@@ -140,18 +106,13 @@ export const useCourse = (id: string | undefined) => {
     }
   }, [id]);
 
-  useEffect(() => {
-    console.log('useCourse: User changed, checking admin status. User:', user?.id);
-    checkAdminStatus();
-  }, [user?.id]);
-
-  console.log('useCourse: Returning values - isAdmin:', isAdmin, 'adminLoading:', adminLoading, 'loading:', loading);
+  console.log('useCourse: Returning values - hasAdminPrivileges:', hasAdminPrivileges, 'loading:', loading || roleLoading);
 
   return {
     course,
     selectedUnit,
     setSelectedUnit,
-    loading: loading || adminLoading,
-    isAdmin
+    loading: loading || roleLoading,
+    isAdmin: hasAdminPrivileges
   };
 };
