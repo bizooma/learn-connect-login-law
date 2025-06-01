@@ -8,6 +8,7 @@ import HillarySection from "./homepage/HillarySection";
 import TrustedBrandsSection from "./homepage/TrustedBrandsSection";
 import TestimonialsSection from "./homepage/TestimonialsSection";
 import PricingSection from "./homepage/PricingSection";
+import NewsletterSection from "./homepage/NewsletterSection";
 
 const Homepage = () => {
   return (
@@ -39,6 +40,9 @@ const Homepage = () => {
 
       {/* Pricing Section */}
       <PricingSection />
+
+      {/* Newsletter Section */}
+      <NewsletterSection />
     </div>
   );
 };
