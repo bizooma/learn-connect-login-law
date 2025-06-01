@@ -5,6 +5,7 @@ import { ChevronDown, ChevronRight, FolderOpen, GripVertical } from "lucide-reac
 import { Card, CardContent } from "@/components/ui/card";
 import { Tables } from "@/integrations/supabase/types";
 import UnitTreeNode from "./UnitTreeNode";
+import ReclassificationDropdown from "./ReclassificationDropdown";
 
 type Lesson = Tables<'lessons'>;
 type Unit = Tables<'units'>;
@@ -20,9 +21,15 @@ interface LessonTreeNodeProps {
   lesson: LessonWithUnits;
   isExpanded: boolean;
   onToggle: () => void;
+  availableTargets?: Array<{
+    id: string;
+    title: string;
+    type: 'course' | 'module' | 'lesson';
+  }>;
+  onRefetch?: () => void;
 }
 
-const LessonTreeNode = ({ lesson, isExpanded, onToggle }: LessonTreeNodeProps) => {
+const LessonTreeNode = ({ lesson, isExpanded, onToggle, availableTargets = [], onRefetch }: LessonTreeNodeProps) => {
   const {
     attributes,
     listeners,
@@ -87,12 +94,28 @@ const LessonTreeNode = ({ lesson, isExpanded, onToggle }: LessonTreeNodeProps) =
                 </p>
               )}
             </div>
+
+            {onRefetch && (
+              <ReclassificationDropdown
+                itemId={lesson.id}
+                itemType="lesson"
+                itemTitle={lesson.title}
+                currentParentId={lesson.module_id}
+                availableTargets={availableTargets}
+                onRefetch={onRefetch}
+              />
+            )}
           </div>
 
           {isExpanded && lesson.units && lesson.units.length > 0 && (
             <div className="ml-6 mt-3 space-y-1">
               {lesson.units.map((unit) => (
-                <UnitTreeNode key={unit.id} unit={unit} />
+                <UnitTreeNode 
+                  key={unit.id} 
+                  unit={unit} 
+                  availableTargets={availableTargets}
+                  onRefetch={onRefetch}
+                />
               ))}
             </div>
           )}

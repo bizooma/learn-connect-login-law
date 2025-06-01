@@ -32,6 +32,7 @@ interface CourseTreeNodeProps {
   expandedLessons: Set<string>;
   onToggleModule: (moduleId: string) => void;
   onToggleLesson: (lessonId: string) => void;
+  onRefetch?: () => void;
 }
 
 const CourseTreeNode = ({
@@ -41,7 +42,8 @@ const CourseTreeNode = ({
   expandedModules,
   expandedLessons,
   onToggleModule,
-  onToggleLesson
+  onToggleLesson,
+  onRefetch
 }: CourseTreeNodeProps) => {
   const {
     attributes,
@@ -73,6 +75,27 @@ const CourseTreeNode = ({
       ) || 0), 0
     ) || 0), 0
   ) || 0;
+
+  // Build available targets for reclassification
+  const availableTargets = [
+    {
+      id: course.id,
+      title: course.title,
+      type: 'course' as const
+    },
+    ...course.modules.map(module => ({
+      id: module.id,
+      title: module.title,
+      type: 'module' as const
+    })),
+    ...course.modules.flatMap(module => 
+      module.lessons.map(lesson => ({
+        id: lesson.id,
+        title: lesson.title,
+        type: 'lesson' as const
+      }))
+    )
+  ];
 
   return (
     <div ref={setNodeRef} style={style} className="group">
@@ -144,6 +167,8 @@ const CourseTreeNode = ({
                     onToggle={() => onToggleModule(module.id)}
                     expandedLessons={expandedLessons}
                     onToggleLesson={onToggleLesson}
+                    availableTargets={availableTargets}
+                    onRefetch={onRefetch}
                   />
                 ))}
               </SortableContext>

@@ -59,9 +59,17 @@ const LMSTreeContent = ({
       const activeId = active.id as string;
       const overId = over.id as string;
       
-      // Parse the active item type and ID
-      const [activeType, activeItemId] = activeId.split('-');
-      const [overType, overItemId] = overId.split('-');
+      // Parse the active item type and ID - fix the parsing to get full UUIDs
+      const activeMatch = activeId.match(/^(course|module|lesson|unit)-(.+)$/);
+      const overMatch = overId.match(/^(course|module|lesson|unit)-(.+)$/);
+      
+      if (!activeMatch || !overMatch) {
+        console.error('Invalid drag item IDs:', { activeId, overId });
+        return;
+      }
+      
+      const [, activeType, activeItemId] = activeMatch;
+      const [, overType, overItemId] = overMatch;
       
       console.log('Reclassification attempt:', { activeType, activeItemId, overType, overItemId });
       
@@ -188,6 +196,7 @@ const LMSTreeContent = ({
                 expandedLessons={expandedLessons}
                 onToggleModule={onToggleModule}
                 onToggleLesson={onToggleLesson}
+                onRefetch={onRefetch}
               />
             ))}
           </div>

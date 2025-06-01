@@ -2,7 +2,7 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { ChevronDown, ChevronRight, Package, GripVertical, FolderOpen } from "lucide-react";
+import { ChevronDown, ChevronRight, Package, GripVertical } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tables } from "@/integrations/supabase/types";
 import LessonTreeNode from "./LessonTreeNode";
@@ -26,6 +26,12 @@ interface ModuleTreeNodeProps {
   onToggle: () => void;
   expandedLessons: Set<string>;
   onToggleLesson: (lessonId: string) => void;
+  availableTargets?: Array<{
+    id: string;
+    title: string;
+    type: 'course' | 'module' | 'lesson';
+  }>;
+  onRefetch?: () => void;
 }
 
 const ModuleTreeNode = ({
@@ -33,7 +39,9 @@ const ModuleTreeNode = ({
   isExpanded,
   onToggle,
   expandedLessons,
-  onToggleLesson
+  onToggleLesson,
+  availableTargets = [],
+  onRefetch
 }: ModuleTreeNodeProps) => {
   const {
     attributes,
@@ -124,6 +132,8 @@ const ModuleTreeNode = ({
                     lesson={lesson}
                     isExpanded={expandedLessons.has(lesson.id)}
                     onToggle={() => onToggleLesson(lesson.id)}
+                    availableTargets={availableTargets}
+                    onRefetch={onRefetch}
                   />
                 ))}
               </SortableContext>

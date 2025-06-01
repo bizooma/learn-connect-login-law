@@ -1,10 +1,11 @@
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { Play, FileText, GripVertical, Clock, HelpCircle } from "lucide-react";
+import { FileText, Play, GripVertical } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tables } from "@/integrations/supabase/types";
+import ReclassificationDropdown from "./ReclassificationDropdown";
 
 type Unit = Tables<'units'>;
 type Quiz = Tables<'quizzes'>;
@@ -15,9 +16,15 @@ interface UnitWithQuizzes extends Unit {
 
 interface UnitTreeNodeProps {
   unit: UnitWithQuizzes;
+  availableTargets?: Array<{
+    id: string;
+    title: string;
+    type: 'course' | 'module' | 'lesson';
+  }>;
+  onRefetch?: () => void;
 }
 
-const UnitTreeNode = ({ unit }: UnitTreeNodeProps) => {
+const UnitTreeNode = ({ unit, availableTargets = [], onRefetch }: UnitTreeNodeProps) => {
   const {
     attributes,
     listeners,
@@ -33,7 +40,7 @@ const UnitTreeNode = ({ unit }: UnitTreeNodeProps) => {
 
   return (
     <div ref={setNodeRef} style={style}>
-      <Card className="bg-green-50 border-green-200 hover:shadow-sm transition-shadow border-l-4 border-l-green-500">
+      <Card className="bg-orange-50 border-orange-200 hover:shadow-sm transition-shadow border-l-4 border-l-orange-500">
         <CardContent className="p-2">
           <div className="flex items-center space-x-2">
             <div
@@ -43,57 +50,47 @@ const UnitTreeNode = ({ unit }: UnitTreeNodeProps) => {
             >
               <GripVertical className="h-3 w-3" />
             </div>
-            
+
             {unit.video_url ? (
-              <Play className="h-3 w-3 text-green-600 flex-shrink-0" />
+              <Play className="h-3 w-3 text-orange-600 flex-shrink-0" />
             ) : (
-              <FileText className="h-3 w-3 text-green-600 flex-shrink-0" />
+              <FileText className="h-3 w-3 text-orange-600 flex-shrink-0" />
             )}
             
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-2">
-                <h5 className="text-sm font-medium text-green-900 truncate">
+                <h5 className="text-sm font-medium text-orange-900 truncate">
                   {unit.title}
                 </h5>
-                
                 {unit.duration_minutes && (
-                  <div className="flex items-center space-x-1">
-                    <Clock className="h-2 w-2 text-green-600" />
-                    <span className="text-xs text-green-600">
-                      {unit.duration_minutes}m
-                    </span>
-                  </div>
+                  <Badge variant="secondary" className="text-xs">
+                    {unit.duration_minutes}m
+                  </Badge>
                 )}
-                
-                {unit.video_url && (
+                {unit.quizzes && unit.quizzes.length > 0 && (
                   <Badge variant="outline" className="text-xs">
-                    Video
+                    {unit.quizzes.length} quiz{unit.quizzes.length !== 1 ? 'zes' : ''}
                   </Badge>
                 )}
               </div>
               
               {unit.description && (
-                <p className="text-xs text-green-700 mt-1 truncate">
+                <p className="text-xs text-orange-700 mt-1 truncate">
                   {unit.description}
                 </p>
               )}
-              
-              {unit.quizzes && unit.quizzes.length > 0 && (
-                <div className="mt-1 space-y-1">
-                  {unit.quizzes.map((quiz) => (
-                    <div key={quiz.id} className="flex items-center space-x-2 ml-4">
-                      <HelpCircle className="h-2 w-2 text-orange-500" />
-                      <span className="text-xs text-orange-700 truncate">
-                        Quiz: {quiz.title}
-                      </span>
-                      <Badge variant="outline" className="text-xs">
-                        {quiz.passing_score}% pass
-                      </Badge>
-                    </div>
-                  ))}
-                </div>
-              )}
             </div>
+
+            {onRefetch && (
+              <ReclassificationDropdown
+                itemId={unit.id}
+                itemType="unit"
+                itemTitle={unit.title}
+                currentParentId={unit.section_id}
+                availableTargets={availableTargets}
+                onRefetch={onRefetch}
+              />
+            )}
           </div>
         </CardContent>
       </Card>
