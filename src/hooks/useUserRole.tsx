@@ -9,56 +9,67 @@ export const useUserRole = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchUserRole = async () => {
+    if (!user?.id) {
+      console.log('useUserRole: No user ID available');
+      setRole(null);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-      console.log('useUserRole: Fetching role for user:', user?.id);
+      console.log('useUserRole: Fetching role for user:', user.id);
       
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', user?.id);
+        .eq('user_id', user.id)
+        .single();
 
-      console.log('useUserRole: Raw query result:', { data, error });
+      console.log('useUserRole: Query result:', { data, error, userId: user.id });
 
       if (error) {
         console.error('useUserRole: Error fetching user role:', error);
-        setRole('student'); // Default to student role if error
+        // If no role found, default to student
+        if (error.code === 'PGRST116') {
+          console.log('useUserRole: No role found, defaulting to student');
+          setRole('student');
+        } else {
+          setRole('student');
+        }
       } else {
-        // Get the user's role or default to student
-        const userRole = data?.[0]?.role || 'student';
+        const userRole = data?.role || 'student';
         console.log('useUserRole: Setting role to:', userRole);
-        
-        // Set the role directly as a string
         setRole(userRole);
-        console.log('useUserRole: Role set in state:', userRole);
       }
     } catch (error) {
-      console.error('useUserRole: Error in fetchUserRole:', error);
+      console.error('useUserRole: Catch block error:', error);
       setRole('student');
     } finally {
+      console.log('useUserRole: Setting loading to false');
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (user) {
-      console.log('useUserRole: User changed, fetching role for:', user.id);
+    console.log('useUserRole: useEffect triggered, user:', user?.id);
+    if (user?.id) {
       fetchUserRole();
     } else {
-      console.log('useUserRole: No user, setting role to null');
+      console.log('useUserRole: No user, setting defaults');
       setRole(null);
       setLoading(false);
     }
-  }, [user]);
+  }, [user?.id]);
 
   const refreshRole = () => {
     console.log('useUserRole: refreshRole called');
-    if (user) {
+    if (user?.id) {
       fetchUserRole();
     }
   };
 
-  // Compute values with explicit logging
+  // Compute derived values
   const isAdmin = role === 'admin';
   const isOwner = role === 'owner';
   const isStudent = role === 'student';
@@ -66,13 +77,14 @@ export const useUserRole = () => {
   const isFree = role === 'free';
   const hasAdminPrivileges = isAdmin || isOwner;
 
-  // Log every time these values are computed
+  // Log every computation
   console.log('useUserRole: Computing values:', { 
     role,
     isAdmin,
     isOwner,
     hasAdminPrivileges,
-    loading
+    loading,
+    userId: user?.id
   });
 
   return { 
