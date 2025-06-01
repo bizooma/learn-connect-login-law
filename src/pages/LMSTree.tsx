@@ -2,25 +2,40 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
 import LMSTreeHeader from "@/components/lms-tree/LMSTreeHeader";
 import LMSTreeContent from "@/components/lms-tree/LMSTreeContent";
 import LMSTreeLoading from "@/components/lms-tree/LMSTreeLoading";
+import LMSTreeFooter from "@/components/lms-tree/LMSTreeFooter";
+import { Tables } from "@/integrations/supabase/types";
+
+type Course = Tables<'courses'>;
+type Module = Tables<'modules'>;
+type Lesson = Tables<'lessons'>;
+type Unit = Tables<'units'>;
+type Quiz = Tables<'quizzes'>;
+
+interface CourseWithContent extends Course {
+  modules: (Module & {
+    lessons: (Lesson & {
+      units: (Unit & {
+        quizzes: Quiz[];
+      })[];
+    })[];
+  })[];
+}
 
 const LMSTree = () => {
-  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedCourses, setExpandedCourses] = useState<Set<string>>(new Set());
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [expandedLessons, setExpandedLessons] = useState<Set<string>>(new Set());
 
-  const { data: coursesData, isLoading, error, refetch } = useQuery({
-    queryKey: ['lms-tree-data'],
+  const { data: courses = [], isLoading, refetch } = useQuery({
+    queryKey: ['lms-tree-courses'],
     queryFn: async () => {
-      console.log('Fetching LMS tree data with modules...');
+      console.log('Fetching courses with full hierarchy...');
       
-      // Fetch courses with modules, lessons, units, and quizzes
-      const { data: courses, error: coursesError } = await supabase
+      const { data, error } = await supabase
         .from('courses')
         .select(`
           *,
@@ -35,43 +50,46 @@ const LMSTree = () => {
             )
           )
         `)
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: true });
 
-      if (coursesError) {
-        console.error('Error fetching courses:', coursesError);
-        throw coursesError;
+      if (error) {
+        console.error('Error fetching courses:', error);
+        throw error;
       }
 
-      // Sort modules, lessons and units by sort_order
-      const sortedData = courses?.map(course => ({
-        ...course,
-        modules: (course.modules || [])
-          .sort((a, b) => a.sort_order - b.sort_order)
-          .map(module => ({
-            ...module,
-            lessons: (module.lessons || [])
-              .sort((a, b) => a.sort_order - b.sort_order)
-              .map(lesson => ({
-                ...lesson,
-                units: (lesson.units || []).sort((a, b) => a.sort_order - b.sort_order)
-              }))
-          }))
-      })) || [];
-
-      console.log('LMS tree data fetched:', sortedData);
-      return sortedData;
-    }
+      console.log('Fetched courses:', data);
+      return data as CourseWithContent[];
+    },
   });
 
-  if (error) {
-    toast({
-      title: "Error",
-      description: "Failed to load course data",
-      variant: "destructive",
-    });
-  }
+  // Filter courses based on search term
+  const filteredCourses = courses.filter(course => {
+    if (!searchTerm) return true;
+    
+    const searchLower = searchTerm.toLowerCase();
+    
+    // Search in course title and description
+    if (course.title?.toLowerCase().includes(searchLower) || 
+        course.description?.toLowerCase().includes(searchLower)) {
+      return true;
+    }
+    
+    // Search in modules, lessons, and units
+    return course.modules?.some(module => 
+      module.title?.toLowerCase().includes(searchLower) ||
+      module.description?.toLowerCase().includes(searchLower) ||
+      module.lessons?.some(lesson =>
+        lesson.title?.toLowerCase().includes(searchLower) ||
+        lesson.description?.toLowerCase().includes(searchLower) ||
+        lesson.units?.some(unit =>
+          unit.title?.toLowerCase().includes(searchLower) ||
+          unit.description?.toLowerCase().includes(searchLower)
+        )
+      )
+    );
+  });
 
-  const toggleCourseExpanded = (courseId: string) => {
+  const handleToggleCourse = (courseId: string) => {
     setExpandedCourses(prev => {
       const newSet = new Set(prev);
       if (newSet.has(courseId)) {
@@ -83,7 +101,7 @@ const LMSTree = () => {
     });
   };
 
-  const toggleModuleExpanded = (moduleId: string) => {
+  const handleToggleModule = (moduleId: string) => {
     setExpandedModules(prev => {
       const newSet = new Set(prev);
       if (newSet.has(moduleId)) {
@@ -95,7 +113,7 @@ const LMSTree = () => {
     });
   };
 
-  const toggleLessonExpanded = (lessonId: string) => {
+  const handleToggleLesson = (lessonId: string) => {
     setExpandedLessons(prev => {
       const newSet = new Set(prev);
       if (newSet.has(lessonId)) {
@@ -107,41 +125,32 @@ const LMSTree = () => {
     });
   };
 
-  const filteredCourses = coursesData?.filter(course =>
-    course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    course.modules?.some(module =>
-      module.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      module.lessons?.some(lesson =>
-        lesson.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        lesson.units?.some(unit =>
-          unit.title.toLowerCase().includes(searchTerm.toLowerCase())
-        )
-      )
-    )
-  ) || [];
-
   if (isLoading) {
     return <LMSTreeLoading />;
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <LMSTreeHeader 
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <LMSTreeHeader
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        totalCourses={coursesData?.length || 0}
+        totalCourses={courses.length}
       />
       
-      <LMSTreeContent
-        courses={filteredCourses}
-        expandedCourses={expandedCourses}
-        expandedModules={expandedModules}
-        expandedLessons={expandedLessons}
-        onToggleCourse={toggleCourseExpanded}
-        onToggleModule={toggleModuleExpanded}
-        onToggleLesson={toggleLessonExpanded}
-        onRefetch={refetch}
-      />
+      <div className="flex-1">
+        <LMSTreeContent
+          courses={filteredCourses}
+          expandedCourses={expandedCourses}
+          expandedModules={expandedModules}
+          expandedLessons={expandedLessons}
+          onToggleCourse={handleToggleCourse}
+          onToggleModule={handleToggleModule}
+          onToggleLesson={handleToggleLesson}
+          onRefetch={refetch}
+        />
+      </div>
+      
+      <LMSTreeFooter />
     </div>
   );
 };
