@@ -1,14 +1,13 @@
 
 import { Button } from "@/components/ui/button";
-import { Plus, Video, FileText } from "lucide-react";
+import { Plus, FileText } from "lucide-react";
 
-interface SectionManagerHeaderProps {
+interface SimpleSectionManagerHeaderProps {
   onAddSection: (e: React.MouseEvent) => void;
   onAddUnit: (e: React.MouseEvent) => void;
-  onAddVideo: (e: React.MouseEvent) => void;
 }
 
-const SectionManagerHeader = ({ onAddSection, onAddUnit }: SectionManagerHeaderProps) => {
+const SimpleSectionManagerHeader = ({ onAddSection, onAddUnit }: SimpleSectionManagerHeaderProps) => {
   return (
     <div className="flex items-center justify-between mb-6">
       <h3 className="text-lg font-semibold">Course Sections</h3>
@@ -26,4 +25,4 @@ const SectionManagerHeader = ({ onAddSection, onAddUnit }: SectionManagerHeaderP
   );
 };
 
-export default SectionManagerHeader;
+export default SimpleSectionManagerHeader;

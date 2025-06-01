@@ -122,7 +122,7 @@ export const useSectionManager = ({ sections, onSectionsChange }: UseSectionMana
     updateSection(sectionIndex, 'image_url', imageUrl || '');
   };
 
-  // New drag-and-drop methods
+  // Simplified move methods for up/down arrows
   const moveSectionToPosition = (fromIndex: number, toIndex: number) => {
     const newSections = [...sections];
     const [movedSection] = newSections.splice(fromIndex, 1);
@@ -135,25 +135,6 @@ export const useSectionManager = ({ sections, onSectionsChange }: UseSectionMana
     }));
     
     onSectionsChange(reorderedSections);
-  };
-
-  const moveUnitToPosition = (fromSectionIndex: number, fromUnitIndex: number, toSectionIndex: number, toUnitIndex: number) => {
-    const newSections = [...sections];
-    const [movedUnit] = newSections[fromSectionIndex].units.splice(fromUnitIndex, 1);
-    newSections[toSectionIndex].units.splice(toUnitIndex, 0, movedUnit);
-    
-    // Update sort orders for both sections
-    newSections[fromSectionIndex].units = newSections[fromSectionIndex].units.map((unit, index) => ({
-      ...unit,
-      sort_order: index
-    }));
-    
-    newSections[toSectionIndex].units = newSections[toSectionIndex].units.map((unit, index) => ({
-      ...unit,
-      sort_order: index
-    }));
-    
-    onSectionsChange(newSections);
   };
 
   const moveUnitWithinSection = (sectionIndex: number, fromIndex: number, toIndex: number) => {
@@ -182,7 +163,6 @@ export const useSectionManager = ({ sections, onSectionsChange }: UseSectionMana
     handleVideoFileChange,
     handleSectionImageUpdate,
     moveSectionToPosition,
-    moveUnitToPosition,
     moveUnitWithinSection,
   };
 };

@@ -6,37 +6,58 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trash2, Play, Upload, GripVertical } from "lucide-react";
+import { Trash2, Play, Upload, ArrowUp, ArrowDown } from "lucide-react";
 import { UnitData } from "./types";
 
-interface UnitManagerProps {
+interface SimpleUnitManagerProps {
   unit: UnitData;
   unitIndex: number;
   sectionIndex: number;
   onUpdateUnit: (sectionIndex: number, unitIndex: number, field: keyof UnitData, value: any) => void;
   onDeleteUnit: (sectionIndex: number, unitIndex: number) => void;
   onVideoFileChange: (sectionIndex: number, unitIndex: number, file: File | null) => void;
-  dragHandleProps?: any;
-  isDragging?: boolean;
+  onMoveUnitUp: () => void;
+  onMoveUnitDown: () => void;
+  canMoveUnitUp: boolean;
+  canMoveUnitDown: boolean;
 }
 
-const UnitManager = ({ 
+const SimpleUnitManager = ({ 
   unit, 
   unitIndex, 
   sectionIndex, 
   onUpdateUnit, 
   onDeleteUnit, 
   onVideoFileChange,
-  dragHandleProps,
-  isDragging,
-}: UnitManagerProps) => {
+  onMoveUnitUp,
+  onMoveUnitDown,
+  canMoveUnitUp,
+  canMoveUnitDown,
+}: SimpleUnitManagerProps) => {
   return (
-    <Card className={`border-l-4 border-l-blue-200 ${isDragging ? 'shadow-lg' : ''}`}>
+    <Card className="border-l-4 border-l-blue-200">
       <CardContent className="p-4">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
-            <div {...dragHandleProps} className="cursor-grab active:cursor-grabbing">
-              <GripVertical className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+            <div className="flex items-center space-x-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onMoveUnitUp}
+                disabled={!canMoveUnitUp}
+                className="h-6 w-6 p-0"
+              >
+                <ArrowUp className="h-3 w-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onMoveUnitDown}
+                disabled={!canMoveUnitDown}
+                className="h-6 w-6 p-0"
+              >
+                <ArrowDown className="h-3 w-3" />
+              </Button>
             </div>
             <h5 className="font-medium">Unit {unitIndex + 1}</h5>
           </div>
@@ -167,4 +188,4 @@ const UnitManager = ({
   );
 };
 
-export default UnitManager;
+export default SimpleUnitManager;

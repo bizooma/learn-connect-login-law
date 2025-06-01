@@ -1,6 +1,5 @@
 
-import DragDropSectionManager from "./section-manager/DragDropSectionManager";
-import { useSectionManager } from "./section-manager/useSectionManager";
+import SimpleSectionManager from "./SimpleSectionManager";
 import { SectionData } from "./section-manager/types";
 
 interface SectionManagerProps {
@@ -9,13 +8,10 @@ interface SectionManagerProps {
 }
 
 const SectionManager = ({ sections, onSectionsChange }: SectionManagerProps) => {
-  const sectionManagerProps = useSectionManager({ sections, onSectionsChange });
-
   return (
-    <DragDropSectionManager
+    <SimpleSectionManager
       sections={sections}
       onSectionsChange={onSectionsChange}
-      {...sectionManagerProps}
     />
   );
 };
