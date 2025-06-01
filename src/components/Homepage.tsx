@@ -4,6 +4,7 @@ import HeroSection from "./homepage/HeroSection";
 import ServicesSection from "./homepage/ServicesSection";
 import BenefitsSection from "./homepage/BenefitsSection";
 import AboutSection from "./homepage/AboutSection";
+import HillarySection from "./homepage/HillarySection";
 
 const Homepage = () => {
   return (
@@ -23,6 +24,9 @@ const Homepage = () => {
           <AboutSection />
         </div>
       </section>
+
+      {/* Hillary Section */}
+      <HillarySection />
     </div>
   );
 };
