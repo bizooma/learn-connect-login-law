@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +7,7 @@ import { Trash2, Plus, ChevronDown, ChevronUp, ArrowUp, ArrowDown } from "lucide
 import LessonImageUpload from "../LessonImageUpload";
 import SimpleUnitManager from "./SimpleUnitManager";
 import { UnitData, SectionData } from "./types";
+import FileUpload from "../FileUpload";
 
 interface SimpleLessonCardProps {
   lesson: SectionData;
@@ -153,6 +153,20 @@ const SimpleLessonCard = ({
           currentImageUrl={lesson.image_url}
           onImageUpdate={(imageUrl) => onLessonImageUpdate(lessonIndex, imageUrl)}
           lessonIndex={lessonIndex}
+        />
+
+        <FileUpload
+          currentFileUrl={lesson.file_url}
+          currentFileName={lesson.file_name}
+          onFileUpdate={(fileUrl, fileName, fileSize) => {
+            onLessonImageUpdate(lessonIndex, fileUrl); // Using existing image update handler
+            onUpdateLesson(lessonIndex, 'file_url', fileUrl);
+            onUpdateLesson(lessonIndex, 'file_name', fileName);
+            onUpdateLesson(lessonIndex, 'file_size', fileSize);
+          }}
+          label="Lesson File"
+          contentType="lesson"
+          contentIndex={lessonIndex}
         />
 
         {isExpanded && (

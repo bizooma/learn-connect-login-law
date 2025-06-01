@@ -295,6 +295,9 @@ export type Database = {
           course_id: string
           created_at: string
           description: string | null
+          file_name: string | null
+          file_size: number | null
+          file_url: string | null
           id: string
           image_url: string | null
           is_draft: boolean
@@ -307,6 +310,9 @@ export type Database = {
           course_id: string
           created_at?: string
           description?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
           id?: string
           image_url?: string | null
           is_draft?: boolean
@@ -319,6 +325,9 @@ export type Database = {
           course_id?: string
           created_at?: string
           description?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
           id?: string
           image_url?: string | null
           is_draft?: boolean
@@ -379,6 +388,9 @@ export type Database = {
           course_id: string
           created_at: string
           description: string | null
+          file_name: string | null
+          file_size: number | null
+          file_url: string | null
           id: string
           image_url: string | null
           is_draft: boolean
@@ -390,6 +402,9 @@ export type Database = {
           course_id: string
           created_at?: string
           description?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
           id?: string
           image_url?: string | null
           is_draft?: boolean
@@ -401,6 +416,9 @@ export type Database = {
           course_id?: string
           created_at?: string
           description?: string | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
           id?: string
           image_url?: string | null
           is_draft?: boolean
@@ -615,6 +633,9 @@ export type Database = {
           created_at: string
           description: string | null
           duration_minutes: number | null
+          file_name: string | null
+          file_size: number | null
+          file_url: string | null
           id: string
           is_draft: boolean
           section_id: string
@@ -628,6 +649,9 @@ export type Database = {
           created_at?: string
           description?: string | null
           duration_minutes?: number | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
           id?: string
           is_draft?: boolean
           section_id: string
@@ -641,6 +665,9 @@ export type Database = {
           created_at?: string
           description?: string | null
           duration_minutes?: number | null
+          file_name?: string | null
+          file_size?: number | null
+          file_url?: string | null
           id?: string
           is_draft?: boolean
           section_id?: string

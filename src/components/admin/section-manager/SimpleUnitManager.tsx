@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Trash2, ArrowUp, ArrowDown, FileVideo, Youtube } from "lucide-react";
 import { UnitData } from "./types";
 import QuizSelector from "./QuizSelector";
+import UnitImageUpload from "../UnitImageUpload";
+import FileUpload from "../FileUpload";
 
 interface SimpleUnitManagerProps {
   unit: UnitData;
@@ -55,6 +56,10 @@ const SimpleUnitManager = ({
 
   const handleQuizUpdate = (quizId: string | undefined) => {
     onUpdateUnit(sectionIndex, unitIndex, 'quiz_id', quizId);
+  };
+
+  const handleUnitImageUpdate = (imageUrl: string | null) => {
+    onUpdateUnit(sectionIndex, unitIndex, 'image_url', imageUrl || '');
   };
 
   return (
@@ -152,6 +157,27 @@ const SimpleUnitManager = ({
             placeholder="Enter unit description"
           />
         </div>
+
+        <UnitImageUpload
+          currentImageUrl={unit.image_url}
+          onImageUpdate={handleUnitImageUpdate}
+          unitIndex={unitIndex}
+          lessonIndex={sectionIndex}
+        />
+
+        <FileUpload
+          currentFileUrl={unit.file_url}
+          currentFileName={unit.file_name}
+          onFileUpdate={(fileUrl, fileName, fileSize) => {
+            onUpdateUnit(sectionIndex, unitIndex, 'file_url', fileUrl);
+            onUpdateUnit(sectionIndex, unitIndex, 'file_name', fileName);
+            onUpdateUnit(sectionIndex, unitIndex, 'file_size', fileSize);
+          }}
+          label="Unit File"
+          contentType="unit"
+          contentIndex={unitIndex}
+          parentIndex={sectionIndex}
+        />
 
         <div>
           <Label htmlFor={`unit-content-${sectionIndex}-${unitIndex}`}>Content</Label>

@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +9,7 @@ import { Trash2, ArrowUp, ArrowDown, FileVideo, Youtube } from "lucide-react";
 import { UnitData } from "./types";
 import QuizSelector from "./QuizSelector";
 import UnitImageUpload from "../UnitImageUpload";
+import FileUpload from "../FileUpload";
 
 interface SimpleUnitManagerProps {
   unit: UnitData;
@@ -220,6 +220,20 @@ const SimpleUnitManager = ({
             </div>
           )}
         </div>
+
+        <FileUpload
+          currentFileUrl={unit.file_url}
+          currentFileName={unit.file_name}
+          onFileUpdate={(fileUrl, fileName, fileSize) => {
+            onUpdateUnit(lessonIndex, unitIndex, 'file_url', fileUrl);
+            onUpdateUnit(lessonIndex, unitIndex, 'file_name', fileName);
+            onUpdateUnit(lessonIndex, unitIndex, 'file_size', fileSize);
+          }}
+          label="Unit File"
+          contentType="unit"
+          contentIndex={unitIndex}
+          parentIndex={lessonIndex}
+        />
 
         <QuizSelector
           quizId={unit.quiz_id}

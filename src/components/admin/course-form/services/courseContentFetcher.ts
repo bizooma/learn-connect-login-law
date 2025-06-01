@@ -56,6 +56,9 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
       title: lesson.title,
       description: lesson.description || "",
       image_url: lesson.image_url || "",
+      file_url: lesson.file_url || "",
+      file_name: lesson.file_name || "",
+      file_size: lesson.file_size || 0,
       sort_order: lesson.sort_order,
       units: (lesson.units as Unit[])?.map(unit => ({
         id: unit.id,
@@ -67,6 +70,10 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
         duration_minutes: unit.duration_minutes || 0,
         sort_order: unit.sort_order,
         quiz_id: unitQuizMap.get(unit.id) || undefined,
+        image_url: unit.image_url || "",
+        file_url: unit.file_url || "",
+        file_name: unit.file_name || "",
+        file_size: unit.file_size || 0,
       })).sort((a, b) => a.sort_order - b.sort_order) || []
     })).sort((a, b) => a.sort_order - b.sort_order) || [];
 
