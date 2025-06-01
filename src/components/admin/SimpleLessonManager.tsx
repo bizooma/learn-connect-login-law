@@ -107,7 +107,7 @@ const SimpleLessonManager = ({ lessons, onLessonsChange }: SimpleLessonManagerPr
           onAddUnit={handleAddUnitToAnyLesson}
           onAddModule={handleAddModule}
         />
-        <EmptyState onAddLesson={handleAddLesson} />
+        <EmptyState />
       </div>
     );
   }
