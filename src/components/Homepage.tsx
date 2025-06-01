@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { Scale, Users, FileText } from "lucide-react";
 
 const Homepage = () => {
   const navigate = useNavigate();
@@ -30,7 +31,7 @@ const Homepage = () => {
 
             {/* Login Button */}
             <Button 
-              onClick={() => navigate("/")}
+              onClick={() => navigate("/login")}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
               Login
@@ -97,6 +98,65 @@ const Homepage = () => {
                 Our Courses Are Designed For <span className="text-pink-400">YOU!</span>
               </h2>
             </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Services Section */}
+      <section className="bg-white py-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
+            {/* Law Firms */}
+            <div className="text-center">
+              <div className="flex justify-center mb-6">
+                <Scale className="h-16 w-16 text-blue-500" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">LAW FIRMS</h3>
+              <p className="text-gray-600 mb-8 leading-relaxed">
+                New Frontier University offers comprehensive immigration law firm training courses designed to enhance the efficiency, compliance, and strategic growth of legal practices.
+              </p>
+              <Button className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-8 py-3 rounded-md">
+                Learn More
+              </Button>
+            </div>
+
+            {/* Staff Training */}
+            <div className="text-center">
+              <div className="flex justify-center mb-6">
+                <Users className="h-16 w-16 text-blue-500" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">STAFF TRAINING</h3>
+              <p className="text-gray-600 mb-8 leading-relaxed">
+                New Frontier University's immigration law firm onboarding training is designed to equip new employees with the knowledge and skills needed to navigate the complexities of immigration law practice efficiently.
+              </p>
+              <Button className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-8 py-3 rounded-md">
+                Learn More
+              </Button>
+            </div>
+
+            {/* Immigration Law */}
+            <div className="text-center">
+              <div className="flex justify-center mb-6">
+                <FileText className="h-16 w-16 text-blue-500" />
+              </div>
+              <h3 className="text-2xl font-bold text-gray-900 mb-4">IMMIGRATION LAW</h3>
+              <p className="text-gray-600 mb-8 leading-relaxed">
+                Understanding the complexities of immigration law requires a deep dive into ever-evolving policies, legal frameworks, and procedural nuances that impact individuals and businesses navigating the immigration system.
+              </p>
+              <Button className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-8 py-3 rounded-md">
+                Learn More
+              </Button>
+            </div>
+          </div>
+
+          {/* Divider Line */}
+          <div className="border-t border-gray-300 mb-16"></div>
+
+          {/* Next Section Heading */}
+          <div className="text-center">
+            <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
+              How Will New Frontier University Help Your Firm?
+            </h2>
           </div>
         </div>
       </section>
