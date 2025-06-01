@@ -11,18 +11,22 @@ export const useUserRole = () => {
   const fetchUserRole = async () => {
     try {
       setLoading(true);
+      console.log('useUserRole: Fetching role for user:', user?.id);
       
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user?.id);
 
+      console.log('useUserRole: Raw query result:', { data, error });
+
       if (error) {
         console.error('useUserRole: Error fetching user role:', error);
-        setRole('student'); // Default to student role if no role found
+        setRole('student'); // Default to student role if error
       } else {
         // Get the user's role or default to student
         const userRole = data?.[0]?.role || 'student';
+        console.log('useUserRole: Setting role to:', userRole);
         setRole(userRole);
       }
     } catch (error) {
@@ -35,14 +39,17 @@ export const useUserRole = () => {
 
   useEffect(() => {
     if (user) {
+      console.log('useUserRole: User changed, fetching role for:', user.id);
       fetchUserRole();
     } else {
+      console.log('useUserRole: No user, setting role to null');
       setRole(null);
       setLoading(false);
     }
   }, [user]);
 
   const refreshRole = () => {
+    console.log('useUserRole: refreshRole called');
     if (user) {
       fetchUserRole();
     }
@@ -56,6 +63,8 @@ export const useUserRole = () => {
 
   // Helper function to check if user has admin or owner privileges
   const hasAdminPrivileges = isAdmin || isOwner;
+
+  console.log('useUserRole: Current state:', { role, isAdmin, isOwner, hasAdminPrivileges, loading });
 
   return { 
     role, 

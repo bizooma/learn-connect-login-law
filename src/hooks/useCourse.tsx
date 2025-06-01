@@ -25,11 +25,12 @@ export const useCourse = (id: string | undefined) => {
   const [loading, setLoading] = useState(true);
 
   // Debug log to see current admin status
-  console.log('useCourse: hasAdminPrivileges:', hasAdminPrivileges, 'roleLoading:', roleLoading);
+  console.log('useCourse: hasAdminPrivileges:', hasAdminPrivileges, 'roleLoading:', roleLoading, 'user:', user?.id);
 
-  // Add a one-time refresh when component mounts to ensure we have the latest role
+  // Force a role refresh when component mounts
   useEffect(() => {
-    if (user && !roleLoading) {
+    console.log('useCourse: Component mounted, forcing role refresh');
+    if (user) {
       refreshRole();
     }
   }, [user, refreshRole]);
@@ -105,6 +106,8 @@ export const useCourse = (id: string | undefined) => {
       setLoading(false);
     }
   }, [id]);
+
+  console.log('useCourse: Returning isAdmin:', hasAdminPrivileges);
 
   return {
     course,
