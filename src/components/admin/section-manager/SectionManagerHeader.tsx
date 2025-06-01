@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Plus, Video } from "lucide-react";
+import { Plus, Video, FileText } from "lucide-react";
 
 interface SectionManagerHeaderProps {
   onAddSection: (e: React.MouseEvent) => void;
@@ -8,40 +8,18 @@ interface SectionManagerHeaderProps {
   onAddVideo: (e: React.MouseEvent) => void;
 }
 
-const SectionManagerHeader = ({
-  onAddSection,
-  onAddUnit,
-  onAddVideo,
-}: SectionManagerHeaderProps) => {
+const SectionManagerHeader = ({ onAddSection, onAddUnit }: SectionManagerHeaderProps) => {
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center justify-between mb-6">
       <h3 className="text-lg font-semibold">Course Sections</h3>
-      <div className="flex items-center space-x-2">
-        <Button 
-          type="button"
-          onClick={onAddSection} 
-          size="sm"
-        >
+      <div className="flex gap-2">
+        <Button onClick={onAddSection} variant="outline" size="sm">
           <Plus className="h-4 w-4 mr-2" />
           Add Section
         </Button>
-        <Button 
-          type="button"
-          onClick={onAddUnit} 
-          size="sm" 
-          variant="outline"
-        >
-          <Plus className="h-4 w-4 mr-2" />
+        <Button onClick={onAddUnit} variant="outline" size="sm">
+          <FileText className="h-4 w-4 mr-2" />
           Add Unit
-        </Button>
-        <Button 
-          type="button"
-          onClick={onAddVideo} 
-          size="sm" 
-          variant="outline"
-        >
-          <Video className="h-4 w-4 mr-2" />
-          Add Video
         </Button>
       </div>
     </div>

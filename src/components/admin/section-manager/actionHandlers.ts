@@ -1,59 +1,6 @@
 
 import { SectionData, UnitData } from './types';
 
-export const createVideoUnit = (sectionIndex: number, sections: SectionData[]): UnitData => {
-  return {
-    title: "",
-    description: "",
-    content: "",
-    video_url: "",
-    video_type: 'upload',
-    duration_minutes: 0,
-    sort_order: sections[sectionIndex].units.length
-  };
-};
-
-export const addVideoUnitToSection = (
-  sectionIndex: number,
-  sections: SectionData[],
-  onSectionsChange: (sections: SectionData[]) => void
-) => {
-  const newUnit = createVideoUnit(sectionIndex, sections);
-  
-  const updatedSections = sections.map((section, i) => 
-    i === sectionIndex 
-      ? { ...section, units: [...section.units, newUnit] }
-      : section
-  );
-  onSectionsChange(updatedSections);
-};
-
-export const handleAddVideoUnit = (
-  sections: SectionData[],
-  addSection: () => void,
-  expandedSections: Set<number>,
-  toggleSectionExpanded: (index: number) => void,
-  onSectionsChange: (sections: SectionData[]) => void
-) => {
-  console.log('Adding video unit...');
-  
-  if (sections.length === 0) {
-    console.log('Creating section first...');
-    addSection();
-    setTimeout(() => {
-      console.log('Adding video unit to new section...');
-      addVideoUnitToSection(0, sections, onSectionsChange);
-    }, 100);
-  } else {
-    console.log('Adding video unit to existing section...');
-    addVideoUnitToSection(0, sections, onSectionsChange);
-    
-    if (!expandedSections.has(0)) {
-      toggleSectionExpanded(0);
-    }
-  }
-};
-
 export const handleAddUnitToFirstSection = (
   sections: SectionData[],
   addSection: () => void,
@@ -63,11 +10,40 @@ export const handleAddUnitToFirstSection = (
 ) => {
   if (sections.length === 0) {
     addSection();
+    // Expand the first section after adding it
     setTimeout(() => {
+      if (!expandedSections.has(0)) {
+        toggleSectionExpanded(0);
+      }
       addUnit(0);
     }, 100);
   } else {
+    // Expand the first section if not already expanded
+    if (!expandedSections.has(0)) {
+      toggleSectionExpanded(0);
+    }
     addUnit(0);
+  }
+};
+
+export const handleAddVideoUnit = (
+  sections: SectionData[],
+  addSection: () => void,
+  expandedSections: Set<number>,
+  toggleSectionExpanded: (index: number) => void,
+  onSectionsChange: (sections: SectionData[]) => void
+) => {
+  // This function is no longer needed since videos should be section-level content
+  // Instead, we'll just ensure there's a section to work with
+  if (sections.length === 0) {
+    addSection();
+    setTimeout(() => {
+      if (!expandedSections.has(0)) {
+        toggleSectionExpanded(0);
+      }
+    }, 100);
+  } else {
+    // Just expand the first section so user can add content
     if (!expandedSections.has(0)) {
       toggleSectionExpanded(0);
     }

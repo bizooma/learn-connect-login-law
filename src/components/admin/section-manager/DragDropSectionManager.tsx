@@ -18,7 +18,7 @@ import EmptyState from './EmptyState';
 import SectionManagerHeader from './SectionManagerHeader';
 import DragOverlayContent from './DragOverlayContent';
 import { useDragAndDrop } from './useDragAndDrop';
-import { handleAddVideoUnit, handleAddUnitToFirstSection } from './actionHandlers';
+import { handleAddUnitToFirstSection } from './actionHandlers';
 import { SectionData, UnitData } from './types';
 
 interface DragDropSectionManagerProps {
@@ -94,18 +94,6 @@ const DragDropSectionManager = ({
     );
   };
 
-  const handleAddVideoClick = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    handleAddVideoUnit(
-      sections,
-      addSection,
-      expandedSections,
-      toggleSectionExpanded,
-      onSectionsChange
-    );
-  };
-
   const sectionIds = sections.map((_, index) => `section-${index}`);
 
   return (
@@ -120,7 +108,7 @@ const DragDropSectionManager = ({
         <SectionManagerHeader
           onAddSection={handleAddSection}
           onAddUnit={handleAddUnitClick}
-          onAddVideo={handleAddVideoClick}
+          onAddVideo={handleAddUnitClick}
         />
 
         <SortableContext items={sectionIds} strategy={verticalListSortingStrategy}>
