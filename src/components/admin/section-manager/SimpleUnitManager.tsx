@@ -6,18 +6,20 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trash2, Play, Upload, ArrowUp, ArrowDown } from "lucide-react";
+import { Trash2, Play, Upload, ArrowUp, ArrowDown, MoveRight } from "lucide-react";
 import { UnitData } from "./types";
 
 interface SimpleUnitManagerProps {
   unit: UnitData;
   unitIndex: number;
   sectionIndex: number;
+  totalSections: number;
   onUpdateUnit: (sectionIndex: number, unitIndex: number, field: keyof UnitData, value: any) => void;
   onDeleteUnit: (sectionIndex: number, unitIndex: number) => void;
   onVideoFileChange: (sectionIndex: number, unitIndex: number, file: File | null) => void;
   onMoveUnitUp: () => void;
   onMoveUnitDown: () => void;
+  onMoveUnitToSection: (toSectionIndex: number) => void;
   canMoveUnitUp: boolean;
   canMoveUnitDown: boolean;
 }
@@ -26,14 +28,18 @@ const SimpleUnitManager = ({
   unit, 
   unitIndex, 
   sectionIndex, 
+  totalSections,
   onUpdateUnit, 
   onDeleteUnit, 
   onVideoFileChange,
   onMoveUnitUp,
   onMoveUnitDown,
+  onMoveUnitToSection,
   canMoveUnitUp,
   canMoveUnitDown,
 }: SimpleUnitManagerProps) => {
+  const otherSections = Array.from({ length: totalSections }, (_, i) => i).filter(i => i !== sectionIndex);
+
   return (
     <Card className="border-l-4 border-l-blue-200">
       <CardContent className="p-4">
@@ -60,6 +66,21 @@ const SimpleUnitManager = ({
               </Button>
             </div>
             <h5 className="font-medium">Unit {unitIndex + 1}</h5>
+            {otherSections.length > 0 && (
+              <Select onValueChange={(value) => onMoveUnitToSection(parseInt(value))}>
+                <SelectTrigger className="w-32 h-6 text-xs">
+                  <MoveRight className="h-3 w-3 mr-1" />
+                  <SelectValue placeholder="Move to..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {otherSections.map((sectionIdx) => (
+                    <SelectItem key={sectionIdx} value={sectionIdx.toString()}>
+                      Section {sectionIdx + 1}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
           </div>
           <Button
             variant="ghost"

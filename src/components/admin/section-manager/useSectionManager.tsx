@@ -151,6 +151,29 @@ export const useSectionManager = ({ sections, onSectionsChange }: UseSectionMana
     onSectionsChange(newSections);
   };
 
+  const moveUnitToSection = (fromSectionIndex: number, unitIndex: number, toSectionIndex: number) => {
+    const newSections = [...sections];
+    
+    // Remove unit from source section
+    const [movedUnit] = newSections[fromSectionIndex].units.splice(unitIndex, 1);
+    
+    // Add unit to target section
+    newSections[toSectionIndex].units.push(movedUnit);
+    
+    // Update sort orders for both sections
+    newSections[fromSectionIndex].units = newSections[fromSectionIndex].units.map((unit, index) => ({
+      ...unit,
+      sort_order: index
+    }));
+    
+    newSections[toSectionIndex].units = newSections[toSectionIndex].units.map((unit, index) => ({
+      ...unit,
+      sort_order: index
+    }));
+    
+    onSectionsChange(newSections);
+  };
+
   return {
     expandedSections,
     addSection,
@@ -164,5 +187,6 @@ export const useSectionManager = ({ sections, onSectionsChange }: UseSectionMana
     handleSectionImageUpdate,
     moveSectionToPosition,
     moveUnitWithinSection,
+    moveUnitToSection,
   };
 };

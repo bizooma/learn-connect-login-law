@@ -88,6 +88,7 @@ const SimpleSectionManager = ({ sections, onSectionsChange }: SimpleSectionManag
           onMoveSectionDown={() => moveSectionDown(sectionIndex)}
           onMoveUnitUp={moveUnitUp}
           onMoveUnitDown={moveUnitDown}
+          onMoveUnitToSection={sectionManagerProps.moveUnitToSection}
           canMoveSectionUp={sectionIndex > 0}
           canMoveSectionDown={sectionIndex < sections.length - 1}
           totalSections={sections.length}

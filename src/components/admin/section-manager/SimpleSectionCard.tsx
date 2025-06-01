@@ -25,6 +25,7 @@ interface SimpleSectionCardProps {
   onMoveSectionDown: () => void;
   onMoveUnitUp: (sectionIndex: number, unitIndex: number) => void;
   onMoveUnitDown: (sectionIndex: number, unitIndex: number) => void;
+  onMoveUnitToSection: (fromSectionIndex: number, unitIndex: number, toSectionIndex: number) => void;
   canMoveSectionUp: boolean;
   canMoveSectionDown: boolean;
   totalSections: number;
@@ -46,8 +47,10 @@ const SimpleSectionCard = ({
   onMoveSectionDown,
   onMoveUnitUp,
   onMoveUnitDown,
+  onMoveUnitToSection,
   canMoveSectionUp,
   canMoveSectionDown,
+  totalSections,
 }: SimpleSectionCardProps) => {
   const handleToggleExpanded = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -166,11 +169,13 @@ const SimpleSectionCard = ({
                   unit={unit}
                   unitIndex={unitIndex}
                   sectionIndex={sectionIndex}
+                  totalSections={totalSections}
                   onUpdateUnit={onUpdateUnit}
                   onDeleteUnit={onDeleteUnit}
                   onVideoFileChange={onVideoFileChange}
                   onMoveUnitUp={() => onMoveUnitUp(sectionIndex, unitIndex)}
                   onMoveUnitDown={() => onMoveUnitDown(sectionIndex, unitIndex)}
+                  onMoveUnitToSection={(toSectionIndex) => onMoveUnitToSection(sectionIndex, unitIndex, toSectionIndex)}
                   canMoveUnitUp={unitIndex > 0}
                   canMoveUnitDown={unitIndex < section.units.length - 1}
                 />
