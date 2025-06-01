@@ -38,8 +38,12 @@ const HeroSection = () => {
               </div>
               
               <div className="relative group cursor-pointer">
-                <div className="bg-white/20 backdrop-blur-sm rounded-lg p-6 h-32 flex items-end transition-transform hover:scale-105">
-                  <h3 className="text-xl font-bold text-white">IMMIGRATION LAW</h3>
+                <div className="bg-white/20 backdrop-blur-sm rounded-lg p-0 h-32 overflow-hidden transition-transform hover:scale-105">
+                  <img 
+                    src="/lovable-uploads/85b49a80-3092-4f89-b069-0c652d3d7d4f.png" 
+                    alt="Immigration Law" 
+                    className="w-full h-full object-cover rounded-lg"
+                  />
                 </div>
               </div>
             </div>
