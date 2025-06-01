@@ -3,19 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Edit, Clock, Target, BookOpen, HelpCircle } from "lucide-react";
-import { Tables } from "@/integrations/supabase/types";
-
-type Quiz = Tables<'quizzes'>;
-type Unit = Tables<'units'>;
-type Course = Tables<'courses'>;
-
-interface QuizWithDetails extends Quiz {
-  unit: Unit & {
-    section: {
-      course: Course;
-    };
-  };
-}
+import { QuizWithDetails } from "./types";
 
 interface QuizCardProps {
   quiz: QuizWithDetails;
@@ -83,7 +71,7 @@ const QuizCard = ({ quiz, onDelete, onEdit, onManageQuestions }: QuizCardProps) 
           <div className="flex items-center text-sm text-gray-600">
             <BookOpen className="h-4 w-4 mr-2" />
             <span className="truncate">
-              {quiz.unit.section.course.title} → {quiz.unit.title}
+              {quiz.unit?.lesson?.course?.title} → {quiz.unit?.title}
             </span>
           </div>
           
