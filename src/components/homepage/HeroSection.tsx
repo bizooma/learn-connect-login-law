@@ -18,8 +18,12 @@ const HeroSection = () => {
             {/* Category Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
               <div className="relative group cursor-pointer">
-                <div className="bg-white/20 backdrop-blur-sm rounded-lg p-6 h-32 flex items-end transition-transform hover:scale-105">
-                  <h3 className="text-xl font-bold text-white">LAW FIRMS</h3>
+                <div className="bg-white/20 backdrop-blur-sm rounded-lg p-0 h-32 overflow-hidden transition-transform hover:scale-105">
+                  <img 
+                    src="/lovable-uploads/b99418cf-ba10-4d30-b227-6114c570b88f.png" 
+                    alt="Law Firms" 
+                    className="w-full h-full object-cover rounded-lg"
+                  />
                 </div>
               </div>
               
@@ -44,7 +48,7 @@ const HeroSection = () => {
                 src="/lovable-uploads/61c3f405-c372-43ea-a6e7-a12bcd703981.png" 
                 alt="Professional woman with laptop" 
                 className="w-full max-w-lg mx-auto object-cover object-bottom"
-                style={{ height: 'calc(100vh - 16rem)' }}
+                style={{ height: 'calc(100vh - 20rem)' }}
               />
             </div>
           </div>
