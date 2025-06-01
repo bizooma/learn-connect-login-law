@@ -27,16 +27,10 @@ export const useUserRole = () => {
         // Get the user's role or default to student
         const userRole = data?.[0]?.role || 'student';
         console.log('useUserRole: Setting role to:', userRole);
-        console.log('useUserRole: Role type:', typeof userRole);
-        console.log('useUserRole: Role length:', userRole?.length);
-        console.log('useUserRole: Role charCodes:', userRole?.split('').map(c => c.charCodeAt(0)));
         
-        // Force the role to be a clean string and set it directly
-        const cleanedRole = String(userRole).trim();
-        console.log('useUserRole: Cleaned role:', cleanedRole);
-        console.log('useUserRole: Cleaned role charCodes:', cleanedRole?.split('').map(c => c.charCodeAt(0)));
-        
-        setRole(cleanedRole);
+        // Set the role directly as a string
+        setRole(userRole);
+        console.log('useUserRole: Role set in state');
       }
     } catch (error) {
       console.error('useUserRole: Error in fetchUserRole:', error);
@@ -64,25 +58,21 @@ export const useUserRole = () => {
     }
   };
 
-  // Use explicit string comparison with proper null checks
-  const isAdmin = role !== null && role === 'admin';
-  const isOwner = role !== null && role === 'owner';
-  const isStudent = role !== null && role === 'student';
-  const isClient = role !== null && role === 'client';
-  const isFree = role !== null && role === 'free';
+  // Simple direct comparisons
+  const isAdmin = role === 'admin';
+  const isOwner = role === 'owner';
+  const isStudent = role === 'student';
+  const isClient = role === 'client';
+  const isFree = role === 'free';
 
   // Helper function to check if user has admin or owner privileges
   const hasAdminPrivileges = isAdmin || isOwner;
 
-  console.log('useUserRole: Final state comparison:', { 
-    role, 
-    roleType: typeof role,
-    roleValue: JSON.stringify(role),
-    adminString: JSON.stringify('admin'),
-    strictEquality: role === 'admin',
-    isAdmin, 
-    isOwner, 
-    hasAdminPrivileges, 
+  console.log('useUserRole: Current state:', { 
+    role,
+    isAdmin,
+    isOwner,
+    hasAdminPrivileges,
     loading
   });
 
