@@ -1,4 +1,3 @@
-
 const HeroSection = () => {
   return (
     <section 
@@ -11,7 +10,7 @@ const HeroSection = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start min-h-[80vh]">
           {/* Left Side - Content */}
           <div className="text-white">
-            <h1 className="text-5xl md:text-6xl font-bold mb-8 leading-tight whitespace-nowrap">
+            <h1 className="text-5xl md:text-6xl font-bold mb-8 leading-tight">
               Immigration Law Firm Training
             </h1>
             
@@ -44,7 +43,7 @@ const HeroSection = () => {
                 src="/lovable-uploads/61c3f405-c372-43ea-a6e7-a12bcd703981.png" 
                 alt="Professional woman with laptop" 
                 className="w-full max-w-lg mx-auto object-cover object-bottom"
-                style={{ height: 'calc(100vh - 16rem)' }}
+                style={{ height: 'calc(100vh - 20rem)' }}
               />
             </div>
           </div>
