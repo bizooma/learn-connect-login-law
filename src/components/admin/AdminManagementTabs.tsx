@@ -7,6 +7,7 @@ import ProfileManagement from "./ProfileManagement";
 import QuizManagement from "./QuizManagement";
 import CourseAssignmentManagement from "./CourseAssignmentManagement";
 import NotificationManagement from "./NotificationManagement";
+import UserProgressManagement from "./UserProgressManagement";
 
 interface AdminManagementTabsProps {
   activeTab: string;
@@ -19,13 +20,13 @@ const AdminManagementTabs = ({ activeTab, onTabChange }: AdminManagementTabsProp
       <CardHeader>
         <CardTitle>Management Console</CardTitle>
         <CardDescription>
-          Manage courses, users, quizzes, assignments, notifications, and system settings
+          Manage courses, users, quizzes, assignments, notifications, progress tracking, and system settings
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={onTabChange}>
           <TabsList 
-            className="grid w-full grid-cols-6"
+            className="grid w-full grid-cols-7"
             style={{ backgroundColor: '#FFDA00' }}
           >
             <TabsTrigger 
@@ -48,6 +49,13 @@ const AdminManagementTabs = ({ activeTab, onTabChange }: AdminManagementTabsProp
               style={{ color: 'black' }}
             >
               Users
+            </TabsTrigger>
+            <TabsTrigger 
+              value="progress"
+              className="data-[state=active]:bg-white data-[state=active]:text-black"
+              style={{ color: 'black' }}
+            >
+              Progress
             </TabsTrigger>
             <TabsTrigger 
               value="quizzes"
@@ -82,6 +90,10 @@ const AdminManagementTabs = ({ activeTab, onTabChange }: AdminManagementTabsProp
           
           <TabsContent value="users" className="mt-6">
             <UserManagement />
+          </TabsContent>
+          
+          <TabsContent value="progress" className="mt-6">
+            <UserProgressManagement />
           </TabsContent>
           
           <TabsContent value="quizzes" className="mt-6">

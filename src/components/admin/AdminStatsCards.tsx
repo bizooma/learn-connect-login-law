@@ -1,6 +1,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { BookOpen, Users, User, HelpCircle } from "lucide-react";
+import { BookOpen, Users, User, HelpCircle, TrendingUp, CheckCircle } from "lucide-react";
 
 interface AdminStatsCardsProps {
   stats: {
@@ -8,6 +8,8 @@ interface AdminStatsCardsProps {
     totalUsers: number;
     activeEnrollments: number;
     totalQuizzes: number;
+    completedCourses?: number;
+    averageProgress?: number;
   };
 }
 
@@ -35,6 +37,20 @@ const AdminStatsCards = ({ stats }: AdminStatsCardsProps) => {
       color: "text-purple-600",
     },
     {
+      title: "Completed Courses",
+      value: (stats.completedCourses || 0).toString(),
+      description: "Successfully finished",
+      icon: CheckCircle,
+      color: "text-green-500",
+    },
+    {
+      title: "Average Progress",
+      value: `${Math.round(stats.averageProgress || 0)}%`,
+      description: "Across all enrollments",
+      icon: TrendingUp,
+      color: "text-blue-500",
+    },
+    {
       title: "Total Quizzes",
       value: stats.totalQuizzes.toString(),
       description: "Available quizzes",
@@ -44,7 +60,7 @@ const AdminStatsCards = ({ stats }: AdminStatsCardsProps) => {
   ];
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6 mb-8">
       {adminStats.map((stat) => (
         <Card key={stat.title} className="bg-white">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

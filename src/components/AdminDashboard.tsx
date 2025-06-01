@@ -12,7 +12,9 @@ const AdminDashboard = () => {
     totalCourses: 0,
     totalUsers: 0,
     activeEnrollments: 0,
-    totalQuizzes: 0
+    totalQuizzes: 0,
+    completedCourses: 0,
+    averageProgress: 0
   });
 
   useEffect(() => {
@@ -36,20 +38,25 @@ const AdminDashboard = () => {
         .from('quizzes')
         .select('*', { count: 'exact', head: true });
 
-      // For now, we'll calculate active enrollments as sum of students_enrolled
-      // In the future, you might want to create an enrollments table
-      const { data: coursesData } = await supabase
-        .from('courses')
-        .select('students_enrolled');
+      // Fetch user course progress data
+      const { data: progressData } = await supabase
+        .from('user_course_progress')
+        .select('status, progress_percentage');
 
-      const totalEnrollments = coursesData?.reduce((sum, course) => 
-        sum + (course.students_enrolled || 0), 0) || 0;
+      const totalEnrollments = progressData?.length || 0;
+      const completedCourses = progressData?.filter(p => p.status === 'completed').length || 0;
+      
+      // Calculate average progress across all enrollments
+      const totalProgress = progressData?.reduce((sum, p) => sum + (p.progress_percentage || 0), 0) || 0;
+      const averageProgress = totalEnrollments > 0 ? totalProgress / totalEnrollments : 0;
 
       setStats({
         totalCourses: coursesCount || 0,
         totalUsers: usersCount || 0,
         activeEnrollments: totalEnrollments,
-        totalQuizzes: quizzesCount || 0
+        totalQuizzes: quizzesCount || 0,
+        completedCourses,
+        averageProgress
       });
     } catch (error) {
       console.error('Error fetching stats:', error);
