@@ -8,6 +8,7 @@ import { uploadImageFile, uploadVideoFile } from "./fileUploadUtils";
 
 type Course = Tables<'courses'>;
 type Unit = Tables<'units'>;
+type Quiz = Tables<'quizzes'>;
 
 interface CourseFormData {
   title: string;
@@ -38,6 +39,7 @@ interface UnitData {
   video_file?: File;
   duration_minutes: number;
   sort_order: number;
+  quiz_id?: string;
 }
 
 export const useEditCourseForm = (course: Course | null, open: boolean, onSuccess: () => void) => {
@@ -80,6 +82,22 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
 
         if (sectionsError) throw sectionsError;
 
+        // Fetch quizzes for units
+        const { data: quizzesData, error: quizzesError } = await supabase
+          .from('quizzes')
+          .select('id, unit_id')
+          .in('unit_id', sectionsData?.flatMap(s => (s.units as Unit[])?.map(u => u.id) || []) || []);
+
+        if (quizzesError) throw quizzesError;
+
+        // Create a map of unit_id to quiz_id
+        const unitQuizMap = new Map();
+        quizzesData?.forEach(quiz => {
+          if (quiz.unit_id) {
+            unitQuizMap.set(quiz.unit_id, quiz.id);
+          }
+        });
+
         const formattedSections: SectionData[] = sectionsData?.map(section => ({
           id: section.id,
           title: section.title,
@@ -95,6 +113,7 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
             video_type: getVideoType(unit.video_url || ""),
             duration_minutes: unit.duration_minutes || 0,
             sort_order: unit.sort_order,
+            quiz_id: unitQuizMap.get(unit.id) || undefined,
           })).sort((a, b) => a.sort_order - b.sort_order) || []
         })).sort((a, b) => a.sort_order - b.sort_order) || [];
 
@@ -257,9 +276,10 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
 
             console.log('Inserting units:', unitsToInsert);
 
-            const { error: unitsError } = await supabase
+            const { data: insertedUnits, error: unitsError } = await supabase
               .from('units')
-              .insert(unitsToInsert);
+              .insert(unitsToInsert)
+              .select();
 
             if (unitsError) {
               console.error('Error inserting units:', unitsError);
@@ -267,6 +287,27 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
             }
 
             console.log('Units inserted successfully for section:', section.title);
+
+            // Link quizzes to units
+            if (insertedUnits) {
+              for (let i = 0; i < section.units.length; i++) {
+                const unit = section.units[i];
+                const insertedUnit = insertedUnits[i];
+                
+                if (unit.quiz_id && insertedUnit) {
+                  console.log('Linking quiz to unit:', unit.title, 'Quiz ID:', unit.quiz_id);
+                  
+                  const { error: quizUpdateError } = await supabase
+                    .from('quizzes')
+                    .update({ unit_id: insertedUnit.id })
+                    .eq('id', unit.quiz_id);
+
+                  if (quizUpdateError) {
+                    console.error('Error linking quiz to unit:', quizUpdateError);
+                  }
+                }
+              }
+            }
           }
         }
       }

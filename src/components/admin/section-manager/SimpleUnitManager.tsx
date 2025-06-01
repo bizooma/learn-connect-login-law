@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Trash2, ArrowUp, ArrowDown, FileVideo, Youtube } from "lucide-react";
 import { UnitData } from "./types";
-import QuizManager from "./QuizManager";
+import QuizSelector from "./QuizSelector";
 
 interface SimpleUnitManagerProps {
   unit: UnitData;
@@ -53,8 +53,8 @@ const SimpleUnitManager = ({
     onVideoFileChange(sectionIndex, unitIndex, file);
   };
 
-  const handleQuizUpdate = (quiz: any) => {
-    onUpdateUnit(sectionIndex, unitIndex, 'quiz', quiz);
+  const handleQuizUpdate = (quizId: string | undefined) => {
+    onUpdateUnit(sectionIndex, unitIndex, 'quiz_id', quizId);
   };
 
   return (
@@ -209,8 +209,8 @@ const SimpleUnitManager = ({
           )}
         </div>
 
-        <QuizManager
-          quiz={unit.quiz}
+        <QuizSelector
+          quizId={unit.quiz_id}
           onQuizUpdate={handleQuizUpdate}
         />
       </CardContent>

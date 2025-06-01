@@ -27,4 +27,5 @@ export interface UnitData {
   video_file?: File;
   duration_minutes: number;
   sort_order: number;
+  quiz_id?: string; // Reference to existing quiz
 }

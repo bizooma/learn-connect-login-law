@@ -146,67 +146,18 @@ export const handleCourseSubmission = async (
             throw new Error(`Failed to create unit: ${unitError.message}`);
           }
 
-          // Create quiz for this unit if it exists
-          if (unit.quiz) {
-            console.log('Creating quiz for unit:', unit.title);
+          // Link existing quiz to this unit if quiz_id is provided
+          if (unit.quiz_id) {
+            console.log('Linking quiz to unit:', unit.title, 'Quiz ID:', unit.quiz_id);
             
-            const { data: quizData, error: quizError } = await supabase
+            const { error: quizUpdateError } = await supabase
               .from('quizzes')
-              .insert({
-                unit_id: unitData.id,
-                title: unit.quiz.title,
-                description: unit.quiz.description || null,
-                passing_score: unit.quiz.passing_score,
-                time_limit_minutes: unit.quiz.time_limit_minutes,
-                is_active: unit.quiz.is_active,
-              })
-              .select()
-              .single();
+              .update({ unit_id: unitData.id })
+              .eq('id', unit.quiz_id);
 
-            if (quizError) {
-              console.error('Error creating quiz:', quizError);
-              throw new Error(`Failed to create quiz: ${quizError.message}`);
-            }
-
-            // Create questions for this quiz
-            if (unit.quiz.questions.length > 0) {
-              for (const question of unit.quiz.questions) {
-                const { data: questionData, error: questionError } = await supabase
-                  .from('quiz_questions')
-                  .insert({
-                    quiz_id: quizData.id,
-                    question_text: question.question_text,
-                    question_type: question.question_type,
-                    points: question.points,
-                    sort_order: question.sort_order,
-                  })
-                  .select()
-                  .single();
-
-                if (questionError) {
-                  console.error('Error creating question:', questionError);
-                  throw new Error(`Failed to create question: ${questionError.message}`);
-                }
-
-                // Create options for this question
-                if (question.options.length > 0) {
-                  const optionsToInsert = question.options.map(option => ({
-                    question_id: questionData.id,
-                    option_text: option.option_text,
-                    is_correct: option.is_correct,
-                    sort_order: option.sort_order,
-                  }));
-
-                  const { error: optionsError } = await supabase
-                    .from('quiz_question_options')
-                    .insert(optionsToInsert);
-
-                  if (optionsError) {
-                    console.error('Error creating options:', optionsError);
-                    throw new Error(`Failed to create options: ${optionsError.message}`);
-                  }
-                }
-              }
+            if (quizUpdateError) {
+              console.error('Error linking quiz to unit:', quizUpdateError);
+              throw new Error(`Failed to link quiz to unit: ${quizUpdateError.message}`);
             }
           }
         }
