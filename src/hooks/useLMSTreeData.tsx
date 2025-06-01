@@ -50,6 +50,8 @@ export const useLMSTreeData = () => {
 
       // Transform the data to handle the migration case
       const transformedCourses = coursesData?.map(course => {
+        console.log('Processing course:', course.title, 'with modules:', course.modules?.length);
+        
         // Check if we have a "Main Module" situation (migration case)
         const mainModule = course.modules?.find(m => 
           m.title === "Main Module" || 
@@ -57,7 +59,9 @@ export const useLMSTreeData = () => {
         );
 
         if (mainModule && mainModule.lessons && mainModule.lessons.length > 0) {
-          // Convert lessons under Main Module to be modules themselves
+          console.log('Found Main Module with lessons, converting to proper hierarchy...');
+          
+          // Convert ALL lessons under Main Module to be modules themselves
           const newModules = mainModule.lessons.map((lesson, index) => ({
             id: lesson.id,
             course_id: course.id,
@@ -89,16 +93,35 @@ export const useLMSTreeData = () => {
           // Filter out Main Module and add the transformed modules
           const otherModules = course.modules?.filter(m => m.id !== mainModule.id) || [];
           
+          console.log('Converted', newModules.length, 'lessons to modules for course:', course.title);
+          
           return {
             ...course,
             modules: [...otherModules, ...newModules]
           };
         }
 
-        return course;
+        // For courses without Main Module, check if any modules have lessons that should be converted
+        const processedModules = course.modules?.map(module => {
+          // If a module has lessons but no nested units, those lessons might need to be converted
+          if (module.lessons && module.lessons.length > 0) {
+            const hasUnitsInLessons = module.lessons.some(lesson => lesson.units && lesson.units.length > 0);
+            
+            if (!hasUnitsInLessons) {
+              // These lessons should probably stay as lessons, not be converted to modules
+              return module;
+            }
+          }
+          return module;
+        }) || [];
+
+        return {
+          ...course,
+          modules: processedModules
+        };
       }) || [];
 
-      console.log('Transformed courses with proper hierarchy:', transformedCourses);
+      console.log('Final transformed courses:', transformedCourses);
       return transformedCourses as CourseWithContent[];
     },
   });
