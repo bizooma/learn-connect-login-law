@@ -11,23 +11,27 @@ const LMSTree = () => {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedCourses, setExpandedCourses] = useState<Set<string>>(new Set());
+  const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
   const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
 
-  const { data: coursesData, isLoading, error } = useQuery({
+  const { data: coursesData, isLoading, error, refetch } = useQuery({
     queryKey: ['lms-tree-data'],
     queryFn: async () => {
-      console.log('Fetching LMS tree data...');
+      console.log('Fetching LMS tree data with modules...');
       
-      // Fetch courses with sections, units, and quizzes
+      // Fetch courses with modules, sections, units, and quizzes
       const { data: courses, error: coursesError } = await supabase
         .from('courses')
         .select(`
           *,
-          sections (
+          modules (
             *,
-            units (
+            sections (
               *,
-              quizzes (*)
+              units (
+                *,
+                quizzes (*)
+              )
             )
           )
         `)
@@ -38,14 +42,19 @@ const LMSTree = () => {
         throw coursesError;
       }
 
-      // Sort sections and units by sort_order
+      // Sort modules, sections and units by sort_order
       const sortedData = courses?.map(course => ({
         ...course,
-        sections: (course.sections || [])
+        modules: (course.modules || [])
           .sort((a, b) => a.sort_order - b.sort_order)
-          .map(section => ({
-            ...section,
-            units: (section.units || []).sort((a, b) => a.sort_order - b.sort_order)
+          .map(module => ({
+            ...module,
+            sections: (module.sections || [])
+              .sort((a, b) => a.sort_order - b.sort_order)
+              .map(section => ({
+                ...section,
+                units: (section.units || []).sort((a, b) => a.sort_order - b.sort_order)
+              }))
           }))
       })) || [];
 
@@ -74,6 +83,18 @@ const LMSTree = () => {
     });
   };
 
+  const toggleModuleExpanded = (moduleId: string) => {
+    setExpandedModules(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(moduleId)) {
+        newSet.delete(moduleId);
+      } else {
+        newSet.add(moduleId);
+      }
+      return newSet;
+    });
+  };
+
   const toggleSectionExpanded = (sectionId: string) => {
     setExpandedSections(prev => {
       const newSet = new Set(prev);
@@ -88,10 +109,13 @@ const LMSTree = () => {
 
   const filteredCourses = coursesData?.filter(course =>
     course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    course.sections?.some(section =>
-      section.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      section.units?.some(unit =>
-        unit.title.toLowerCase().includes(searchTerm.toLowerCase())
+    course.modules?.some(module =>
+      module.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      module.sections?.some(section =>
+        section.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        section.units?.some(unit =>
+          unit.title.toLowerCase().includes(searchTerm.toLowerCase())
+        )
       )
     )
   ) || [];
@@ -111,9 +135,12 @@ const LMSTree = () => {
       <LMSTreeContent
         courses={filteredCourses}
         expandedCourses={expandedCourses}
+        expandedModules={expandedModules}
         expandedSections={expandedSections}
         onToggleCourse={toggleCourseExpanded}
+        onToggleModule={toggleModuleExpanded}
         onToggleSection={toggleSectionExpanded}
+        onRefetch={refetch}
       />
     </div>
   );

@@ -320,6 +320,50 @@ export type Database = {
         }
         Relationships: []
       }
+      modules: {
+        Row: {
+          course_id: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string | null
+          is_draft: boolean
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_draft?: boolean
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string | null
+          is_draft?: boolean
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "modules_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -519,6 +563,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_draft: boolean
+          module_id: string
           sort_order: number
           title: string
           updated_at: string
@@ -530,6 +575,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_draft?: boolean
+          module_id: string
           sort_order?: number
           title: string
           updated_at?: string
@@ -541,6 +587,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_draft?: boolean
+          module_id?: string
           sort_order?: number
           title?: string
           updated_at?: string
@@ -551,6 +598,13 @@ export type Database = {
             columns: ["course_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sections_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
             referencedColumns: ["id"]
           },
         ]
@@ -810,6 +864,24 @@ export type Database = {
           p_completion_date?: string
         }
         Returns: undefined
+      }
+      move_content_to_level: {
+        Args: {
+          p_content_id: string
+          p_content_type: string
+          p_target_parent_id: string
+          p_target_parent_type: string
+          p_new_sort_order?: number
+        }
+        Returns: boolean
+      }
+      reclassify_section_to_module: {
+        Args: { p_section_id: string; p_course_id: string }
+        Returns: string
+      }
+      reclassify_unit_to_section: {
+        Args: { p_unit_id: string; p_module_id: string }
+        Returns: string
       }
     }
     Enums: {

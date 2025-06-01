@@ -1,7 +1,7 @@
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { ChevronDown, ChevronRight, FolderOpen, GripVertical, FileText } from "lucide-react";
+import { ChevronDown, ChevronRight, FolderOpen, GripVertical } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tables } from "@/integrations/supabase/types";
 import UnitTreeNode from "./UnitTreeNode";
@@ -29,7 +29,7 @@ const SectionTreeNode = ({ section, isExpanded, onToggle }: SectionTreeNodeProps
     setNodeRef,
     transform,
     transition,
-  } = useSortable({ id: section.id });
+  } = useSortable({ id: `section-${section.id}` });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -42,7 +42,7 @@ const SectionTreeNode = ({ section, isExpanded, onToggle }: SectionTreeNodeProps
 
   return (
     <div ref={setNodeRef} style={style}>
-      <Card className="bg-blue-50 border-blue-200 hover:shadow-sm transition-shadow">
+      <Card className="bg-teal-50 border-teal-200 hover:shadow-sm transition-shadow border-l-4 border-l-teal-500">
         <CardContent className="p-3">
           <div className="flex items-center space-x-3">
             <div
@@ -55,7 +55,7 @@ const SectionTreeNode = ({ section, isExpanded, onToggle }: SectionTreeNodeProps
             
             <button
               onClick={onToggle}
-              className="flex items-center text-blue-600 hover:text-blue-800"
+              className="flex items-center text-teal-600 hover:text-teal-800"
             >
               {isExpanded ? (
                 <ChevronDown className="h-3 w-3" />
@@ -64,25 +64,25 @@ const SectionTreeNode = ({ section, isExpanded, onToggle }: SectionTreeNodeProps
               )}
             </button>
 
-            <FolderOpen className="h-4 w-4 text-blue-600 flex-shrink-0" />
+            <FolderOpen className="h-4 w-4 text-teal-600 flex-shrink-0" />
             
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-3">
-                <h4 className="font-medium text-blue-900 truncate">
+                <h4 className="font-medium text-teal-900 truncate">
                   {section.title}
                 </h4>
-                <span className="text-xs text-blue-600">
+                <span className="text-xs text-teal-600">
                   {section.units?.length || 0} units
                 </span>
                 {totalQuizzes > 0 && (
-                  <span className="text-xs text-blue-600">
+                  <span className="text-xs text-teal-600">
                     {totalQuizzes} quizzes
                   </span>
                 )}
               </div>
               
               {section.description && (
-                <p className="text-xs text-blue-700 mt-1 truncate">
+                <p className="text-xs text-teal-700 mt-1 truncate">
                   {section.description}
                 </p>
               )}

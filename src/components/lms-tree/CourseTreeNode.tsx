@@ -1,22 +1,24 @@
 
-import { useState } from "react";
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { ChevronDown, ChevronRight, BookOpen, GripVertical, Users, Clock, Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tables } from "@/integrations/supabase/types";
-import SectionTreeNode from "./SectionTreeNode";
+import ModuleTreeNode from "./ModuleTreeNode";
 
 type Course = Tables<'courses'>;
+type Module = Tables<'modules'>;
 type Section = Tables<'sections'>;
 type Unit = Tables<'units'>;
 type Quiz = Tables<'quizzes'>;
 
 interface CourseWithContent extends Course {
-  sections: (Section & {
-    units: (Unit & {
-      quizzes: Quiz[];
+  modules: (Module & {
+    sections: (Section & {
+      units: (Unit & {
+        quizzes: Quiz[];
+      })[];
     })[];
   })[];
 }
@@ -25,7 +27,9 @@ interface CourseTreeNodeProps {
   course: CourseWithContent;
   isExpanded: boolean;
   onToggle: () => void;
+  expandedModules: Set<string>;
   expandedSections: Set<string>;
+  onToggleModule: (moduleId: string) => void;
   onToggleSection: (sectionId: string) => void;
 }
 
@@ -33,7 +37,9 @@ const CourseTreeNode = ({
   course,
   isExpanded,
   onToggle,
+  expandedModules,
   expandedSections,
+  onToggleModule,
   onToggleSection
 }: CourseTreeNodeProps) => {
   const {
@@ -42,26 +48,34 @@ const CourseTreeNode = ({
     setNodeRef,
     transform,
     transition,
-  } = useSortable({ id: course.id });
+  } = useSortable({ id: `course-${course.id}` });
 
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
   };
 
-  const totalUnits = course.sections?.reduce((acc, section) => 
-    acc + (section.units?.length || 0), 0
+  const totalSections = course.modules?.reduce((acc, module) => 
+    acc + (module.sections?.length || 0), 0
   ) || 0;
 
-  const totalQuizzes = course.sections?.reduce((acc, section) => 
-    acc + (section.units?.reduce((unitAcc, unit) => 
-      unitAcc + (unit.quizzes?.length || 0), 0
+  const totalUnits = course.modules?.reduce((acc, module) => 
+    acc + (module.sections?.reduce((sectionAcc, section) => 
+      sectionAcc + (section.units?.length || 0), 0
+    ) || 0), 0
+  ) || 0;
+
+  const totalQuizzes = course.modules?.reduce((acc, module) => 
+    acc + (module.sections?.reduce((sectionAcc, section) => 
+      sectionAcc + (section.units?.reduce((unitAcc, unit) => 
+        unitAcc + (unit.quizzes?.length || 0), 0
+      ) || 0), 0
     ) || 0), 0
   ) || 0;
 
   return (
     <div ref={setNodeRef} style={style} className="group">
-      <Card className="hover:shadow-md transition-shadow">
+      <Card className="hover:shadow-md transition-shadow border-l-4 border-l-blue-500">
         <CardContent className="p-4">
           <div className="flex items-center space-x-3">
             <div
@@ -107,21 +121,24 @@ const CourseTreeNode = ({
                   <Star className="h-3 w-3" />
                   <span>{course.rating || 0}</span>
                 </div>
-                <span>{course.sections?.length || 0} sections</span>
+                <span>{course.modules?.length || 0} modules</span>
+                <span>{totalSections} sections</span>
                 <span>{totalUnits} units</span>
                 <span>{totalQuizzes} quizzes</span>
               </div>
             </div>
           </div>
 
-          {isExpanded && course.sections && course.sections.length > 0 && (
+          {isExpanded && course.modules && course.modules.length > 0 && (
             <div className="ml-8 mt-4 space-y-2">
-              {course.sections.map((section) => (
-                <SectionTreeNode
-                  key={section.id}
-                  section={section}
-                  isExpanded={expandedSections.has(section.id)}
-                  onToggle={() => onToggleSection(section.id)}
+              {course.modules.map((module) => (
+                <ModuleTreeNode
+                  key={module.id}
+                  module={module}
+                  isExpanded={expandedModules.has(module.id)}
+                  onToggle={() => onToggleModule(module.id)}
+                  expandedSections={expandedSections}
+                  onToggleSection={onToggleSection}
                 />
               ))}
             </div>

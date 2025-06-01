@@ -24,7 +24,7 @@ const UnitTreeNode = ({ unit }: UnitTreeNodeProps) => {
     setNodeRef,
     transform,
     transition,
-  } = useSortable({ id: unit.id });
+  } = useSortable({ id: `unit-${unit.id}` });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -33,7 +33,7 @@ const UnitTreeNode = ({ unit }: UnitTreeNodeProps) => {
 
   return (
     <div ref={setNodeRef} style={style}>
-      <Card className="bg-green-50 border-green-200 hover:shadow-sm transition-shadow">
+      <Card className="bg-green-50 border-green-200 hover:shadow-sm transition-shadow border-l-4 border-l-green-500">
         <CardContent className="p-2">
           <div className="flex items-center space-x-2">
             <div

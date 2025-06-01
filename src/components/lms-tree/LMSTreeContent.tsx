@@ -4,16 +4,21 @@ import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { BookOpen } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import CourseTreeNode from "./CourseTreeNode";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 type Course = Tables<'courses'>;
+type Module = Tables<'modules'>;
 type Section = Tables<'sections'>;
 type Unit = Tables<'units'>;
 type Quiz = Tables<'quizzes'>;
 
 interface CourseWithContent extends Course {
-  sections: (Section & {
-    units: (Unit & {
-      quizzes: Quiz[];
+  modules: (Module & {
+    sections: (Section & {
+      units: (Unit & {
+        quizzes: Quiz[];
+      })[];
     })[];
   })[];
 }
@@ -21,20 +26,27 @@ interface CourseWithContent extends Course {
 interface LMSTreeContentProps {
   courses: CourseWithContent[];
   expandedCourses: Set<string>;
+  expandedModules: Set<string>;
   expandedSections: Set<string>;
   onToggleCourse: (courseId: string) => void;
+  onToggleModule: (moduleId: string) => void;
   onToggleSection: (sectionId: string) => void;
+  onRefetch: () => void;
 }
 
 const LMSTreeContent = ({
   courses,
   expandedCourses,
+  expandedModules,
   expandedSections,
   onToggleCourse,
-  onToggleSection
+  onToggleModule,
+  onToggleSection,
+  onRefetch
 }: LMSTreeContentProps) => {
+  const { toast } = useToast();
   
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     
     if (!over || active.id === over.id) {
@@ -42,8 +54,91 @@ const LMSTreeContent = ({
     }
 
     console.log('Drag ended:', { active: active.id, over: over.id });
-    // TODO: Implement drag and drop logic to reorder items
-    // This would involve updating the sort_order in the database
+    
+    try {
+      const activeId = active.id as string;
+      const overId = over.id as string;
+      
+      // Parse the active item type and ID
+      const [activeType, activeItemId] = activeId.split('-');
+      const [overType, overItemId] = overId.split('-');
+      
+      console.log('Reclassification attempt:', { activeType, activeItemId, overType, overItemId });
+      
+      // Handle reclassification based on drag target
+      if (activeType === 'section' && overType === 'course') {
+        // Reclassify section to module
+        const { data, error } = await supabase.rpc('reclassify_section_to_module', {
+          p_section_id: activeItemId,
+          p_course_id: overItemId
+        });
+        
+        if (error) throw error;
+        
+        toast({
+          title: "Success",
+          description: "Section reclassified to module successfully",
+        });
+        
+        onRefetch();
+      } else if (activeType === 'unit' && overType === 'module') {
+        // Reclassify unit to section
+        const { data, error } = await supabase.rpc('reclassify_unit_to_section', {
+          p_unit_id: activeItemId,
+          p_module_id: overItemId
+        });
+        
+        if (error) throw error;
+        
+        toast({
+          title: "Success",
+          description: "Unit reclassified to section successfully",
+        });
+        
+        onRefetch();
+      } else if (activeType === 'section' && overType === 'module') {
+        // Move section to different module
+        const { data, error } = await supabase.rpc('move_content_to_level', {
+          p_content_id: activeItemId,
+          p_content_type: 'section',
+          p_target_parent_id: overItemId,
+          p_target_parent_type: 'module'
+        });
+        
+        if (error) throw error;
+        
+        toast({
+          title: "Success",
+          description: "Section moved to module successfully",
+        });
+        
+        onRefetch();
+      } else if (activeType === 'unit' && overType === 'section') {
+        // Move unit to different section
+        const { data, error } = await supabase.rpc('move_content_to_level', {
+          p_content_id: activeItemId,
+          p_content_type: 'unit',
+          p_target_parent_id: overItemId,
+          p_target_parent_type: 'section'
+        });
+        
+        if (error) throw error;
+        
+        toast({
+          title: "Success",
+          description: "Unit moved to section successfully",
+        });
+        
+        onRefetch();
+      }
+    } catch (error) {
+      console.error('Error during reclassification:', error);
+      toast({
+        title: "Error",
+        description: "Failed to reclassify content",
+        variant: "destructive",
+      });
+    }
   };
 
   if (courses.length === 0) {
@@ -67,7 +162,7 @@ const LMSTreeContent = ({
         onDragEnd={handleDragEnd}
       >
         <SortableContext
-          items={courses.map(course => course.id)}
+          items={courses.map(course => `course-${course.id}`)}
           strategy={verticalListSortingStrategy}
         >
           <div className="space-y-2">
@@ -77,7 +172,9 @@ const LMSTreeContent = ({
                 course={course}
                 isExpanded={expandedCourses.has(course.id)}
                 onToggle={() => onToggleCourse(course.id)}
+                expandedModules={expandedModules}
                 expandedSections={expandedSections}
+                onToggleModule={onToggleModule}
                 onToggleSection={onToggleSection}
               />
             ))}
