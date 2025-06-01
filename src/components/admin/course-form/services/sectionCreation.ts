@@ -6,6 +6,23 @@ import { uploadVideoFile } from "../fileUploadUtils";
 export const createSectionsAndUnits = async (courseId: string, sections: SectionData[]) => {
   if (sections.length === 0) return;
 
+  // First, create a default module for the course if sections exist
+  const { data: moduleData, error: moduleError } = await supabase
+    .from('modules')
+    .insert({
+      course_id: courseId,
+      title: 'Main Module',
+      description: 'Primary course content',
+      sort_order: 0,
+    })
+    .select()
+    .single();
+
+  if (moduleError) {
+    console.error('Error creating default module:', moduleError);
+    throw new Error(`Failed to create default module: ${moduleError.message}`);
+  }
+
   for (const section of sections) {
     console.log('Creating section:', section.title);
     
@@ -13,6 +30,7 @@ export const createSectionsAndUnits = async (courseId: string, sections: Section
       .from('sections')
       .insert({
         course_id: courseId,
+        module_id: moduleData.id,
         title: section.title,
         description: section.description,
         sort_order: section.sort_order,

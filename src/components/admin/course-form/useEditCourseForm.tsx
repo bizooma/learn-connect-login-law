@@ -7,6 +7,8 @@ import { Tables } from "@/integrations/supabase/types";
 import { uploadImageFile, uploadVideoFile } from "./fileUploadUtils";
 
 type Course = Tables<'courses'>;
+type Module = Tables<'modules'>;
+type Section = Tables<'sections'>;
 type Unit = Tables<'units'>;
 type Quiz = Tables<'quizzes'>;
 
@@ -65,28 +67,36 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
     return url.includes('youtube.com') || url.includes('youtu.be') ? 'youtube' : 'upload';
   };
 
-  // Fetch course sections and units when course changes
+  // Fetch course modules, sections and units when course changes
   useEffect(() => {
-    const fetchCourseSections = async () => {
+    const fetchCourseContent = async () => {
       if (!course?.id) return;
 
       try {
-        const { data: sectionsData, error: sectionsError } = await supabase
-          .from('sections')
+        // Fetch modules with their sections and units
+        const { data: modulesData, error: modulesError } = await supabase
+          .from('modules')
           .select(`
             *,
-            units:units(*)
+            sections:sections(
+              *,
+              units:units(*)
+            )
           `)
           .eq('course_id', course.id)
           .order('sort_order', { ascending: true });
 
-        if (sectionsError) throw sectionsError;
+        if (modulesError) throw modulesError;
 
         // Fetch quizzes for units
+        const allUnits = modulesData?.flatMap(m => 
+          m.sections?.flatMap(s => (s.units as Unit[]) || []) || []
+        ) || [];
+        
         const { data: quizzesData, error: quizzesError } = await supabase
           .from('quizzes')
           .select('id, unit_id')
-          .in('unit_id', sectionsData?.flatMap(s => (s.units as Unit[])?.map(u => u.id) || []) || []);
+          .in('unit_id', allUnits.map(u => u.id));
 
         if (quizzesError) throw quizzesError;
 
@@ -98,7 +108,10 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
           }
         });
 
-        const formattedSections: SectionData[] = sectionsData?.map(section => ({
+        // Convert modules/sections structure to the flat sections structure expected by the form
+        // For backward compatibility, we'll flatten the first module's sections
+        const firstModule = modulesData?.[0];
+        const formattedSections: SectionData[] = firstModule?.sections?.map(section => ({
           id: section.id,
           title: section.title,
           description: section.description || "",
@@ -119,7 +132,7 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
 
         setSections(formattedSections);
       } catch (error) {
-        console.error('Error fetching course sections:', error);
+        console.error('Error fetching course content:', error);
       }
     };
 
@@ -133,7 +146,7 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
         duration: course.duration,
         image_file: undefined,
       });
-      fetchCourseSections();
+      fetchCourseContent();
     }
   }, [course, open, form]);
 
@@ -202,40 +215,70 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
 
       await ensureCalendarExists(course.id);
 
-      // Delete existing sections and units to ensure clean update
-      const { error: deleteUnitsError } = await supabase
-        .from('units')
-        .delete()
-        .in('section_id', 
-          await supabase
-            .from('sections')
-            .select('id')
-            .eq('course_id', course.id)
-            .then(({ data }) => data?.map(s => s.id) || [])
-        );
+      // Delete existing units first
+      const { data: existingModules } = await supabase
+        .from('modules')
+        .select('id, sections(id, units(id))')
+        .eq('course_id', course.id);
 
-      if (deleteUnitsError) console.error('Error deleting units:', deleteUnitsError);
+      if (existingModules) {
+        for (const module of existingModules) {
+          const moduleData = module as Module & { sections: (Section & { units: Unit[] })[] };
+          for (const section of moduleData.sections || []) {
+            if (section.units?.length > 0) {
+              await supabase
+                .from('units')
+                .delete()
+                .in('id', section.units.map(u => u.id));
+            }
+          }
+        }
+      }
 
+      // Delete existing sections
       const { error: deleteError } = await supabase
         .from('sections')
         .delete()
+        .in('module_id', existingModules?.map(m => m.id) || []);
+
+      if (deleteError) console.error('Error deleting sections:', deleteError);
+
+      // Delete existing modules
+      const { error: deleteModulesError } = await supabase
+        .from('modules')
+        .delete()
         .eq('course_id', course.id);
 
-      if (deleteError) throw deleteError;
+      if (deleteModulesError) console.error('Error deleting modules:', deleteModulesError);
 
       if (sections.length > 0) {
+        // Create a new module first
+        const { data: moduleData, error: moduleError } = await supabase
+          .from('modules')
+          .insert({
+            course_id: course.id,
+            title: 'Main Module',
+            description: 'Primary course content',
+            sort_order: 0,
+          })
+          .select()
+          .single();
+
+        if (moduleError) throw moduleError;
+
         for (const section of sections) {
           console.log('Processing section:', section.title);
           
           const { data: sectionData, error: sectionError } = await supabase
             .from('sections')
-            .insert([{
+            .insert({
               course_id: course.id,
+              module_id: moduleData.id,
               title: section.title,
               description: section.description,
               image_url: section.image_url || null,
               sort_order: section.sort_order,
-            }])
+            })
             .select()
             .single();
 
