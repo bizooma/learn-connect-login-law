@@ -8,15 +8,6 @@ export const useUserRole = () => {
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      fetchUserRole();
-    } else {
-      setRole(null);
-      setLoading(false);
-    }
-  }, [user]);
-
   const fetchUserRole = async () => {
     try {
       setLoading(true);
@@ -42,6 +33,21 @@ export const useUserRole = () => {
     }
   };
 
+  useEffect(() => {
+    if (user) {
+      fetchUserRole();
+    } else {
+      setRole(null);
+      setLoading(false);
+    }
+  }, [user]);
+
+  const refreshRole = () => {
+    if (user) {
+      fetchUserRole();
+    }
+  };
+
   const isAdmin = role === 'admin';
   const isOwner = role === 'owner';
   const isStudent = role === 'student';
@@ -59,6 +65,7 @@ export const useUserRole = () => {
     isClient, 
     isFree, 
     hasAdminPrivileges,
-    loading 
+    loading,
+    refreshRole
   };
 };

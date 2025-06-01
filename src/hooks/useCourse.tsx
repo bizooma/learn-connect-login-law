@@ -19,12 +19,20 @@ interface CourseWithContent extends Course {
 export const useCourse = (id: string | undefined) => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { hasAdminPrivileges, loading: roleLoading } = useUserRole();
+  const { hasAdminPrivileges, loading: roleLoading, refreshRole } = useUserRole();
   const [course, setCourse] = useState<CourseWithContent | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
   const [loading, setLoading] = useState(true);
 
-  console.log('useCourse: Using useUserRole - hasAdminPrivileges:', hasAdminPrivileges, 'roleLoading:', roleLoading);
+  // Debug log to see current admin status
+  console.log('useCourse: hasAdminPrivileges:', hasAdminPrivileges, 'roleLoading:', roleLoading);
+
+  // Add a one-time refresh when component mounts to ensure we have the latest role
+  useEffect(() => {
+    if (user && !roleLoading) {
+      refreshRole();
+    }
+  }, [user, refreshRole]);
 
   const fetchCourse = async () => {
     if (!id) {
@@ -33,8 +41,6 @@ export const useCourse = (id: string | undefined) => {
     }
 
     try {
-      console.log('useCourse: Fetching course:', id);
-      
       // Fetch course with sections and units
       const { data: courseData, error: courseError } = await supabase
         .from('courses')
@@ -46,8 +52,6 @@ export const useCourse = (id: string | undefined) => {
         console.error('useCourse: Error fetching course:', courseError);
         throw courseError;
       }
-
-      console.log('useCourse: Course data fetched:', courseData);
 
       // Fetch sections with units
       const { data: sectionsData, error: sectionsError } = await supabase
@@ -63,8 +67,6 @@ export const useCourse = (id: string | undefined) => {
         console.error('useCourse: Error fetching sections:', sectionsError);
         throw sectionsError;
       }
-
-      console.log('useCourse: Sections data fetched:', sectionsData);
 
       // Sort units within each section
       const sectionsWithSortedUnits = sectionsData?.map(section => ({
@@ -98,15 +100,11 @@ export const useCourse = (id: string | undefined) => {
 
   useEffect(() => {
     if (id) {
-      console.log('useCourse: Starting to fetch course:', id);
       fetchCourse();
     } else {
-      console.log('useCourse: No course ID provided');
       setLoading(false);
     }
   }, [id]);
-
-  console.log('useCourse: Returning values - hasAdminPrivileges:', hasAdminPrivileges, 'loading:', loading || roleLoading);
 
   return {
     course,
