@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -9,6 +8,7 @@ import { Tables } from "@/integrations/supabase/types";
 import { format, parseISO } from "date-fns";
 import EnhancedCalendarEventDialog from "./EnhancedCalendarEventDialog";
 import CalendarEventList from "./CalendarEventList";
+import { useAuth } from "@/hooks/useAuth";
 
 type CourseCalendarEvent = Tables<'course_calendars'>;
 
@@ -18,7 +18,17 @@ interface CourseCalendarProps {
 }
 
 const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
-  console.log('CourseCalendar: Component rendered with isAdmin:', isAdmin, 'courseId:', courseId);
+  // Add auth debugging
+  const { user } = useAuth();
+  
+  console.log('CourseCalendar: Component rendered with:', {
+    isAdmin,
+    courseId,
+    user: user,
+    userId: user?.id,
+    userEmail: user?.email,
+    isAuthenticated: !!user
+  });
   
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [events, setEvents] = useState<CourseCalendarEvent[]>([]);
@@ -141,6 +151,12 @@ const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
   }
 
   console.log('CourseCalendar: Rendering calendar. Admin button should be visible:', isAdmin);
+  console.log('CourseCalendar: Final render state:', {
+    isAdmin,
+    user: user,
+    userId: user?.id,
+    isAuthenticated: !!user
+  });
 
   return (
     <Card>

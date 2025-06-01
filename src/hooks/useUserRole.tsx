@@ -8,9 +8,23 @@ export const useUserRole = () => {
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Add more detailed logging about the user state
+  console.log('useUserRole: Hook called with user:', {
+    user: user,
+    userId: user?.id,
+    userEmail: user?.email,
+    hasUser: !!user
+  });
+
   const fetchUserRole = async () => {
+    console.log('useUserRole: fetchUserRole called with user:', {
+      user: user,
+      userId: user?.id,
+      userExists: !!user
+    });
+
     if (!user?.id) {
-      console.log('useUserRole: No user ID available');
+      console.log('useUserRole: No user ID available, user state:', user);
       setRole(null);
       setLoading(false);
       return;
@@ -52,7 +66,12 @@ export const useUserRole = () => {
   };
 
   useEffect(() => {
-    console.log('useUserRole: useEffect triggered, user:', user?.id);
+    console.log('useUserRole: useEffect triggered, user changed:', {
+      user: user,
+      userId: user?.id,
+      userExists: !!user
+    });
+    
     if (user?.id) {
       fetchUserRole();
     } else {
@@ -84,7 +103,8 @@ export const useUserRole = () => {
     isOwner,
     hasAdminPrivileges,
     loading,
-    userId: user?.id
+    userId: user?.id,
+    userExists: !!user
   });
 
   return { 
