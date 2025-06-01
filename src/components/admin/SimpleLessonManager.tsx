@@ -1,9 +1,10 @@
 
+import { useState } from "react";
 import SimpleLessonManagerHeader from "./lesson-manager/SimpleLessonManagerHeader";
-import { useLessonManager } from "./lesson-manager/useLessonManager";
-import { SectionData } from "./lesson-manager/types";
 import SimpleLessonCard from "./lesson-manager/SimpleLessonCard";
 import EmptyState from "./lesson-manager/EmptyState";
+import { useLessonManager } from "./lesson-manager/useLessonManager";
+import { SectionData } from "./lesson-manager/types";
 
 interface SimpleLessonManagerProps {
   lessons: SectionData[];
@@ -11,91 +12,99 @@ interface SimpleLessonManagerProps {
 }
 
 const SimpleLessonManager = ({ lessons, onLessonsChange }: SimpleLessonManagerProps) => {
-  const lessonManagerProps = useLessonManager({ lessons, onLessonsChange });
+  const [expandedLessons, setExpandedLessons] = useState<Set<number>>(new Set());
+  
+  const {
+    handleAddLesson,
+    handleAddUnit,
+    handleUpdateLesson,
+    handleDeleteLesson,
+    handleAddUnitToAnyLesson,
+    handleUpdateUnit,
+    handleDeleteUnit,
+    handleVideoFileChange,
+    handleLessonImageUpdate,
+    handleMoveLessonUp,
+    handleMoveLessonDown,
+    handleMoveUnitUp,
+    handleMoveUnitDown,
+    handleMoveUnitToLesson,
+  } = useLessonManager(lessons, onLessonsChange);
 
-  const handleAddLesson = (e: React.MouseEvent) => {
+  const handleAddModule = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    lessonManagerProps.addLesson();
+    
+    const newModule: SectionData = {
+      title: `Module ${lessons.length + 1}`,
+      description: '',
+      image_url: '',
+      sort_order: lessons.length,
+      units: []
+    };
+    
+    onLessonsChange([...lessons, newModule]);
   };
 
-  const handleAddUnit = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (lessons.length === 0) {
-      lessonManagerProps.addLesson();
-      setTimeout(() => {
-        if (!lessonManagerProps.expandedLessons.has(0)) {
-          lessonManagerProps.toggleLessonExpanded(0);
-        }
-        lessonManagerProps.addUnit(0);
-      }, 100);
-    } else {
-      if (!lessonManagerProps.expandedLessons.has(0)) {
-        lessonManagerProps.toggleLessonExpanded(0);
+  const toggleExpanded = (lessonIndex: number) => {
+    setExpandedLessons(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(lessonIndex)) {
+        newSet.delete(lessonIndex);
+      } else {
+        newSet.add(lessonIndex);
       }
-      lessonManagerProps.addUnit(0);
-    }
+      return newSet;
+    });
   };
 
-  const moveLessonUp = (index: number) => {
-    if (index > 0) {
-      lessonManagerProps.moveLessonToPosition(index, index - 1);
-    }
-  };
-
-  const moveLessonDown = (index: number) => {
-    if (index < lessons.length - 1) {
-      lessonManagerProps.moveLessonToPosition(index, index + 1);
-    }
-  };
-
-  const moveUnitUp = (lessonIndex: number, unitIndex: number) => {
-    if (unitIndex > 0) {
-      lessonManagerProps.moveUnitWithinLesson(lessonIndex, unitIndex, unitIndex - 1);
-    }
-  };
-
-  const moveUnitDown = (lessonIndex: number, unitIndex: number) => {
-    const lesson = lessons[lessonIndex];
-    if (unitIndex < lesson.units.length - 1) {
-      lessonManagerProps.moveUnitWithinLesson(lessonIndex, unitIndex, unitIndex + 1);
-    }
-  };
+  if (lessons.length === 0) {
+    return (
+      <div className="space-y-6">
+        <SimpleLessonManagerHeader
+          onAddLesson={handleAddLesson}
+          onAddUnit={handleAddUnitToAnyLesson}
+          onAddModule={handleAddModule}
+        />
+        <EmptyState onAddLesson={handleAddLesson} />
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <SimpleLessonManagerHeader
         onAddLesson={handleAddLesson}
-        onAddUnit={handleAddUnit}
+        onAddUnit={handleAddUnitToAnyLesson}
+        onAddModule={handleAddModule}
       />
-
-      {lessons.map((lesson, lessonIndex) => (
-        <SimpleLessonCard
-          key={lessonIndex}
-          lesson={lesson}
-          lessonIndex={lessonIndex}
-          isExpanded={lessonManagerProps.expandedLessons.has(lessonIndex)}
-          onToggleExpanded={lessonManagerProps.toggleLessonExpanded}
-          onUpdateLesson={lessonManagerProps.updateLesson}
-          onDeleteLesson={lessonManagerProps.deleteLesson}
-          onAddUnit={lessonManagerProps.addUnit}
-          onUpdateUnit={lessonManagerProps.updateUnit}
-          onDeleteUnit={lessonManagerProps.deleteUnit}
-          onVideoFileChange={lessonManagerProps.handleVideoFileChange}
-          onLessonImageUpdate={lessonManagerProps.handleLessonImageUpdate}
-          onMoveLessonUp={() => moveLessonUp(lessonIndex)}
-          onMoveLessonDown={() => moveLessonDown(lessonIndex)}
-          onMoveUnitUp={moveUnitUp}
-          onMoveUnitDown={moveUnitDown}
-          onMoveUnitToLesson={lessonManagerProps.moveUnitToLesson}
-          canMoveLessonUp={lessonIndex > 0}
-          canMoveLessonDown={lessonIndex < lessons.length - 1}
-          totalLessons={lessons.length}
-        />
-      ))}
-
-      {lessons.length === 0 && <EmptyState />}
+      
+      <div className="space-y-4">
+        {lessons.map((lesson, lessonIndex) => (
+          <SimpleLessonCard
+            key={lessonIndex}
+            lesson={lesson}
+            lessonIndex={lessonIndex}
+            isExpanded={expandedLessons.has(lessonIndex)}
+            onToggleExpanded={toggleExpanded}
+            onUpdateLesson={handleUpdateLesson}
+            onDeleteLesson={handleDeleteLesson}
+            onAddUnit={(lessonIndex) => handleAddUnit(lessonIndex)}
+            onUpdateUnit={handleUpdateUnit}
+            onDeleteUnit={handleDeleteUnit}
+            onVideoFileChange={handleVideoFileChange}
+            onLessonImageUpdate={handleLessonImageUpdate}
+            onMoveLessonUp={() => handleMoveLessonUp(lessonIndex)}
+            onMoveLessonDown={() => handleMoveLessonDown(lessonIndex)}
+            onMoveUnitUp={handleMoveUnitUp}
+            onMoveUnitDown={handleMoveUnitDown}
+            onMoveUnitToLesson={handleMoveUnitToLesson}
+            canMoveLessonUp={lessonIndex > 0}
+            canMoveLessonDown={lessonIndex < lessons.length - 1}
+            totalLessons={lessons.length}
+          />
+        ))}
+      </div>
     </div>
   );
 };
