@@ -1,6 +1,7 @@
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { ChevronDown, ChevronRight, Package, GripVertical, FolderOpen } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tables } from "@/integrations/supabase/types";
@@ -113,14 +114,19 @@ const ModuleTreeNode = ({
 
           {isExpanded && module.lessons && module.lessons.length > 0 && (
             <div className="ml-6 mt-3 space-y-1">
-              {module.lessons.map((lesson) => (
-                <LessonTreeNode
-                  key={lesson.id}
-                  lesson={lesson}
-                  isExpanded={expandedLessons.has(lesson.id)}
-                  onToggle={() => onToggleLesson(lesson.id)}
-                />
-              ))}
+              <SortableContext
+                items={module.lessons.map(lesson => `lesson-${lesson.id}`)}
+                strategy={verticalListSortingStrategy}
+              >
+                {module.lessons.map((lesson) => (
+                  <LessonTreeNode
+                    key={lesson.id}
+                    lesson={lesson}
+                    isExpanded={expandedLessons.has(lesson.id)}
+                    onToggle={() => onToggleLesson(lesson.id)}
+                  />
+                ))}
+              </SortableContext>
             </div>
           )}
         </CardContent>

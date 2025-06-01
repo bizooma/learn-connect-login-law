@@ -29,7 +29,7 @@ const LessonTreeNode = ({ lesson, isExpanded, onToggle }: LessonTreeNodeProps) =
     setNodeRef,
     transform,
     transition,
-  } = useSortable({ id: `section-${lesson.id}` });
+  } = useSortable({ id: `lesson-${lesson.id}` });
 
   const style = {
     transform: CSS.Transform.toString(transform),

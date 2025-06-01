@@ -66,7 +66,7 @@ const LMSTreeContent = ({
       console.log('Reclassification attempt:', { activeType, activeItemId, overType, overItemId });
       
       // Handle reclassification based on drag target
-      if (activeType === 'section' && overType === 'course') {
+      if (activeType === 'lesson' && overType === 'course') {
         // Reclassify lesson to module
         const { data, error } = await supabase.rpc('reclassify_section_to_module', {
           p_section_id: activeItemId,
@@ -96,7 +96,7 @@ const LMSTreeContent = ({
         });
         
         onRefetch();
-      } else if (activeType === 'section' && overType === 'module') {
+      } else if (activeType === 'lesson' && overType === 'module') {
         // Move lesson to different module
         const { data, error } = await supabase.rpc('move_content_to_level', {
           p_content_id: activeItemId,
@@ -113,7 +113,7 @@ const LMSTreeContent = ({
         });
         
         onRefetch();
-      } else if (activeType === 'unit' && overType === 'section') {
+      } else if (activeType === 'unit' && overType === 'lesson') {
         // Move unit to different lesson
         const { data, error } = await supabase.rpc('move_content_to_level', {
           p_content_id: activeItemId,
@@ -155,6 +155,18 @@ const LMSTreeContent = ({
     );
   }
 
+  // Collect all draggable items for the sortable context
+  const allDraggableItems = courses.flatMap(course => [
+    `course-${course.id}`,
+    ...course.modules.flatMap(module => [
+      `module-${module.id}`,
+      ...module.lessons.flatMap(lesson => [
+        `lesson-${lesson.id}`,
+        ...lesson.units.map(unit => `unit-${unit.id}`)
+      ])
+    ])
+  ]);
+
   return (
     <div className="max-w-7xl mx-auto px-6 py-6">
       <DndContext
@@ -162,7 +174,7 @@ const LMSTreeContent = ({
         onDragEnd={handleDragEnd}
       >
         <SortableContext
-          items={courses.map(course => `course-${course.id}`)}
+          items={allDraggableItems}
           strategy={verticalListSortingStrategy}
         >
           <div className="space-y-2">

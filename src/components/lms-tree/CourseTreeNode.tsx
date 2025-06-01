@@ -1,6 +1,7 @@
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
 import { ChevronDown, ChevronRight, BookOpen, GripVertical, Users, Clock, Star } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -131,16 +132,21 @@ const CourseTreeNode = ({
 
           {isExpanded && course.modules && course.modules.length > 0 && (
             <div className="ml-8 mt-4 space-y-2">
-              {course.modules.map((module) => (
-                <ModuleTreeNode
-                  key={module.id}
-                  module={module}
-                  isExpanded={expandedModules.has(module.id)}
-                  onToggle={() => onToggleModule(module.id)}
-                  expandedLessons={expandedLessons}
-                  onToggleLesson={onToggleLesson}
-                />
-              ))}
+              <SortableContext
+                items={course.modules.map(module => `module-${module.id}`)}
+                strategy={verticalListSortingStrategy}
+              >
+                {course.modules.map((module) => (
+                  <ModuleTreeNode
+                    key={module.id}
+                    module={module}
+                    isExpanded={expandedModules.has(module.id)}
+                    onToggle={() => onToggleModule(module.id)}
+                    expandedLessons={expandedLessons}
+                    onToggleLesson={onToggleLesson}
+                  />
+                ))}
+              </SortableContext>
             </div>
           )}
         </CardContent>
