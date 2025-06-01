@@ -27,6 +27,9 @@ export const useUserRole = () => {
         // Get the user's role or default to student
         const userRole = data?.[0]?.role || 'student';
         console.log('useUserRole: Setting role to:', userRole);
+        console.log('useUserRole: Role type:', typeof userRole);
+        console.log('useUserRole: Role length:', userRole?.length);
+        console.log('useUserRole: Role charCodes:', userRole?.split('').map(c => c.charCodeAt(0)));
         setRole(userRole);
       }
     } catch (error) {
@@ -55,16 +58,26 @@ export const useUserRole = () => {
     }
   };
 
-  const isAdmin = role === 'admin';
-  const isOwner = role === 'owner';
-  const isStudent = role === 'student';
-  const isClient = role === 'client';
-  const isFree = role === 'free';
+  // Ensure clean string comparison by trimming whitespace and converting to lowercase for comparison
+  const cleanRole = role?.toString().trim().toLowerCase();
+  const isAdmin = cleanRole === 'admin';
+  const isOwner = cleanRole === 'owner';
+  const isStudent = cleanRole === 'student';
+  const isClient = cleanRole === 'client';
+  const isFree = cleanRole === 'free';
 
   // Helper function to check if user has admin or owner privileges
   const hasAdminPrivileges = isAdmin || isOwner;
 
-  console.log('useUserRole: Current state:', { role, isAdmin, isOwner, hasAdminPrivileges, loading });
+  console.log('useUserRole: Current state:', { 
+    role, 
+    cleanRole, 
+    isAdmin, 
+    isOwner, 
+    hasAdminPrivileges, 
+    loading,
+    roleComparison: `"${cleanRole}" === "admin" = ${cleanRole === 'admin'}`
+  });
 
   return { 
     role, 
