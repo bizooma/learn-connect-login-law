@@ -23,7 +23,7 @@ const Course = () => {
       <CourseHeader course={course} />
       <CourseMainContent
         courseId={course.id}
-        sections={course.sections}
+        lessons={course.lessons}
         selectedUnit={selectedUnit}
         onUnitSelect={setSelectedUnit}
         isAdmin={isAdmin}

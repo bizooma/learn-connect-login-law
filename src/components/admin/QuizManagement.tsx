@@ -132,7 +132,6 @@ const QuizManagement = () => {
       <QuizSearch
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
-        onCreateQuiz={() => setShowCreateForm(true)}
         totalQuizzes={quizzes?.length || 0}
       />
 

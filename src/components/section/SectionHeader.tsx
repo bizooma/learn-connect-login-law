@@ -4,12 +4,12 @@ import { ArrowLeft, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Tables } from "@/integrations/supabase/types";
 
-type Section = Tables<'sections'> & {
+type Lesson = Tables<'lessons'> & {
   units: Tables<'units'>[];
 };
 
 interface SectionHeaderProps {
-  section: Section;
+  section: Lesson;
 }
 
 const SectionHeader = ({ section }: SectionHeaderProps) => {

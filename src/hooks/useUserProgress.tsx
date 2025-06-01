@@ -164,29 +164,29 @@ export const useUserProgress = (userId?: string) => {
     try {
       console.log('Calculating course progress for:', courseId);
       
-      // Get total units in course by first getting sections
-      const { data: sections, error: sectionsError } = await supabase
-        .from('sections')
+      // Get total units in course by first getting lessons
+      const { data: lessons, error: lessonsError } = await supabase
+        .from('lessons')
         .select('id')
         .eq('course_id', courseId);
 
-      if (sectionsError) {
-        console.error('Error fetching sections:', sectionsError);
-        throw sectionsError;
+      if (lessonsError) {
+        console.error('Error fetching lessons:', lessonsError);
+        throw lessonsError;
       }
 
-      const sectionIds = sections?.map(s => s.id) || [];
+      const lessonIds = lessons?.map(s => s.id) || [];
       
-      if (sectionIds.length === 0) {
-        console.log('No sections found for course:', courseId);
+      if (lessonIds.length === 0) {
+        console.log('No lessons found for course:', courseId);
         return;
       }
 
-      // Get total units in these sections
+      // Get total units in these lessons
       const { data: units, error: unitsError } = await supabase
         .from('units')
         .select('id')
-        .in('section_id', sectionIds);
+        .in('section_id', lessonIds);
 
       if (unitsError) {
         console.error('Error fetching units:', unitsError);

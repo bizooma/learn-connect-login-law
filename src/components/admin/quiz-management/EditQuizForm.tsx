@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
@@ -240,7 +241,7 @@ const EditQuizForm = ({ open, onOpenChange, quiz, onQuizUpdated }: EditQuizFormP
               </TabsContent>
 
               <TabsContent value="questions">
-                <QuestionManagement quizId={quiz.id} />
+                <QuestionManagement quizId={quiz.id} quizTitle={quiz.title} />
               </TabsContent>
 
               <div className="flex justify-between">
