@@ -16,8 +16,15 @@ const AdminDashboardHeader = () => {
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
-    await signOut();
-    navigate('/');
+    try {
+      await signOut();
+      // Redirect to homepage after successful sign out
+      navigate('/', { replace: true });
+    } catch (error) {
+      console.error('Error signing out:', error);
+      // Still redirect to homepage even if there's an error
+      navigate('/', { replace: true });
+    }
   };
 
   const handleLMSTree = () => {
