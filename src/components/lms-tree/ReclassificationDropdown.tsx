@@ -37,40 +37,13 @@ const ReclassificationDropdown = ({
 
   const handleReclassify = async (targetId: string, targetType: string) => {
     try {
-      if (itemType === 'lesson' && targetType === 'course') {
-        // Reclassify lesson to module
-        const { error } = await supabase.rpc('reclassify_section_to_module', {
-          p_section_id: itemId,
-          p_course_id: targetId
-        });
-        
-        if (error) throw error;
-        
-        toast({
-          title: "Success",
-          description: `"${itemTitle}" reclassified as a module`,
-        });
-      } else if (itemType === 'unit' && targetType === 'module') {
-        // Reclassify unit to lesson
-        const { error } = await supabase.rpc('reclassify_unit_to_section', {
-          p_unit_id: itemId,
-          p_module_id: targetId
-        });
-        
-        if (error) throw error;
-        
-        toast({
-          title: "Success",
-          description: `"${itemTitle}" reclassified as a lesson`,
-        });
-      } else if (itemType === 'lesson' && targetType === 'module') {
-        // Move lesson to different module
-        const { error } = await supabase.rpc('move_content_to_level', {
-          p_content_id: itemId,
-          p_content_type: 'section',
-          p_target_parent_id: targetId,
-          p_target_parent_type: 'module'
-        });
+      if (itemType === 'lesson' && targetType === 'module') {
+        // In our current inverted structure, "lessons" are displayed as modules
+        // So we're moving a lesson to a different module
+        const { error } = await supabase
+          .from('lessons')
+          .update({ module_id: targetId })
+          .eq('id', itemId);
         
         if (error) throw error;
         
@@ -79,13 +52,12 @@ const ReclassificationDropdown = ({
           description: `"${itemTitle}" moved to selected module`,
         });
       } else if (itemType === 'unit' && targetType === 'lesson') {
-        // Move unit to different lesson
-        const { error } = await supabase.rpc('move_content_to_level', {
-          p_content_id: itemId,
-          p_content_type: 'unit',
-          p_target_parent_id: targetId,
-          p_target_parent_type: 'section'
-        });
+        // In our current structure, "units" are displayed as lessons
+        // So we're moving a unit to a different lesson
+        const { error } = await supabase
+          .from('units')
+          .update({ section_id: targetId })
+          .eq('id', itemId);
         
         if (error) throw error;
         
@@ -93,6 +65,12 @@ const ReclassificationDropdown = ({
           title: "Success",
           description: `"${itemTitle}" moved to selected lesson`,
         });
+      } else {
+        toast({
+          title: "Info",
+          description: "This reclassification is not supported for the current structure",
+        });
+        return;
       }
       
       onRefetch();
@@ -120,11 +98,7 @@ const ReclassificationDropdown = ({
   };
 
   const getActionText = (targetType: string) => {
-    if (itemType === 'lesson' && targetType === 'course') {
-      return 'Reclassify as Module';
-    } else if (itemType === 'unit' && targetType === 'module') {
-      return 'Reclassify as Lesson';
-    } else if (itemType === 'lesson' && targetType === 'module') {
+    if (itemType === 'lesson' && targetType === 'module') {
       return 'Move to Module';
     } else if (itemType === 'unit' && targetType === 'lesson') {
       return 'Move to Lesson';
@@ -138,9 +112,9 @@ const ReclassificationDropdown = ({
     
     // Filter based on item type and valid target types
     if (itemType === 'lesson') {
-      return target.type === 'course' || target.type === 'module';
+      return target.type === 'module';
     } else if (itemType === 'unit') {
-      return target.type === 'module' || target.type === 'lesson';
+      return target.type === 'lesson';
     }
     
     return false;
@@ -158,7 +132,7 @@ const ReclassificationDropdown = ({
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuLabel className="text-xs">Reclassify "{itemTitle}"</DropdownMenuLabel>
+        <DropdownMenuLabel className="text-xs">Move "{itemTitle}"</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {filteredTargets.map((target) => (
           <DropdownMenuItem

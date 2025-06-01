@@ -19,7 +19,7 @@ export const useDragHandler = (onRefetch: () => void) => {
       const activeId = active.id as string;
       const overId = over.id as string;
       
-      // Parse the active item type and ID - fix the parsing to get full UUIDs
+      // Parse the active item type and ID
       const activeMatch = activeId.match(/^(course|module|lesson|unit)-(.+)$/);
       const overMatch = overId.match(/^(course|module|lesson|unit)-(.+)$/);
       
@@ -35,69 +35,46 @@ export const useDragHandler = (onRefetch: () => void) => {
       
       // Handle reclassification based on drag target
       if (activeType === 'lesson' && overType === 'course') {
-        // Reclassify lesson to module
-        const { data, error } = await supabase.rpc('reclassify_section_to_module', {
-          p_section_id: activeItemId,
-          p_course_id: overItemId
+        // In our current structure, "lessons" are actually modules, so we don't need to reclassify
+        toast({
+          title: "Info",
+          description: "This item is already at the module level",
         });
+      } else if (activeType === 'unit' && overType === 'lesson') {
+        // Units are already lessons in our structure, so move to different lesson (module)
+        const { error } = await supabase
+          .from('lessons')
+          .update({ module_id: overItemId })
+          .eq('id', activeItemId);
         
         if (error) throw error;
         
         toast({
           title: "Success",
-          description: "Lesson reclassified to module successfully",
+          description: "Content moved successfully",
         });
         
         onRefetch();
       } else if (activeType === 'unit' && overType === 'module') {
-        // Reclassify unit to lesson
-        const { data, error } = await supabase.rpc('reclassify_unit_to_section', {
-          p_unit_id: activeItemId,
-          p_module_id: overItemId
-        });
+        // Move unit (lesson) to different module
+        const { error } = await supabase
+          .from('lessons')
+          .update({ module_id: overItemId })
+          .eq('id', activeItemId);
         
         if (error) throw error;
         
         toast({
           title: "Success",
-          description: "Unit reclassified to lesson successfully",
+          description: "Content moved successfully",
         });
         
         onRefetch();
-      } else if (activeType === 'lesson' && overType === 'module') {
-        // Move lesson to different module
-        const { data, error } = await supabase.rpc('move_content_to_level', {
-          p_content_id: activeItemId,
-          p_content_type: 'section',
-          p_target_parent_id: overItemId,
-          p_target_parent_type: 'module'
-        });
-        
-        if (error) throw error;
-        
+      } else {
         toast({
-          title: "Success",
-          description: "Lesson moved to module successfully",
+          title: "Info",
+          description: "This reclassification is not supported for the current structure",
         });
-        
-        onRefetch();
-      } else if (activeType === 'unit' && overType === 'lesson') {
-        // Move unit to different lesson
-        const { data, error } = await supabase.rpc('move_content_to_level', {
-          p_content_id: activeItemId,
-          p_content_type: 'unit',
-          p_target_parent_id: overItemId,
-          p_target_parent_type: 'section'
-        });
-        
-        if (error) throw error;
-        
-        toast({
-          title: "Success",
-          description: "Unit moved to lesson successfully",
-        });
-        
-        onRefetch();
       }
     } catch (error) {
       console.error('Error during reclassification:', error);
