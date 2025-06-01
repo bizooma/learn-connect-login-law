@@ -52,21 +52,33 @@ const EnhancedCalendarEventDialog = ({ courseId, onEventAdded }: EnhancedCalenda
 
   const fetchCourseParticipants = async () => {
     try {
-      const { data, error } = await supabase
+      // First get the course assignments
+      const { data: assignments, error: assignmentsError } = await supabase
         .from('course_assignments')
-        .select(`
-          user_id,
-          profiles!inner(id, email, first_name, last_name)
-        `)
+        .select('user_id')
         .eq('course_id', courseId);
 
-      if (error) throw error;
+      if (assignmentsError) throw assignmentsError;
 
-      const participantList = data?.map(assignment => ({
-        id: assignment.user_id,
-        email: assignment.profiles.email,
-        first_name: assignment.profiles.first_name || '',
-        last_name: assignment.profiles.last_name || ''
+      if (!assignments || assignments.length === 0) {
+        setParticipants([]);
+        return;
+      }
+
+      // Then get the profiles for those users
+      const userIds = assignments.map(assignment => assignment.user_id);
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, email, first_name, last_name')
+        .in('id', userIds);
+
+      if (profilesError) throw profilesError;
+
+      const participantList = profiles?.map(profile => ({
+        id: profile.id,
+        email: profile.email,
+        first_name: profile.first_name || '',
+        last_name: profile.last_name || ''
       })) || [];
 
       setParticipants(participantList);
@@ -131,11 +143,6 @@ const EnhancedCalendarEventDialog = ({ courseId, onEventAdded }: EnhancedCalenda
         start_time: startTime || null,
         end_time: endTime || null,
         meeting_link: meetingLink.trim() || null,
-        location: location.trim() || null,
-        participants: selectedParticipants,
-        send_notifications: sendNotifications,
-        is_recurring: isRecurring,
-        recurring_pattern: isRecurring ? recurringPattern : null,
       };
 
       const { error } = await supabase
@@ -162,6 +169,14 @@ const EnhancedCalendarEventDialog = ({ courseId, onEventAdded }: EnhancedCalenda
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleRecurringChange = (checked: boolean | "indeterminate") => {
+    setIsRecurring(checked === true);
+  };
+
+  const handleNotificationsChange = (checked: boolean | "indeterminate") => {
+    setSendNotifications(checked === true);
   };
 
   return (
@@ -284,7 +299,7 @@ const EnhancedCalendarEventDialog = ({ courseId, onEventAdded }: EnhancedCalenda
                   <Checkbox
                     id="recurring"
                     checked={isRecurring}
-                    onCheckedChange={setIsRecurring}
+                    onCheckedChange={handleRecurringChange}
                   />
                   <Label htmlFor="recurring">Recurring Meeting</Label>
                 </div>
@@ -307,7 +322,7 @@ const EnhancedCalendarEventDialog = ({ courseId, onEventAdded }: EnhancedCalenda
                   <Checkbox
                     id="notifications"
                     checked={sendNotifications}
-                    onCheckedChange={setSendNotifications}
+                    onCheckedChange={handleNotificationsChange}
                   />
                   <Label htmlFor="notifications">Send Email Notifications</Label>
                 </div>
