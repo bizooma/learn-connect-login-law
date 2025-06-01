@@ -134,7 +134,10 @@ const DragDropSectionManager = ({
     setActiveItem(null);
   };
 
-  const handleAddUnitToFirstSection = () => {
+  const handleAddUnitToFirstSection = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (sections.length === 0) {
       // Create a section first if none exist
       addSection();
@@ -152,7 +155,10 @@ const DragDropSectionManager = ({
     }
   };
 
-  const handleAddVideoUnit = () => {
+  const handleAddVideoUnit = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
     if (sections.length === 0) {
       // Create a section first if none exist
       addSection();
@@ -175,6 +181,12 @@ const DragDropSectionManager = ({
     }
   };
 
+  const handleAddSection = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addSection();
+  };
+
   const sectionIds = sections.map((_, index) => `section-${index}`);
 
   return (
@@ -189,15 +201,29 @@ const DragDropSectionManager = ({
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Course Sections</h3>
           <div className="flex items-center space-x-2">
-            <Button onClick={addSection} size="sm">
+            <Button 
+              type="button"
+              onClick={handleAddSection} 
+              size="sm"
+            >
               <Plus className="h-4 w-4 mr-2" />
               Add Section
             </Button>
-            <Button onClick={handleAddUnitToFirstSection} size="sm" variant="outline">
+            <Button 
+              type="button"
+              onClick={handleAddUnitToFirstSection} 
+              size="sm" 
+              variant="outline"
+            >
               <Plus className="h-4 w-4 mr-2" />
               Add Unit
             </Button>
-            <Button onClick={handleAddVideoUnit} size="sm" variant="outline">
+            <Button 
+              type="button"
+              onClick={handleAddVideoUnit} 
+              size="sm" 
+              variant="outline"
+            >
               <Video className="h-4 w-4 mr-2" />
               Add Video
             </Button>
