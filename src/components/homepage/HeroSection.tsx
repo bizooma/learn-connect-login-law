@@ -44,7 +44,7 @@ const HeroSection = () => {
                 src="/lovable-uploads/61c3f405-c372-43ea-a6e7-a12bcd703981.png" 
                 alt="Professional woman with laptop" 
                 className="w-full max-w-lg mx-auto object-cover object-bottom"
-                style={{ height: 'calc(100vh - 10rem)' }}
+                style={{ height: 'calc(100vh - 16rem)' }}
               />
             </div>
           </div>
