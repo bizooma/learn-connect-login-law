@@ -14,6 +14,18 @@ const LMSTreeHeader = ({ searchTerm, onSearchChange, totalCourses }: LMSTreeHead
       <div className="max-w-7xl mx-auto">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-3">
+            <a 
+              href="https://newfrontieruniversity.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex-shrink-0"
+            >
+              <img 
+                src="/lovable-uploads/126f6dae-4376-4b57-9955-f40fc6fa19e2.png" 
+                alt="New Frontier University" 
+                className="h-8 w-auto"
+              />
+            </a>
             <BookOpen className="h-8 w-8 text-blue-600" />
             <div>
               <h1 className="text-2xl font-bold text-gray-900">LMS Course Tree</h1>

@@ -23,6 +23,18 @@ const CoursesHeader = ({ filteredCoursesCount }: CoursesHeaderProps) => {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
+            <a 
+              href="https://newfrontieruniversity.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex-shrink-0"
+            >
+              <img 
+                src="/lovable-uploads/126f6dae-4376-4b57-9955-f40fc6fa19e2.png" 
+                alt="New Frontier University" 
+                className="h-12 w-auto"
+              />
+            </a>
             <div>
               <h1 className="text-3xl font-bold text-white">Course Catalog</h1>
               <p className="text-white/90 mt-1">

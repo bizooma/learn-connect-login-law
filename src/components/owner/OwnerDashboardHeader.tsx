@@ -26,6 +26,18 @@ const OwnerDashboardHeader = ({ lawFirm }: OwnerDashboardHeaderProps) => {
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
+            <a 
+              href="https://newfrontieruniversity.com" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="flex-shrink-0"
+            >
+              <img 
+                src="/lovable-uploads/126f6dae-4376-4b57-9955-f40fc6fa19e2.png" 
+                alt="New Frontier University" 
+                className="h-12 w-auto"
+              />
+            </a>
             <div className="flex items-center space-x-3">
               <Building2 className="h-8 w-8 text-blue-600" />
               <div>

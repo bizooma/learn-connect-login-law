@@ -148,13 +148,27 @@ const FreeDashboard = () => {
       <div className="bg-white shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">
-                Free Dashboard
-              </h1>
-              <p className="text-gray-600 mt-1">
-                Welcome, {profile.first_name || "User"}! Explore our free resources.
-              </p>
+            <div className="flex items-center space-x-4">
+              <a 
+                href="https://newfrontieruniversity.com" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="flex-shrink-0"
+              >
+                <img 
+                  src="/lovable-uploads/126f6dae-4376-4b57-9955-f40fc6fa19e2.png" 
+                  alt="New Frontier University" 
+                  className="h-12 w-auto"
+                />
+              </a>
+              <div>
+                <h1 className="text-3xl font-bold text-gray-900">
+                  Free Dashboard
+                </h1>
+                <p className="text-gray-600 mt-1">
+                  Welcome, {profile.first_name || "User"}! Explore our free resources.
+                </p>
+              </div>
             </div>
             <div className="flex items-center space-x-4">
               <Button
