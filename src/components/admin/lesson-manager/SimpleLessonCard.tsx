@@ -58,6 +58,13 @@ const SimpleLessonCard = ({
     onToggleExpanded(lessonIndex);
   };
 
+  const handleAddUnit = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('Adding unit to lesson index:', lessonIndex);
+    onAddUnit(lessonIndex);
+  };
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -153,9 +160,10 @@ const SimpleLessonCard = ({
             <div className="flex items-center justify-between">
               <h4 className="font-medium">Units</h4>
               <Button
-                onClick={() => onAddUnit(lessonIndex)}
+                onClick={handleAddUnit}
                 size="sm"
                 variant="outline"
+                type="button"
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Unit

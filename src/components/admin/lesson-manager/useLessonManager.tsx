@@ -39,6 +39,14 @@ export const useLessonManager = ({ lessons, onLessonsChange }: UseLessonManagerP
   };
 
   const addUnit = (lessonIndex: number) => {
+    console.log('useLessonManager: Adding unit to lesson index:', lessonIndex);
+    console.log('Current lessons:', lessons);
+    
+    if (lessonIndex < 0 || lessonIndex >= lessons.length) {
+      console.error('Invalid lesson index:', lessonIndex);
+      return;
+    }
+
     const newUnit: UnitData = {
       title: "",
       description: "",
@@ -54,6 +62,8 @@ export const useLessonManager = ({ lessons, onLessonsChange }: UseLessonManagerP
         ? { ...lesson, units: [...lesson.units, newUnit] }
         : lesson
     );
+    
+    console.log('Updated lessons after adding unit:', updatedLessons);
     onLessonsChange(updatedLessons);
   };
 

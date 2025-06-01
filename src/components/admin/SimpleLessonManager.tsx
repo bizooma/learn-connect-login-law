@@ -99,6 +99,11 @@ const SimpleLessonManager = ({ lessons, onLessonsChange }: SimpleLessonManagerPr
     });
   };
 
+  const handleAddUnitToLesson = (lessonIndex: number) => {
+    console.log('SimpleLessonManager: Adding unit to lesson:', lessonIndex);
+    addUnit(lessonIndex);
+  };
+
   if (lessons.length === 0) {
     return (
       <div className="space-y-6">
@@ -130,7 +135,7 @@ const SimpleLessonManager = ({ lessons, onLessonsChange }: SimpleLessonManagerPr
             onToggleExpanded={toggleExpanded}
             onUpdateLesson={updateLesson}
             onDeleteLesson={deleteLesson}
-            onAddUnit={addUnit}
+            onAddUnit={handleAddUnitToLesson}
             onUpdateUnit={updateUnit}
             onDeleteUnit={deleteUnit}
             onVideoFileChange={handleVideoFileChange}
