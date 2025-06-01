@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -167,13 +168,7 @@ const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
             Course Calendar & Meetings
           </CardTitle>
           {isAdmin && (
-            <div>
-              <p className="text-xs text-green-600 mb-2">Admin controls visible</p>
-              <EnhancedCalendarEventDialog courseId={courseId} onEventAdded={fetchEvents} />
-            </div>
-          )}
-          {!isAdmin && (
-            <p className="text-xs text-gray-500">Admin controls hidden (not admin)</p>
+            <EnhancedCalendarEventDialog courseId={courseId} onEventAdded={fetchEvents} />
           )}
         </div>
       </CardHeader>
