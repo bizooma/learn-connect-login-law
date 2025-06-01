@@ -1,5 +1,5 @@
 
-import { BookOpen, Menu, LogOut, TreePine } from "lucide-react";
+import { BookOpen, Menu, LogOut, TreePine, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -22,6 +22,11 @@ const AdminDashboardHeader = () => {
 
   const handleLMSTree = () => {
     navigate('/lms-tree');
+  };
+
+  const handleProfile = () => {
+    // Navigate to profile page - you can implement this route as needed
+    console.log('Navigate to profile page');
   };
 
   return (
@@ -58,6 +63,10 @@ const AdminDashboardHeader = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
+                <DropdownMenuItem onClick={handleProfile} className="flex items-center space-x-2">
+                  <User className="h-4 w-4" />
+                  <span>Profile</span>
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleLMSTree} className="flex items-center space-x-2">
                   <TreePine className="h-4 w-4" />
                   <span>LMS Tree</span>
