@@ -12,6 +12,9 @@ import OwnerDashboard from "./pages/OwnerDashboard";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import LMSTree from "./pages/LMSTree";
+import StudentDashboard from "./components/StudentDashboard";
+import ClientDashboard from "./components/ClientDashboard";
+import FreeDashboard from "./components/FreeDashboard";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +30,9 @@ const App = () => (
           <Route path="/section/:id" element={<Section />} />
           <Route path="/courses" element={<Courses />} />
           <Route path="/owner-dashboard" element={<OwnerDashboard />} />
+          <Route path="/student-dashboard" element={<StudentDashboard />} />
+          <Route path="/client-dashboard" element={<ClientDashboard />} />
+          <Route path="/free-dashboard" element={<FreeDashboard />} />
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/lms-tree" element={<LMSTree />} />
           <Route path="*" element={<NotFound />} />

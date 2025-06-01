@@ -1,5 +1,5 @@
 
-import { useAuth, AuthProvider } from "@/hooks/useAuth";
+import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import AuthPage from "../components/AuthPage";
 import Dashboard from "../components/Dashboard";
@@ -8,7 +8,7 @@ import NotificationBanner from "../components/notifications/NotificationBanner";
 import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 
-const IndexContent = () => {
+const Index = () => {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, isOwner, isStudent, isClient, isFree, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
@@ -55,14 +55,6 @@ const IndexContent = () => {
       {user && <NotificationBanner />}
       {isAdmin ? <AdminDashboard /> : <Dashboard />}
     </div>
-  );
-};
-
-const Index = () => {
-  return (
-    <AuthProvider>
-      <IndexContent />
-    </AuthProvider>
   );
 };
 
