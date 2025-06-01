@@ -30,7 +30,13 @@ export const useUserRole = () => {
         console.log('useUserRole: Role type:', typeof userRole);
         console.log('useUserRole: Role length:', userRole?.length);
         console.log('useUserRole: Role charCodes:', userRole?.split('').map(c => c.charCodeAt(0)));
-        setRole(userRole);
+        
+        // Force the role to be a clean string
+        const cleanedRole = String(userRole).replace(/[^\w]/g, '');
+        console.log('useUserRole: Cleaned role:', cleanedRole);
+        console.log('useUserRole: Cleaned role charCodes:', cleanedRole?.split('').map(c => c.charCodeAt(0)));
+        
+        setRole(cleanedRole);
       }
     } catch (error) {
       console.error('useUserRole: Error in fetchUserRole:', error);
@@ -58,25 +64,28 @@ export const useUserRole = () => {
     }
   };
 
-  // Ensure clean string comparison by trimming whitespace and converting to lowercase for comparison
-  const cleanRole = role?.toString().trim().toLowerCase();
-  const isAdmin = cleanRole === 'admin';
-  const isOwner = cleanRole === 'owner';
-  const isStudent = cleanRole === 'student';
-  const isClient = cleanRole === 'client';
-  const isFree = cleanRole === 'free';
+  // Direct string comparison without any transformations first
+  const isAdmin = role === 'admin';
+  const isOwner = role === 'owner';
+  const isStudent = role === 'student';
+  const isClient = role === 'client';
+  const isFree = role === 'free';
 
   // Helper function to check if user has admin or owner privileges
   const hasAdminPrivileges = isAdmin || isOwner;
 
-  console.log('useUserRole: Current state:', { 
+  console.log('useUserRole: Final state:', { 
     role, 
-    cleanRole, 
+    roleType: typeof role,
+    roleLength: role?.length,
     isAdmin, 
     isOwner, 
     hasAdminPrivileges, 
     loading,
-    roleComparison: `"${cleanRole}" === "admin" = ${cleanRole === 'admin'}`
+    directComparison: role === 'admin',
+    adminString: 'admin',
+    adminStringLength: 'admin'.length,
+    rolesMatch: JSON.stringify(role) === JSON.stringify('admin')
   });
 
   return { 
