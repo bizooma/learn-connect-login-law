@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LoginForm from "./LoginForm";
@@ -15,7 +16,7 @@ const AuthPage = () => {
             alt="New Frontier University"
             className="mx-auto mb-6 h-32 w-auto"
           />
-          <p className="text-gray-600 mt-2">Access your legal education platform</p>
+          <p className="text-gray-600 mt-2">Immigration Law Firm Training</p>
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
