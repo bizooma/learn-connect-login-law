@@ -1,15 +1,16 @@
 
+
 const HeroSection = () => {
   return (
     <section 
       className="relative"
       style={{
         background: 'linear-gradient(to bottom, #213C82 0%, rgba(255, 255, 255, 0.1) 100%)',
-        minHeight: 'calc(100vh - 200px)'
+        minHeight: 'calc(100vh - 400px)'
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start" style={{ minHeight: 'calc(80vh - 200px)' }}>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start" style={{ minHeight: 'calc(80vh - 400px)' }}>
           {/* Left Side - Content */}
           <div className="text-white">
             <h1 className="text-5xl md:text-6xl font-bold mb-8 leading-tight whitespace-nowrap">
@@ -52,12 +53,12 @@ const HeroSection = () => {
 
           {/* Right Side - Professional Woman Image */}
           <div className="relative h-full flex items-end">
-            <div className="relative z-10 w-full">
+            <div className="relative z-50 w-full">
               <img 
                 src="/lovable-uploads/61c3f405-c372-43ea-a6e7-a12bcd703981.png" 
                 alt="Professional woman with laptop" 
-                className="w-full max-w-lg mx-auto object-cover object-bottom"
-                style={{ height: 'calc(100vh - 40rem)' }}
+                className="w-full max-w-lg mx-auto object-contain"
+                style={{ height: 'auto', maxHeight: '600px' }}
               />
             </div>
           </div>
@@ -65,7 +66,7 @@ const HeroSection = () => {
       </div>
 
       {/* Bottom Section */}
-      <div className="absolute bottom-0 left-0 right-0">
+      <div className="absolute bottom-0 left-0 right-0 z-10">
         <div className="bg-gray-900 text-white py-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
@@ -79,3 +80,4 @@ const HeroSection = () => {
 };
 
 export default HeroSection;
+
