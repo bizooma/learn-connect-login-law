@@ -106,6 +106,51 @@ export type Database = {
           },
         ]
       }
+      course_drafts: {
+        Row: {
+          category: string | null
+          created_at: string
+          description: string | null
+          draft_data: Json | null
+          duration: string | null
+          id: string
+          image_url: string | null
+          instructor: string | null
+          level: string | null
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          draft_data?: Json | null
+          duration?: string | null
+          id?: string
+          image_url?: string | null
+          instructor?: string | null
+          level?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          draft_data?: Json | null
+          duration?: string | null
+          id?: string
+          image_url?: string | null
+          instructor?: string | null
+          level?: string | null
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       courses: {
         Row: {
           category: string
@@ -115,6 +160,7 @@ export type Database = {
           id: string
           image_url: string | null
           instructor: string
+          is_draft: boolean
           level: string
           rating: number | null
           students_enrolled: number | null
@@ -130,6 +176,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           instructor: string
+          is_draft?: boolean
           level: string
           rating?: number | null
           students_enrolled?: number | null
@@ -145,6 +192,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           instructor?: string
+          is_draft?: boolean
           level?: string
           rating?: number | null
           students_enrolled?: number | null
@@ -470,6 +518,7 @@ export type Database = {
           description: string | null
           id: string
           image_url: string | null
+          is_draft: boolean
           sort_order: number
           title: string
           updated_at: string
@@ -480,6 +529,7 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          is_draft?: boolean
           sort_order?: number
           title: string
           updated_at?: string
@@ -490,6 +540,7 @@ export type Database = {
           description?: string | null
           id?: string
           image_url?: string | null
+          is_draft?: boolean
           sort_order?: number
           title?: string
           updated_at?: string
@@ -511,6 +562,7 @@ export type Database = {
           description: string | null
           duration_minutes: number | null
           id: string
+          is_draft: boolean
           section_id: string
           sort_order: number
           title: string
@@ -523,6 +575,7 @@ export type Database = {
           description?: string | null
           duration_minutes?: number | null
           id?: string
+          is_draft?: boolean
           section_id: string
           sort_order?: number
           title: string
@@ -535,6 +588,7 @@ export type Database = {
           description?: string | null
           duration_minutes?: number | null
           id?: string
+          is_draft?: boolean
           section_id?: string
           sort_order?: number
           title?: string
@@ -722,6 +776,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      cleanup_old_drafts: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_user_law_firm_id: {
         Args: Record<PropertyKey, never>
         Returns: string
