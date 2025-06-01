@@ -21,35 +21,79 @@ const LessonImageUpload = ({ currentImageUrl, onImageUpdate, lessonIndex }: Less
   const uploadImage = async (file: File) => {
     setUploading(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const timestamp = Date.now();
-      const fileName = `lesson_${lessonIndex}_${timestamp}.${fileExt}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from('lesson-images')
-        .upload(fileName, file);
-
-      if (uploadError) {
-        throw uploadError;
+      console.log('Starting image upload for file:', file.name, 'size:', file.size);
+      
+      // Validate file
+      if (!file.type.startsWith('image/')) {
+        throw new Error('Please select an image file');
       }
 
-      const { data } = supabase.storage
-        .from('lesson-images')
-        .getPublicUrl(fileName);
+      if (file.size > 5 * 1024 * 1024) {
+        throw new Error('Image size must be less than 5MB');
+      }
 
-      const imageUrl = data.publicUrl;
-      setPreviewUrl(imageUrl);
-      onImageUpdate(imageUrl);
+      const fileExt = file.name.split('.').pop();
+      const timestamp = Date.now();
+      const randomId = Math.random().toString(36).substring(7);
+      const fileName = `lesson_${lessonIndex}_${timestamp}_${randomId}.${fileExt}`;
+
+      console.log('Uploading to storage with filename:', fileName);
+
+      // Try to upload to lesson-images bucket first
+      const { error: uploadError, data: uploadData } = await supabase.storage
+        .from('lesson-images')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) {
+        console.error('Upload to lesson-images failed:', uploadError);
+        
+        // Fallback: try course-images bucket
+        console.log('Trying fallback upload to course-images bucket...');
+        const { error: fallbackError } = await supabase.storage
+          .from('course-images')
+          .upload(fileName, file, {
+            cacheControl: '3600',
+            upsert: false
+          });
+
+        if (fallbackError) {
+          console.error('Fallback upload also failed:', fallbackError);
+          throw new Error(`Upload failed: ${fallbackError.message}`);
+        }
+
+        // Get public URL from course-images bucket
+        const { data } = supabase.storage
+          .from('course-images')
+          .getPublicUrl(fileName);
+
+        const imageUrl = data.publicUrl;
+        console.log('Fallback upload successful, URL:', imageUrl);
+        setPreviewUrl(imageUrl);
+        onImageUpdate(imageUrl);
+      } else {
+        // Get public URL from lesson-images bucket
+        const { data } = supabase.storage
+          .from('lesson-images')
+          .getPublicUrl(fileName);
+
+        const imageUrl = data.publicUrl;
+        console.log('Primary upload successful, URL:', imageUrl);
+        setPreviewUrl(imageUrl);
+        onImageUpdate(imageUrl);
+      }
 
       toast({
         title: "Success",
         description: "Lesson image uploaded successfully",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading image:', error);
       toast({
         title: "Error",
-        description: "Failed to upload lesson image",
+        description: error.message || "Failed to upload lesson image",
         variant: "destructive",
       });
     } finally {
@@ -71,25 +115,11 @@ const LessonImageUpload = ({ currentImageUrl, onImageUpdate, lessonIndex }: Less
     const file = event.target.files?.[0];
     if (!file) return;
 
-    if (!file.type.startsWith('image/')) {
-      toast({
-        title: "Error",
-        description: "Please select an image file",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (file.size > 5 * 1024 * 1024) {
-      toast({
-        title: "Error",
-        description: "Image size must be less than 5MB",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    console.log('File selected:', file.name, file.type, file.size);
     uploadImage(file);
+    
+    // Clear the input so the same file can be selected again if needed
+    event.target.value = '';
   };
 
   return (
@@ -102,6 +132,10 @@ const LessonImageUpload = ({ currentImageUrl, onImageUpdate, lessonIndex }: Less
             src={previewUrl} 
             alt="Lesson preview" 
             className="w-20 h-20 object-cover rounded-lg border"
+            onError={() => {
+              console.error('Failed to load image:', previewUrl);
+              setPreviewUrl(null);
+            }}
           />
         )}
         
