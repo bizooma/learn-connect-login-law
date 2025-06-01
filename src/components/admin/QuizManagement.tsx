@@ -99,6 +99,11 @@ const QuizManagement = () => {
     }
   };
 
+  const handleManageQuestions = (quiz: QuizWithDetails) => {
+    // TODO: Implement question management
+    console.log('Manage questions for quiz:', quiz.id);
+  };
+
   if (isLoading) {
     return (
       <div className="space-y-6">
@@ -129,6 +134,7 @@ const QuizManagement = () => {
             quiz={quiz}
             onEdit={() => setEditingQuiz(quiz)}
             onDelete={() => handleQuizDeleted(quiz.id)}
+            onManageQuestions={() => handleManageQuestions(quiz)}
           />
         ))}
       </div>

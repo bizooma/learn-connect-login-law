@@ -11,6 +11,14 @@ export interface UnitWithCourse extends Unit {
   };
 }
 
+export interface QuizWithDetails extends Tables<'quizzes'> {
+  unit: Unit & {
+    lesson: Lesson & {
+      course: Course;
+    };
+  };
+}
+
 export interface QuizFormData {
   title: string;
   description: string;

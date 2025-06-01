@@ -20,8 +20,8 @@ const CreateCourseForm = ({ open, onOpenChange, onCourseCreated }: CreateCourseF
   const {
     form,
     isSubmitting,
-    sections,
-    setSections,
+    lessons,
+    setLessons,
     onSubmit,
     saveStatus,
     lastSaved,
@@ -67,8 +67,8 @@ const CreateCourseForm = ({ open, onOpenChange, onCourseCreated }: CreateCourseF
 
                 <TabsContent value="content">
                   <CourseContentForm
-                    lessons={sections}
-                    onLessonsChange={setSections}
+                    lessons={lessons}
+                    onLessonsChange={setLessons}
                   />
                 </TabsContent>
 
