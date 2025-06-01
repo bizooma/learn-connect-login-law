@@ -1,6 +1,8 @@
 
-import { Search, BookOpen } from "lucide-react";
+import { Search, BookOpen, ArrowLeft } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 interface LMSTreeHeaderProps {
   searchTerm: string;
@@ -9,11 +11,21 @@ interface LMSTreeHeaderProps {
 }
 
 const LMSTreeHeader = ({ searchTerm, onSearchChange, totalCourses }: LMSTreeHeaderProps) => {
+  const navigate = useNavigate();
+
   return (
-    <div className="bg-white border-b border-gray-200 px-6 py-4">
-      <div className="max-w-7xl mx-auto">
+    <div className="shadow-sm border-b" style={{ backgroundColor: '#213C82' }}>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate("/")}
+              className="text-white/80 hover:text-white hover:bg-white/10"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
             <a 
               href="https://newfrontieruniversity.com" 
               target="_blank" 
@@ -23,13 +35,15 @@ const LMSTreeHeader = ({ searchTerm, onSearchChange, totalCourses }: LMSTreeHead
               <img 
                 src="/lovable-uploads/126f6dae-4376-4b57-9955-f40fc6fa19e2.png" 
                 alt="New Frontier University" 
-                className="h-8 w-auto"
+                className="h-12 w-auto"
               />
             </a>
-            <BookOpen className="h-8 w-8 text-blue-600" />
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">LMS Course Tree</h1>
-              <p className="text-sm text-gray-600">{totalCourses} courses available</p>
+            <div className="flex items-center space-x-3">
+              <BookOpen className="h-8 w-8 text-white" />
+              <div>
+                <h1 className="text-2xl font-bold text-white">LMS Course Tree</h1>
+                <p className="text-white/90">{totalCourses} courses available</p>
+              </div>
             </div>
           </div>
         </div>
@@ -41,7 +55,7 @@ const LMSTreeHeader = ({ searchTerm, onSearchChange, totalCourses }: LMSTreeHead
             placeholder="Search courses, sections, or units..."
             value={searchTerm}
             onChange={(e) => onSearchChange(e.target.value)}
-            className="pl-10"
+            className="pl-10 bg-white"
           />
         </div>
       </div>
