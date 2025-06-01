@@ -56,7 +56,7 @@ const PricingSection = () => {
               {/* Popular badge */}
               {plan.isPopular && (
                 <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-                  <div className="bg-blue-500 text-white px-6 py-2 rounded-full text-sm font-semibold">
+                  <div style={{ backgroundColor: '#213C82' }} className="text-white px-6 py-2 rounded-full text-sm font-semibold">
                     POPULAR
                   </div>
                 </div>
@@ -67,9 +67,12 @@ const PricingSection = () => {
                 plan.name === "Starter Package" 
                   ? "from-pink-500 to-purple-600" 
                   : plan.name === "Law Firms"
-                  ? "from-blue-500 to-purple-600"
+                  ? "to-purple-600"
                   : "from-purple-500 to-pink-600"
-              } text-white p-8 rounded-lg h-full flex flex-col`}>
+              } text-white p-8 rounded-lg h-full flex flex-col`}
+              style={plan.name === "Law Firms" ? { 
+                background: `linear-gradient(to bottom right, #213C82, #9333ea)` 
+              } : {}}>
                 
                 {/* Header */}
                 <div className="text-center mb-6">

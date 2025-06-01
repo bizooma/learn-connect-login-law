@@ -2,9 +2,9 @@
 const HeroSection = () => {
   return (
     <section 
-      className="relative min-h-screen bg-gradient-to-br from-blue-400 via-blue-500 to-blue-600"
+      className="relative min-h-screen"
       style={{
-        backgroundImage: "linear-gradient(135deg, #60a5fa 0%, #3b82f6 50%, #2563eb 100%)"
+        backgroundColor: '#213C82'
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">

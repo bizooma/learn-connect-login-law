@@ -29,7 +29,8 @@ const NavigationHeader = () => {
           {/* Login Button */}
           <Button 
             onClick={() => navigate("/login")}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
+            style={{ backgroundColor: '#213C82' }}
+            className="hover:opacity-90 text-white"
           >
             Login
           </Button>
