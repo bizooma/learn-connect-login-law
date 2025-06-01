@@ -4,7 +4,7 @@ const HeroSection = () => {
     <section 
       className="relative min-h-screen"
       style={{
-        backgroundColor: '#213C82'
+        background: 'linear-gradient(to bottom, #213C82 0%, rgba(255, 255, 255, 0.1) 100%)'
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
