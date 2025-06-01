@@ -58,6 +58,8 @@ export const useSectionManager = ({ sections, onSectionsChange }: UseSectionMana
   };
 
   const updateUnit = (sectionIndex: number, unitIndex: number, field: keyof UnitData, value: any) => {
+    console.log('Updating unit:', sectionIndex, unitIndex, field, value);
+    
     const updatedSections = sections.map((section, i) => 
       i === sectionIndex 
         ? {
@@ -68,6 +70,8 @@ export const useSectionManager = ({ sections, onSectionsChange }: UseSectionMana
           }
         : section
     );
+    
+    console.log('Updated sections:', updatedSections);
     onSectionsChange(updatedSections);
   };
 
@@ -95,11 +99,22 @@ export const useSectionManager = ({ sections, onSectionsChange }: UseSectionMana
   };
 
   const handleVideoFileChange = (sectionIndex: number, unitIndex: number, file: File | null) => {
+    console.log('Video file changed:', sectionIndex, unitIndex, file?.name);
+    
     if (file) {
+      // Store the actual file object
       updateUnit(sectionIndex, unitIndex, 'video_file', file);
-      // Create a temporary URL for preview
+      
+      // Create a temporary URL for preview (will be replaced with actual URL on save)
       const fileUrl = URL.createObjectURL(file);
       updateUnit(sectionIndex, unitIndex, 'video_url', fileUrl);
+      
+      // Set video type to upload since we're uploading a file
+      updateUnit(sectionIndex, unitIndex, 'video_type', 'upload');
+    } else {
+      // Clear the file and URL if no file is selected
+      updateUnit(sectionIndex, unitIndex, 'video_file', undefined);
+      updateUnit(sectionIndex, unitIndex, 'video_url', '');
     }
   };
 

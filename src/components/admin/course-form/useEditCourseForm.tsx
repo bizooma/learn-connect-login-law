@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { supabase } from "@/integrations/supabase/client";
@@ -182,6 +183,20 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
 
       await ensureCalendarExists(course.id);
 
+      // Delete existing sections and units to ensure clean update
+      const { error: deleteUnitsError } = await supabase
+        .from('units')
+        .delete()
+        .in('section_id', 
+          await supabase
+            .from('sections')
+            .select('id')
+            .eq('course_id', course.id)
+            .then(({ data }) => data?.map(s => s.id) || [])
+        );
+
+      if (deleteUnitsError) console.error('Error deleting units:', deleteUnitsError);
+
       const { error: deleteError } = await supabase
         .from('sections')
         .delete()
@@ -191,6 +206,8 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
 
       if (sections.length > 0) {
         for (const section of sections) {
+          console.log('Processing section:', section.title);
+          
           const { data: sectionData, error: sectionError } = await supabase
             .from('sections')
             .insert([{
@@ -206,15 +223,23 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
           if (sectionError) throw sectionError;
 
           if (section.units.length > 0) {
+            console.log('Processing units for section:', section.title);
+            
             const unitsToInsert = await Promise.all(
               section.units.map(async (unit) => {
                 let videoUrl = unit.video_url;
                 
-                if (unit.video_type === 'upload' && unit.video_file) {
+                console.log('Processing unit:', unit.title, 'Video type:', unit.video_type, 'Has video_file:', !!unit.video_file);
+                
+                // Handle video file upload for upload type units
+                if (unit.video_type === 'upload' && unit.video_file instanceof File) {
                   try {
+                    console.log('Uploading video file for unit:', unit.title);
                     videoUrl = await uploadVideoFile(unit.video_file);
+                    console.log('Video uploaded successfully:', videoUrl);
                   } catch (error) {
-                    console.error('Error uploading video:', error);
+                    console.error('Error uploading video for unit:', unit.title, error);
+                    // Don't throw here, just log the error and continue with existing URL
                   }
                 }
 
@@ -230,11 +255,18 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
               })
             );
 
+            console.log('Inserting units:', unitsToInsert);
+
             const { error: unitsError } = await supabase
               .from('units')
               .insert(unitsToInsert);
 
-            if (unitsError) throw unitsError;
+            if (unitsError) {
+              console.error('Error inserting units:', unitsError);
+              throw unitsError;
+            }
+
+            console.log('Units inserted successfully for section:', section.title);
           }
         }
       }
