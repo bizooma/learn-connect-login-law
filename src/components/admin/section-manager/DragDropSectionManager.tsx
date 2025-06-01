@@ -1,5 +1,4 @@
 
-import { useState } from 'react';
 import {
   DndContext,
   closestCenter,
@@ -7,20 +6,19 @@ import {
   PointerSensor,
   useSensor,
   useSensors,
-  DragEndEvent,
-  DragOverEvent,
   DragOverlay,
-  DragStartEvent,
 } from '@dnd-kit/core';
 import {
   SortableContext,
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
-import { Button } from "@/components/ui/button";
-import { Plus, Video } from "lucide-react";
 import DraggableSectionCard from './DraggableSectionCard';
 import EmptyState from './EmptyState';
+import SectionManagerHeader from './SectionManagerHeader';
+import DragOverlayContent from './DragOverlayContent';
+import { useDragAndDrop } from './useDragAndDrop';
+import { handleAddVideoUnit, handleAddUnitToFirstSection } from './actionHandlers';
 import { SectionData, UnitData } from './types';
 
 interface DragDropSectionManagerProps {
@@ -58,9 +56,6 @@ const DragDropSectionManager = ({
   moveUnitToPosition,
   moveUnitWithinSection,
 }: DragDropSectionManagerProps) => {
-  const [activeId, setActiveId] = useState<string | null>(null);
-  const [activeItem, setActiveItem] = useState<any>(null);
-
   const sensors = useSensors(
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
@@ -68,143 +63,47 @@ const DragDropSectionManager = ({
     })
   );
 
-  const handleDragStart = (event: DragStartEvent) => {
-    const { active } = event;
-    setActiveId(active.id as string);
-    
-    if (active.data.current?.type === 'section') {
-      setActiveItem(sections[active.data.current.index]);
-    } else if (active.data.current?.type === 'unit') {
-      const { sectionIndex, unitIndex } = active.data.current;
-      setActiveItem(sections[sectionIndex]?.units[unitIndex]);
-    }
-  };
-
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-    
-    if (!over) return;
-    
-    const activeData = active.data.current;
-    const overData = over.data.current;
-    
-    // Handle unit moving between sections
-    if (activeData?.type === 'unit' && overData?.type === 'unit') {
-      const activeSection = activeData.sectionIndex;
-      const activeUnit = activeData.unitIndex;
-      const overSection = overData.sectionIndex;
-      const overUnit = overData.unitIndex;
-      
-      if (activeSection !== overSection) {
-        moveUnitToPosition(activeSection, activeUnit, overSection, overUnit);
-      }
-    }
-  };
-
-  const handleDragEnd = (event: DragEndEvent) => {
-    const { active, over } = event;
-    
-    if (!over) {
-      setActiveId(null);
-      setActiveItem(null);
-      return;
-    }
-    
-    const activeData = active.data.current;
-    const overData = over.data.current;
-    
-    if (activeData?.type === 'section' && overData?.type === 'section') {
-      const oldIndex = activeData.index;
-      const newIndex = overData.index;
-      
-      if (oldIndex !== newIndex) {
-        moveSectionToPosition(oldIndex, newIndex);
-      }
-    } else if (activeData?.type === 'unit' && overData?.type === 'unit') {
-      const activeSection = activeData.sectionIndex;
-      const activeUnit = activeData.unitIndex;
-      const overSection = overData.sectionIndex;
-      const overUnit = overData.unitIndex;
-      
-      if (activeSection === overSection && activeUnit !== overUnit) {
-        moveUnitWithinSection(activeSection, activeUnit, overUnit);
-      }
-    }
-    
-    setActiveId(null);
-    setActiveItem(null);
-  };
-
-  const handleAddUnitToFirstSection = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (sections.length === 0) {
-      // Create a section first if none exist
-      addSection();
-      // The section will be added asynchronously, so we'll add the unit in the next render
-      setTimeout(() => {
-        addUnit(0);
-      }, 100);
-    } else {
-      // Add unit to the first section
-      addUnit(0);
-      // Expand the first section if it's not already expanded
-      if (!expandedSections.has(0)) {
-        toggleSectionExpanded(0);
-      }
-    }
-  };
-
-  const addVideoUnit = (sectionIndex: number) => {
-    const newUnit: UnitData = {
-      title: "",
-      description: "",
-      content: "",
-      video_url: "",
-      video_type: 'upload',
-      duration_minutes: 0,
-      sort_order: sections[sectionIndex].units.length
-    };
-    
-    const updatedSections = sections.map((section, i) => 
-      i === sectionIndex 
-        ? { ...section, units: [...section.units, newUnit] }
-        : section
-    );
-    onSectionsChange(updatedSections);
-  };
-
-  const handleAddVideoUnit = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    console.log('Adding video unit...');
-    
-    if (sections.length === 0) {
-      // Create a section first if none exist
-      console.log('Creating section first...');
-      addSection();
-      setTimeout(() => {
-        console.log('Adding video unit to new section...');
-        addVideoUnit(0);
-      }, 100);
-    } else {
-      // Add video unit to the first section
-      console.log('Adding video unit to existing section...');
-      addVideoUnit(0);
-      
-      // Expand the first section if it's not already expanded
-      if (!expandedSections.has(0)) {
-        toggleSectionExpanded(0);
-      }
-    }
-  };
+  const {
+    activeId,
+    activeItem,
+    handleDragStart,
+    handleDragOver,
+    handleDragEnd,
+  } = useDragAndDrop({
+    sections,
+    moveSectionToPosition,
+    moveUnitToPosition,
+    moveUnitWithinSection,
+  });
 
   const handleAddSection = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     addSection();
+  };
+
+  const handleAddUnitClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleAddUnitToFirstSection(
+      sections,
+      addSection,
+      addUnit,
+      expandedSections,
+      toggleSectionExpanded
+    );
+  };
+
+  const handleAddVideoClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleAddVideoUnit(
+      sections,
+      addSection,
+      expandedSections,
+      toggleSectionExpanded,
+      onSectionsChange
+    );
   };
 
   const sectionIds = sections.map((_, index) => `section-${index}`);
@@ -218,37 +117,11 @@ const DragDropSectionManager = ({
       onDragEnd={handleDragEnd}
     >
       <div className="space-y-4">
-        <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Course Sections</h3>
-          <div className="flex items-center space-x-2">
-            <Button 
-              type="button"
-              onClick={handleAddSection} 
-              size="sm"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Section
-            </Button>
-            <Button 
-              type="button"
-              onClick={handleAddUnitToFirstSection} 
-              size="sm" 
-              variant="outline"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Unit
-            </Button>
-            <Button 
-              type="button"
-              onClick={handleAddVideoUnit} 
-              size="sm" 
-              variant="outline"
-            >
-              <Video className="h-4 w-4 mr-2" />
-              Add Video
-            </Button>
-          </div>
-        </div>
+        <SectionManagerHeader
+          onAddSection={handleAddSection}
+          onAddUnit={handleAddUnitClick}
+          onAddVideo={handleAddVideoClick}
+        />
 
         <SortableContext items={sectionIds} strategy={verticalListSortingStrategy}>
           {sections.map((section, sectionIndex) => (
@@ -273,16 +146,7 @@ const DragDropSectionManager = ({
       </div>
 
       <DragOverlay>
-        {activeId && activeItem && (
-          <div className="opacity-90 rotate-3 shadow-lg">
-            {activeItem.title ? (
-              <div className="bg-white p-4 rounded-lg border">
-                <h4 className="font-medium">{activeItem.title}</h4>
-                <p className="text-sm text-gray-600">{activeItem.description}</p>
-              </div>
-            ) : null}
-          </div>
-        )}
+        <DragOverlayContent activeId={activeId} activeItem={activeItem} />
       </DragOverlay>
     </DndContext>
   );
