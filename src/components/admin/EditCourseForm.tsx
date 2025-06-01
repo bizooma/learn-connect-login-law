@@ -18,7 +18,7 @@ interface EditCourseFormProps {
 }
 
 const EditCourseForm = ({ open, onOpenChange, course, onCourseUpdated }: EditCourseFormProps) => {
-  const { form, isSubmitting, sections, setSections, onSubmit } = useEditCourseForm(
+  const { form, isSubmitting, lessons, setLessons, onSubmit } = useEditCourseForm(
     course,
     open,
     () => {
@@ -53,8 +53,8 @@ const EditCourseForm = ({ open, onOpenChange, course, onCourseUpdated }: EditCou
 
               <TabsContent value="content">
                 <CourseContentForm
-                  sections={sections}
-                  onSectionsChange={setSections}
+                  lessons={lessons}
+                  onLessonsChange={setLessons}
                 />
               </TabsContent>
 

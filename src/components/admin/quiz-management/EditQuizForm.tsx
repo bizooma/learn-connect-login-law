@@ -1,242 +1,257 @@
-
 import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Switch } from "@/components/ui/switch";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import QuestionManagement from "./QuestionManagement";
 import { Tables } from "@/integrations/supabase/types";
+import { UnitWithCourse, QuizFormData } from "./types";
 
 type Quiz = Tables<'quizzes'>;
-type Unit = Tables<'units'>;
-type Course = Tables<'courses'>;
-
-interface QuizWithDetails extends Quiz {
-  unit: Unit & {
-    section: {
-      course: Course;
-    };
-  };
-}
-
-interface UnitWithCourse extends Unit {
-  section: {
-    course: Course;
-  };
-}
 
 interface EditQuizFormProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
-  quiz: QuizWithDetails | null;
+  onOpenChange: () => void;
+  quiz: Quiz;
   onQuizUpdated: () => void;
 }
 
+const formSchema = z.object({
+  title: z.string().min(2, {
+    message: "Quiz title must be at least 2 characters.",
+  }),
+  description: z.string().optional(),
+  unit_id: z.string().uuid({ message: "Please select a valid unit." }),
+  passing_score: z.number().min(0).max(100),
+  time_limit_minutes: z.number().optional(),
+  is_active: z.boolean().default(true),
+});
+
 const EditQuizForm = ({ open, onOpenChange, quiz, onQuizUpdated }: EditQuizFormProps) => {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [unitId, setUnitId] = useState("");
-  const [passingScore, setPassingScore] = useState(70);
-  const [timeLimitMinutes, setTimeLimitMinutes] = useState<number | null>(null);
-  const [isActive, setIsActive] = useState(true);
-  const [units, setUnits] = useState<UnitWithCourse[]>([]);
-  const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const [showQuestionManagement, setShowQuestionManagement] = useState(false);
 
-  useEffect(() => {
-    if (open && quiz) {
-      setTitle(quiz.title);
-      setDescription(quiz.description || "");
-      setUnitId(quiz.unit_id);
-      setPassingScore(quiz.passing_score);
-      setTimeLimitMinutes(quiz.time_limit_minutes);
-      setIsActive(quiz.is_active);
-      fetchUnits();
-    }
-  }, [open, quiz]);
+  const form = useForm<QuizFormData>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: quiz.title,
+      description: quiz.description || "",
+      unit_id: quiz.unit_id,
+      passing_score: quiz.passing_score,
+      time_limit_minutes: quiz.time_limit_minutes,
+      is_active: quiz.is_active,
+    },
+  });
 
-  const fetchUnits = async () => {
-    try {
+  const { data: units, isLoading: unitsLoading } = useQuery({
+    queryKey: ['units-for-quiz-edit'],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('units')
         .select(`
           *,
-          section:sections!inner(
+          lesson:lessons (
             *,
-            course:courses!inner(*)
+            course:courses (*)
           )
         `)
-        .order('created_at', { ascending: false });
+        .order('title');
 
-      if (error) {
-        throw error;
-      }
-
-      setUnits(data || []);
-    } catch (error) {
-      console.error('Error fetching units:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch units",
-        variant: "destructive",
-      });
+      if (error) throw error;
+      return data as UnitWithCourse[];
     }
-  };
+  });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!quiz || !title.trim() || !unitId) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
+  useEffect(() => {
+    // Update form default values when quiz prop changes
+    form.reset({
+      title: quiz.title,
+      description: quiz.description || "",
+      unit_id: quiz.unit_id,
+      passing_score: quiz.passing_score,
+      time_limit_minutes: quiz.time_limit_minutes,
+      is_active: quiz.is_active,
+    });
+  }, [quiz, form]);
 
-    setLoading(true);
-    
+  const onSubmit = async (values: QuizFormData) => {
     try {
       const { error } = await supabase
         .from('quizzes')
-        .update({
-          title: title.trim(),
-          description: description.trim() || null,
-          unit_id: unitId,
-          passing_score: passingScore,
-          time_limit_minutes: timeLimitMinutes,
-          is_active: isActive,
-          updated_at: new Date().toISOString(),
-        })
+        .update(values)
         .eq('id', quiz.id);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
       toast({
         title: "Success",
         description: "Quiz updated successfully",
       });
-      
       onQuizUpdated();
-      onOpenChange(false);
+      onOpenChange();
     } catch (error) {
-      console.error('Error updating quiz:', error);
+      console.error("Error updating quiz:", error);
       toast({
         title: "Error",
         description: "Failed to update quiz",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
-  if (!quiz) return null;
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Edit Quiz</DialogTitle>
-          <DialogDescription>
-            Update quiz details and settings
-          </DialogDescription>
         </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="title">Quiz Title *</Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder="Enter quiz title"
-              required
-            />
-          </div>
 
-          <div>
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              placeholder="Enter quiz description"
-              rows={3}
-            />
-          </div>
+        <Tabs defaultValue="details" className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="details">Details</TabsTrigger>
+            <TabsTrigger value="questions">Questions</TabsTrigger>
+          </TabsList>
 
-          <div>
-            <Label htmlFor="unit">Unit *</Label>
-            <Select value={unitId} onValueChange={setUnitId} required>
-              <SelectTrigger>
-                <SelectValue placeholder="Select a unit" />
-              </SelectTrigger>
-              <SelectContent>
-                {units.map((unit) => (
-                  <SelectItem key={unit.id} value={unit.id}>
-                    {unit.section.course.title} → {unit.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <TabsContent value="details">
+                <FormField
+                  control={form.control}
+                  name="title"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Quiz Title</FormLabel>
+                      <FormControl>
+                        <Input placeholder="Quiz title" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="passingScore">Passing Score (%)</Label>
-              <Input
-                id="passingScore"
-                type="number"
-                min="0"
-                max="100"
-                value={passingScore}
-                onChange={(e) => setPassingScore(parseInt(e.target.value) || 70)}
-              />
-            </div>
+                <FormField
+                  control={form.control}
+                  name="description"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Description</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Quiz description"
+                          className="resize-none"
+                          {...field}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
 
-            <div>
-              <Label htmlFor="timeLimit">Time Limit (minutes)</Label>
-              <Input
-                id="timeLimit"
-                type="number"
-                min="1"
-                value={timeLimitMinutes || ""}
-                onChange={(e) => setTimeLimitMinutes(e.target.value ? parseInt(e.target.value) : null)}
-                placeholder="No limit"
-              />
-            </div>
-          </div>
+                <FormField
+                  control={form.control}
+                  name="unit_id"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Unit</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a unit" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {units?.map((unit) => (
+                            <SelectItem key={unit.id} value={unit.id}>
+                              {unit.title}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-          <div className="flex items-center space-x-2">
-            <Switch
-              id="isActive"
-              checked={isActive}
-              onCheckedChange={setIsActive}
-            />
-            <Label htmlFor="isActive">Active</Label>
-          </div>
+                <FormField
+                  control={form.control}
+                  name="passing_score"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Passing Score (%)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Passing score"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
 
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Updating..." : "Update Quiz"}
-            </Button>
-          </DialogFooter>
-        </form>
+                <FormField
+                  control={form.control}
+                  name="time_limit_minutes"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Time Limit (minutes)</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="number"
+                          placeholder="Time limit"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="is_active"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                      <div className="space-y-0.5">
+                        <FormLabel>Active</FormLabel>
+                        <p className="text-sm text-muted-foreground">
+                          Activate or deactivate the quiz.
+                        </p>
+                      </div>
+                      <FormControl>
+                        <Switch
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                    </FormItem>
+                  )}
+                />
+              </TabsContent>
+
+              <TabsContent value="questions">
+                <QuestionManagement quizId={quiz.id} />
+              </TabsContent>
+
+              <div className="flex justify-between">
+                <Button type="submit">Update Quiz</Button>
+                <Button type="button" variant="outline" onClick={onOpenChange}>
+                  Cancel
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </Tabs>
       </DialogContent>
     </Dialog>
   );
