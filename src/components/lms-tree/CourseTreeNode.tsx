@@ -9,13 +9,13 @@ import ModuleTreeNode from "./ModuleTreeNode";
 
 type Course = Tables<'courses'>;
 type Module = Tables<'modules'>;
-type Section = Tables<'sections'>;
+type Lesson = Tables<'lessons'>;
 type Unit = Tables<'units'>;
 type Quiz = Tables<'quizzes'>;
 
 interface CourseWithContent extends Course {
   modules: (Module & {
-    sections: (Section & {
+    lessons: (Lesson & {
       units: (Unit & {
         quizzes: Quiz[];
       })[];
@@ -28,9 +28,9 @@ interface CourseTreeNodeProps {
   isExpanded: boolean;
   onToggle: () => void;
   expandedModules: Set<string>;
-  expandedSections: Set<string>;
+  expandedLessons: Set<string>;
   onToggleModule: (moduleId: string) => void;
-  onToggleSection: (sectionId: string) => void;
+  onToggleLesson: (lessonId: string) => void;
 }
 
 const CourseTreeNode = ({
@@ -38,9 +38,9 @@ const CourseTreeNode = ({
   isExpanded,
   onToggle,
   expandedModules,
-  expandedSections,
+  expandedLessons,
   onToggleModule,
-  onToggleSection
+  onToggleLesson
 }: CourseTreeNodeProps) => {
   const {
     attributes,
@@ -55,19 +55,19 @@ const CourseTreeNode = ({
     transition,
   };
 
-  const totalSections = course.modules?.reduce((acc, module) => 
-    acc + (module.sections?.length || 0), 0
+  const totalLessons = course.modules?.reduce((acc, module) => 
+    acc + (module.lessons?.length || 0), 0
   ) || 0;
 
   const totalUnits = course.modules?.reduce((acc, module) => 
-    acc + (module.sections?.reduce((sectionAcc, section) => 
-      sectionAcc + (section.units?.length || 0), 0
+    acc + (module.lessons?.reduce((lessonAcc, lesson) => 
+      lessonAcc + (lesson.units?.length || 0), 0
     ) || 0), 0
   ) || 0;
 
   const totalQuizzes = course.modules?.reduce((acc, module) => 
-    acc + (module.sections?.reduce((sectionAcc, section) => 
-      sectionAcc + (section.units?.reduce((unitAcc, unit) => 
+    acc + (module.lessons?.reduce((lessonAcc, lesson) => 
+      lessonAcc + (lesson.units?.reduce((unitAcc, unit) => 
         unitAcc + (unit.quizzes?.length || 0), 0
       ) || 0), 0
     ) || 0), 0
@@ -122,7 +122,7 @@ const CourseTreeNode = ({
                   <span>{course.rating || 0}</span>
                 </div>
                 <span>{course.modules?.length || 0} modules</span>
-                <span>{totalSections} sections</span>
+                <span>{totalLessons} lessons</span>
                 <span>{totalUnits} units</span>
                 <span>{totalQuizzes} quizzes</span>
               </div>
@@ -137,8 +137,8 @@ const CourseTreeNode = ({
                   module={module}
                   isExpanded={expandedModules.has(module.id)}
                   onToggle={() => onToggleModule(module.id)}
-                  expandedSections={expandedSections}
-                  onToggleSection={onToggleSection}
+                  expandedLessons={expandedLessons}
+                  onToggleLesson={onToggleLesson}
                 />
               ))}
             </div>

@@ -1,5 +1,5 @@
 
-import SectionManager from "../SectionManager";
+import LessonManager from "../LessonManager";
 
 interface SectionData {
   id?: string;
@@ -23,16 +23,16 @@ interface UnitData {
 }
 
 interface CourseContentFormProps {
-  sections: SectionData[];
-  onSectionsChange: (sections: SectionData[]) => void;
+  lessons: SectionData[];
+  onLessonsChange: (lessons: SectionData[]) => void;
 }
 
-const CourseContentForm = ({ sections, onSectionsChange }: CourseContentFormProps) => {
+const CourseContentForm = ({ lessons, onLessonsChange }: CourseContentFormProps) => {
   return (
     <div className="space-y-4">
-      <SectionManager
-        sections={sections}
-        onSectionsChange={onSectionsChange}
+      <LessonManager
+        lessons={lessons}
+        onLessonsChange={onLessonsChange}
       />
     </div>
   );

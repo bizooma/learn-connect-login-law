@@ -4,16 +4,16 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
 
-type Section = Tables<'sections'>;
+type Lesson = Tables<'lessons'>;
 type Unit = Tables<'units'>;
 
-interface SectionWithUnits extends Section {
+interface LessonWithUnits extends Lesson {
   units: Unit[];
 }
 
 export const useSection = (id: string | undefined) => {
   const { toast } = useToast();
-  const [section, setSection] = useState<SectionWithUnits | null>(null);
+  const [section, setSection] = useState<LessonWithUnits | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -24,23 +24,23 @@ export const useSection = (id: string | undefined) => {
     }
 
     try {
-      console.log('Fetching section:', id);
+      console.log('Fetching lesson:', id);
       
-      // Fetch section with units
-      const { data: sectionData, error: sectionError } = await supabase
-        .from('sections')
+      // Fetch lesson with units
+      const { data: lessonData, error: lessonError } = await supabase
+        .from('lessons')
         .select('*')
         .eq('id', id)
         .single();
 
-      if (sectionError) {
-        console.error('Error fetching section:', sectionError);
-        throw sectionError;
+      if (lessonError) {
+        console.error('Error fetching lesson:', lessonError);
+        throw lessonError;
       }
 
-      console.log('Section data fetched:', sectionData);
+      console.log('Lesson data fetched:', lessonData);
 
-      // Fetch units for this section
+      // Fetch units for this lesson
       const { data: unitsData, error: unitsError } = await supabase
         .from('units')
         .select('*')
@@ -54,22 +54,22 @@ export const useSection = (id: string | undefined) => {
 
       console.log('Units data fetched:', unitsData);
 
-      const sectionWithUnits: SectionWithUnits = {
-        ...sectionData,
+      const lessonWithUnits: LessonWithUnits = {
+        ...lessonData,
         units: unitsData || []
       };
 
-      setSection(sectionWithUnits);
+      setSection(lessonWithUnits);
 
       // Set first unit as selected by default
       if (unitsData && unitsData.length > 0) {
         setSelectedUnit(unitsData[0]);
       }
     } catch (error) {
-      console.error('Error fetching section:', error);
+      console.error('Error fetching lesson:', error);
       toast({
         title: "Error",
-        description: "Failed to load section",
+        description: "Failed to load lesson",
         variant: "destructive",
       });
       setSection(null);
@@ -80,10 +80,10 @@ export const useSection = (id: string | undefined) => {
 
   useEffect(() => {
     if (id) {
-      console.log('useSection: Starting to fetch section:', id);
+      console.log('useSection: Starting to fetch lesson:', id);
       fetchSection();
     } else {
-      console.log('useSection: No section ID provided');
+      console.log('useSection: No lesson ID provided');
       setLoading(false);
     }
   }, [id]);

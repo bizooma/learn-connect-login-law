@@ -7,7 +7,7 @@ import { useCourseForm } from "./hooks/useCourseForm";
 import { useCourseContentManagement } from "./hooks/useCourseContentManagement";
 import { updateCourseBasicInfo } from "./services/courseUpdateService";
 import { cleanupExistingCourseContent } from "./services/courseContentCleanup";
-import { createSectionsAndUnits } from "./services/sectionCreation";
+import { createLessonsAndUnits } from "./services/sectionCreation";
 import { createWelcomeCalendarEvent } from "./services/calendarService";
 
 type Course = Tables<'courses'>;
@@ -25,7 +25,7 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
   const { toast } = useToast();
   
   const form = useCourseForm(course, open);
-  const { sections, setSections } = useCourseContentManagement(course, open);
+  const { lessons, setLessons } = useCourseContentManagement(course, open);
 
   const onSubmit = async (data: CourseFormData) => {
     if (!course) return;
@@ -36,8 +36,8 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
       await ensureCalendarExists(course.id);
       await cleanupExistingCourseContent(course.id);
 
-      if (sections.length > 0) {
-        await createSectionsAndUnits(course.id, sections);
+      if (lessons.length > 0) {
+        await createLessonsAndUnits(course.id, lessons);
       }
 
       toast({
@@ -61,8 +61,8 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
   return {
     form,
     isSubmitting,
-    sections,
-    setSections,
+    lessons,
+    setLessons,
     onSubmit,
   };
 };

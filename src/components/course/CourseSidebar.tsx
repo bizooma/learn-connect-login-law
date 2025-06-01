@@ -5,29 +5,29 @@ import { Clock, Users, Play, ChevronDown, ChevronRight } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { useState } from "react";
 
-type Section = Tables<'sections'> & {
+type Lesson = Tables<'lessons'> & {
   units: Tables<'units'>[];
 };
 
 type Unit = Tables<'units'>;
 
 interface CourseSidebarProps {
-  sections: Section[];
+  lessons: Lesson[];
   selectedUnit: Unit | null;
   onUnitSelect: (unit: Unit) => void;
 }
 
-const CourseSidebar = ({ sections, selectedUnit, onUnitSelect }: CourseSidebarProps) => {
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+const CourseSidebar = ({ lessons, selectedUnit, onUnitSelect }: CourseSidebarProps) => {
+  const [expandedLessons, setExpandedLessons] = useState<Set<string>>(new Set());
 
-  const toggleSection = (sectionId: string) => {
-    const newExpanded = new Set(expandedSections);
-    if (newExpanded.has(sectionId)) {
-      newExpanded.delete(sectionId);
+  const toggleLesson = (lessonId: string) => {
+    const newExpanded = new Set(expandedLessons);
+    if (newExpanded.has(lessonId)) {
+      newExpanded.delete(lessonId);
     } else {
-      newExpanded.add(sectionId);
+      newExpanded.add(lessonId);
     }
-    setExpandedSections(newExpanded);
+    setExpandedLessons(newExpanded);
   };
 
   return (
@@ -35,20 +35,20 @@ const CourseSidebar = ({ sections, selectedUnit, onUnitSelect }: CourseSidebarPr
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Course Content</h3>
         <div className="text-sm text-gray-500">
-          {sections.length} sections
+          {lessons.length} lessons
         </div>
       </div>
       
       <div className="space-y-3">
-        {sections.map((section, index) => {
-          const totalMinutes = section.units.reduce((acc, unit) => acc + (unit.duration_minutes || 0), 0);
-          const isExpanded = expandedSections.has(section.id);
+        {lessons.map((lesson, index) => {
+          const totalMinutes = lesson.units.reduce((acc, unit) => acc + (unit.duration_minutes || 0), 0);
+          const isExpanded = expandedLessons.has(lesson.id);
           
           return (
-            <Card key={section.id} className="overflow-hidden">
+            <Card key={lesson.id} className="overflow-hidden">
               <CardHeader 
                 className="pb-2 cursor-pointer hover:bg-gray-50 transition-colors"
-                onClick={() => toggleSection(section.id)}
+                onClick={() => toggleLesson(lesson.id)}
               >
                 <div className="flex items-start justify-between">
                   <div className="flex items-start space-x-2 flex-1">
@@ -58,11 +58,11 @@ const CourseSidebar = ({ sections, selectedUnit, onUnitSelect }: CourseSidebarPr
                       <ChevronRight className="h-4 w-4 mt-1 shrink-0" />
                     )}
                     <CardTitle className="text-sm font-medium line-clamp-2 pr-2">
-                      {index + 1}. {section.title}
+                      {index + 1}. {lesson.title}
                     </CardTitle>
                   </div>
                   <Badge variant="secondary" className="ml-2 shrink-0">
-                    {section.units.length} units
+                    {lesson.units.length} units
                   </Badge>
                 </div>
               </CardHeader>
@@ -70,7 +70,7 @@ const CourseSidebar = ({ sections, selectedUnit, onUnitSelect }: CourseSidebarPr
               {isExpanded && (
                 <CardContent className="pt-0">
                   <p className="text-xs text-gray-600 mb-3 line-clamp-2">
-                    {section.description}
+                    {lesson.description}
                   </p>
                   <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
                     <div className="flex items-center">
@@ -85,7 +85,7 @@ const CourseSidebar = ({ sections, selectedUnit, onUnitSelect }: CourseSidebarPr
                   
                   {/* Units List */}
                   <div className="space-y-1">
-                    {section.units.map((unit, unitIndex) => (
+                    {lesson.units.map((unit, unitIndex) => (
                       <button
                         key={unit.id}
                         onClick={(e) => {
@@ -126,9 +126,9 @@ const CourseSidebar = ({ sections, selectedUnit, onUnitSelect }: CourseSidebarPr
         })}
       </div>
       
-      {sections.length === 0 && (
+      {lessons.length === 0 && (
         <div className="text-center text-gray-500 py-8">
-          <p>No sections available</p>
+          <p>No lessons available</p>
         </div>
       )}
     </div>

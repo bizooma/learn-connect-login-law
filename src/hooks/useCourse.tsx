@@ -2,29 +2,44 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Tables } from "@/integrations/supabase/types";
 import { useAuth } from "@/hooks/useAuth";
-import { useUserRole } from "@/hooks/useUserRole";
+import { Tables } from "@/integrations/supabase/types";
 
 type Course = Tables<'courses'>;
-type Section = Tables<'sections'>;
+type Lesson = Tables<'lessons'>;
 type Unit = Tables<'units'>;
 
-interface CourseWithContent extends Course {
-  sections: (Section & {
-    units: Unit[];
-  })[];
+interface CourseWithLessons extends Course {
+  lessons: (Lesson & { units: Unit[] })[];
 }
 
 export const useCourse = (id: string | undefined) => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { hasAdminPrivileges, loading: roleLoading, role } = useUserRole();
-  const [course, setCourse] = useState<CourseWithContent | null>(null);
+  const [course, setCourse] = useState<CourseWithLessons | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isAdmin, setIsAdmin] = useState(false);
 
-  console.log('useCourse: Current role state:', { role, hasAdminPrivileges, roleLoading });
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (!user) return;
+      
+      try {
+        console.log('Checking admin status for user:', user.id);
+        const isAdminResult = await supabase.rpc('is_admin_user');
+        console.log('Admin check result:', isAdminResult);
+        setIsAdmin(isAdminResult.data || false);
+      } catch (error) {
+        console.error('Error checking admin status:', error);
+        setIsAdmin(false);
+      }
+    };
+
+    if (user) {
+      checkAdminStatus();
+    }
+  }, [user]);
 
   const fetchCourse = async () => {
     if (!id) {
@@ -33,7 +48,9 @@ export const useCourse = (id: string | undefined) => {
     }
 
     try {
-      // Fetch course with sections and units
+      console.log('Fetching course:', id);
+      
+      // First fetch the course
       const { data: courseData, error: courseError } = await supabase
         .from('courses')
         .select('*')
@@ -41,44 +58,53 @@ export const useCourse = (id: string | undefined) => {
         .single();
 
       if (courseError) {
-        console.error('useCourse: Error fetching course:', courseError);
+        console.error('Error fetching course:', courseError);
         throw courseError;
       }
 
-      // Fetch sections with units
-      const { data: sectionsData, error: sectionsError } = await supabase
-        .from('sections')
+      console.log('Course data fetched:', courseData);
+
+      // Then fetch modules with lessons and units
+      const { data: modulesData, error: modulesError } = await supabase
+        .from('modules')
         .select(`
           *,
-          units (*)
+          lessons:lessons(
+            *,
+            units:units(*)
+          )
         `)
         .eq('course_id', id)
         .order('sort_order', { ascending: true });
 
-      if (sectionsError) {
-        console.error('useCourse: Error fetching sections:', sectionsError);
-        throw sectionsError;
+      if (modulesError) {
+        console.error('Error fetching modules:', modulesError);
+        throw modulesError;
       }
 
-      // Sort units within each section
-      const sectionsWithSortedUnits = sectionsData?.map(section => ({
-        ...section,
-        units: (section.units || []).sort((a, b) => a.sort_order - b.sort_order)
-      })) || [];
+      console.log('Modules data fetched:', modulesData);
 
-      const courseWithContent: CourseWithContent = {
+      // For backward compatibility, flatten lessons from the first module
+      const firstModule = modulesData?.[0];
+      const lessons = firstModule?.lessons?.map(lesson => ({
+        ...lesson,
+        units: (lesson.units || []).sort((a, b) => a.sort_order - b.sort_order)
+      })).sort((a, b) => a.sort_order - b.sort_order) || [];
+
+      const courseWithLessons: CourseWithLessons = {
         ...courseData,
-        sections: sectionsWithSortedUnits
+        lessons
       };
 
-      setCourse(courseWithContent);
+      setCourse(courseWithLessons);
 
-      // Set first unit as selected by default
-      if (sectionsWithSortedUnits.length > 0 && sectionsWithSortedUnits[0].units.length > 0) {
-        setSelectedUnit(sectionsWithSortedUnits[0].units[0]);
+      // Set first unit of first lesson as selected by default
+      const firstLesson = lessons[0];
+      if (firstLesson && firstLesson.units.length > 0) {
+        setSelectedUnit(firstLesson.units[0]);
       }
     } catch (error) {
-      console.error('useCourse: Error fetching course:', error);
+      console.error('Error fetching course:', error);
       toast({
         title: "Error",
         description: "Failed to load course",
@@ -92,27 +118,19 @@ export const useCourse = (id: string | undefined) => {
 
   useEffect(() => {
     if (id) {
+      console.log('useCourse: Starting to fetch course:', id);
       fetchCourse();
     } else {
+      console.log('useCourse: No course ID provided');
       setLoading(false);
     }
   }, [id]);
-
-  // Wait for role to be loaded before determining admin status
-  const isAdmin = !roleLoading && hasAdminPrivileges;
-  
-  console.log('useCourse: Final isAdmin determination:', { 
-    roleLoading, 
-    hasAdminPrivileges, 
-    isAdmin,
-    role 
-  });
 
   return {
     course,
     selectedUnit,
     setSelectedUnit,
-    loading: loading || roleLoading,
+    loading,
     isAdmin
   };
 };

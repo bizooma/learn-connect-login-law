@@ -12,21 +12,21 @@ const LMSTree = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [expandedCourses, setExpandedCourses] = useState<Set<string>>(new Set());
   const [expandedModules, setExpandedModules] = useState<Set<string>>(new Set());
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
+  const [expandedLessons, setExpandedLessons] = useState<Set<string>>(new Set());
 
   const { data: coursesData, isLoading, error, refetch } = useQuery({
     queryKey: ['lms-tree-data'],
     queryFn: async () => {
       console.log('Fetching LMS tree data with modules...');
       
-      // Fetch courses with modules, sections, units, and quizzes
+      // Fetch courses with modules, lessons, units, and quizzes
       const { data: courses, error: coursesError } = await supabase
         .from('courses')
         .select(`
           *,
           modules (
             *,
-            sections (
+            lessons (
               *,
               units (
                 *,
@@ -42,18 +42,18 @@ const LMSTree = () => {
         throw coursesError;
       }
 
-      // Sort modules, sections and units by sort_order
+      // Sort modules, lessons and units by sort_order
       const sortedData = courses?.map(course => ({
         ...course,
         modules: (course.modules || [])
           .sort((a, b) => a.sort_order - b.sort_order)
           .map(module => ({
             ...module,
-            sections: (module.sections || [])
+            lessons: (module.lessons || [])
               .sort((a, b) => a.sort_order - b.sort_order)
-              .map(section => ({
-                ...section,
-                units: (section.units || []).sort((a, b) => a.sort_order - b.sort_order)
+              .map(lesson => ({
+                ...lesson,
+                units: (lesson.units || []).sort((a, b) => a.sort_order - b.sort_order)
               }))
           }))
       })) || [];
@@ -95,13 +95,13 @@ const LMSTree = () => {
     });
   };
 
-  const toggleSectionExpanded = (sectionId: string) => {
-    setExpandedSections(prev => {
+  const toggleLessonExpanded = (lessonId: string) => {
+    setExpandedLessons(prev => {
       const newSet = new Set(prev);
-      if (newSet.has(sectionId)) {
-        newSet.delete(sectionId);
+      if (newSet.has(lessonId)) {
+        newSet.delete(lessonId);
       } else {
-        newSet.add(sectionId);
+        newSet.add(lessonId);
       }
       return newSet;
     });
@@ -111,9 +111,9 @@ const LMSTree = () => {
     course.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
     course.modules?.some(module =>
       module.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      module.sections?.some(section =>
-        section.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        section.units?.some(unit =>
+      module.lessons?.some(lesson =>
+        lesson.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        lesson.units?.some(unit =>
           unit.title.toLowerCase().includes(searchTerm.toLowerCase())
         )
       )
@@ -136,10 +136,10 @@ const LMSTree = () => {
         courses={filteredCourses}
         expandedCourses={expandedCourses}
         expandedModules={expandedModules}
-        expandedSections={expandedSections}
+        expandedLessons={expandedLessons}
         onToggleCourse={toggleCourseExpanded}
         onToggleModule={toggleModuleExpanded}
-        onToggleSection={toggleSectionExpanded}
+        onToggleLesson={toggleLessonExpanded}
         onRefetch={refetch}
       />
     </div>

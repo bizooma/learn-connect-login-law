@@ -4,15 +4,15 @@ import { CSS } from '@dnd-kit/utilities';
 import { ChevronDown, ChevronRight, Package, GripVertical, FolderOpen } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Tables } from "@/integrations/supabase/types";
-import SectionTreeNode from "./SectionTreeNode";
+import LessonTreeNode from "./LessonTreeNode";
 
 type Module = Tables<'modules'>;
-type Section = Tables<'sections'>;
+type Lesson = Tables<'lessons'>;
 type Unit = Tables<'units'>;
 type Quiz = Tables<'quizzes'>;
 
-interface ModuleWithSections extends Module {
-  sections: (Section & {
+interface ModuleWithLessons extends Module {
+  lessons: (Lesson & {
     units: (Unit & {
       quizzes: Quiz[];
     })[];
@@ -20,19 +20,19 @@ interface ModuleWithSections extends Module {
 }
 
 interface ModuleTreeNodeProps {
-  module: ModuleWithSections;
+  module: ModuleWithLessons;
   isExpanded: boolean;
   onToggle: () => void;
-  expandedSections: Set<string>;
-  onToggleSection: (sectionId: string) => void;
+  expandedLessons: Set<string>;
+  onToggleLesson: (lessonId: string) => void;
 }
 
 const ModuleTreeNode = ({
   module,
   isExpanded,
   onToggle,
-  expandedSections,
-  onToggleSection
+  expandedLessons,
+  onToggleLesson
 }: ModuleTreeNodeProps) => {
   const {
     attributes,
@@ -47,12 +47,12 @@ const ModuleTreeNode = ({
     transition,
   };
 
-  const totalUnits = module.sections?.reduce((acc, section) => 
-    acc + (section.units?.length || 0), 0
+  const totalUnits = module.lessons?.reduce((acc, lesson) => 
+    acc + (lesson.units?.length || 0), 0
   ) || 0;
 
-  const totalQuizzes = module.sections?.reduce((acc, section) => 
-    acc + (section.units?.reduce((unitAcc, unit) => 
+  const totalQuizzes = module.lessons?.reduce((acc, lesson) => 
+    acc + (lesson.units?.reduce((unitAcc, unit) => 
       unitAcc + (unit.quizzes?.length || 0), 0
     ) || 0), 0
   ) || 0;
@@ -89,7 +89,7 @@ const ModuleTreeNode = ({
                   {module.title}
                 </h4>
                 <span className="text-xs text-purple-600">
-                  {module.sections?.length || 0} sections
+                  {module.lessons?.length || 0} lessons
                 </span>
                 {totalUnits > 0 && (
                   <span className="text-xs text-purple-600">
@@ -111,14 +111,14 @@ const ModuleTreeNode = ({
             </div>
           </div>
 
-          {isExpanded && module.sections && module.sections.length > 0 && (
+          {isExpanded && module.lessons && module.lessons.length > 0 && (
             <div className="ml-6 mt-3 space-y-1">
-              {module.sections.map((section) => (
-                <SectionTreeNode
-                  key={section.id}
-                  section={section}
-                  isExpanded={expandedSections.has(section.id)}
-                  onToggle={() => onToggleSection(section.id)}
+              {module.lessons.map((lesson) => (
+                <LessonTreeNode
+                  key={lesson.id}
+                  lesson={lesson}
+                  isExpanded={expandedLessons.has(lesson.id)}
+                  onToggle={() => onToggleLesson(lesson.id)}
                 />
               ))}
             </div>

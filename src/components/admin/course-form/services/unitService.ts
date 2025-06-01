@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { UnitData } from "../types";
 import { uploadVideoFile } from "../fileUploadUtils";
 
-export const createUnit = async (sectionId: string, unit: UnitData) => {
+export const createUnit = async (lessonId: string, unit: UnitData) => {
   let videoUrl = unit.video_url;
   
   // Upload video file if it's an upload type and has a file
@@ -20,7 +20,7 @@ export const createUnit = async (sectionId: string, unit: UnitData) => {
   const { data: unitData, error: unitError } = await supabase
     .from('units')
     .insert({
-      section_id: sectionId,
+      section_id: lessonId,
       title: unit.title,
       description: unit.description,
       content: unit.content,

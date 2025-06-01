@@ -5,12 +5,12 @@ import CourseSidebar from "./CourseSidebar";
 import CourseContent from "./CourseContent";
 import CourseCalendar from "./CourseCalendar";
 
-type Section = Tables<'sections'>;
+type Lesson = Tables<'lessons'>;
 type Unit = Tables<'units'>;
 
 interface CourseMainContentProps {
   courseId: string;
-  sections: (Section & { units: Unit[] })[];
+  lessons: (Lesson & { units: Unit[] })[];
   selectedUnit: Unit | null;
   onUnitSelect: (unit: Unit) => void;
   isAdmin: boolean;
@@ -18,7 +18,7 @@ interface CourseMainContentProps {
 
 const CourseMainContent = ({ 
   courseId,
-  sections, 
+  lessons, 
   selectedUnit, 
   onUnitSelect, 
   isAdmin 
@@ -30,7 +30,7 @@ const CourseMainContent = ({
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
         <div className="lg:col-span-1">
           <CourseSidebar 
-            sections={sections} 
+            lessons={lessons} 
             selectedUnit={selectedUnit}
             onUnitSelect={onUnitSelect}
           />

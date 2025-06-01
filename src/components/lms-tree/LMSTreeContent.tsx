@@ -9,13 +9,13 @@ import { useToast } from "@/hooks/use-toast";
 
 type Course = Tables<'courses'>;
 type Module = Tables<'modules'>;
-type Section = Tables<'sections'>;
+type Lesson = Tables<'lessons'>;
 type Unit = Tables<'units'>;
 type Quiz = Tables<'quizzes'>;
 
 interface CourseWithContent extends Course {
   modules: (Module & {
-    sections: (Section & {
+    lessons: (Lesson & {
       units: (Unit & {
         quizzes: Quiz[];
       })[];
@@ -27,10 +27,10 @@ interface LMSTreeContentProps {
   courses: CourseWithContent[];
   expandedCourses: Set<string>;
   expandedModules: Set<string>;
-  expandedSections: Set<string>;
+  expandedLessons: Set<string>;
   onToggleCourse: (courseId: string) => void;
   onToggleModule: (moduleId: string) => void;
-  onToggleSection: (sectionId: string) => void;
+  onToggleLesson: (lessonId: string) => void;
   onRefetch: () => void;
 }
 
@@ -38,10 +38,10 @@ const LMSTreeContent = ({
   courses,
   expandedCourses,
   expandedModules,
-  expandedSections,
+  expandedLessons,
   onToggleCourse,
   onToggleModule,
-  onToggleSection,
+  onToggleLesson,
   onRefetch
 }: LMSTreeContentProps) => {
   const { toast } = useToast();
@@ -67,7 +67,7 @@ const LMSTreeContent = ({
       
       // Handle reclassification based on drag target
       if (activeType === 'section' && overType === 'course') {
-        // Reclassify section to module
+        // Reclassify lesson to module
         const { data, error } = await supabase.rpc('reclassify_section_to_module', {
           p_section_id: activeItemId,
           p_course_id: overItemId
@@ -77,12 +77,12 @@ const LMSTreeContent = ({
         
         toast({
           title: "Success",
-          description: "Section reclassified to module successfully",
+          description: "Lesson reclassified to module successfully",
         });
         
         onRefetch();
       } else if (activeType === 'unit' && overType === 'module') {
-        // Reclassify unit to section
+        // Reclassify unit to lesson
         const { data, error } = await supabase.rpc('reclassify_unit_to_section', {
           p_unit_id: activeItemId,
           p_module_id: overItemId
@@ -92,12 +92,12 @@ const LMSTreeContent = ({
         
         toast({
           title: "Success",
-          description: "Unit reclassified to section successfully",
+          description: "Unit reclassified to lesson successfully",
         });
         
         onRefetch();
       } else if (activeType === 'section' && overType === 'module') {
-        // Move section to different module
+        // Move lesson to different module
         const { data, error } = await supabase.rpc('move_content_to_level', {
           p_content_id: activeItemId,
           p_content_type: 'section',
@@ -109,12 +109,12 @@ const LMSTreeContent = ({
         
         toast({
           title: "Success",
-          description: "Section moved to module successfully",
+          description: "Lesson moved to module successfully",
         });
         
         onRefetch();
       } else if (activeType === 'unit' && overType === 'section') {
-        // Move unit to different section
+        // Move unit to different lesson
         const { data, error } = await supabase.rpc('move_content_to_level', {
           p_content_id: activeItemId,
           p_content_type: 'unit',
@@ -126,7 +126,7 @@ const LMSTreeContent = ({
         
         toast({
           title: "Success",
-          description: "Unit moved to section successfully",
+          description: "Unit moved to lesson successfully",
         });
         
         onRefetch();
@@ -173,9 +173,9 @@ const LMSTreeContent = ({
                 isExpanded={expandedCourses.has(course.id)}
                 onToggle={() => onToggleCourse(course.id)}
                 expandedModules={expandedModules}
-                expandedSections={expandedSections}
+                expandedLessons={expandedLessons}
                 onToggleModule={onToggleModule}
-                onToggleSection={onToggleSection}
+                onToggleLesson={onToggleLesson}
               />
             ))}
           </div>
