@@ -19,21 +19,12 @@ interface CourseWithContent extends Course {
 export const useCourse = (id: string | undefined) => {
   const { toast } = useToast();
   const { user } = useAuth();
-  const { hasAdminPrivileges, loading: roleLoading, refreshRole } = useUserRole();
+  const { hasAdminPrivileges, loading: roleLoading, role } = useUserRole();
   const [course, setCourse] = useState<CourseWithContent | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Debug log to see current admin status
-  console.log('useCourse: hasAdminPrivileges:', hasAdminPrivileges, 'roleLoading:', roleLoading, 'user:', user?.id);
-
-  // Force a role refresh when component mounts
-  useEffect(() => {
-    console.log('useCourse: Component mounted, forcing role refresh');
-    if (user) {
-      refreshRole();
-    }
-  }, [user, refreshRole]);
+  console.log('useCourse: Current role state:', { role, hasAdminPrivileges, roleLoading });
 
   const fetchCourse = async () => {
     if (!id) {
@@ -107,13 +98,21 @@ export const useCourse = (id: string | undefined) => {
     }
   }, [id]);
 
-  console.log('useCourse: Returning isAdmin:', hasAdminPrivileges);
+  // Wait for role to be loaded before determining admin status
+  const isAdmin = !roleLoading && hasAdminPrivileges;
+  
+  console.log('useCourse: Final isAdmin determination:', { 
+    roleLoading, 
+    hasAdminPrivileges, 
+    isAdmin,
+    role 
+  });
 
   return {
     course,
     selectedUnit,
     setSelectedUnit,
     loading: loading || roleLoading,
-    isAdmin: hasAdminPrivileges
+    isAdmin
   };
 };
