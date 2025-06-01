@@ -43,6 +43,7 @@ interface DragDropSectionManagerProps {
 
 const DragDropSectionManager = ({
   sections,
+  onSectionsChange,
   expandedSections,
   addSection,
   updateSection,
@@ -155,6 +156,25 @@ const DragDropSectionManager = ({
     }
   };
 
+  const addVideoUnit = (sectionIndex: number) => {
+    const newUnit: UnitData = {
+      title: "",
+      description: "",
+      content: "",
+      video_url: "",
+      video_type: 'upload',
+      duration_minutes: 0,
+      sort_order: sections[sectionIndex].units.length
+    };
+    
+    const updatedSections = sections.map((section, i) => 
+      i === sectionIndex 
+        ? { ...section, units: [...section.units, newUnit] }
+        : section
+    );
+    onSectionsChange(updatedSections);
+  };
+
   const handleAddVideoUnit = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
@@ -166,24 +186,13 @@ const DragDropSectionManager = ({
       console.log('Creating section first...');
       addSection();
       setTimeout(() => {
-        console.log('Adding unit to new section...');
-        addUnit(0);
-        setTimeout(() => {
-          console.log('Setting video type...');
-          updateUnit(0, 0, 'video_type', 'upload');
-        }, 100);
+        console.log('Adding video unit to new section...');
+        addVideoUnit(0);
       }, 100);
     } else {
-      // Add unit to the first section and set it as video type
-      console.log('Adding unit to existing section...');
-      const currentUnitCount = sections[0].units.length;
-      addUnit(0);
-      
-      // Set the new unit to video type immediately
-      setTimeout(() => {
-        console.log('Setting video type for unit at index:', currentUnitCount);
-        updateUnit(0, currentUnitCount, 'video_type', 'upload');
-      }, 50);
+      // Add video unit to the first section
+      console.log('Adding video unit to existing section...');
+      addVideoUnit(0);
       
       // Expand the first section if it's not already expanded
       if (!expandedSections.has(0)) {
