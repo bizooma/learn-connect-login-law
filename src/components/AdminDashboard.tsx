@@ -166,13 +166,52 @@ const AdminDashboard = () => {
           </CardHeader>
           <CardContent>
             <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-6">
-                <TabsTrigger value="courses">Courses</TabsTrigger>
-                <TabsTrigger value="assignments">Assignments</TabsTrigger>
-                <TabsTrigger value="users">Users</TabsTrigger>
-                <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
-                <TabsTrigger value="notifications">Notifications</TabsTrigger>
-                <TabsTrigger value="profile">Profile</TabsTrigger>
+              <TabsList 
+                className="grid w-full grid-cols-6"
+                style={{ backgroundColor: '#FFDA00' }}
+              >
+                <TabsTrigger 
+                  value="courses"
+                  className="data-[state=active]:bg-white data-[state=active]:text-black"
+                  style={{ color: 'black' }}
+                >
+                  Courses
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="assignments"
+                  className="data-[state=active]:bg-white data-[state=active]:text-black"
+                  style={{ color: 'black' }}
+                >
+                  Assignments
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="users"
+                  className="data-[state=active]:bg-white data-[state=active]:text-black"
+                  style={{ color: 'black' }}
+                >
+                  Users
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="quizzes"
+                  className="data-[state=active]:bg-white data-[state=active]:text-black"
+                  style={{ color: 'black' }}
+                >
+                  Quizzes
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="notifications"
+                  className="data-[state=active]:bg-white data-[state=active]:text-black"
+                  style={{ color: 'black' }}
+                >
+                  Notifications
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="profile"
+                  className="data-[state=active]:bg-white data-[state=active]:text-black"
+                  style={{ color: 'black' }}
+                >
+                  Profile
+                </TabsTrigger>
               </TabsList>
               
               <TabsContent value="courses" className="mt-6">
