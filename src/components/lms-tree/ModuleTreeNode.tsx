@@ -66,6 +66,12 @@ const ModuleTreeNode = ({
     ) || 0), 0
   ) || 0;
 
+  // Check if this is the main module (created during migration)
+  const isMainModule = module.title === "Main Module" || 
+                      (module.description && module.description.includes("Default module created during migration"));
+  
+  const displayTitle = isMainModule ? "Course Wrapper" : module.title;
+
   return (
     <div ref={setNodeRef} style={style}>
       <Card className="bg-purple-50 border-purple-200 hover:shadow-sm transition-shadow border-l-4 border-l-purple-500">
@@ -95,7 +101,7 @@ const ModuleTreeNode = ({
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-3">
                 <h4 className="font-medium text-purple-900 truncate">
-                  {module.title}
+                  {displayTitle}
                 </h4>
                 <span className="text-xs text-purple-600">
                   {module.lessons?.length || 0} lessons
@@ -112,7 +118,7 @@ const ModuleTreeNode = ({
                 )}
               </div>
               
-              {module.description && (
+              {module.description && !module.description.includes("Default module created during migration") && (
                 <p className="text-xs text-purple-700 mt-1 truncate">
                   {module.description}
                 </p>
