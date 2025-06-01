@@ -22,15 +22,19 @@ export const useCourse = (id: string | undefined) => {
   const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
+  const [adminLoading, setAdminLoading] = useState(true);
 
   const checkAdminStatus = async () => {
     try {
       if (!user?.id) {
+        console.log('useCourse: No user ID, setting admin to false');
         setIsAdmin(false);
+        setAdminLoading(false);
         return;
       }
 
-      console.log('Checking admin status for user:', user.id);
+      console.log('useCourse: Checking admin status for user:', user.id);
+      setAdminLoading(true);
       
       const { data: userRoles, error } = await supabase
         .from('user_roles')
@@ -38,17 +42,21 @@ export const useCourse = (id: string | undefined) => {
         .eq('user_id', user.id);
       
       if (error) {
-        console.error('Error checking admin status:', error);
+        console.error('useCourse: Error checking admin status:', error);
         setIsAdmin(false);
+        setAdminLoading(false);
         return;
       }
 
       const hasAdminRole = userRoles?.some(role => role.role === 'admin' || role.role === 'owner') || false;
-      console.log('Admin status checked:', hasAdminRole);
+      console.log('useCourse: User roles found:', userRoles);
+      console.log('useCourse: Admin status determined:', hasAdminRole);
       setIsAdmin(hasAdminRole);
+      setAdminLoading(false);
     } catch (error) {
-      console.error('Error checking admin status:', error);
+      console.error('useCourse: Error in checkAdminStatus:', error);
       setIsAdmin(false);
+      setAdminLoading(false);
     }
   };
 
@@ -59,7 +67,7 @@ export const useCourse = (id: string | undefined) => {
     }
 
     try {
-      console.log('Fetching course:', id);
+      console.log('useCourse: Fetching course:', id);
       
       // Fetch course with sections and units
       const { data: courseData, error: courseError } = await supabase
@@ -69,11 +77,11 @@ export const useCourse = (id: string | undefined) => {
         .single();
 
       if (courseError) {
-        console.error('Error fetching course:', courseError);
+        console.error('useCourse: Error fetching course:', courseError);
         throw courseError;
       }
 
-      console.log('Course data fetched:', courseData);
+      console.log('useCourse: Course data fetched:', courseData);
 
       // Fetch sections with units
       const { data: sectionsData, error: sectionsError } = await supabase
@@ -86,11 +94,11 @@ export const useCourse = (id: string | undefined) => {
         .order('sort_order', { ascending: true });
 
       if (sectionsError) {
-        console.error('Error fetching sections:', sectionsError);
+        console.error('useCourse: Error fetching sections:', sectionsError);
         throw sectionsError;
       }
 
-      console.log('Sections data fetched:', sectionsData);
+      console.log('useCourse: Sections data fetched:', sectionsData);
 
       // Sort units within each section
       const sectionsWithSortedUnits = sectionsData?.map(section => ({
@@ -110,7 +118,7 @@ export const useCourse = (id: string | undefined) => {
         setSelectedUnit(sectionsWithSortedUnits[0].units[0]);
       }
     } catch (error) {
-      console.error('Error fetching course:', error);
+      console.error('useCourse: Error fetching course:', error);
       toast({
         title: "Error",
         description: "Failed to load course",
@@ -126,18 +134,24 @@ export const useCourse = (id: string | undefined) => {
     if (id) {
       console.log('useCourse: Starting to fetch course:', id);
       fetchCourse();
-      checkAdminStatus();
     } else {
       console.log('useCourse: No course ID provided');
       setLoading(false);
     }
-  }, [id, user?.id]);
+  }, [id]);
+
+  useEffect(() => {
+    console.log('useCourse: User changed, checking admin status. User:', user?.id);
+    checkAdminStatus();
+  }, [user?.id]);
+
+  console.log('useCourse: Returning values - isAdmin:', isAdmin, 'adminLoading:', adminLoading, 'loading:', loading);
 
   return {
     course,
     selectedUnit,
     setSelectedUnit,
-    loading,
+    loading: loading || adminLoading,
     isAdmin
   };
 };

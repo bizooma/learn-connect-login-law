@@ -18,11 +18,17 @@ interface CourseCalendarProps {
 }
 
 const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
+  console.log('CourseCalendar: Component rendered with isAdmin:', isAdmin, 'courseId:', courseId);
+  
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [events, setEvents] = useState<CourseCalendarEvent[]>([]);
   const [selectedEvents, setSelectedEvents] = useState<CourseCalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  useEffect(() => {
+    console.log('CourseCalendar: isAdmin prop changed to:', isAdmin);
+  }, [isAdmin]);
 
   useEffect(() => {
     if (courseId) {
@@ -36,10 +42,10 @@ const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
       try {
         const dateString = format(selectedDate, 'yyyy-MM-dd');
         const dayEvents = events.filter(event => event.event_date === dateString);
-        console.log('Selected date events:', { dateString, dayEvents });
+        console.log('CourseCalendar: Selected date events:', { dateString, dayEvents });
         setSelectedEvents(dayEvents);
       } catch (error) {
-        console.error('Error filtering events by date:', error);
+        console.error('CourseCalendar: Error filtering events by date:', error);
         setSelectedEvents([]);
       }
     }
@@ -53,7 +59,7 @@ const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
     }
 
     try {
-      console.log('Fetching calendar events for course:', courseId);
+      console.log('CourseCalendar: Fetching calendar events for course:', courseId);
       
       const { data, error } = await supabase
         .from('course_calendars')
@@ -62,14 +68,14 @@ const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
         .order('event_date', { ascending: true });
 
       if (error) {
-        console.error('Error fetching calendar events:', error);
+        console.error('CourseCalendar: Error fetching calendar events:', error);
         throw error;
       }
 
-      console.log('Calendar events fetched:', data);
+      console.log('CourseCalendar: Calendar events fetched:', data);
       setEvents(data || []);
     } catch (error) {
-      console.error('Error fetching course calendar events:', error);
+      console.error('CourseCalendar: Error fetching course calendar events:', error);
       toast({
         title: "Error",
         description: "Failed to load calendar events",
@@ -87,12 +93,12 @@ const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
         try {
           return parseISO(event.event_date);
         } catch (dateError) {
-          console.error('Error parsing event date:', event.event_date, dateError);
+          console.error('CourseCalendar: Error parsing event date:', event.event_date, dateError);
           return new Date(); // fallback to current date
         }
       }).filter(date => !isNaN(date.getTime()));
     } catch (error) {
-      console.error('Error getting event dates:', error);
+      console.error('CourseCalendar: Error getting event dates:', error);
       return [];
     }
   };
@@ -105,17 +111,18 @@ const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
           try {
             return parseISO(event.event_date);
           } catch (dateError) {
-            console.error('Error parsing meeting date:', event.event_date, dateError);
+            console.error('CourseCalendar: Error parsing meeting date:', event.event_date, dateError);
             return new Date();
           }
         }).filter(date => !isNaN(date.getTime()));
     } catch (error) {
-      console.error('Error getting meeting dates:', error);
+      console.error('CourseCalendar: Error getting meeting dates:', error);
       return [];
     }
   };
 
   if (loading) {
+    console.log('CourseCalendar: Showing loading state');
     return (
       <Card>
         <CardHeader>
@@ -133,6 +140,8 @@ const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
     );
   }
 
+  console.log('CourseCalendar: Rendering calendar. Admin button should be visible:', isAdmin);
+
   return (
     <Card>
       <CardHeader>
@@ -142,7 +151,13 @@ const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
             Course Calendar & Meetings
           </CardTitle>
           {isAdmin && (
-            <EnhancedCalendarEventDialog courseId={courseId} onEventAdded={fetchEvents} />
+            <div>
+              <p className="text-xs text-green-600 mb-2">Admin controls visible</p>
+              <EnhancedCalendarEventDialog courseId={courseId} onEventAdded={fetchEvents} />
+            </div>
+          )}
+          {!isAdmin && (
+            <p className="text-xs text-gray-500">Admin controls hidden (not admin)</p>
           )}
         </div>
       </CardHeader>
