@@ -27,7 +27,7 @@ export const handleCourseSubmission = async (
     description: data.description,
     instructor: data.instructor,
     category: data.category,
-    level: data.level || 'beginner', // Ensure level is always provided
+    level: data.level || 'beginner',
     duration: data.duration,
     image_url: imageUrl,
     rating: 0,
@@ -62,20 +62,18 @@ export const handleCourseSubmission = async (
 
     if (notificationError) {
       console.error('Error creating notification:', notificationError);
-      // Don't throw here as it's not critical for course creation
     } else {
       console.log('Notification created for new course');
     }
   } catch (error) {
     console.error('Error creating notification:', error);
-    // Don't throw here as it's not critical for course creation
   }
 
   // Create a default welcome calendar event for the new course
   try {
     const currentDate = new Date();
     const welcomeDate = new Date(currentDate);
-    welcomeDate.setDate(currentDate.getDate() + 1); // Set for tomorrow
+    welcomeDate.setDate(currentDate.getDate() + 1);
 
     await supabase
       .from('course_calendars')
@@ -90,7 +88,6 @@ export const handleCourseSubmission = async (
     console.log('Default calendar event created for course');
   } catch (error) {
     console.error('Error creating default calendar event:', error);
-    // Don't throw here as it's not critical for course creation
   }
 
   // Create sections and units if any
@@ -116,22 +113,23 @@ export const handleCourseSubmission = async (
 
       // Create units for this section
       if (section.units.length > 0) {
-        const unitsToInsert = await Promise.all(
-          section.units.map(async (unit) => {
-            let videoUrl = unit.video_url;
-            
-            // Upload video file if it's an upload type and has a file
-            if (unit.video_type === 'upload' && unit.video_file) {
-              try {
-                console.log('Uploading video for unit:', unit.title);
-                videoUrl = await uploadVideoFile(unit.video_file);
-              } catch (error) {
-                console.error('Error uploading video:', error);
-                throw new Error(`Failed to upload video for unit "${unit.title}": ${error.message}`);
-              }
+        for (const unit of section.units) {
+          let videoUrl = unit.video_url;
+          
+          // Upload video file if it's an upload type and has a file
+          if (unit.video_type === 'upload' && unit.video_file) {
+            try {
+              console.log('Uploading video for unit:', unit.title);
+              videoUrl = await uploadVideoFile(unit.video_file);
+            } catch (error) {
+              console.error('Error uploading video:', error);
+              throw new Error(`Failed to upload video for unit "${unit.title}": ${error.message}`);
             }
+          }
 
-            return {
+          const { data: unitData, error: unitError } = await supabase
+            .from('units')
+            .insert({
               section_id: sectionData.id,
               title: unit.title,
               description: unit.description,
@@ -139,17 +137,78 @@ export const handleCourseSubmission = async (
               video_url: videoUrl || null,
               duration_minutes: unit.duration_minutes,
               sort_order: unit.sort_order,
-            };
-          })
-        );
+            })
+            .select()
+            .single();
 
-        const { error: unitsError } = await supabase
-          .from('units')
-          .insert(unitsToInsert);
+          if (unitError) {
+            console.error('Error creating unit:', unitError);
+            throw new Error(`Failed to create unit: ${unitError.message}`);
+          }
 
-        if (unitsError) {
-          console.error('Error creating units:', unitsError);
-          throw new Error(`Failed to create units: ${unitsError.message}`);
+          // Create quiz for this unit if it exists
+          if (unit.quiz) {
+            console.log('Creating quiz for unit:', unit.title);
+            
+            const { data: quizData, error: quizError } = await supabase
+              .from('quizzes')
+              .insert({
+                unit_id: unitData.id,
+                title: unit.quiz.title,
+                description: unit.quiz.description || null,
+                passing_score: unit.quiz.passing_score,
+                time_limit_minutes: unit.quiz.time_limit_minutes,
+                is_active: unit.quiz.is_active,
+              })
+              .select()
+              .single();
+
+            if (quizError) {
+              console.error('Error creating quiz:', quizError);
+              throw new Error(`Failed to create quiz: ${quizError.message}`);
+            }
+
+            // Create questions for this quiz
+            if (unit.quiz.questions.length > 0) {
+              for (const question of unit.quiz.questions) {
+                const { data: questionData, error: questionError } = await supabase
+                  .from('quiz_questions')
+                  .insert({
+                    quiz_id: quizData.id,
+                    question_text: question.question_text,
+                    question_type: question.question_type,
+                    points: question.points,
+                    sort_order: question.sort_order,
+                  })
+                  .select()
+                  .single();
+
+                if (questionError) {
+                  console.error('Error creating question:', questionError);
+                  throw new Error(`Failed to create question: ${questionError.message}`);
+                }
+
+                // Create options for this question
+                if (question.options.length > 0) {
+                  const optionsToInsert = question.options.map(option => ({
+                    question_id: questionData.id,
+                    option_text: option.option_text,
+                    is_correct: option.is_correct,
+                    sort_order: option.sort_order,
+                  }));
+
+                  const { error: optionsError } = await supabase
+                    .from('quiz_question_options')
+                    .insert(optionsToInsert);
+
+                  if (optionsError) {
+                    console.error('Error creating options:', optionsError);
+                    throw new Error(`Failed to create options: ${optionsError.message}`);
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
