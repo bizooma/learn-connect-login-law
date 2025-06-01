@@ -54,7 +54,8 @@ export const useLessonManager = ({ lessons, onLessonsChange }: UseLessonManagerP
       video_url: "",
       video_type: 'youtube',
       duration_minutes: 0,
-      sort_order: lessons[lessonIndex].units.length
+      sort_order: lessons[lessonIndex].units.length,
+      image_url: ""
     };
     
     const updatedLessons = lessons.map((lesson, i) => 

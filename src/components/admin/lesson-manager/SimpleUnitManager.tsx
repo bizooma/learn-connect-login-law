@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Trash2, ArrowUp, ArrowDown, FileVideo, Youtube } from "lucide-react";
 import { UnitData } from "./types";
 import QuizSelector from "./QuizSelector";
+import UnitImageUpload from "../UnitImageUpload";
 
 interface SimpleUnitManagerProps {
   unit: UnitData;
@@ -55,6 +56,10 @@ const SimpleUnitManager = ({
 
   const handleQuizUpdate = (quizId: string | undefined) => {
     onUpdateUnit(lessonIndex, unitIndex, 'quiz_id', quizId);
+  };
+
+  const handleUnitImageUpdate = (imageUrl: string | null) => {
+    onUpdateUnit(lessonIndex, unitIndex, 'image_url', imageUrl || '');
   };
 
   return (
@@ -152,6 +157,13 @@ const SimpleUnitManager = ({
             placeholder="Enter unit description"
           />
         </div>
+
+        <UnitImageUpload
+          currentImageUrl={unit.image_url}
+          onImageUpdate={handleUnitImageUpdate}
+          unitIndex={unitIndex}
+          lessonIndex={lessonIndex}
+        />
 
         <div>
           <Label htmlFor={`unit-content-${lessonIndex}-${unitIndex}`}>Content</Label>
