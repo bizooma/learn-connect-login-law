@@ -2,13 +2,14 @@
 const HeroSection = () => {
   return (
     <section 
-      className="relative min-h-screen"
+      className="relative"
       style={{
-        background: 'linear-gradient(to bottom, #213C82 0%, rgba(255, 255, 255, 0.1) 100%)'
+        background: 'linear-gradient(to bottom, #213C82 0%, rgba(255, 255, 255, 0.1) 100%)',
+        minHeight: 'calc(100vh - 200px)'
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start min-h-[80vh]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start" style={{ minHeight: 'calc(80vh - 200px)' }}>
           {/* Left Side - Content */}
           <div className="text-white">
             <h1 className="text-5xl md:text-6xl font-bold mb-8 leading-tight whitespace-nowrap">
@@ -56,7 +57,7 @@ const HeroSection = () => {
                 src="/lovable-uploads/61c3f405-c372-43ea-a6e7-a12bcd703981.png" 
                 alt="Professional woman with laptop" 
                 className="w-full max-w-lg mx-auto object-cover object-bottom"
-                style={{ height: 'calc(100vh - 20rem)' }}
+                style={{ height: 'calc(100vh - 32rem)' }}
               />
             </div>
           </div>
