@@ -15,21 +15,37 @@ const SimpleLessonManager = ({ lessons, onLessonsChange }: SimpleLessonManagerPr
   const [expandedLessons, setExpandedLessons] = useState<Set<number>>(new Set());
   
   const {
-    handleAddLesson,
-    handleAddUnit,
-    handleUpdateLesson,
-    handleDeleteLesson,
-    handleAddUnitToAnyLesson,
-    handleUpdateUnit,
-    handleDeleteUnit,
+    addLesson,
+    updateLesson,
+    deleteLesson,
+    addUnit,
+    updateUnit,
+    deleteUnit,
     handleVideoFileChange,
     handleLessonImageUpdate,
-    handleMoveLessonUp,
-    handleMoveLessonDown,
-    handleMoveUnitUp,
-    handleMoveUnitDown,
-    handleMoveUnitToLesson,
-  } = useLessonManager(lessons, onLessonsChange);
+    moveLessonToPosition,
+    moveUnitWithinLesson,
+    moveUnitToLesson,
+  } = useLessonManager({ lessons, onLessonsChange });
+
+  const handleAddLesson = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    addLesson();
+  };
+
+  const handleAddUnitToAnyLesson = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (lessons.length === 0) {
+      addLesson();
+      setTimeout(() => {
+        addUnit(0);
+      }, 100);
+    } else {
+      addUnit(0);
+    }
+  };
 
   const handleAddModule = (e: React.MouseEvent) => {
     e.preventDefault();
@@ -44,6 +60,31 @@ const SimpleLessonManager = ({ lessons, onLessonsChange }: SimpleLessonManagerPr
     };
     
     onLessonsChange([...lessons, newModule]);
+  };
+
+  const handleMoveLessonUp = (lessonIndex: number) => {
+    if (lessonIndex > 0) {
+      moveLessonToPosition(lessonIndex, lessonIndex - 1);
+    }
+  };
+
+  const handleMoveLessonDown = (lessonIndex: number) => {
+    if (lessonIndex < lessons.length - 1) {
+      moveLessonToPosition(lessonIndex, lessonIndex + 1);
+    }
+  };
+
+  const handleMoveUnitUp = (lessonIndex: number, unitIndex: number) => {
+    if (unitIndex > 0) {
+      moveUnitWithinLesson(lessonIndex, unitIndex, unitIndex - 1);
+    }
+  };
+
+  const handleMoveUnitDown = (lessonIndex: number, unitIndex: number) => {
+    const lesson = lessons[lessonIndex];
+    if (unitIndex < lesson.units.length - 1) {
+      moveUnitWithinLesson(lessonIndex, unitIndex, unitIndex + 1);
+    }
   };
 
   const toggleExpanded = (lessonIndex: number) => {
@@ -87,18 +128,18 @@ const SimpleLessonManager = ({ lessons, onLessonsChange }: SimpleLessonManagerPr
             lessonIndex={lessonIndex}
             isExpanded={expandedLessons.has(lessonIndex)}
             onToggleExpanded={toggleExpanded}
-            onUpdateLesson={handleUpdateLesson}
-            onDeleteLesson={handleDeleteLesson}
-            onAddUnit={(lessonIndex) => handleAddUnit(lessonIndex)}
-            onUpdateUnit={handleUpdateUnit}
-            onDeleteUnit={handleDeleteUnit}
+            onUpdateLesson={updateLesson}
+            onDeleteLesson={deleteLesson}
+            onAddUnit={addUnit}
+            onUpdateUnit={updateUnit}
+            onDeleteUnit={deleteUnit}
             onVideoFileChange={handleVideoFileChange}
             onLessonImageUpdate={handleLessonImageUpdate}
             onMoveLessonUp={() => handleMoveLessonUp(lessonIndex)}
             onMoveLessonDown={() => handleMoveLessonDown(lessonIndex)}
             onMoveUnitUp={handleMoveUnitUp}
             onMoveUnitDown={handleMoveUnitDown}
-            onMoveUnitToLesson={handleMoveUnitToLesson}
+            onMoveUnitToLesson={moveUnitToLesson}
             canMoveLessonUp={lessonIndex > 0}
             canMoveLessonDown={lessonIndex < lessons.length - 1}
             totalLessons={lessons.length}
