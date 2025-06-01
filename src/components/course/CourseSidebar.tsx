@@ -1,9 +1,9 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Users, Play, ChevronDown, ChevronRight } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { useState } from "react";
+import CourseProgressBar from "./CourseProgressBar";
 
 type Lesson = Tables<'lessons'> & {
   units: Tables<'units'>[];
@@ -12,12 +12,13 @@ type Lesson = Tables<'lessons'> & {
 type Unit = Tables<'units'>;
 
 interface CourseSidebarProps {
+  courseId: string;
   lessons: Lesson[];
   selectedUnit: Unit | null;
   onUnitSelect: (unit: Unit) => void;
 }
 
-const CourseSidebar = ({ lessons, selectedUnit, onUnitSelect }: CourseSidebarProps) => {
+const CourseSidebar = ({ courseId, lessons, selectedUnit, onUnitSelect }: CourseSidebarProps) => {
   const [expandedLessons, setExpandedLessons] = useState<Set<string>>(new Set());
 
   const toggleLesson = (lessonId: string) => {
@@ -32,6 +33,8 @@ const CourseSidebar = ({ lessons, selectedUnit, onUnitSelect }: CourseSidebarPro
 
   return (
     <div className="space-y-4">
+      <CourseProgressBar courseId={courseId} lessons={lessons} />
+      
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Course Content</h3>
         <div className="text-sm text-gray-500">
