@@ -33,7 +33,7 @@ const LMSTree = () => {
   const { data: courses = [], isLoading, refetch } = useQuery({
     queryKey: ['lms-tree-courses'],
     queryFn: async () => {
-      console.log('Fetching courses with full hierarchy...');
+      console.log('Fetching courses with proper Module → Lesson → Unit hierarchy...');
       
       const { data, error } = await supabase
         .from('courses')
@@ -57,7 +57,7 @@ const LMSTree = () => {
         throw error;
       }
 
-      console.log('Fetched courses:', data);
+      console.log('Fetched courses with proper hierarchy:', data);
       return data as CourseWithContent[];
     },
   });
