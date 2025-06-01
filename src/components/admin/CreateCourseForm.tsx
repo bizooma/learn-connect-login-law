@@ -7,7 +7,7 @@ import CourseBasicInfoForm from "./course-form/CourseBasicInfoForm";
 import CourseContentForm from "./course-form/CourseContentForm";
 import DraftRecoveryDialog from "./course-form/DraftRecoveryDialog";
 import SaveStatusIndicator from "./course-form/SaveStatusIndicator";
-import { useCourseFormWithDrafts } from "./course-form/useCourseFormWithDrafts";
+import { useCourseFormWithDrafts } from "./useCourseFormWithDrafts";
 import { Save } from "lucide-react";
 
 interface CreateCourseFormProps {
@@ -20,8 +20,8 @@ const CreateCourseForm = ({ open, onOpenChange, onCourseCreated }: CreateCourseF
   const {
     form,
     isSubmitting,
-    lessons,
-    setLessons,
+    sections,
+    setSections,
     onSubmit,
     saveStatus,
     lastSaved,
@@ -67,8 +67,8 @@ const CreateCourseForm = ({ open, onOpenChange, onCourseCreated }: CreateCourseF
 
                 <TabsContent value="content">
                   <CourseContentForm
-                    lessons={lessons}
-                    onLessonsChange={setLessons}
+                    lessons={sections}
+                    onLessonsChange={setSections}
                   />
                 </TabsContent>
 

@@ -7,20 +7,7 @@ import QuizCard from "./quiz-management/QuizCard";
 import CreateQuizForm from "./quiz-management/CreateQuizForm";
 import EditQuizForm from "./quiz-management/EditQuizForm";
 import QuizSearch from "./quiz-management/QuizSearch";
-import { Tables } from "@/integrations/supabase/types";
-
-type Quiz = Tables<'quizzes'>;
-type Unit = Tables<'units'>;
-type Lesson = Tables<'lessons'>;
-type Course = Tables<'courses'>;
-
-interface QuizWithDetails extends Quiz {
-  unit: Unit & {
-    lesson: Lesson & {
-      course: Course;
-    };
-  };
-}
+import { QuizWithDetails } from "./quiz-management/types";
 
 const QuizManagement = () => {
   const { toast } = useToast();
