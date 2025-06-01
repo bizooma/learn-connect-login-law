@@ -18,7 +18,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable';
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
+import { Plus, Video } from "lucide-react";
 import DraggableSectionCard from './DraggableSectionCard';
 import EmptyState from './EmptyState';
 import { SectionData, UnitData } from './types';
@@ -134,6 +134,47 @@ const DragDropSectionManager = ({
     setActiveItem(null);
   };
 
+  const handleAddUnitToFirstSection = () => {
+    if (sections.length === 0) {
+      // Create a section first if none exist
+      addSection();
+      // The section will be added asynchronously, so we'll add the unit in the next render
+      setTimeout(() => {
+        addUnit(0);
+      }, 100);
+    } else {
+      // Add unit to the first section
+      addUnit(0);
+      // Expand the first section if it's not already expanded
+      if (!expandedSections.has(0)) {
+        toggleSectionExpanded(0);
+      }
+    }
+  };
+
+  const handleAddVideoUnit = () => {
+    if (sections.length === 0) {
+      // Create a section first if none exist
+      addSection();
+      setTimeout(() => {
+        addUnit(0);
+        // Set video type to upload for new video units
+        setTimeout(() => {
+          updateUnit(0, 0, 'video_type', 'upload');
+        }, 50);
+      }, 100);
+    } else {
+      // Add unit to the first section and set it as video type
+      addUnit(0);
+      const unitIndex = sections[0].units.length;
+      updateUnit(0, unitIndex, 'video_type', 'upload');
+      // Expand the first section if it's not already expanded
+      if (!expandedSections.has(0)) {
+        toggleSectionExpanded(0);
+      }
+    }
+  };
+
   const sectionIds = sections.map((_, index) => `section-${index}`);
 
   return (
@@ -147,10 +188,20 @@ const DragDropSectionManager = ({
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Course Sections</h3>
-          <Button onClick={addSection} size="sm">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Section
-          </Button>
+          <div className="flex items-center space-x-2">
+            <Button onClick={addSection} size="sm">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Section
+            </Button>
+            <Button onClick={handleAddUnitToFirstSection} size="sm" variant="outline">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Unit
+            </Button>
+            <Button onClick={handleAddVideoUnit} size="sm" variant="outline">
+              <Video className="h-4 w-4 mr-2" />
+              Add Video
+            </Button>
+          </div>
         </div>
 
         <SortableContext items={sectionIds} strategy={verticalListSortingStrategy}>

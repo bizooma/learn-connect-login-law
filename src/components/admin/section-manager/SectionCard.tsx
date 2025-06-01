@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
-import { GripVertical, Trash2, Plus } from "lucide-react";
+import { GripVertical, Trash2, Plus, ChevronDown, ChevronUp } from "lucide-react";
 import SectionImageUpload from "../SectionImageUpload";
 import DraggableUnitManager from "./DraggableUnitManager";
 import { UnitData, SectionData } from "./types";
@@ -55,7 +55,11 @@ const SectionCard = ({
   isDragging,
 }: SectionCardProps) => {
   const sensors = useSensors(
-    useSensor(PointerSensor),
+    useSensor(PointerSensor, {
+      activationConstraint: {
+        distance: 8,
+      },
+    }),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
     })
@@ -90,6 +94,12 @@ const SectionCard = ({
     }
   };
 
+  const handleToggleExpanded = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onToggleExpanded(sectionIndex);
+  };
+
   const unitIds = section.units.map((_, index) => `unit-${sectionIndex}-${index}`);
 
   return (
@@ -111,9 +121,20 @@ const SectionCard = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => onToggleExpanded(sectionIndex)}
+              onClick={handleToggleExpanded}
+              className="flex items-center space-x-1"
             >
-              {isExpanded ? 'Collapse' : 'Expand'}
+              {isExpanded ? (
+                <>
+                  <ChevronUp className="h-4 w-4" />
+                  <span>Collapse</span>
+                </>
+              ) : (
+                <>
+                  <ChevronDown className="h-4 w-4" />
+                  <span>Expand</span>
+                </>
+              )}
             </Button>
             <Button
               variant="ghost"
