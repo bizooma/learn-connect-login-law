@@ -22,7 +22,7 @@ const EditCourseForm = ({ open, onOpenChange, course, onCourseUpdated }: EditCou
     course,
     open,
     () => {
-      onOpenChange(false);
+      // Don't auto-close the modal anymore, just trigger the callback
       onCourseUpdated();
     }
   );
@@ -58,16 +58,16 @@ const EditCourseForm = ({ open, onOpenChange, course, onCourseUpdated }: EditCou
                 />
               </TabsContent>
 
-              <div className="flex justify-end space-x-2 pt-4">
+              <div className="flex justify-between pt-4">
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? "Updating..." : "Update Course"}
+                </Button>
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => onOpenChange(false)}
                 >
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Updating..." : "Update Course"}
+                  Close
                 </Button>
               </div>
             </form>
