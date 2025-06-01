@@ -159,21 +159,32 @@ const DragDropSectionManager = ({
     e.preventDefault();
     e.stopPropagation();
     
+    console.log('Adding video unit...');
+    
     if (sections.length === 0) {
       // Create a section first if none exist
+      console.log('Creating section first...');
       addSection();
       setTimeout(() => {
+        console.log('Adding unit to new section...');
         addUnit(0);
-        // Set video type to upload for new video units
         setTimeout(() => {
+          console.log('Setting video type...');
           updateUnit(0, 0, 'video_type', 'upload');
-        }, 50);
+        }, 100);
       }, 100);
     } else {
       // Add unit to the first section and set it as video type
+      console.log('Adding unit to existing section...');
+      const currentUnitCount = sections[0].units.length;
       addUnit(0);
-      const unitIndex = sections[0].units.length;
-      updateUnit(0, unitIndex, 'video_type', 'upload');
+      
+      // Set the new unit to video type immediately
+      setTimeout(() => {
+        console.log('Setting video type for unit at index:', currentUnitCount);
+        updateUnit(0, currentUnitCount, 'video_type', 'upload');
+      }, 50);
+      
       // Expand the first section if it's not already expanded
       if (!expandedSections.has(0)) {
         toggleSectionExpanded(0);
