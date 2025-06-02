@@ -14,6 +14,7 @@ interface UserGridProps {
   hasNextPage: boolean;
   hasPreviousPage: boolean;
   onCourseAssigned?: () => void;
+  onViewProgress?: (userId: string) => void;
 }
 
 export const UserGrid = ({ 
@@ -26,7 +27,8 @@ export const UserGrid = ({
   onPageChange, 
   hasNextPage, 
   hasPreviousPage,
-  onCourseAssigned 
+  onCourseAssigned,
+  onViewProgress 
 }: UserGridProps) => {
   if (users.length === 0) {
     return (
@@ -46,6 +48,7 @@ export const UserGrid = ({
             onRoleUpdate={onRoleUpdate}
             onUserDeleted={onUserDeleted}
             onCourseAssigned={onCourseAssigned}
+            onViewProgress={onViewProgress}
           />
         ))}
       </div>

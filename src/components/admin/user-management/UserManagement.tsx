@@ -81,6 +81,11 @@ const UserManagement = () => {
     }
   };
 
+  const handleViewProgress = (userId: string) => {
+    console.log(`View progress for user: ${userId}`);
+    // This will be handled by the UserCard component's UserProgressModal
+  };
+
   if (loading) {
     return <LoadingState />;
   }
@@ -110,6 +115,8 @@ const UserManagement = () => {
         users={paginatedUsers}
         onRoleUpdate={updateUserRole}
         onUserDeleted={fetchUsers}
+        onCourseAssigned={fetchUsers}
+        onViewProgress={handleViewProgress}
         currentPage={currentPage}
         totalPages={totalPages}
         totalUsers={filteredUsers.length}
