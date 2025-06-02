@@ -14,7 +14,7 @@ const OwnerDashboardHeader = ({ lawFirm }: OwnerDashboardHeaderProps) => {
   const navigate = useNavigate();
 
   return (
-    <div className="bg-white shadow-sm">
+    <div style={{ background: '#213C82' }} className="shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -22,7 +22,7 @@ const OwnerDashboardHeader = ({ lawFirm }: OwnerDashboardHeaderProps) => {
               variant="ghost"
               size="icon"
               onClick={() => navigate("/")}
-              className="hover:bg-gray-100"
+              className="text-white hover:bg-white/10"
             >
               <ArrowLeft className="h-5 w-5" />
             </Button>
@@ -39,10 +39,10 @@ const OwnerDashboardHeader = ({ lawFirm }: OwnerDashboardHeaderProps) => {
               />
             </a>
             <div className="flex items-center space-x-3">
-              <Building2 className="h-8 w-8 text-blue-600" />
+              <Building2 className="h-8 w-8 text-white" />
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Owner Dashboard</h1>
-                <p className="text-gray-600 mt-1">
+                <h1 className="text-3xl font-bold text-white">Owner Dashboard</h1>
+                <p className="text-white/90 mt-1">
                   {lawFirm ? `Managing ${lawFirm.name}` : "Manage your law firm and employees"}
                 </p>
               </div>
@@ -50,7 +50,7 @@ const OwnerDashboardHeader = ({ lawFirm }: OwnerDashboardHeaderProps) => {
           </div>
           <div className="flex items-center space-x-4">
             {lawFirm && (
-              <div className="text-sm text-gray-500">
+              <div className="text-sm text-white/80">
                 {lawFirm.used_seats}/{lawFirm.total_seats} seats used
               </div>
             )}

@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -107,7 +106,7 @@ const ClientDashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-purple-100">
       {/* Header */}
-      <div className="bg-white shadow-sm border-b">
+      <div style={{ background: '#213C82' }} className="shadow-sm border-b">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -124,10 +123,10 @@ const ClientDashboard = () => {
                 />
               </a>
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">
+                <h1 className="text-3xl font-bold text-white">
                   Client Dashboard
                 </h1>
-                <p className="text-gray-600 mt-1">
+                <p className="text-white/90 mt-1">
                   Welcome, {user?.user_metadata?.first_name || "Client"}! Access your assigned training materials.
                 </p>
               </div>
@@ -136,7 +135,7 @@ const ClientDashboard = () => {
               <Button
                 variant="ghost"
                 onClick={signOut}
-                className="flex items-center text-gray-600 hover:text-gray-900"
+                className="flex items-center text-white hover:bg-white/10"
               >
                 <LogOut className="h-4 w-4 mr-2" />
                 Sign Out
