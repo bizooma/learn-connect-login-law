@@ -102,7 +102,12 @@ const PricingSection = () => {
 
                 {/* Button */}
                 <div className="text-center mb-6">
-                  <Button className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-8 py-3 rounded-md w-full">
+                  <Button 
+                    className="text-black font-semibold px-8 py-3 rounded-md w-full transition-colors"
+                    style={{ backgroundColor: '#FFDA00' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E6C400'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FFDA00'}
+                  >
                     {plan.buttonText}
                   </Button>
                 </div>

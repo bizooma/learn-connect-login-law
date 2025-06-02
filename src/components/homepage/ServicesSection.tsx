@@ -14,7 +14,12 @@ const ServicesSection = () => {
         <p className="text-gray-600 mb-8 leading-relaxed flex-grow">
           New Frontier University offers comprehensive immigration law firm training courses designed to enhance the efficiency, compliance, and strategic growth of legal practices.
         </p>
-        <Button className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-8 py-3 rounded-md">
+        <Button 
+          className="text-black font-semibold px-8 py-3 rounded-md transition-colors"
+          style={{ backgroundColor: '#FFDA00' }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E6C400'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FFDA00'}
+        >
           Learn More
         </Button>
       </div>
@@ -28,7 +33,12 @@ const ServicesSection = () => {
         <p className="text-gray-600 mb-8 leading-relaxed flex-grow">
           New Frontier University's immigration law firm onboarding training is designed to equip new employees with the knowledge and skills needed to navigate the complexities of immigration law practice efficiently.
         </p>
-        <Button className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-8 py-3 rounded-md">
+        <Button 
+          className="text-black font-semibold px-8 py-3 rounded-md transition-colors"
+          style={{ backgroundColor: '#FFDA00' }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E6C400'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FFDA00'}
+        >
           Learn More
         </Button>
       </div>
@@ -42,7 +52,12 @@ const ServicesSection = () => {
         <p className="text-gray-600 mb-8 leading-relaxed flex-grow">
           Understanding the complexities of immigration law requires a deep dive into ever-evolving policies, legal frameworks, and procedural nuances that impact individuals and businesses navigating the immigration system.
         </p>
-        <Button className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-8 py-3 rounded-md">
+        <Button 
+          className="text-black font-semibold px-8 py-3 rounded-md transition-colors"
+          style={{ backgroundColor: '#FFDA00' }}
+          onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E6C400'}
+          onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FFDA00'}
+        >
           Learn More
         </Button>
       </div>
