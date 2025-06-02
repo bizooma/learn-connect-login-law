@@ -1,5 +1,4 @@
 
-
 const HeroSection = () => {
   return (
     <section 
@@ -52,12 +51,12 @@ const HeroSection = () => {
           </div>
 
           {/* Right Side - Professional Woman Image */}
-          <div className="relative h-full flex items-end">
+          <div className="relative h-full flex items-end justify-end lg:justify-start lg:pl-8">
             <div className="relative z-50 w-full">
               <img 
                 src="/lovable-uploads/61c3f405-c372-43ea-a6e7-a12bcd703981.png" 
                 alt="Professional woman with laptop" 
-                className="w-full max-w-lg mx-auto object-contain"
+                className="w-full max-w-lg ml-auto lg:ml-8 object-contain"
                 style={{ height: 'auto', maxHeight: '600px' }}
               />
             </div>
@@ -80,4 +79,3 @@ const HeroSection = () => {
 };
 
 export default HeroSection;
-
