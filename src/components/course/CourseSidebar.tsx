@@ -119,11 +119,6 @@ const CourseSidebar = ({ courseId, lessons, selectedUnit, onUnitSelect }: Course
                             )}
                           </div>
                           <div className="flex items-center space-x-1">
-                            {unit.quiz && (
-                              <Badge variant="outline" className="text-xs px-1 py-0 bg-blue-50 text-blue-700 border-blue-200">
-                                Quiz
-                              </Badge>
-                            )}
                             {unit.duration_minutes && (
                               <Badge variant="outline" className="text-xs px-1 py-0">
                                 {unit.duration_minutes}m

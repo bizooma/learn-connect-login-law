@@ -51,10 +51,6 @@ const CourseContent = ({ unit, courseId }: CourseContentProps) => {
         </div>
       )}
       
-      {unit?.quiz && (
-        <QuizDisplay quiz={unit.quiz} unitTitle={unit.title} />
-      )}
-      
       {unit?.content && (
         <div className="bg-white rounded-lg shadow-sm border p-6">
           <h3 className="text-lg font-semibold mb-4">Unit Content</h3>
@@ -62,6 +58,10 @@ const CourseContent = ({ unit, courseId }: CourseContentProps) => {
             <p className="text-gray-700 leading-relaxed">{unit.content}</p>
           </div>
         </div>
+      )}
+      
+      {unit?.quiz && (
+        <QuizDisplay quiz={unit.quiz} unitTitle={unit.title} />
       )}
     </div>
   );
