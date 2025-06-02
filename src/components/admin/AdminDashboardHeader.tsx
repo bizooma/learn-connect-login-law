@@ -57,7 +57,7 @@ const AdminDashboardHeader = () => {
               <BookOpen className="h-8 w-8 text-white" />
               <div>
                 <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
-                <p className="text-blue-100">Manage your learning management system</p>
+                <p className="text-blue-100">Manage New Frontier University Courses</p>
               </div>
             </div>
           </div>
