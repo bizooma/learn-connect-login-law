@@ -67,7 +67,7 @@ const BenefitsSection = () => {
           {openSections.consistency && (
             <div className="p-6 bg-white border-t border-gray-200">
               <p className="text-gray-600 leading-relaxed">
-                Ensure all your staff members receive the same high-quality training, regardless of who conducts it or when they join your firm.
+                You've hired "experienced" paralegals – people you've paid top dollar to work with. But you've found that their "experience" varies, so you must spend time acclimating them to how you do things at your firm.
               </p>
             </div>
           )}
