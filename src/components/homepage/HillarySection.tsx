@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 
 const HillarySection = () => {
@@ -34,8 +33,17 @@ const HillarySection = () => {
               </p>
             </div>
 
-            <Button className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-8 py-4 text-lg rounded-md">
-              Book a Call to Learn More
+            <Button 
+              asChild
+              className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-8 py-4 text-lg rounded-md"
+            >
+              <a 
+                href="https://outlook.office365.com/book/SalesTrainerNFU@newfrontier.us/"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Book a Call to Learn More
+              </a>
             </Button>
           </div>
 
