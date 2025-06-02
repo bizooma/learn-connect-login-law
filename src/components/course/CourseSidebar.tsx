@@ -135,7 +135,7 @@ const CourseSidebar = ({ courseId, lessons, selectedUnit, onUnitSelect }: Course
                               {unitIndex + 1}. {unit.title}
                             </span>
                             {unit.quiz && (
-                              <BookOpen className="h-3 w-3 text-blue-600" title="Has Quiz" />
+                              <BookOpen className="h-3 w-3 text-blue-600" />
                             )}
                           </div>
                           <div className="flex items-center space-x-1">
