@@ -1,15 +1,16 @@
+
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
-import { BookOpen, Users, User, LogOut, Library, Building2 } from "lucide-react";
+import { BookOpen, Users, User, Library, Building2, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import UserCourseProgress from "./user/UserCourseProgress";
 import NotificationBanner from "./notifications/NotificationBanner";
 import LMSTreeFooter from "./lms-tree/LMSTreeFooter";
+import DashboardStats from "./dashboard/DashboardStats";
+import DashboardContent from "./dashboard/DashboardContent";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
@@ -171,50 +172,18 @@ const Dashboard = () => {
           <NotificationBanner />
 
           {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {userStats.map((stat) => (
-              <Card key={stat.title} className="bg-white">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">
-                    {stat.title}
-                  </CardTitle>
-                  <stat.icon className={`h-5 w-5 ${stat.color}`} />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-                  <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <DashboardStats stats={userStats} />
 
           {/* Main Content Tabs */}
-          <Card className="bg-white">
-            <CardHeader>
-              <CardTitle>Learning Dashboard</CardTitle>
-              <CardDescription>
-                Track your progress and continue your learning journey
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="courses">My Courses</TabsTrigger>
-                  <TabsTrigger value="progress">Progress</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="courses" className="mt-6">
-                  <UserCourseProgress userId={user.id} />
-                </TabsContent>
-                
-                <TabsContent value="progress" className="mt-6">
-                  <div className="text-center py-8">
-                    <p className="text-gray-500">Progress tracking coming soon...</p>
-                  </div>
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+          <DashboardContent
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            userId={user.id}
+            title="Learning Dashboard"
+            description="Track your progress and continue your learning journey"
+            assignedTabLabel="My Courses"
+            completedTabLabel="Progress"
+          />
         </div>
       </div>
       <LMSTreeFooter />

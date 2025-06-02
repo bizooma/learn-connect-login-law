@@ -38,11 +38,21 @@ const DashboardContent = ({
           </TabsList>
           
           <TabsContent value="assigned" className="mt-6">
-            <UserCourseProgress userId={userId} showOnlyAssigned={true} />
+            {activeTab === "assigned" && assignedTabLabel === "My Courses" ? (
+              <UserCourseProgress userId={userId} />
+            ) : (
+              <UserCourseProgress userId={userId} showOnlyAssigned={true} />
+            )}
           </TabsContent>
           
           <TabsContent value="completed" className="mt-6">
-            <UserCourseProgress userId={userId} showOnlyCompleted={true} />
+            {activeTab === "completed" && completedTabLabel === "Progress" ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500">Progress tracking coming soon...</p>
+              </div>
+            ) : (
+              <UserCourseProgress userId={userId} showOnlyCompleted={true} />
+            )}
           </TabsContent>
         </Tabs>
       </CardContent>
