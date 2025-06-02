@@ -19,7 +19,7 @@ const BenefitsSection = () => {
       {/* Section Heading */}
       <div className="text-center mb-16">
         <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
-          How Will New Frontier University Help Your Firm?
+          How Will New Frontier University<br />Help Your Firm?
         </h2>
       </div>
 
