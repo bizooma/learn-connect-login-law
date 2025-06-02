@@ -27,7 +27,6 @@ export const UserCard = ({
   onCourseAssigned,
   onViewProgress 
 }: UserCardProps) => {
-  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showCourseDialog, setShowCourseDialog] = useState(false);
   const { isAdmin } = useUserRole();
   
@@ -38,6 +37,10 @@ export const UserCard = ({
     const first = firstName?.charAt(0) || '';
     const last = lastName?.charAt(0) || '';
     return (first + last).toUpperCase() || user.email.charAt(0).toUpperCase();
+  };
+
+  const handleRoleChange = async (newRole: 'admin' | 'owner' | 'student' | 'client' | 'free') => {
+    await onRoleUpdate(user.id, newRole);
   };
 
   return (
@@ -71,9 +74,8 @@ export const UserCard = ({
               
               <div className="space-y-3">
                 <UserRoleSelect
-                  userId={user.id}
                   currentRole={userRole}
-                  onRoleUpdate={onRoleUpdate}
+                  onRoleChange={handleRoleChange}
                 />
                 
                 <div className="flex flex-wrap gap-2">
@@ -100,14 +102,10 @@ export const UserCard = ({
                   )}
                   
                   {isAdmin && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowDeleteDialog(true)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
+                    <DeleteUserDialog
+                      user={user}
+                      onUserDeleted={onUserDeleted}
+                    />
                   )}
                 </div>
               </div>
@@ -116,20 +114,19 @@ export const UserCard = ({
         </CardContent>
       </Card>
 
-      <DeleteUserDialog
-        isOpen={showDeleteDialog}
-        onClose={() => setShowDeleteDialog(false)}
-        user={user}
-        onDeleted={onUserDeleted}
-      />
-
-      <UserCourseAssignment
-        isOpen={showCourseDialog}
-        onClose={() => setShowCourseDialog(false)}
-        userId={user.id}
-        userName={`${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email}
-        onCourseAssigned={onCourseAssigned}
-      />
+      {showCourseDialog && (
+        <UserCourseAssignment
+          userId={user.id}
+          userEmail={user.email}
+          userName={`${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email}
+          onAssignmentComplete={() => {
+            setShowCourseDialog(false);
+            if (onCourseAssigned) {
+              onCourseAssigned();
+            }
+          }}
+        />
+      )}
     </>
   );
 };

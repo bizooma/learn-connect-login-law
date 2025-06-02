@@ -1,13 +1,13 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { BookOpen, Loader2 } from "lucide-react";
+import { Loader2, X } from "lucide-react";
 import { useCoursesData } from "@/hooks/useCoursesData";
 
 interface UserCourseAssignmentProps {
@@ -18,13 +18,18 @@ interface UserCourseAssignmentProps {
 }
 
 const UserCourseAssignment = ({ userId, userEmail, userName, onAssignmentComplete }: UserCourseAssignmentProps) => {
-  const [open, setOpen] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [notes, setNotes] = useState("");
   const [isAssigning, setIsAssigning] = useState(false);
   const { toast } = useToast();
   const { courses, loading: coursesLoading } = useCoursesData();
+
+  const handleClose = () => {
+    if (onAssignmentComplete) {
+      onAssignmentComplete();
+    }
+  };
 
   const handleAssignCourse = async () => {
     if (!selectedCourse || !selectedStatus) {
@@ -76,15 +81,11 @@ const UserCourseAssignment = ({ userId, userEmail, userName, onAssignmentComplet
         description: `Successfully assigned course to ${userName} with status: ${selectedStatus}`,
       });
 
-      // Reset form
+      // Reset form and close
       setSelectedCourse("");
       setSelectedStatus("");
       setNotes("");
-      setOpen(false);
-      
-      if (onAssignmentComplete) {
-        onAssignmentComplete();
-      }
+      handleClose();
 
     } catch (error) {
       console.error('Error assigning course:', error);
@@ -99,17 +100,15 @@ const UserCourseAssignment = ({ userId, userEmail, userName, onAssignmentComplet
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="flex items-center space-x-2">
-          <BookOpen className="h-4 w-4" />
-          <span>Assign Course</span>
-        </Button>
-      </DialogTrigger>
-      
+    <Dialog open={true} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Assign Course</DialogTitle>
+          <div className="flex items-center justify-between">
+            <DialogTitle>Assign Course</DialogTitle>
+            <Button variant="ghost" size="sm" onClick={handleClose}>
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
           <DialogDescription>
             Assign a course to {userName} ({userEmail}) and set their completion status.
           </DialogDescription>
@@ -165,7 +164,7 @@ const UserCourseAssignment = ({ userId, userEmail, userName, onAssignmentComplet
         </div>
 
         <div className="flex justify-end space-x-2 pt-4">
-          <Button variant="outline" onClick={() => setOpen(false)}>
+          <Button variant="outline" onClick={handleClose}>
             Cancel
           </Button>
           <Button 
