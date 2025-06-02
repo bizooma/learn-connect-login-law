@@ -28,6 +28,7 @@ export const useCourse = (id: string | undefined) => {
   const [course, setCourse] = useState<CourseWithLessons | null>(null);
   const [selectedUnit, setSelectedUnit] = useState<UnitWithQuiz | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
@@ -114,6 +115,7 @@ export const useCourse = (id: string | undefined) => {
       };
 
       setCourse(courseWithLessons);
+      setError(null);
 
       // Set first unit of first lesson as selected by default
       const firstLesson = lessons[0];
@@ -122,6 +124,7 @@ export const useCourse = (id: string | undefined) => {
       }
     } catch (error) {
       console.error('Error fetching course:', error);
+      setError('Failed to load course');
       toast({
         title: "Error",
         description: "Failed to load course",
@@ -148,6 +151,7 @@ export const useCourse = (id: string | undefined) => {
     selectedUnit,
     setSelectedUnit,
     loading,
+    error,
     isAdmin
   };
 };

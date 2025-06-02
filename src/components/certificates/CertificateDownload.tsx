@@ -31,21 +31,8 @@ const CertificateDownload = ({ courseId, courseTitle, isCompleted }: Certificate
 
       if (error) throw error;
 
-      // Convert the response to a blob and download
-      const response = await fetch(supabase.functions.getUrl('generate-certificate'), {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ courseId, userId: user.id })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to generate certificate');
-      }
-
-      const blob = await response.blob();
+      // The response should be a blob/arrayBuffer for the certificate image
+      const blob = new Blob([data], { type: 'image/png' });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;

@@ -47,7 +47,8 @@ const Course = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           <div className="lg:col-span-1">
             <CourseSidebar
-              course={course}
+              courseId={course.id}
+              lessons={course.lessons}
               selectedUnit={selectedUnit}
               onUnitSelect={setSelectedUnit}
             />
