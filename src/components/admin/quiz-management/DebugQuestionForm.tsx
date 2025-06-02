@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 
 interface DebugQuestionFormProps {
   open: boolean;
@@ -18,18 +18,19 @@ const DebugQuestionForm = ({ open, onOpenChange, quizId, onQuestionCreated }: De
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Debug form submit triggered with:', questionText);
+    console.log('DEBUG SHEET: Form submit triggered with:', questionText);
     
     if (!questionText.trim()) {
-      console.log('No question text provided');
+      console.log('DEBUG SHEET: No question text provided');
       return;
     }
     
     setIsSubmitting(true);
+    console.log('DEBUG SHEET: Starting submission...');
     
     // Simulate a successful submission
     setTimeout(() => {
-      console.log('Debug form submission completed');
+      console.log('DEBUG SHEET: Form submission completed successfully');
       setIsSubmitting(false);
       setQuestionText("");
       onQuestionCreated();
@@ -37,52 +38,63 @@ const DebugQuestionForm = ({ open, onOpenChange, quizId, onQuestionCreated }: De
     }, 1000);
   };
 
-  const handleDialogOpenChange = (newOpen: boolean) => {
-    console.log('Debug dialog open change:', newOpen);
+  const handleSheetOpenChange = (newOpen: boolean) => {
+    console.log('DEBUG SHEET: Sheet open change:', newOpen);
+    if (!newOpen) {
+      console.log('DEBUG SHEET: Sheet is being closed');
+    }
     onOpenChange(newOpen);
   };
 
-  return (
-    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
-      <DialogContent 
-        className="max-w-md"
-        onPointerDownOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-      >
-        <DialogHeader>
-          <DialogTitle>Debug: Create Simple Question</DialogTitle>
-          <DialogDescription>
-            This is a simplified form to test if the dialog stays open.
-          </DialogDescription>
-        </DialogHeader>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="questionText">Question Text</Label>
-            <Input
-              id="questionText"
-              value={questionText}
-              onChange={(e) => setQuestionText(e.target.value)}
-              placeholder="Enter a simple question"
-              required
-            />
-          </div>
+  const handleCancel = () => {
+    console.log('DEBUG SHEET: Cancel button clicked');
+    onOpenChange(false);
+  };
 
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Creating..." : "Create Question"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('DEBUG SHEET: Input changed:', e.target.value);
+    setQuestionText(e.target.value);
+  };
+
+  return (
+    <Sheet open={open} onOpenChange={handleSheetOpenChange}>
+      <SheetContent side="right" className="w-[400px] sm:w-[540px]">
+        <SheetHeader>
+          <SheetTitle>Debug: Create Simple Question (Sheet)</SheetTitle>
+          <SheetDescription>
+            This is a simplified form using Sheet component to test if the form stays open.
+          </SheetDescription>
+        </SheetHeader>
+        
+        <div className="py-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="questionText">Question Text</Label>
+              <Input
+                id="questionText"
+                value={questionText}
+                onChange={handleInputChange}
+                placeholder="Enter a simple question"
+                required
+              />
+            </div>
+
+            <SheetFooter className="pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting}>
+                {isSubmitting ? "Creating..." : "Create Question"}
+              </Button>
+            </SheetFooter>
+          </form>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 };
 
