@@ -45,7 +45,7 @@ const HillarySection = () => {
               {/* Hillary's Photo */}
               <div className="mb-8">
                 <img 
-                  src="/lovable-uploads/ecfb79a2-19a8-4c2b-bef7-65c3299407c2.png" 
+                  src="/lovable-uploads/17ce76f2-e60e-4ac9-bd42-c84db738b1c1.png" 
                   alt="Hillary - Founder of New Frontier Immigration Law" 
                   className="w-80 h-96 object-cover rounded-lg mx-auto"
                 />
