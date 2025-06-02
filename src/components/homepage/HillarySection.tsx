@@ -52,14 +52,12 @@ const HillarySection = () => {
               </div>
               
               {/* New Frontier Immigration Law Logo */}
-              <div className="bg-white p-6 rounded-lg inline-block">
-                <div className="text-center">
-                  <div className="text-blue-600 font-bold text-sm mb-2">NEW</div>
-                  <div className="text-blue-600 font-bold text-2xl mb-2">FRONTIER</div>
-                  <div className="border-t-2 border-blue-600 my-2"></div>
-                  <div className="text-blue-600 font-bold text-xl">IMMIGRATION</div>
-                  <div className="text-blue-600 font-bold text-xl">LAW</div>
-                </div>
+              <div className="inline-block">
+                <img 
+                  src="/lovable-uploads/4a0ee910-95bb-4abb-951b-d12a7c26f2c4.png" 
+                  alt="New Frontier Immigration Law Logo" 
+                  className="h-20 mx-auto"
+                />
               </div>
             </div>
           </div>
