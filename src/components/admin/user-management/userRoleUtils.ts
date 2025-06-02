@@ -2,7 +2,7 @@
 import { UserProfile } from "./types";
 
 export const getUserRole = (user: UserProfile): string => {
-  return user.roles?.[0]?.role || 'student';
+  return user.roles?.[0] || 'student';
 };
 
 export const getRoleBadgeColor = (role: string): string => {

@@ -84,7 +84,6 @@ export const UserCard = ({ user, onRoleUpdate, onUserDeleted, onCourseAssigned }
           <UserRoleSelect 
             currentRole={user.roles?.[0] || ''} 
             onRoleChange={(newRole) => onRoleUpdate(user.id, newRole)}
-            userId={user.id}
           />
           
           <div className="flex flex-col space-y-2">

@@ -53,7 +53,6 @@ export const UserGrid = ({
       <UserPagination
         currentPage={currentPage}
         totalPages={totalPages}
-        totalUsers={totalUsers}
         onPageChange={onPageChange}
         hasNextPage={hasNextPage}
         hasPreviousPage={hasPreviousPage}

@@ -133,17 +133,17 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
     console.log(`Fetched ${userRoles?.length || 0} user roles`);
 
     // Create a map of user_id to roles for efficient lookup
-    const rolesMap = new Map<string, Array<{ role: string }>>();
+    const rolesMap = new Map<string, string[]>();
     
     userRoles?.forEach(userRole => {
       const existingRoles = rolesMap.get(userRole.user_id) || [];
-      existingRoles.push({ role: userRole.role });
+      existingRoles.push(userRole.role);
       rolesMap.set(userRole.user_id, existingRoles);
     });
 
     // Combine profiles with their roles
     const userProfiles: UserProfile[] = profiles.map(profile => {
-      const userRoles = rolesMap.get(profile.id) || [{ role: 'free' }]; // Default to free if no role found
+      const userRolesList = rolesMap.get(profile.id) || ['free']; // Default to free if no role found
       
       return {
         id: profile.id,
@@ -152,7 +152,7 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
         last_name: profile.last_name || 'User',
         profile_image_url: profile.profile_image_url || undefined,
         created_at: profile.created_at,
-        roles: userRoles,
+        roles: userRolesList,
         hasCompleteProfile: true
       };
     });
@@ -168,7 +168,7 @@ export const fetchUserProfiles = async (): Promise<UserProfile[]> => {
         firstName: sample.first_name,
         lastName: sample.last_name,
         hasProfileImage: !!sample.profile_image_url,
-        roles: sample.roles.map(r => r.role),
+        roles: sample.roles,
         hasCompleteProfile: sample.hasCompleteProfile
       });
     }
