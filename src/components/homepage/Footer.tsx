@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { Facebook, Instagram, Linkedin, ChevronUp } from "lucide-react";
 
@@ -16,7 +15,7 @@ const Footer = () => {
           <div className="lg:col-span-2">
             <div className="mb-6">
               <img 
-                src="/lovable-uploads/6d61691d-888e-4d17-bad9-d5c370292968.png" 
+                src="/lovable-uploads/126f6dae-4376-4b57-9955-f40fc6fa19e2.png" 
                 alt="New Frontier University" 
                 className="h-16 w-auto mb-4"
               />
