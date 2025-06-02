@@ -43,11 +43,11 @@ const Homepage = () => {
       {/* Pricing Section */}
       <PricingSection />
 
-      {/* Podcast Section */}
-      <PodcastSection />
-
       {/* Newsletter Section */}
       <NewsletterSection />
+
+      {/* Podcast Section */}
+      <PodcastSection />
 
       {/* Footer */}
       <Footer />
