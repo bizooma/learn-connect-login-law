@@ -1,12 +1,8 @@
 
 import { useState, useEffect } from "react";
 import { Tables } from "@/integrations/supabase/types";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Play, CheckCircle } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
-import { useUserProgress } from "@/hooks/useUserProgress";
-import { supabase } from "@/integrations/supabase/client";
+import { Play } from "lucide-react";
 
 type Unit = Tables<'units'>;
 
@@ -40,63 +36,6 @@ const getYouTubeEmbedUrl = (url: string): string => {
 };
 
 const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
-  const { user } = useAuth();
-  const { markUnitComplete } = useUserProgress(user?.id);
-  const [isCompleted, setIsCompleted] = useState(false);
-  const [loading, setLoading] = useState(false);
-  const [checkingStatus, setCheckingStatus] = useState(true);
-
-  // Check if unit is already completed when component mounts or unit changes
-  useEffect(() => {
-    const checkCompletionStatus = async () => {
-      if (!unit || !user || !courseId) {
-        setCheckingStatus(false);
-        return;
-      }
-
-      try {
-        setCheckingStatus(true);
-        console.log('Checking completion status for unit:', unit.id, 'user:', user.id);
-        
-        const { data: progress, error } = await supabase
-          .from('user_unit_progress')
-          .select('completed')
-          .eq('user_id', user.id)
-          .eq('unit_id', unit.id)
-          .eq('course_id', courseId)
-          .maybeSingle();
-
-        if (error) {
-          console.error('Error checking unit completion status:', error);
-        } else {
-          const completed = progress?.completed || false;
-          console.log('Unit completion status:', completed);
-          setIsCompleted(completed);
-        }
-      } catch (error) {
-        console.error('Error checking completion status:', error);
-      } finally {
-        setCheckingStatus(false);
-      }
-    };
-
-    checkCompletionStatus();
-  }, [unit?.id, user?.id, courseId]);
-
-  const handleMarkComplete = async () => {
-    if (!unit || !user || !courseId) return;
-
-    setLoading(true);
-    try {
-      await markUnitComplete(unit.id, courseId);
-      setIsCompleted(true);
-    } catch (error) {
-      console.error('Error marking unit complete:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   if (!unit) {
     return (
       <Card>
@@ -119,9 +58,6 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>{unit.title}</span>
-            {isCompleted && (
-              <CheckCircle className="h-5 w-5 text-green-500" />
-            )}
           </CardTitle>
           {unit.description && (
             <p className="text-gray-600">{unit.description}</p>
@@ -144,28 +80,6 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                 />
               </div>
-              
-              {user && !isCompleted && !checkingStatus && (
-                <div className="flex justify-end">
-                  <Button 
-                    onClick={handleMarkComplete}
-                    disabled={loading}
-                    className="flex items-center gap-2"
-                  >
-                    <CheckCircle className="h-4 w-4" />
-                    {loading ? "Marking Complete..." : "Mark as Complete"}
-                  </Button>
-                </div>
-              )}
-              
-              {isCompleted && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 text-green-700">
-                    <CheckCircle className="h-5 w-5" />
-                    <span className="font-medium">Unit completed!</span>
-                  </div>
-                </div>
-              )}
             </div>
           ) : (
             <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">

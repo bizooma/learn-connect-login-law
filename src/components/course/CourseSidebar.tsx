@@ -38,25 +38,6 @@ const CourseSidebar = ({ courseId, lessons, selectedUnit, onUnitSelect }: Course
     setExpandedLessons(newExpanded);
   };
 
-  // Group lessons by module_id to get module numbering
-  const lessonsByModule = lessons.reduce((acc, lesson) => {
-    const moduleId = lesson.module_id || 'no-module';
-    if (!acc[moduleId]) {
-      acc[moduleId] = [];
-    }
-    acc[moduleId].push(lesson);
-    return acc;
-  }, {} as Record<string, LessonWithUnits[]>);
-
-  // Get module numbers for display
-  const getModuleAndLessonNumber = (lesson: LessonWithUnits) => {
-    const moduleId = lesson.module_id || 'no-module';
-    const moduleKeys = Object.keys(lessonsByModule).sort();
-    const moduleNumber = moduleKeys.indexOf(moduleId) + 1;
-    const lessonNumber = lessonsByModule[moduleId].findIndex(l => l.id === lesson.id) + 1;
-    return { moduleNumber, lessonNumber };
-  };
-
   return (
     <div className="space-y-4">
       <CourseProgressBar courseId={courseId} lessons={lessons} />
@@ -64,15 +45,14 @@ const CourseSidebar = ({ courseId, lessons, selectedUnit, onUnitSelect }: Course
       <div className="flex items-center justify-between">
         <h3 className="text-lg font-semibold">Course Content</h3>
         <div className="text-sm text-gray-500">
-          {lessons.length} lessons
+          {lessons.length} modules
         </div>
       </div>
       
       <div className="space-y-3">
-        {lessons.map((lesson) => {
+        {lessons.map((lesson, lessonIndex) => {
           const totalMinutes = lesson.units.reduce((acc, unit) => acc + (unit.duration_minutes || 0), 0);
           const isExpanded = expandedLessons.has(lesson.id);
-          const { moduleNumber, lessonNumber } = getModuleAndLessonNumber(lesson);
           
           return (
             <Card key={lesson.id} className="overflow-hidden">
@@ -88,7 +68,7 @@ const CourseSidebar = ({ courseId, lessons, selectedUnit, onUnitSelect }: Course
                       <ChevronRight className="h-4 w-4 mt-1 shrink-0" />
                     )}
                     <CardTitle className="text-sm font-medium line-clamp-2 pr-2">
-                      Module {moduleNumber} - Lesson {lessonNumber}
+                      {lesson.title}
                     </CardTitle>
                   </div>
                   <Badge variant="secondary" className="ml-2 shrink-0">
@@ -168,7 +148,7 @@ const CourseSidebar = ({ courseId, lessons, selectedUnit, onUnitSelect }: Course
       
       {lessons.length === 0 && (
         <div className="text-center text-gray-500 py-8">
-          <p>No lessons available</p>
+          <p>No modules available</p>
         </div>
       )}
     </div>
