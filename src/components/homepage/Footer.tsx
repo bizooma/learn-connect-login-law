@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Facebook, Instagram, Linkedin, ChevronUp } from "lucide-react";
+import { ChevronUp } from "lucide-react";
 
 const Footer = () => {
   const scrollToTop = () => {
@@ -24,19 +24,6 @@ const Footer = () => {
             <p className="text-gray-300 mb-4">
               550 West Portland St, Phoenix, AZ 85003
             </p>
-            
-            {/* Social Media Icons */}
-            <div className="flex space-x-4 mb-6">
-              <a href="#" style={{ backgroundColor: '#213C82' }} className="hover:opacity-90 p-2 rounded transition-colors">
-                <Facebook className="w-5 h-5" />
-              </a>
-              <a href="#" className="bg-pink-600 hover:bg-pink-700 p-2 rounded transition-colors">
-                <Instagram className="w-5 h-5" />
-              </a>
-              <a href="#" style={{ backgroundColor: '#213C82' }} className="hover:opacity-90 p-2 rounded transition-colors">
-                <Linkedin className="w-5 h-5" />
-              </a>
-            </div>
           </div>
 
           {/* Courses for Everyone */}
