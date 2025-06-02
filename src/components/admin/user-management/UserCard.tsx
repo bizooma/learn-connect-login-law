@@ -2,8 +2,8 @@
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { UserRoleSelect } from "./UserRoleSelect";
-import { DeleteUserDialog } from "./DeleteUserDialog";
+import UserRoleSelect from "./UserRoleSelect";
+import DeleteUserDialog from "./DeleteUserDialog";
 import UserCourseAssignment from "./UserCourseAssignment";
 import { UserProfile } from "./types";
 
@@ -67,9 +67,9 @@ export const UserCard = ({ user, onRoleUpdate, onUserDeleted, onCourseAssigned }
       
       <CardContent className="space-y-4">
         <div className="flex flex-wrap gap-1">
-          {user.roles?.map((role) => (
+          {user.roles?.map((role, index) => (
             <Badge 
-              key={role} 
+              key={index} 
               variant={getRoleBadgeVariant(role)}
               className="text-xs"
             >

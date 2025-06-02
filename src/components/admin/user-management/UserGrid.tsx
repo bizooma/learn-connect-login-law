@@ -1,6 +1,6 @@
 
 import { UserCard } from "./UserCard";
-import { UserPagination } from "./UserPagination";
+import UserPagination from "./UserPagination";
 import { UserProfile } from "./types";
 
 interface UserGridProps {

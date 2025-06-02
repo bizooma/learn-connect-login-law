@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
 import UserSearch from "./user-management/UserSearch";
-import UserGrid from "./user-management/UserGrid";
+import { UserGrid } from "./user-management/UserGrid";
 import DiagnosticPanel from "./user-management/DiagnosticPanel";
 import UserManagementHeader from "./user-management/UserManagementHeader";
 import EmptyUserState from "./user-management/EmptyUserState";
