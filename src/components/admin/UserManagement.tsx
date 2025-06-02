@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -7,6 +8,7 @@ import DiagnosticPanel from "./user-management/DiagnosticPanel";
 import UserManagementHeader from "./user-management/UserManagementHeader";
 import EmptyUserState from "./user-management/EmptyUserState";
 import LoadingState from "./user-management/LoadingState";
+import UserProgressModal from "./user-progress/UserProgressModal";
 import { filterUsers } from "./user-management/userRoleUtils";
 import { UserProfile, DiagnosticInfo } from "./user-management/types";
 import { fetchUsersData } from "./user-management/userDataService";
@@ -21,6 +23,7 @@ const UserManagement = () => {
   const [diagnosticInfo, setDiagnosticInfo] = useState<DiagnosticInfo | null>(null);
   const [isCleaningUp, setIsCleaningUp] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedUserForProgress, setSelectedUserForProgress] = useState<string | null>(null);
   const { toast } = useToast();
   const { isAdmin } = useUserRole();
 
@@ -80,6 +83,10 @@ const UserManagement = () => {
     }
   };
 
+  const handleViewProgress = (userId: string) => {
+    setSelectedUserForProgress(userId);
+  };
+
   if (loading) {
     return <LoadingState />;
   }
@@ -110,6 +117,7 @@ const UserManagement = () => {
         onRoleUpdate={updateUserRole}
         onUserDeleted={fetchUsers}
         onCourseAssigned={fetchUsers}
+        onViewProgress={handleViewProgress}
         currentPage={currentPage}
         totalPages={totalPages}
         totalUsers={filteredUsers.length}
@@ -124,6 +132,13 @@ const UserManagement = () => {
           onRefresh={fetchUsers}
         />
       )}
+
+      {/* User Progress Modal */}
+      <UserProgressModal
+        isOpen={!!selectedUserForProgress}
+        onClose={() => setSelectedUserForProgress(null)}
+        userId={selectedUserForProgress}
+      />
     </div>
   );
 };

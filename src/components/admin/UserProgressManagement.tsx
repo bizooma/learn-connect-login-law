@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -10,6 +9,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, Download, User, BookOpen, CheckCircle, Clock } from "lucide-react";
 import { usePagination } from "./user-management/usePagination";
+import UserProgressFilter from "./user-progress/UserProgressFilter";
+import UserProgressModal from "./user-progress/UserProgressModal";
 
 interface UserProgress {
   user_id: string;
@@ -26,26 +27,24 @@ interface UserProgress {
   total_units: number;
 }
 
-interface UserUnitProgress {
-  unit_id: string;
-  unit_title: string;
-  completed: boolean;
-  completed_at: string | null;
-  course_title: string;
-  lesson_title: string;
+interface UserOption {
+  id: string;
+  name: string;
+  email: string;
 }
 
 const ITEMS_PER_PAGE = 50;
 
 const UserProgressManagement = () => {
   const [userProgress, setUserProgress] = useState<UserProgress[]>([]);
-  const [selectedUser, setSelectedUser] = useState<string | null>(null);
-  const [userUnitProgress, setUserUnitProgress] = useState<UserUnitProgress[]>([]);
+  const [selectedUserId, setSelectedUserId] = useState<string>("all");
+  const [selectedUserForModal, setSelectedUserForModal] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [courseFilter, setCourseFilter] = useState<string>("all");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [courses, setCourses] = useState<Array<{id: string, title: string}>>([]);
+  const [users, setUsers] = useState<UserOption[]>([]);
   const { toast } = useToast();
 
   // Filter progress data
@@ -55,8 +54,9 @@ const UserProgressManagement = () => {
                          progress.course_title.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCourse = courseFilter === "all" || progress.course_id === courseFilter;
     const matchesStatus = statusFilter === "all" || progress.status === statusFilter;
+    const matchesUser = selectedUserId === "all" || progress.user_id === selectedUserId;
     
-    return matchesSearch && matchesCourse && matchesStatus;
+    return matchesSearch && matchesCourse && matchesStatus && matchesUser;
   });
 
   // Use pagination hook
@@ -76,7 +76,7 @@ const UserProgressManagement = () => {
   // Reset pagination when filters change
   useEffect(() => {
     resetPagination();
-  }, [searchTerm, courseFilter, statusFilter, resetPagination]);
+  }, [searchTerm, courseFilter, statusFilter, selectedUserId, resetPagination]);
 
   const fetchUserProgress = async () => {
     try {
@@ -158,10 +158,18 @@ const UserProgressManagement = () => {
       }) || [];
 
       setUserProgress(formattedProgress);
-
+      
       // Extract unique courses for filter
-      const uniqueCourses = [...new Set(formattedProgress.map(p => ({ id: p.course_id, title: p.course_title })))];
+      const uniqueCourses = [...new Set(progressData?.map(p => ({ id: p.course_id, title: p.courses?.title || 'Unknown Course' })))];
       setCourses(uniqueCourses);
+
+      // Extract unique users for filter
+      const uniqueUsers = [...new Set(progressData?.map(p => ({
+        id: p.user_id,
+        name: `${p.profiles?.first_name || ''} ${p.profiles?.last_name || ''}`.trim() || 'Unknown',
+        email: p.profiles?.email || 'Unknown'
+      })))];
+      setUsers(uniqueUsers);
 
     } catch (error) {
       console.error('Error fetching user progress:', error);
@@ -172,54 +180,6 @@ const UserProgressManagement = () => {
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const fetchUserUnitProgress = async (userId: string) => {
-    try {
-      const { data, error } = await supabase
-        .from('user_unit_progress')
-        .select(`
-          *,
-          units:unit_id (title, section_id),
-          courses:course_id (title)
-        `)
-        .eq('user_id', userId)
-        .order('completed_at', { ascending: false });
-
-      if (error) throw error;
-
-      // Fetch lesson details for each unit
-      const formattedData = await Promise.all(
-        data?.map(async (progress) => {
-          const unit = progress.units;
-          const course = progress.courses;
-          
-          const { data: lesson } = await supabase
-            .from('lessons')
-            .select('title')
-            .eq('id', unit?.section_id)
-            .single();
-
-          return {
-            unit_id: progress.unit_id,
-            unit_title: unit?.title || 'Unknown Unit',
-            completed: progress.completed,
-            completed_at: progress.completed_at,
-            course_title: course?.title || 'Unknown Course',
-            lesson_title: lesson?.title || 'Unknown Lesson'
-          };
-        }) || []
-      );
-
-      setUserUnitProgress(formattedData);
-    } catch (error) {
-      console.error('Error fetching user unit progress:', error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch detailed user progress",
-        variant: "destructive",
-      });
     }
   };
 
@@ -240,6 +200,10 @@ const UserProgressManagement = () => {
     }
   };
 
+  const handleViewUserProgress = (userId: string) => {
+    setSelectedUserForModal(userId);
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -247,6 +211,9 @@ const UserProgressManagement = () => {
       </div>
     );
   }
+
+  // Get unique user count for statistics
+  const uniqueUserCount = new Set(userProgress.map(p => p.user_id)).size;
 
   return (
     <div className="space-y-6">
@@ -269,9 +236,7 @@ const UserProgressManagement = () => {
             <User className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {new Set(userProgress.map(p => p.user_id)).size}
-            </div>
+            <div className="text-2xl font-bold">{uniqueUserCount}</div>
           </CardContent>
         </Card>
 
@@ -325,6 +290,13 @@ const UserProgressManagement = () => {
                 />
               </div>
             </div>
+            
+            <UserProgressFilter
+              users={users}
+              selectedUserId={selectedUserId}
+              onUserChange={setSelectedUserId}
+            />
+            
             <Select value={courseFilter} onValueChange={setCourseFilter}>
               <SelectTrigger className="w-full md:w-[200px]">
                 <SelectValue placeholder="Filter by course" />
@@ -338,6 +310,7 @@ const UserProgressManagement = () => {
                 ))}
               </SelectContent>
             </Select>
+            
             <Select value={statusFilter} onValueChange={setStatusFilter}>
               <SelectTrigger className="w-full md:w-[150px]">
                 <SelectValue placeholder="Filter by status" />
@@ -411,10 +384,7 @@ const UserProgressManagement = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        setSelectedUser(progress.user_id);
-                        fetchUserUnitProgress(progress.user_id);
-                      }}
+                      onClick={() => handleViewUserProgress(progress.user_id)}
                     >
                       View Details
                     </Button>
@@ -483,54 +453,12 @@ const UserProgressManagement = () => {
         </CardContent>
       </Card>
 
-      {/* Unit Progress Modal/Section */}
-      {selectedUser && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Detailed Unit Progress</CardTitle>
-              <Button variant="outline" onClick={() => setSelectedUser(null)}>
-                Close
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Course</TableHead>
-                  <TableHead>Lesson</TableHead>
-                  <TableHead>Unit</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Completed At</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {userUnitProgress.map((unitProgress, index) => (
-                  <TableRow key={index}>
-                    <TableCell>{unitProgress.course_title}</TableCell>
-                    <TableCell>{unitProgress.lesson_title}</TableCell>
-                    <TableCell>{unitProgress.unit_title}</TableCell>
-                    <TableCell>
-                      {unitProgress.completed ? (
-                        <Badge className="bg-green-100 text-green-800">Completed</Badge>
-                      ) : (
-                        <Badge className="bg-gray-100 text-gray-800">Not Completed</Badge>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {unitProgress.completed_at 
-                        ? new Date(unitProgress.completed_at).toLocaleString()
-                        : '-'
-                      }
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </CardContent>
-        </Card>
-      )}
+      {/* Enhanced User Progress Modal */}
+      <UserProgressModal
+        isOpen={!!selectedUserForModal}
+        onClose={() => setSelectedUserForModal(null)}
+        userId={selectedUserForModal}
+      />
     </div>
   );
 };
