@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Plus } from "lucide-react";
 import QuizCard from "./quiz-management/QuizCard";
 import CreateQuizForm from "./quiz-management/CreateQuizForm";
 import EditQuizForm from "./quiz-management/EditQuizForm";
@@ -100,8 +102,7 @@ const QuizManagement = () => {
   };
 
   const handleManageQuestions = (quiz: QuizWithDetails) => {
-    // TODO: Implement question management
-    console.log('Manage questions for quiz:', quiz.id);
+    setEditingQuiz(quiz);
   };
 
   if (isLoading) {
@@ -109,6 +110,10 @@ const QuizManagement = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-2xl font-bold">Quiz Management</h2>
+          <Button disabled>
+            <Plus className="h-4 w-4 mr-2" />
+            Create Quiz
+          </Button>
         </div>
         <div className="grid gap-4">
           {[...Array(3)].map((_, i) => (
@@ -121,6 +126,14 @@ const QuizManagement = () => {
 
   return (
     <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h2 className="text-2xl font-bold">Quiz Management</h2>
+        <Button onClick={() => setShowCreateForm(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Create Quiz
+        </Button>
+      </div>
+
       <QuizSearch
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
@@ -141,7 +154,11 @@ const QuizManagement = () => {
 
       {filteredQuizzes.length === 0 && !isLoading && (
         <div className="text-center py-8">
-          <p className="text-gray-500">No quizzes found</p>
+          <p className="text-gray-500 mb-4">No quizzes found</p>
+          <Button onClick={() => setShowCreateForm(true)} variant="outline">
+            <Plus className="h-4 w-4 mr-2" />
+            Create Your First Quiz
+          </Button>
         </div>
       )}
 
