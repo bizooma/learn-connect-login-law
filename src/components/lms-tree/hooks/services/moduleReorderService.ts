@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { ReorderConfig } from "../types/reorderTypes";
 import { validateReorderBounds, swapSortOrders } from "./reorderUtils";
@@ -81,22 +82,7 @@ const handleActualModuleReordering = async (moduleData: any, direction: 'up' | '
 const handleLessonAsModuleReordering = async (lessonData: any, direction: 'up' | 'down', config: ReorderConfig) => {
   console.log('Handling lesson-as-module reordering for:', lessonData);
   
-  // Get ALL lessons in the course that are displayed as modules
-  // These are lessons that belong to modules created from the migration
-  const { data: allLessons, error: lessonsError } = await supabase
-    .from('lessons')
-    .select('id, sort_order, title, module_id, course_id')
-    .eq('course_id', lessonData.course_id)
-    .order('sort_order');
-
-  if (lessonsError) {
-    console.error('Error fetching all lessons:', lessonsError);
-    throw lessonsError;
-  }
-
-  console.log('All lessons in course:', allLessons);
-
-  // Get the module information to understand the structure
+  // Get the module to check if this is a "Main Module" scenario
   const { data: moduleData, error: moduleError } = await supabase
     .from('modules')
     .select('id, title, description')
@@ -110,24 +96,54 @@ const handleLessonAsModuleReordering = async (lessonData: any, direction: 'up' |
 
   console.log('Module data:', moduleData);
 
-  // Filter lessons that are displayed as modules
-  // In the migrated structure, these are lessons that are the ONLY lesson in their module
-  // and the module was created from the original lesson
-  const moduleLessons = [];
-  
-  // Group lessons by module_id
-  const lessonsByModule = allLessons.reduce((acc, lesson) => {
-    if (!acc[lesson.module_id]) {
-      acc[lesson.module_id] = [];
-    }
-    acc[lesson.module_id].push(lesson);
-    return acc;
-  }, {} as Record<string, any[]>);
+  // Check if this is a "Main Module" or migration scenario
+  const isMainModule = moduleData?.title === "Main Module" || 
+                      (moduleData?.description && moduleData.description.includes("migration"));
 
-  // Only include lessons that are the sole lesson in their module (these are displayed as modules)
-  for (const [moduleId, lessons] of Object.entries(lessonsByModule)) {
-    if (lessons.length === 1) {
-      moduleLessons.push(lessons[0]);
+  let moduleLessons;
+
+  if (isMainModule) {
+    console.log('This is a Main Module scenario - treating all lessons as modules');
+    // For Main Module, ALL lessons in this module should be treated as modules
+    const { data: allLessonsInModule, error: lessonsError } = await supabase
+      .from('lessons')
+      .select('id, sort_order, title, module_id, course_id')
+      .eq('module_id', lessonData.module_id)
+      .order('sort_order');
+
+    if (lessonsError) {
+      console.error('Error fetching lessons in module:', lessonsError);
+      throw lessonsError;
+    }
+
+    moduleLessons = allLessonsInModule;
+  } else {
+    // For other cases, use the original logic
+    const { data: allLessons, error: lessonsError } = await supabase
+      .from('lessons')
+      .select('id, sort_order, title, module_id, course_id')
+      .eq('course_id', lessonData.course_id)
+      .order('sort_order');
+
+    if (lessonsError) {
+      console.error('Error fetching all lessons:', lessonsError);
+      throw lessonsError;
+    }
+
+    // Group lessons by module_id and find single-lesson modules
+    const lessonsByModule = allLessons.reduce((acc, lesson) => {
+      if (!acc[lesson.module_id]) {
+        acc[lesson.module_id] = [];
+      }
+      acc[lesson.module_id].push(lesson);
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    moduleLessons = [];
+    for (const [moduleId, lessons] of Object.entries(lessonsByModule)) {
+      if (lessons.length === 1) {
+        moduleLessons.push(lessons[0]);
+      }
     }
   }
 
