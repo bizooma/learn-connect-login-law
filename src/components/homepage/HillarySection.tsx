@@ -50,21 +50,22 @@ const HillarySection = () => {
           {/* Right Side - Hillary's Image and Logo */}
           <div className="relative">
             <div className="relative z-10 text-center">
-              {/* Hillary's Photo */}
+              {/* Hillary's Photo - doubled size from w-80 h-96 to w-160 h-192 */}
               <div className="mb-8">
                 <img 
                   src="/lovable-uploads/17ce76f2-e60e-4ac9-bd42-c84db738b1c1.png" 
                   alt="Hillary - Founder of New Frontier Immigration Law" 
-                  className="w-80 h-96 object-cover rounded-lg mx-auto"
+                  className="w-160 h-192 object-cover rounded-lg mx-auto"
+                  style={{ width: '640px', height: '768px' }}
                 />
               </div>
               
-              {/* New Frontier Immigration Law Logo */}
+              {/* New Frontier Immigration Law Logo - doubled size from h-20 to h-40 */}
               <div className="inline-block">
                 <img 
                   src="/lovable-uploads/4a0ee910-95bb-4abb-951b-d12a7c26f2c4.png" 
                   alt="New Frontier Immigration Law Logo" 
-                  className="h-20 mx-auto"
+                  className="h-40 mx-auto"
                 />
               </div>
             </div>
