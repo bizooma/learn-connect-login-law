@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 
 const HillarySection = () => {
@@ -50,13 +51,13 @@ const HillarySection = () => {
           {/* Right Side - Hillary's Image and Logo */}
           <div className="relative">
             <div className="relative z-10 text-center">
-              {/* Hillary's Photo - doubled size from w-80 h-96 to w-160 h-192 */}
+              {/* Hillary's Photo - reduced by 15% from 640x768 to approximately 544x653 */}
               <div className="mb-8">
                 <img 
                   src="/lovable-uploads/17ce76f2-e60e-4ac9-bd42-c84db738b1c1.png" 
                   alt="Hillary - Founder of New Frontier Immigration Law" 
-                  className="w-160 h-192 object-cover rounded-lg mx-auto"
-                  style={{ width: '640px', height: '768px' }}
+                  className="w-136 h-164 object-cover rounded-lg mx-auto"
+                  style={{ width: '544px', height: '653px' }}
                 />
               </div>
               
