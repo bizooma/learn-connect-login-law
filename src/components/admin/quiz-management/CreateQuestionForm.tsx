@@ -30,6 +30,18 @@ const CreateQuestionForm = ({ open, onOpenChange, quizId, onQuestionCreated }: C
     onClose: () => onOpenChange(false)
   });
 
+  const handleFormSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleSubmit(e);
+  };
+
+  const handleCancel = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    onOpenChange(false);
+  };
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -40,7 +52,7 @@ const CreateQuestionForm = ({ open, onOpenChange, quizId, onQuestionCreated }: C
           </DialogDescription>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleFormSubmit} className="space-y-4">
           <div>
             <Label htmlFor="questionText">Question *</Label>
             <Textarea
@@ -74,7 +86,7 @@ const CreateQuestionForm = ({ open, onOpenChange, quizId, onQuestionCreated }: C
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={handleCancel}
             >
               Cancel
             </Button>

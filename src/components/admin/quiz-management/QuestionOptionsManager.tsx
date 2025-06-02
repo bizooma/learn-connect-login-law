@@ -12,11 +12,15 @@ interface QuestionOptionsManagerProps {
 }
 
 const QuestionOptionsManager = ({ options, onOptionsChange }: QuestionOptionsManagerProps) => {
-  const addOption = () => {
+  const addOption = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     onOptionsChange([...options, { text: "", isCorrect: false }]);
   };
 
-  const removeOption = (index: number) => {
+  const removeOption = (index: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
     if (options.length > 2) {
       onOptionsChange(options.filter((_, i) => i !== index));
     }
@@ -60,7 +64,7 @@ const QuestionOptionsManager = ({ options, onOptionsChange }: QuestionOptionsMan
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => removeOption(index)}
+              onClick={(e) => removeOption(index, e)}
               className="text-red-600 hover:text-red-700"
             >
               <Trash2 className="h-4 w-4" />
