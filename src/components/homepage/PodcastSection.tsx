@@ -51,36 +51,13 @@ const PodcastSection = () => {
               This podcast is for entrepreneurs who want to live rich lives that leave a legacy. Your hosts, Hillary & Shawn Walsh, are an award-winning entrepreneur power couple. In this show, they share real-life, actionable advice on how to grow your law firm and make an impact.
             </p>
 
-            {/* Podcast Player Mockup */}
-            <div className="bg-gray-900 rounded-3xl p-6 max-w-sm mx-auto lg:mx-0">
-              <div className="bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl p-4 mb-4">
-                <div className="bg-yellow-400 text-black text-xs font-bold px-2 py-1 rounded mb-2 inline-block">
-                  NEW RELEASE
-                </div>
-                <div className="text-yellow-300 text-sm font-bold mb-1">PODCAST:</div>
-                <div className="text-white text-xl font-bold mb-2">LET'S GET RICH</div>
-                <div className="w-full h-20 bg-white/20 rounded mb-4 flex items-center justify-center">
-                  <Podcast className="w-8 h-8 text-white" />
-                </div>
-              </div>
-              
-              <div className="text-white text-center">
-                <div className="text-lg font-semibold mb-4">Let's Get Rich</div>
-                <div className="flex items-center justify-center space-x-6 mb-4">
-                  <button className="w-8 h-8 flex items-center justify-center">
-                    <div className="w-4 h-4 border-l-4 border-l-white"></div>
-                  </button>
-                  <button className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-                    <Play className="w-6 h-6 text-black ml-1" />
-                  </button>
-                  <button className="w-8 h-8 flex items-center justify-center">
-                    <div className="w-4 h-4 border-r-4 border-r-white"></div>
-                  </button>
-                </div>
-                <div className="w-full h-1 bg-gray-700 rounded mb-2">
-                  <div className="w-1/3 h-full bg-white rounded"></div>
-                </div>
-              </div>
+            {/* Podcast Player with New Image */}
+            <div className="max-w-sm mx-auto lg:mx-0">
+              <img 
+                src="/lovable-uploads/01509898-2441-4731-b9a9-d242e1be7ed3.png"
+                alt="Let's Get Rich Podcast - Hillary & Shawn Walsh"
+                className="w-full h-auto rounded-3xl shadow-lg"
+              />
             </div>
           </div>
 
