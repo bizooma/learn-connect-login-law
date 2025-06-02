@@ -116,7 +116,8 @@ const handleLessonAsModuleReordering = async (lessonData: any, direction: 'up' |
       throw lessonsError;
     }
 
-    moduleLessons = allLessonsInModule;
+    moduleLessons = allLessonsInModule || [];
+    console.log('All lessons in Main Module (displayed as modules):', moduleLessons);
   } else {
     // For other cases, use the original logic
     const { data: allLessons, error: lessonsError } = await supabase
@@ -131,7 +132,7 @@ const handleLessonAsModuleReordering = async (lessonData: any, direction: 'up' |
     }
 
     // Group lessons by module_id and find single-lesson modules
-    const lessonsByModule = allLessons.reduce((acc, lesson) => {
+    const lessonsByModule = (allLessons || []).reduce((acc, lesson) => {
       if (!acc[lesson.module_id]) {
         acc[lesson.module_id] = [];
       }
@@ -147,12 +148,22 @@ const handleLessonAsModuleReordering = async (lessonData: any, direction: 'up' |
     }
   }
 
-  console.log('Lessons displayed as modules:', moduleLessons);
+  console.log('Final lessons displayed as modules:', moduleLessons);
+
+  if (!moduleLessons || moduleLessons.length === 0) {
+    console.log('No lessons found to reorder');
+    config.toast({
+      title: "Info",
+      description: "No items available to reorder",
+    });
+    return;
+  }
 
   const currentIndex = moduleLessons.findIndex(s => s.id === lessonData.id);
   const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
 
   console.log('Current index:', currentIndex, 'Target index:', targetIndex);
+  console.log('Available lessons for reordering:', moduleLessons.map(l => ({ id: l.id, title: l.title, sort_order: l.sort_order })));
 
   if (!validateReorderBounds(currentIndex, targetIndex, moduleLessons, direction, config)) {
     return;
