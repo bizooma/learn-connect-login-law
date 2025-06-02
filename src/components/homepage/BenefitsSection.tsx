@@ -115,7 +115,7 @@ const BenefitsSection = () => {
           {openSections.accountability && (
             <div className="p-6 bg-white border-t border-gray-200">
               <p className="text-gray-600 leading-relaxed">
-                Track progress and ensure completion with built-in accountability measures that keep your team on track and motivated.
+                When it's time to hold your team members accountable, you hesitate: you know how unfair it is to enforce your standards when they've never been taught. Yet you know you have an ethical duty to properly supervise your team members.
               </p>
             </div>
           )}
