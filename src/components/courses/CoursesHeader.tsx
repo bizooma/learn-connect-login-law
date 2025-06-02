@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface CoursesHeaderProps {
   filteredCoursesCount: number;
@@ -9,6 +10,22 @@ interface CoursesHeaderProps {
 
 const CoursesHeader = ({ filteredCoursesCount }: CoursesHeaderProps) => {
   const navigate = useNavigate();
+  const { isOwner, isStudent, isClient, isFree } = useUserRole();
+
+  const handleBackToDashboard = () => {
+    if (isOwner) {
+      navigate("/owner-dashboard");
+    } else if (isStudent) {
+      navigate("/student-dashboard");
+    } else if (isClient) {
+      navigate("/client-dashboard");
+    } else if (isFree) {
+      navigate("/free-dashboard");
+    } else {
+      // Default to main dashboard for admin users
+      navigate("/");
+    }
+  };
 
   return (
     <div className="shadow-sm" style={{ backgroundColor: '#213C82' }}>
@@ -18,7 +35,7 @@ const CoursesHeader = ({ filteredCoursesCount }: CoursesHeaderProps) => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() => navigate("/")}
+              onClick={() => navigate(-1)}
               className="hover:bg-white/10 text-white"
             >
               <ArrowLeft className="h-5 w-5" />
@@ -45,7 +62,7 @@ const CoursesHeader = ({ filteredCoursesCount }: CoursesHeaderProps) => {
           <div className="flex items-center space-x-4">
             <Button
               variant="outline"
-              onClick={() => navigate("/")}
+              onClick={handleBackToDashboard}
               className="flex items-center border-white/20 bg-white text-black hover:bg-gray-100"
             >
               <Home className="h-4 w-4 mr-2" />
