@@ -37,83 +37,141 @@ export const useDragHandler = (onRefetch: () => void) => {
       if (activeType === 'module' && overType === 'module' && activeItemId !== overItemId) {
         console.log('Attempting to reorder modules:', { activeItemId, overItemId });
         
-        // Get both modules to swap their sort orders
-        const { data: activeModule, error: activeError } = await supabase
+        // Since modules might actually be lessons in disguise due to data transformation,
+        // we need to check both tables and handle accordingly
+        
+        // First try the modules table
+        const { data: activeModule, error: activeModuleError } = await supabase
           .from('modules')
           .select('sort_order, course_id')
           .eq('id', activeItemId)
-          .single();
+          .maybeSingle();
           
-        if (activeError) {
-          console.error('Error fetching active module:', activeError);
-          throw new Error(`Failed to fetch active module: ${activeError.message}`);
-        }
-          
-        const { data: overModule, error: overError } = await supabase
+        const { data: overModule, error: overModuleError } = await supabase
           .from('modules')
           .select('sort_order, course_id')
           .eq('id', overItemId)
-          .single();
+          .maybeSingle();
+        
+        // If both are found in modules table, proceed with module reordering
+        if (activeModule && overModule && !activeModuleError && !overModuleError) {
+          console.log('Found both items in modules table, proceeding with module reordering');
           
-        if (overError) {
-          console.error('Error fetching over module:', overError);
-          throw new Error(`Failed to fetch target module: ${overError.message}`);
-        }
-        
-        if (!activeModule || !overModule) {
-          throw new Error('Module data not found');
-        }
-        
-        console.log('Module data fetched:', { activeModule, overModule });
-        
-        // Only allow reordering within the same course
-        if (activeModule.course_id !== overModule.course_id) {
-          toast({
-            title: "Info",
-            description: "Modules can only be reordered within the same course",
+          if (activeModule.course_id !== overModule.course_id) {
+            toast({
+              title: "Info",
+              description: "Modules can only be reordered within the same course",
+            });
+            return;
+          }
+          
+          const tempSortOrder = activeModule.sort_order;
+          
+          console.log('Swapping module sort orders:', { 
+            activeId: activeItemId, 
+            newSortOrder: overModule.sort_order,
+            overId: overItemId,
+            newSortOrder2: tempSortOrder
           });
+          
+          const { error: updateError1 } = await supabase
+            .from('modules')
+            .update({ sort_order: overModule.sort_order })
+            .eq('id', activeItemId);
+            
+          if (updateError1) {
+            console.error('Error updating active module sort order:', updateError1);
+            throw new Error(`Failed to update active module: ${updateError1.message}`);
+          }
+            
+          const { error: updateError2 } = await supabase
+            .from('modules')
+            .update({ sort_order: tempSortOrder })
+            .eq('id', overItemId);
+            
+          if (updateError2) {
+            console.error('Error updating target module sort order:', updateError2);
+            throw new Error(`Failed to update target module: ${updateError2.message}`);
+          }
+          
+          console.log('Module reordering completed successfully');
+          
+          toast({
+            title: "Success",
+            description: "Modules reordered successfully",
+          });
+          
+          onRefetch();
           return;
         }
         
-        // Swap the sort orders
-        const tempSortOrder = activeModule.sort_order;
-        
-        console.log('Swapping sort orders:', { 
-          activeId: activeItemId, 
-          newSortOrder: overModule.sort_order,
-          overId: overItemId,
-          newSortOrder2: tempSortOrder
-        });
-        
-        const { error: updateError1 } = await supabase
-          .from('modules')
-          .update({ sort_order: overModule.sort_order })
-          .eq('id', activeItemId);
+        // If not found in modules table, try lessons table (transformed modules)
+        const { data: activeLesson, error: activeLessonError } = await supabase
+          .from('lessons')
+          .select('sort_order, course_id, module_id')
+          .eq('id', activeItemId)
+          .maybeSingle();
           
-        if (updateError1) {
-          console.error('Error updating active module sort order:', updateError1);
-          throw new Error(`Failed to update active module: ${updateError1.message}`);
+        const { data: overLesson, error: overLessonError } = await supabase
+          .from('lessons')
+          .select('sort_order, course_id, module_id')
+          .eq('id', overItemId)
+          .maybeSingle();
+        
+        if (activeLesson && overLesson && !activeLessonError && !overLessonError) {
+          console.log('Found both items in lessons table, proceeding with lesson reordering');
+          
+          if (activeLesson.course_id !== overLesson.course_id) {
+            toast({
+              title: "Info",
+              description: "Items can only be reordered within the same course",
+            });
+            return;
+          }
+          
+          const tempSortOrder = activeLesson.sort_order;
+          
+          console.log('Swapping lesson sort orders:', { 
+            activeId: activeItemId, 
+            newSortOrder: overLesson.sort_order,
+            overId: overItemId,
+            newSortOrder2: tempSortOrder
+          });
+          
+          const { error: updateError1 } = await supabase
+            .from('lessons')
+            .update({ sort_order: overLesson.sort_order })
+            .eq('id', activeItemId);
+            
+          if (updateError1) {
+            console.error('Error updating active lesson sort order:', updateError1);
+            throw new Error(`Failed to update active lesson: ${updateError1.message}`);
+          }
+            
+          const { error: updateError2 } = await supabase
+            .from('lessons')
+            .update({ sort_order: tempSortOrder })
+            .eq('id', overItemId);
+            
+          if (updateError2) {
+            console.error('Error updating target lesson sort order:', updateError2);
+            throw new Error(`Failed to update target lesson: ${updateError2.message}`);
+          }
+          
+          console.log('Lesson reordering completed successfully');
+          
+          toast({
+            title: "Success",
+            description: "Modules reordered successfully",
+          });
+          
+          onRefetch();
+          return;
         }
-          
-        const { error: updateError2 } = await supabase
-          .from('modules')
-          .update({ sort_order: tempSortOrder })
-          .eq('id', overItemId);
-          
-        if (updateError2) {
-          console.error('Error updating target module sort order:', updateError2);
-          throw new Error(`Failed to update target module: ${updateError2.message}`);
-        }
         
-        console.log('Module reordering completed successfully');
-        
-        toast({
-          title: "Success",
-          description: "Modules reordered successfully",
-        });
-        
-        onRefetch();
-        return;
+        // If neither found, show error
+        console.error('Items not found in either modules or lessons table');
+        throw new Error('Unable to find items to reorder');
       }
       
       // Handle reclassification based on drag target
