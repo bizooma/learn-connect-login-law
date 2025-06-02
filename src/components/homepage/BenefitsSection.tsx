@@ -91,7 +91,7 @@ const BenefitsSection = () => {
           {openSections.productivity && (
             <div className="p-6 bg-white border-t border-gray-200">
               <p className="text-gray-600 leading-relaxed">
-                Increase your team's efficiency with structured training that gets new hires up to speed faster and existing staff performing at their best.
+                Some of your best team members are now training all the new people, while also managing their own caseloads. Your best people are now drowning in questions; everyone needs their help. And now their production is suffering.
               </p>
             </div>
           )}
