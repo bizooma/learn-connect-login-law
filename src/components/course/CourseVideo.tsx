@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Play, CheckCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserProgress } from "@/hooks/useUserProgress";
+import { supabase } from "@/integrations/supabase/client";
 
 type Unit = Tables<'units'>;
 
@@ -43,6 +44,44 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
   const { markUnitComplete } = useUserProgress(user?.id);
   const [isCompleted, setIsCompleted] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [checkingStatus, setCheckingStatus] = useState(true);
+
+  // Check if unit is already completed when component mounts or unit changes
+  useEffect(() => {
+    const checkCompletionStatus = async () => {
+      if (!unit || !user || !courseId) {
+        setCheckingStatus(false);
+        return;
+      }
+
+      try {
+        setCheckingStatus(true);
+        console.log('Checking completion status for unit:', unit.id, 'user:', user.id);
+        
+        const { data: progress, error } = await supabase
+          .from('user_unit_progress')
+          .select('completed')
+          .eq('user_id', user.id)
+          .eq('unit_id', unit.id)
+          .eq('course_id', courseId)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error checking unit completion status:', error);
+        } else {
+          const completed = progress?.completed || false;
+          console.log('Unit completion status:', completed);
+          setIsCompleted(completed);
+        }
+      } catch (error) {
+        console.error('Error checking completion status:', error);
+      } finally {
+        setCheckingStatus(false);
+      }
+    };
+
+    checkCompletionStatus();
+  }, [unit?.id, user?.id, courseId]);
 
   const handleMarkComplete = async () => {
     if (!unit || !user || !courseId) return;
@@ -106,7 +145,7 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
                 />
               </div>
               
-              {user && !isCompleted && (
+              {user && !isCompleted && !checkingStatus && (
                 <div className="flex justify-end">
                   <Button 
                     onClick={handleMarkComplete}
