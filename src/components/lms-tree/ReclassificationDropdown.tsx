@@ -1,5 +1,5 @@
 
-import { MoreVertical, ArrowUp, ArrowDown, Package, FolderOpen, File } from "lucide-react";
+import { MoreVertical, ArrowUp, ArrowDown, Package, FolderOpen, File, Move } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -131,9 +131,13 @@ const ReclassificationDropdown = ({
           <MoreVertical className="h-3 w-3" />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuLabel className="text-xs">Move "{itemTitle}"</DropdownMenuLabel>
+      <DropdownMenuContent align="end" className="w-56">
+        <DropdownMenuLabel className="text-xs flex items-center space-x-2">
+          <Move className="h-3 w-3" />
+          <span>Move "{itemTitle}"</span>
+        </DropdownMenuLabel>
         <DropdownMenuSeparator />
+        
         {filteredTargets.map((target) => (
           <DropdownMenuItem
             key={target.id}
@@ -143,12 +147,17 @@ const ReclassificationDropdown = ({
             <div className="flex items-center space-x-2">
               {getIcon(target.type)}
               <div className="flex flex-col">
-                <span>{getActionText(target.type)}</span>
+                <span className="font-medium">{getActionText(target.type)}</span>
                 <span className="text-muted-foreground">"{target.title}"</span>
               </div>
             </div>
           </DropdownMenuItem>
         ))}
+        
+        <DropdownMenuSeparator />
+        <DropdownMenuItem disabled className="text-xs text-muted-foreground">
+          Use ↑↓ arrows for quick reordering
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

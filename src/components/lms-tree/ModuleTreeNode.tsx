@@ -2,10 +2,12 @@
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable';
-import { ChevronDown, ChevronRight, Package, GripVertical } from "lucide-react";
+import { ChevronDown, ChevronRight, Package, GripVertical, ArrowUp, ArrowDown } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { Tables } from "@/integrations/supabase/types";
 import LessonTreeNode from "./LessonTreeNode";
+import { useReorderOperations } from "./hooks/useReorderOperations";
 
 type Module = Tables<'modules'>;
 type Lesson = Tables<'lessons'>;
@@ -58,6 +60,8 @@ const ModuleTreeNode = ({
     transition,
   };
 
+  const { reorderModule } = useReorderOperations(onRefetch || (() => {}));
+
   const totalUnits = module.lessons?.reduce((acc, lesson) => 
     acc + (lesson.units?.length || 0), 0
   ) || 0;
@@ -79,6 +83,26 @@ const ModuleTreeNode = ({
               className="flex items-center text-gray-400 hover:text-gray-600 cursor-grab"
             >
               <GripVertical className="h-3 w-3" />
+            </div>
+            
+            {/* Reorder buttons */}
+            <div className="flex flex-col space-y-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => reorderModule(module.id, 'up')}
+                className="h-4 w-4 p-0 hover:bg-purple-100"
+              >
+                <ArrowUp className="h-2 w-2" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => reorderModule(module.id, 'down')}
+                className="h-4 w-4 p-0 hover:bg-purple-100"
+              >
+                <ArrowDown className="h-2 w-2" />
+              </Button>
             </div>
             
             <button

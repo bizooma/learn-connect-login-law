@@ -1,11 +1,13 @@
 
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { FileText, Play, GripVertical } from "lucide-react";
+import { FileText, Play, GripVertical, ArrowUp, ArrowDown } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Tables } from "@/integrations/supabase/types";
 import ReclassificationDropdown from "./ReclassificationDropdown";
+import { useReorderOperations } from "./hooks/useReorderOperations";
 
 type Unit = Tables<'units'>;
 type Quiz = Tables<'quizzes'>;
@@ -38,6 +40,8 @@ const UnitTreeNode = ({ unit, availableTargets = [], onRefetch }: UnitTreeNodePr
     transition,
   };
 
+  const { reorderUnit } = useReorderOperations(onRefetch || (() => {}));
+
   return (
     <div ref={setNodeRef} style={style}>
       <Card className="bg-orange-50 border-orange-200 hover:shadow-sm transition-shadow border-l-4 border-l-orange-500">
@@ -49,6 +53,26 @@ const UnitTreeNode = ({ unit, availableTargets = [], onRefetch }: UnitTreeNodePr
               className="flex items-center text-gray-400 hover:text-gray-600 cursor-grab"
             >
               <GripVertical className="h-3 w-3" />
+            </div>
+
+            {/* Reorder buttons */}
+            <div className="flex flex-col space-y-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => reorderUnit(unit.id, 'up')}
+                className="h-4 w-4 p-0 hover:bg-orange-100"
+              >
+                <ArrowUp className="h-2 w-2" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => reorderUnit(unit.id, 'down')}
+                className="h-4 w-4 p-0 hover:bg-orange-100"
+              >
+                <ArrowDown className="h-2 w-2" />
+              </Button>
             </div>
 
             {unit.video_url ? (
