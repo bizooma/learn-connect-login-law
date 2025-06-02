@@ -1,15 +1,15 @@
+
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
-import { BookOpen, User, Award, LogOut, GraduationCap } from "lucide-react";
+import { BookOpen, Award, GraduationCap, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import UserCourseProgress from "./user/UserCourseProgress";
 import NotificationBanner from "./notifications/NotificationBanner";
 import LMSTreeFooter from "./lms-tree/LMSTreeFooter";
+import DashboardHeader from "./dashboard/DashboardHeader";
+import DashboardStats from "./dashboard/DashboardStats";
+import DashboardContent from "./dashboard/DashboardContent";
 
 const StudentDashboard = () => {
   const { user, signOut } = useAuth();
@@ -107,93 +107,27 @@ const StudentDashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 flex flex-col">
       <div className="flex-1">
-        {/* Header */}
-        <div style={{ background: '#213C82' }} className="shadow-sm border-b">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <a 
-                  href="https://newfrontieruniversity.com" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="flex-shrink-0"
-                >
-                  <img 
-                    src="/lovable-uploads/126f6dae-4376-4b57-9955-f40fc6fa19e2.png" 
-                    alt="New Frontier University" 
-                    className="h-12 w-auto"
-                  />
-                </a>
-                <div>
-                  <h1 className="text-3xl font-bold text-white">
-                    Student Dashboard
-                  </h1>
-                  <p className="text-white/90 mt-1">
-                    Welcome back, {user?.user_metadata?.first_name || "Student"}! Continue your learning journey.
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-center space-x-4">
-                <Button
-                  variant="ghost"
-                  onClick={signOut}
-                  className="flex items-center text-white hover:bg-white/10"
-                >
-                  <LogOut className="h-4 w-4 mr-2" />
-                  Sign Out
-                </Button>
-              </div>
-            </div>
-          </div>
-        </div>
+        <DashboardHeader
+          title="Student Dashboard"
+          subtitle="Welcome back, {name}! Continue your learning journey."
+          userFirstName={user?.user_metadata?.first_name}
+          onSignOut={signOut}
+        />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Notification Banner */}
           <NotificationBanner />
+          
+          <DashboardStats stats={studentStats} />
 
-          {/* Stats Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {studentStats.map((stat) => (
-              <Card key={stat.title} className="bg-white">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-600">
-                    {stat.title}
-                  </CardTitle>
-                  <stat.icon className={`h-5 w-5 ${stat.color}`} />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-                  <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-
-          {/* Main Content */}
-          <Card className="bg-white">
-            <CardHeader>
-              <CardTitle>My Learning Dashboard</CardTitle>
-              <CardDescription>
-                Track your assigned courses and learning progress
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Tabs value={activeTab} onValueChange={setActiveTab}>
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="assigned">Assigned Courses</TabsTrigger>
-                  <TabsTrigger value="completed">Completed Courses</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="assigned" className="mt-6">
-                  <UserCourseProgress userId={user.id} showOnlyAssigned={true} />
-                </TabsContent>
-                
-                <TabsContent value="completed" className="mt-6">
-                  <UserCourseProgress userId={user.id} showOnlyCompleted={true} />
-                </TabsContent>
-              </Tabs>
-            </CardContent>
-          </Card>
+          <DashboardContent
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            userId={user.id}
+            title="My Learning Dashboard"
+            description="Track your assigned courses and learning progress"
+            assignedTabLabel="Assigned Courses"
+            completedTabLabel="Completed Courses"
+          />
         </div>
       </div>
       <LMSTreeFooter />
