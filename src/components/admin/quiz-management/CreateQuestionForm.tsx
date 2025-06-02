@@ -44,11 +44,14 @@ const CreateQuestionForm = ({ open, onOpenChange, quizId, onQuestionCreated }: C
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent 
+        className="max-w-2xl max-h-[80vh] overflow-y-auto"
+        aria-describedby="create-question-description"
+      >
         <DialogHeader>
           <DialogTitle>Create New Question</DialogTitle>
-          <DialogDescription>
-            Add a multiple choice question to the quiz
+          <DialogDescription id="create-question-description">
+            Add a multiple choice question to the quiz. Fill in the question text, set the points value, and create answer options.
           </DialogDescription>
         </DialogHeader>
         
