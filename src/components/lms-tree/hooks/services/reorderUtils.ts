@@ -20,7 +20,7 @@ export const validateReorderBounds = (
 };
 
 export const swapSortOrders = async (
-  tableName: string,
+  tableName: 'modules' | 'lessons' | 'units',
   current: SiblingItem,
   target: SiblingItem,
   config: ReorderConfig
