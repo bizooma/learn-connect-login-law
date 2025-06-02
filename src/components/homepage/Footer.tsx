@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { Facebook, Instagram, Linkedin, ChevronUp } from "lucide-react";
 
@@ -87,7 +88,6 @@ const Footer = () => {
             
             {/* Language Selector */}
             <div className="flex items-center space-x-2">
-              <span className="text-gray-400 text-sm">🇺🇸 English</span>
               <span className="text-gray-500 text-xs">TOP</span>
             </div>
           </div>
