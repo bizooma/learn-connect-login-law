@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -110,6 +109,7 @@ const UserManagement = () => {
         users={paginatedUsers}
         onRoleUpdate={updateUserRole}
         onUserDeleted={fetchUsers}
+        onCourseAssigned={fetchUsers}
         currentPage={currentPage}
         totalPages={totalPages}
         totalUsers={filteredUsers.length}

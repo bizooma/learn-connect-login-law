@@ -1,11 +1,11 @@
 
-import UserCard from "./UserCard";
-import UserPagination from "./UserPagination";
+import { UserCard } from "./UserCard";
+import { UserPagination } from "./UserPagination";
 import { UserProfile } from "./types";
 
 interface UserGridProps {
   users: UserProfile[];
-  onRoleUpdate: (userId: string, newRole: 'admin' | 'owner' | 'student' | 'client' | 'free') => void;
+  onRoleUpdate: (userId: string, newRole: string) => Promise<void>;
   onUserDeleted: () => void;
   currentPage: number;
   totalPages: number;
@@ -13,45 +13,39 @@ interface UserGridProps {
   onPageChange: (page: number) => void;
   hasNextPage: boolean;
   hasPreviousPage: boolean;
+  onCourseAssigned?: () => void;
 }
 
-const UserGrid = ({ 
+export const UserGrid = ({ 
   users, 
-  onRoleUpdate,
-  onUserDeleted,
+  onRoleUpdate, 
+  onUserDeleted, 
   currentPage, 
   totalPages, 
-  totalUsers,
-  onPageChange,
-  hasNextPage,
-  hasPreviousPage 
+  totalUsers, 
+  onPageChange, 
+  hasNextPage, 
+  hasPreviousPage,
+  onCourseAssigned 
 }: UserGridProps) => {
-  if (totalUsers === 0) {
+  if (users.length === 0) {
     return (
-      <div className="text-center py-8">
-        <p className="text-gray-500">No users found</p>
+      <div className="text-center py-8 text-gray-500">
+        No users found matching your criteria.
       </div>
     );
   }
 
-  const startIndex = (currentPage - 1) * 10 + 1;
-  const endIndex = Math.min(currentPage * 10, totalUsers);
-
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between text-sm text-gray-600">
-        <span>
-          Showing {startIndex}-{endIndex} of {totalUsers} users
-        </span>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {users.map((user) => (
           <UserCard
             key={user.id}
             user={user}
             onRoleUpdate={onRoleUpdate}
             onUserDeleted={onUserDeleted}
+            onCourseAssigned={onCourseAssigned}
           />
         ))}
       </div>
@@ -59,6 +53,7 @@ const UserGrid = ({
       <UserPagination
         currentPage={currentPage}
         totalPages={totalPages}
+        totalUsers={totalUsers}
         onPageChange={onPageChange}
         hasNextPage={hasNextPage}
         hasPreviousPage={hasPreviousPage}
@@ -66,5 +61,3 @@ const UserGrid = ({
     </div>
   );
 };
-
-export default UserGrid;

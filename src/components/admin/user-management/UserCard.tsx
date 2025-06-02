@@ -1,107 +1,107 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { UserRoleSelect } from "./UserRoleSelect";
+import { DeleteUserDialog } from "./DeleteUserDialog";
+import UserCourseAssignment from "./UserCourseAssignment";
 import { UserProfile } from "./types";
-import UserRoleSelect from "./UserRoleSelect";
-import DeleteUserDialog from "./DeleteUserDialog";
-import { useState } from "react";
-import UserCourseProgress from "../../user/UserCourseProgress";
 
 interface UserCardProps {
   user: UserProfile;
-  onRoleUpdate: (userId: string, newRole: 'admin' | 'owner' | 'student' | 'client' | 'free') => void;
+  onRoleUpdate: (userId: string, newRole: string) => Promise<void>;
   onUserDeleted: () => void;
+  onCourseAssigned?: () => void;
 }
 
-const UserCard = ({ user, onRoleUpdate, onUserDeleted }: UserCardProps) => {
-  const [showProgress, setShowProgress] = useState(false);
-  const currentRole = user.roles?.[0]?.role || 'free';
+export const UserCard = ({ user, onRoleUpdate, onUserDeleted, onCourseAssigned }: UserCardProps) => {
+  const getInitials = (firstName?: string, lastName?: string) => {
+    const first = firstName?.charAt(0)?.toUpperCase() || '';
+    const last = lastName?.charAt(0)?.toUpperCase() || '';
+    return first + last || '?';
+  };
 
-  const getUserInitials = () => {
-    if (!user.first_name && !user.last_name) {
-      return user.email?.charAt(0).toUpperCase() || "U";
+  const getRoleBadgeVariant = (role: string) => {
+    switch (role) {
+      case 'admin':
+        return 'destructive';
+      case 'owner':
+        return 'default';
+      case 'student':
+        return 'secondary';
+      case 'client':
+        return 'outline';
+      case 'free':
+        return 'secondary';
+      default:
+        return 'outline';
     }
-    const firstName = user.first_name || "";
-    const lastName = user.last_name || "";
-    return `${firstName.charAt(0)}${lastName.charAt(0)}`.toUpperCase();
   };
 
   return (
-    <Card>
+    <Card className="h-full">
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <div className="flex items-center space-x-3 flex-1">
-            <Avatar className="h-10 w-10">
-              <AvatarImage src={user.profile_image_url || ""} alt={`${user.first_name} ${user.last_name}`} />
-              <AvatarFallback className="text-sm">
-                {getUserInitials()}
+          <div className="flex items-center space-x-3">
+            <Avatar className="h-12 w-12">
+              <AvatarImage 
+                src={user.profile_image_url || undefined} 
+                alt={`${user.first_name} ${user.last_name}`} 
+              />
+              <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+                {getInitials(user.first_name, user.last_name)}
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1">
-              <CardTitle className="text-base font-medium">
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold text-gray-900 truncate">
                 {user.first_name} {user.last_name}
-              </CardTitle>
-              <p className="text-sm text-gray-600">
-                {user.email}
               </p>
+              <p className="text-sm text-gray-500 truncate">{user.email}</p>
+              {user.law_firm_name && (
+                <p className="text-xs text-gray-400 truncate">{user.law_firm_name}</p>
+              )}
             </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowProgress(!showProgress)}
-            >
-              <Eye className="h-4 w-4" />
-            </Button>
-            <DeleteUserDialog user={user} onUserDeleted={onUserDeleted} />
           </div>
         </div>
       </CardHeader>
-      <CardContent className="pt-0">
+      
+      <CardContent className="space-y-4">
+        <div className="flex flex-wrap gap-1">
+          {user.roles?.map((role) => (
+            <Badge 
+              key={role} 
+              variant={getRoleBadgeVariant(role)}
+              className="text-xs"
+            >
+              {role}
+            </Badge>
+          )) || (
+            <Badge variant="outline" className="text-xs">No roles</Badge>
+          )}
+        </div>
+
         <div className="space-y-3">
-          <div>
-            <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-              Current Role
-            </label>
-            <UserRoleSelect
-              currentRole={currentRole as 'admin' | 'owner' | 'student' | 'client' | 'free'}
-              onRoleChange={(newRole) => onRoleUpdate(user.id, newRole)}
+          <UserRoleSelect 
+            currentRole={user.roles?.[0] || ''} 
+            onRoleChange={(newRole) => onRoleUpdate(user.id, newRole)}
+            userId={user.id}
+          />
+          
+          <div className="flex flex-col space-y-2">
+            <UserCourseAssignment
+              userId={user.id}
+              userEmail={user.email}
+              userName={`${user.first_name} ${user.last_name}`}
+              onAssignmentComplete={onCourseAssigned}
+            />
+            
+            <DeleteUserDialog 
+              user={user} 
+              onUserDeleted={onUserDeleted} 
             />
           </div>
-          
-          {user.roles && user.roles.length > 1 && (
-            <div>
-              <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">
-                Additional Roles
-              </label>
-              <div className="flex flex-wrap gap-1 mt-1">
-                {user.roles.slice(1).map((role, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs">
-                    {role.role}
-                  </Badge>
-                ))}
-              </div>
-            </div>
-          )}
-          
-          <div className="text-xs text-gray-500">
-            <p>User ID: {user.id.substring(0, 8)}...</p>
-            <p>Created: {new Date(user.created_at).toLocaleDateString()}</p>
-          </div>
-
-          {showProgress && (
-            <div className="mt-4 border-t pt-4">
-              <UserCourseProgress userId={user.id} />
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>
   );
 };
-
-export default UserCard;
