@@ -9,6 +9,16 @@ export const validateReorderBounds = (
   direction: 'up' | 'down',
   config: ReorderConfig
 ): boolean => {
+  if (currentIndex === -1) {
+    console.error('Current item not found in siblings array');
+    config.toast({
+      title: "Error",
+      description: "Item not found in list",
+      variant: "destructive",
+    });
+    return false;
+  }
+
   if (targetIndex < 0 || targetIndex >= siblings.length) {
     config.toast({
       title: "Info",
@@ -26,32 +36,43 @@ export const swapSortOrders = async (
   config: ReorderConfig
 ): Promise<void> => {
   console.log(`Swapping ${tableName}:`, current.title, 'with:', target.title);
+  console.log('Current sort_order:', current.sort_order, 'Target sort_order:', target.sort_order);
 
-  // Swap sort orders with proper error handling
-  const { error: updateError1 } = await supabase
-    .from(tableName)
-    .update({ sort_order: target.sort_order })
-    .eq('id', current.id);
+  try {
+    // Swap sort orders with proper error handling
+    const { error: updateError1 } = await supabase
+      .from(tableName)
+      .update({ sort_order: target.sort_order })
+      .eq('id', current.id);
 
-  if (updateError1) {
-    console.error(`Error updating first ${tableName}:`, updateError1);
-    throw updateError1;
+    if (updateError1) {
+      console.error(`Error updating first ${tableName}:`, updateError1);
+      throw updateError1;
+    }
+
+    const { error: updateError2 } = await supabase
+      .from(tableName)
+      .update({ sort_order: current.sort_order })
+      .eq('id', target.id);
+
+    if (updateError2) {
+      console.error(`Error updating second ${tableName}:`, updateError2);
+      throw updateError2;
+    }
+
+    console.log(`Successfully swapped ${tableName} sort orders`);
+    config.toast({
+      title: "Success",
+      description: `${tableName.slice(0, -1).charAt(0).toUpperCase() + tableName.slice(1, -1)} reordered successfully`,
+    });
+    config.onRefetch();
+  } catch (error) {
+    console.error(`Failed to swap ${tableName} sort orders:`, error);
+    config.toast({
+      title: "Error",
+      description: `Failed to reorder ${tableName.slice(0, -1)}. Please try again.`,
+      variant: "destructive",
+    });
+    throw error;
   }
-
-  const { error: updateError2 } = await supabase
-    .from(tableName)
-    .update({ sort_order: current.sort_order })
-    .eq('id', target.id);
-
-  if (updateError2) {
-    console.error(`Error updating second ${tableName}:`, updateError2);
-    throw updateError2;
-  }
-
-  console.log(`Successfully swapped ${tableName} sort orders`);
-  config.toast({
-    title: "Success",
-    description: `${tableName.slice(0, -1).charAt(0).toUpperCase() + tableName.slice(1, -1)} reordered successfully`,
-  });
-  config.onRefetch();
 };

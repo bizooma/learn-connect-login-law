@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { ReorderConfig } from "../types/reorderTypes";
 import { validateReorderBounds, swapSortOrders } from "./reorderUtils";
@@ -81,13 +82,12 @@ const handleActualModuleReordering = async (moduleData: any, direction: 'up' | '
 const handleLessonAsModuleReordering = async (lessonData: any, direction: 'up' | 'down', config: ReorderConfig) => {
   console.log('Handling lesson-as-module reordering for:', lessonData);
   
-  // For lessons displayed as modules, get all lessons in the same course that share the same module pattern
-  // This handles the case where lessons from "Main Module" are displayed as top-level modules
+  // For lessons displayed as modules, get all lessons in the same course
+  // that belong to the "Main Module" (these are displayed as top-level modules)
   const { data: siblings, error: siblingsError } = await supabase
     .from('lessons')
     .select('id, sort_order, title, module_id, course_id')
     .eq('course_id', lessonData.course_id)
-    .eq('module_id', lessonData.module_id) // Same module context
     .order('sort_order');
 
   if (siblingsError) {
@@ -95,19 +95,25 @@ const handleLessonAsModuleReordering = async (lessonData: any, direction: 'up' |
     throw siblingsError;
   }
 
-  console.log('Lesson-as-module siblings:', siblings);
+  console.log('All lessons in course:', siblings);
+  
+  // Filter to only get lessons that are displayed as modules (same module_id pattern)
+  const moduleLessons = siblings.filter(lesson => lesson.module_id === lessonData.module_id);
+  console.log('Lessons displayed as modules:', moduleLessons);
 
-  const currentIndex = siblings.findIndex(s => s.id === lessonData.id);
+  const currentIndex = moduleLessons.findIndex(s => s.id === lessonData.id);
   const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
 
   console.log('Current index:', currentIndex, 'Target index:', targetIndex);
 
-  if (!validateReorderBounds(currentIndex, targetIndex, siblings, direction, config)) {
+  if (!validateReorderBounds(currentIndex, targetIndex, moduleLessons, direction, config)) {
     return;
   }
 
-  const current = siblings[currentIndex];
-  const target = siblings[targetIndex];
+  const current = moduleLessons[currentIndex];
+  const target = moduleLessons[targetIndex];
+
+  console.log('Swapping lesson sort orders:', current.title, 'with:', target.title);
 
   await swapSortOrders('lessons', current, target, config);
 };
