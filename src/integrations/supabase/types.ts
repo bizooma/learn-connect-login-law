@@ -466,6 +466,42 @@ export type Database = {
         }
         Relationships: []
       }
+      powerpoint_imports: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          extracted_data: Json | null
+          file_url: string
+          filename: string
+          id: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          extracted_data?: Json | null
+          file_url: string
+          filename: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          extracted_data?: Json | null
+          file_url?: string
+          filename?: string
+          id?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -551,6 +587,7 @@ export type Database = {
           question_type: string
           quiz_id: string
           sort_order: number
+          source_slide_number: number | null
           updated_at: string
         }
         Insert: {
@@ -561,6 +598,7 @@ export type Database = {
           question_type?: string
           quiz_id: string
           sort_order?: number
+          source_slide_number?: number | null
           updated_at?: string
         }
         Update: {
@@ -571,6 +609,7 @@ export type Database = {
           question_type?: string
           quiz_id?: string
           sort_order?: number
+          source_slide_number?: number | null
           updated_at?: string
         }
         Relationships: [
@@ -588,8 +627,10 @@ export type Database = {
           created_at: string
           description: string | null
           id: string
+          import_id: string | null
           is_active: boolean
           passing_score: number
+          source_type: string | null
           time_limit_minutes: number | null
           title: string
           unit_id: string
@@ -599,8 +640,10 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          import_id?: string | null
           is_active?: boolean
           passing_score?: number
+          source_type?: string | null
           time_limit_minutes?: number | null
           title: string
           unit_id: string
@@ -610,14 +653,23 @@ export type Database = {
           created_at?: string
           description?: string | null
           id?: string
+          import_id?: string | null
           is_active?: boolean
           passing_score?: number
+          source_type?: string | null
           time_limit_minutes?: number | null
           title?: string
           unit_id?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "quizzes_import_id_fkey"
+            columns: ["import_id"]
+            isOneToOne: false
+            referencedRelation: "powerpoint_imports"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "quizzes_unit_id_fkey"
             columns: ["unit_id"]
