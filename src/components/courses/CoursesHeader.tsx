@@ -12,7 +12,9 @@ const CoursesHeader = ({ filteredCoursesCount }: CoursesHeaderProps) => {
   const { isAdmin, isOwner, isStudent, isClient, isFree } = useUserRole();
 
   const handleBackToDashboard = () => {
-    if (isOwner) {
+    if (isAdmin) {
+      navigate("/login"); // Admin users go to the main admin dashboard
+    } else if (isOwner) {
       navigate("/owner-dashboard");
     } else if (isStudent) {
       navigate("/student-dashboard");
@@ -20,11 +22,9 @@ const CoursesHeader = ({ filteredCoursesCount }: CoursesHeaderProps) => {
       navigate("/client-dashboard");
     } else if (isFree) {
       navigate("/free-dashboard");
-    } else if (isAdmin) {
-      navigate("/");
     } else {
       // Default fallback
-      navigate("/");
+      navigate("/login");
     }
   };
 
