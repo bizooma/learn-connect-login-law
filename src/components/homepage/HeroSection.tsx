@@ -69,7 +69,7 @@ const HeroSection = () => {
         <div className="bg-gray-900 text-white py-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
-              Our Courses Are Designed For <span className="text-pink-400">YOU!</span>
+              Our Courses Are Designed For <span style={{ color: '#FFDA00' }}>YOU!</span>
             </h2>
           </div>
         </div>
