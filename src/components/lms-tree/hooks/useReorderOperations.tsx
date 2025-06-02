@@ -11,116 +11,38 @@ export const useReorderOperations = (onRefetch: () => void) => {
       console.log('Module ID:', moduleId);
       console.log('Direction:', direction);
 
-      // First try modules table
+      // First, try to find the item in the modules table
       const { data: moduleData, error: moduleError } = await supabase
         .from('modules')
-        .select('sort_order, course_id')
+        .select('id, sort_order, course_id, title')
         .eq('id', moduleId)
         .maybeSingle();
 
       console.log('Module query result:', { moduleData, moduleError });
 
       if (moduleData && !moduleError) {
-        console.log('Found in modules table');
-        // Handle actual module reordering
-        const { data: siblings, error: siblingsError } = await supabase
-          .from('modules')
-          .select('id, sort_order, title')
-          .eq('course_id', moduleData.course_id)
-          .order('sort_order');
-
-        console.log('Module siblings:', siblings);
-        if (siblingsError) throw siblingsError;
-
-        const currentIndex = siblings.findIndex(s => s.id === moduleId);
-        const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-
-        console.log('Current index:', currentIndex, 'Target index:', targetIndex);
-
-        if (targetIndex < 0 || targetIndex >= siblings.length) {
-          toast({
-            title: "Info",
-            description: `Cannot move ${direction} - already at ${direction === 'up' ? 'top' : 'bottom'}`,
-          });
-          return;
-        }
-
-        const current = siblings[currentIndex];
-        const target = siblings[targetIndex];
-
-        console.log('Swapping:', current, 'with:', target);
-
-        // Swap sort orders
-        await supabase.from('modules').update({ sort_order: target.sort_order }).eq('id', current.id);
-        await supabase.from('modules').update({ sort_order: current.sort_order }).eq('id', target.id);
-
-        toast({
-          title: "Success",
-          description: "Module reordered successfully",
-        });
-        onRefetch();
+        console.log('Found in modules table - handling actual module reordering');
+        await handleActualModuleReordering(moduleData, direction);
         return;
       }
 
-      // If not found in modules, try lessons table (transformed modules)
+      // If not found in modules, check lessons table (lessons displayed as modules)
       const { data: lessonData, error: lessonError } = await supabase
         .from('lessons')
-        .select('sort_order, course_id, module_id, title')
+        .select('id, sort_order, course_id, module_id, title')
         .eq('id', moduleId)
         .maybeSingle();
 
       console.log('Lesson query result:', { lessonData, lessonError });
 
       if (lessonData && !lessonError) {
-        console.log('Found in lessons table (displayed as module)');
-        // Handle lesson reordering (displayed as modules)
-        const { data: siblings, error: siblingsError } = await supabase
-          .from('lessons')
-          .select('id, sort_order, title')
-          .eq('course_id', lessonData.course_id)
-          .eq('module_id', lessonData.module_id)
-          .order('sort_order');
-
-        console.log('Lesson siblings:', siblings);
-        if (siblingsError) throw siblingsError;
-
-        const currentIndex = siblings.findIndex(s => s.id === moduleId);
-        const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
-
-        console.log('Current index:', currentIndex, 'Target index:', targetIndex);
-
-        if (targetIndex < 0 || targetIndex >= siblings.length) {
-          toast({
-            title: "Info",
-            description: `Cannot move ${direction} - already at ${direction === 'up' ? 'top' : 'bottom'}`,
-          });
-          return;
-        }
-
-        const current = siblings[currentIndex];
-        const target = siblings[targetIndex];
-
-        console.log('Swapping lesson:', current, 'with:', target);
-
-        // Swap sort orders
-        const { error: updateError1 } = await supabase.from('lessons').update({ sort_order: target.sort_order }).eq('id', current.id);
-        const { error: updateError2 } = await supabase.from('lessons').update({ sort_order: current.sort_order }).eq('id', target.id);
-
-        if (updateError1 || updateError2) {
-          console.error('Update errors:', updateError1, updateError2);
-          throw updateError1 || updateError2;
-        }
-
-        console.log('Successfully updated lesson sort orders');
-        toast({
-          title: "Success",
-          description: "Module reordered successfully",
-        });
-        onRefetch();
-      } else {
-        console.error('Item not found in either table');
-        throw new Error('Item not found in either modules or lessons table');
+        console.log('Found in lessons table - handling lesson-as-module reordering');
+        await handleLessonAsModuleReordering(lessonData, direction);
+        return;
       }
+
+      throw new Error('Item not found in either modules or lessons table');
+
     } catch (error) {
       console.error('Error reordering module:', error);
       toast({
@@ -129,6 +51,99 @@ export const useReorderOperations = (onRefetch: () => void) => {
         variant: "destructive",
       });
     }
+  };
+
+  const handleActualModuleReordering = async (moduleData: any, direction: 'up' | 'down') => {
+    // Get all modules in the same course
+    const { data: siblings, error: siblingsError } = await supabase
+      .from('modules')
+      .select('id, sort_order, title')
+      .eq('course_id', moduleData.course_id)
+      .order('sort_order');
+
+    if (siblingsError) throw siblingsError;
+    console.log('Module siblings:', siblings);
+
+    const currentIndex = siblings.findIndex(s => s.id === moduleData.id);
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+
+    if (targetIndex < 0 || targetIndex >= siblings.length) {
+      toast({
+        title: "Info",
+        description: `Cannot move ${direction} - already at ${direction === 'up' ? 'top' : 'bottom'}`,
+      });
+      return;
+    }
+
+    const current = siblings[currentIndex];
+    const target = siblings[targetIndex];
+
+    console.log('Swapping modules:', current, 'with:', target);
+
+    // Swap sort orders
+    await supabase.from('modules').update({ sort_order: target.sort_order }).eq('id', current.id);
+    await supabase.from('modules').update({ sort_order: current.sort_order }).eq('id', target.id);
+
+    toast({
+      title: "Success",
+      description: "Module reordered successfully",
+    });
+    onRefetch();
+  };
+
+  const handleLessonAsModuleReordering = async (lessonData: any, direction: 'up' | 'down') => {
+    // For lessons displayed as modules, we need to reorder within the course context
+    // Get all lessons that are displayed as modules (have the same module_id pattern)
+    const { data: siblings, error: siblingsError } = await supabase
+      .from('lessons')
+      .select('id, sort_order, title, module_id')
+      .eq('course_id', lessonData.course_id)
+      .eq('module_id', lessonData.module_id) // Same module_id means they're all part of the "Main Module"
+      .order('sort_order');
+
+    if (siblingsError) throw siblingsError;
+    console.log('Lesson-as-module siblings:', siblings);
+
+    const currentIndex = siblings.findIndex(s => s.id === lessonData.id);
+    const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+
+    console.log('Current index:', currentIndex, 'Target index:', targetIndex);
+
+    if (targetIndex < 0 || targetIndex >= siblings.length) {
+      toast({
+        title: "Info",
+        description: `Cannot move ${direction} - already at ${direction === 'up' ? 'top' : 'bottom'}`,
+      });
+      return;
+    }
+
+    const current = siblings[currentIndex];
+    const target = siblings[targetIndex];
+
+    console.log('Swapping lesson-as-module:', current, 'with:', target);
+
+    // Swap sort orders
+    const { error: updateError1 } = await supabase
+      .from('lessons')
+      .update({ sort_order: target.sort_order })
+      .eq('id', current.id);
+
+    const { error: updateError2 } = await supabase
+      .from('lessons')
+      .update({ sort_order: current.sort_order })
+      .eq('id', target.id);
+
+    if (updateError1 || updateError2) {
+      console.error('Update errors:', updateError1, updateError2);
+      throw updateError1 || updateError2;
+    }
+
+    console.log('Successfully updated lesson-as-module sort orders');
+    toast({
+      title: "Success",
+      description: "Module reordered successfully",
+    });
+    onRefetch();
   };
 
   const reorderLesson = async (lessonId: string, direction: 'up' | 'down') => {
@@ -158,8 +173,6 @@ export const useReorderOperations = (onRefetch: () => void) => {
       const currentIndex = siblings.findIndex(s => s.id === lessonId);
       const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
 
-      console.log('Current index:', currentIndex, 'Target index:', targetIndex);
-
       if (targetIndex < 0 || targetIndex >= siblings.length) {
         toast({
           title: "Info",
@@ -170,8 +183,6 @@ export const useReorderOperations = (onRefetch: () => void) => {
 
       const current = siblings[currentIndex];
       const target = siblings[targetIndex];
-
-      console.log('Swapping lesson:', current, 'with:', target);
 
       // Swap sort orders
       await supabase.from('lessons').update({ sort_order: target.sort_order }).eq('id', current.id);
@@ -219,8 +230,6 @@ export const useReorderOperations = (onRefetch: () => void) => {
       const currentIndex = siblings.findIndex(s => s.id === unitId);
       const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
 
-      console.log('Current index:', currentIndex, 'Target index:', targetIndex);
-
       if (targetIndex < 0 || targetIndex >= siblings.length) {
         toast({
           title: "Info",
@@ -231,8 +240,6 @@ export const useReorderOperations = (onRefetch: () => void) => {
 
       const current = siblings[currentIndex];
       const target = siblings[targetIndex];
-
-      console.log('Swapping unit:', current, 'with:', target);
 
       // Swap sort orders
       await supabase.from('units').update({ sort_order: target.sort_order }).eq('id', current.id);
