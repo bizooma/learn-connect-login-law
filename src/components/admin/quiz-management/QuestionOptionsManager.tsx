@@ -15,21 +15,29 @@ const QuestionOptionsManager = ({ options, onOptionsChange }: QuestionOptionsMan
   const addOption = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    console.log('Adding new option');
     onOptionsChange([...options, { text: "", isCorrect: false }]);
   };
 
   const removeOption = (index: number, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    console.log('Removing option at index:', index);
     if (options.length > 2) {
       onOptionsChange(options.filter((_, i) => i !== index));
     }
   };
 
   const updateOption = (index: number, field: keyof Option, value: string | boolean) => {
+    console.log('Updating option:', index, field, value);
     const newOptions = [...options];
     newOptions[index] = { ...newOptions[index], [field]: value };
     onOptionsChange(newOptions);
+  };
+
+  const handleCheckboxChange = (index: number, checked: boolean | string) => {
+    console.log('Checkbox change:', index, checked);
+    updateOption(index, 'isCorrect', checked as boolean);
   };
 
   return (
@@ -51,7 +59,7 @@ const QuestionOptionsManager = ({ options, onOptionsChange }: QuestionOptionsMan
         <div key={index} className="flex items-center space-x-2 p-3 border rounded">
           <Checkbox
             checked={option.isCorrect}
-            onCheckedChange={(checked) => updateOption(index, 'isCorrect', checked as boolean)}
+            onCheckedChange={(checked) => handleCheckboxChange(index, checked)}
           />
           <Input
             value={option.text}

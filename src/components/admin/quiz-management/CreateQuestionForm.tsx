@@ -33,24 +33,32 @@ const CreateQuestionForm = ({ open, onOpenChange, quizId, onQuestionCreated }: C
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    console.log('Form submit triggered');
     handleSubmit(e);
   };
 
   const handleCancel = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    console.log('Cancel button clicked');
     onOpenChange(false);
   };
 
+  const handleDialogOpenChange = (newOpen: boolean) => {
+    console.log('Dialog open change:', newOpen);
+    onOpenChange(newOpen);
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent 
         className="max-w-2xl max-h-[80vh] overflow-y-auto"
-        aria-describedby="create-question-description"
+        onPointerDownOutside={(e) => e.preventDefault()}
+        onEscapeKeyDown={(e) => e.preventDefault()}
       >
         <DialogHeader>
           <DialogTitle>Create New Question</DialogTitle>
-          <DialogDescription id="create-question-description">
+          <DialogDescription>
             Add a multiple choice question to the quiz. Fill in the question text, set the points value, and create answer options.
           </DialogDescription>
         </DialogHeader>
