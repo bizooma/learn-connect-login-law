@@ -23,7 +23,14 @@ const NavigationHeader = () => {
             <a href="#" className="text-white hover:text-gray-300 font-medium">LAW FIRMS</a>
             <a href="#" className="text-white hover:text-gray-300 font-medium">STAFF TRAINING</a>
             <a href="#" className="text-white hover:text-gray-300 font-medium">IMMIGRATION LAW</a>
-            <a href="#" className="text-white hover:text-gray-300 font-medium">PODCAST</a>
+            <a 
+              href="https://media.rss.com/letsgetrich/feed.xml" 
+              target="_blank" 
+              rel="noopener noreferrer"
+              className="text-white hover:text-gray-300 font-medium"
+            >
+              PODCAST
+            </a>
           </nav>
 
           {/* Login Button */}
