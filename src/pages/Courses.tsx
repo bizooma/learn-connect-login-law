@@ -3,6 +3,7 @@ import CourseFilters from "@/components/CourseFilters";
 import NotificationBanner from "@/components/notifications/NotificationBanner";
 import CoursesHeader from "@/components/courses/CoursesHeader";
 import CoursesGrid from "@/components/courses/CoursesGrid";
+import LMSTreeFooter from "@/components/lms-tree/LMSTreeFooter";
 import { useCoursesData } from "@/hooks/useCoursesData";
 
 const Courses = () => {
@@ -30,26 +31,29 @@ const Courses = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <CoursesHeader filteredCoursesCount={filteredCourses.length} />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
+      <div className="flex-1">
+        <CoursesHeader filteredCoursesCount={filteredCourses.length} />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <NotificationBanner />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <NotificationBanner />
 
-        <CourseFilters
-          categories={categories}
-          levels={levelOptions}
-          onFilter={handleFilter}
-          searchTerm={searchTerm}
-          selectedCategory={selectedCategory}
-          selectedLevel={selectedLevel}
-        />
+          <CourseFilters
+            categories={categories}
+            levels={levelOptions}
+            onFilter={handleFilter}
+            searchTerm={searchTerm}
+            selectedCategory={selectedCategory}
+            selectedLevel={selectedLevel}
+          />
 
-        <CoursesGrid 
-          filteredCourses={filteredCourses}
-          onClearFilters={clearFilters}
-        />
+          <CoursesGrid 
+            filteredCourses={filteredCourses}
+            onClearFilters={clearFilters}
+          />
+        </div>
       </div>
+      <LMSTreeFooter />
     </div>
   );
 };

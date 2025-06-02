@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +9,7 @@ import { BookOpen, Users, User, LogOut, Library, Building2 } from "lucide-react"
 import { useNavigate } from "react-router-dom";
 import UserCourseProgress from "./user/UserCourseProgress";
 import NotificationBanner from "./notifications/NotificationBanner";
+import LMSTreeFooter from "./lms-tree/LMSTreeFooter";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
@@ -106,115 +106,118 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100">
-      {/* Header */}
-      <div className="bg-white shadow-sm border-b">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <a 
-                href="https://newfrontieruniversity.com" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex-shrink-0"
-              >
-                <img 
-                  src="/lovable-uploads/126f6dae-4376-4b57-9955-f40fc6fa19e2.png" 
-                  alt="New Frontier University" 
-                  className="h-12 w-auto"
-                />
-              </a>
-              <div>
-                <h1 className="text-3xl font-bold text-gray-900">
-                  Dashboard
-                </h1>
-                <p className="text-gray-600 mt-1">
-                  Welcome back, {user?.user_metadata?.first_name || "Student"}
-                </p>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 flex flex-col">
+      <div className="flex-1">
+        {/* Header */}
+        <div className="bg-white shadow-sm border-b">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <a 
+                  href="https://newfrontieruniversity.com" 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="flex-shrink-0"
+                >
+                  <img 
+                    src="/lovable-uploads/126f6dae-4376-4b57-9955-f40fc6fa19e2.png" 
+                    alt="New Frontier University" 
+                    className="h-12 w-auto"
+                  />
+                </a>
+                <div>
+                  <h1 className="text-3xl font-bold text-gray-900">
+                    Dashboard
+                  </h1>
+                  <p className="text-gray-600 mt-1">
+                    Welcome back, {user?.user_metadata?.first_name || "Student"}
+                  </p>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Button
-                variant="outline"
-                onClick={() => navigate("/courses")}
-                className="flex items-center"
-              >
-                <Library className="h-4 w-4 mr-2" />
-                Browse Courses
-              </Button>
-              {isOwner && (
+              <div className="flex items-center space-x-4">
                 <Button
                   variant="outline"
-                  onClick={() => navigate("/owner-dashboard")}
+                  onClick={() => navigate("/courses")}
                   className="flex items-center"
                 >
-                  <Building2 className="h-4 w-4 mr-2" />
-                  Owner Dashboard
+                  <Library className="h-4 w-4 mr-2" />
+                  Browse Courses
                 </Button>
-              )}
-              <Button
-                variant="ghost"
-                onClick={signOut}
-                className="flex items-center text-gray-600 hover:text-gray-900"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Button>
+                {isOwner && (
+                  <Button
+                    variant="outline"
+                    onClick={() => navigate("/owner-dashboard")}
+                    className="flex items-center"
+                  >
+                    <Building2 className="h-4 w-4 mr-2" />
+                    Owner Dashboard
+                  </Button>
+                )}
+                <Button
+                  variant="ghost"
+                  onClick={signOut}
+                  className="flex items-center text-gray-600 hover:text-gray-900"
+                >
+                  <LogOut className="h-4 w-4 mr-2" />
+                  Sign Out
+                </Button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Notification Banner */}
-        <NotificationBanner />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Notification Banner */}
+          <NotificationBanner />
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-          {userStats.map((stat) => (
-            <Card key={stat.title} className="bg-white">
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium text-gray-600">
-                  {stat.title}
-                </CardTitle>
-                <stat.icon className={`h-5 w-5 ${stat.color}`} />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
-                <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
-              </CardContent>
-            </Card>
-          ))}
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {userStats.map((stat) => (
+              <Card key={stat.title} className="bg-white">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-600">
+                    {stat.title}
+                  </CardTitle>
+                  <stat.icon className={`h-5 w-5 ${stat.color}`} />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-gray-900">{stat.value}</div>
+                  <p className="text-xs text-gray-500 mt-1">{stat.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Main Content Tabs */}
+          <Card className="bg-white">
+            <CardHeader>
+              <CardTitle>Learning Dashboard</CardTitle>
+              <CardDescription>
+                Track your progress and continue your learning journey
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Tabs value={activeTab} onValueChange={setActiveTab}>
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="courses">My Courses</TabsTrigger>
+                  <TabsTrigger value="progress">Progress</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="courses" className="mt-6">
+                  <UserCourseProgress userId={user.id} />
+                </TabsContent>
+                
+                <TabsContent value="progress" className="mt-6">
+                  <div className="text-center py-8">
+                    <p className="text-gray-500">Progress tracking coming soon...</p>
+                  </div>
+                </TabsContent>
+              </Tabs>
+            </CardContent>
+          </Card>
         </div>
-
-        {/* Main Content Tabs */}
-        <Card className="bg-white">
-          <CardHeader>
-            <CardTitle>Learning Dashboard</CardTitle>
-            <CardDescription>
-              Track your progress and continue your learning journey
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <Tabs value={activeTab} onValueChange={setActiveTab}>
-              <TabsList className="grid w-full grid-cols-2">
-                <TabsTrigger value="courses">My Courses</TabsTrigger>
-                <TabsTrigger value="progress">Progress</TabsTrigger>
-              </TabsList>
-              
-              <TabsContent value="courses" className="mt-6">
-                <UserCourseProgress userId={user.id} />
-              </TabsContent>
-              
-              <TabsContent value="progress" className="mt-6">
-                <div className="text-center py-8">
-                  <p className="text-gray-500">Progress tracking coming soon...</p>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </CardContent>
-        </Card>
       </div>
+      <LMSTreeFooter />
     </div>
   );
 };
