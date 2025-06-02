@@ -31,17 +31,66 @@ export const useDragHandler = (onRefetch: () => void) => {
       const [, activeType, activeItemId] = activeMatch;
       const [, overType, overItemId] = overMatch;
       
-      console.log('Reclassification attempt:', { activeType, activeItemId, overType, overItemId });
+      console.log('Drag operation:', { activeType, activeItemId, overType, overItemId });
+      
+      // Handle module to module reordering (same level drag)
+      if (activeType === 'module' && overType === 'module' && activeItemId !== overItemId) {
+        // Get both modules to swap their sort orders
+        const { data: activeModule, error: activeError } = await supabase
+          .from('modules')
+          .select('sort_order, course_id')
+          .eq('id', activeItemId)
+          .single();
+          
+        const { data: overModule, error: overError } = await supabase
+          .from('modules')
+          .select('sort_order, course_id')
+          .eq('id', overItemId)
+          .single();
+          
+        if (activeError || overError || !activeModule || !overModule) {
+          throw new Error('Failed to fetch module data for reordering');
+        }
+        
+        // Only allow reordering within the same course
+        if (activeModule.course_id !== overModule.course_id) {
+          toast({
+            title: "Info",
+            description: "Modules can only be reordered within the same course",
+          });
+          return;
+        }
+        
+        // Swap the sort orders
+        const tempSortOrder = activeModule.sort_order;
+        
+        await supabase
+          .from('modules')
+          .update({ sort_order: overModule.sort_order })
+          .eq('id', activeItemId);
+          
+        await supabase
+          .from('modules')
+          .update({ sort_order: tempSortOrder })
+          .eq('id', overItemId);
+        
+        toast({
+          title: "Success",
+          description: "Modules reordered successfully",
+        });
+        
+        onRefetch();
+        return;
+      }
       
       // Handle reclassification based on drag target
       if (activeType === 'lesson' && overType === 'course') {
-        // In our current structure, "lessons" are actually modules, so we don't need to reclassify
         toast({
           title: "Info",
           description: "This item is already at the module level",
         });
       } else if (activeType === 'unit' && overType === 'lesson') {
-        // Units are already lessons in our structure, so move to different lesson (module)
+        // Units are lessons in our structure, so move to different lesson (module)
         const { error } = await supabase
           .from('lessons')
           .update({ module_id: overItemId })
@@ -73,14 +122,14 @@ export const useDragHandler = (onRefetch: () => void) => {
       } else {
         toast({
           title: "Info",
-          description: "This reclassification is not supported for the current structure",
+          description: "This type of reordering is not supported",
         });
       }
     } catch (error) {
-      console.error('Error during reclassification:', error);
+      console.error('Error during drag operation:', error);
       toast({
         title: "Error",
-        description: "Failed to reclassify content",
+        description: "Failed to reorder content",
         variant: "destructive",
       });
     }

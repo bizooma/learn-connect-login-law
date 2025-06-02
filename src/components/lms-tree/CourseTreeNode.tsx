@@ -143,10 +143,11 @@ const CourseTreeNode = ({
                 items={course.modules.map(module => `module-${module.id}`)}
                 strategy={verticalListSortingStrategy}
               >
-                {course.modules.map((module) => (
+                {course.modules.map((module, moduleIndex) => (
                   <ModuleTreeNode
                     key={module.id}
                     module={module}
+                    moduleIndex={moduleIndex}
                     isExpanded={expandedModules.has(module.id)}
                     onToggle={() => onToggleModule(module.id)}
                     expandedLessons={expandedLessons}

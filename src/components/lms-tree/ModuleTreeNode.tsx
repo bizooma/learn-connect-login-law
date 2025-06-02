@@ -22,6 +22,7 @@ interface ModuleWithLessons extends Module {
 
 interface ModuleTreeNodeProps {
   module: ModuleWithLessons;
+  moduleIndex: number;
   isExpanded: boolean;
   onToggle: () => void;
   expandedLessons: Set<string>;
@@ -36,6 +37,7 @@ interface ModuleTreeNodeProps {
 
 const ModuleTreeNode = ({
   module,
+  moduleIndex,
   isExpanded,
   onToggle,
   expandedLessons,
@@ -95,7 +97,7 @@ const ModuleTreeNode = ({
             <div className="flex-1 min-w-0">
               <div className="flex items-center space-x-3">
                 <h4 className="font-medium text-purple-900 truncate">
-                  {module.title}
+                  Module {moduleIndex + 1}: {module.title}
                 </h4>
                 <span className="text-xs text-purple-600">
                   {module.lessons?.length || 0} lessons
@@ -126,10 +128,11 @@ const ModuleTreeNode = ({
                 items={module.lessons.map(lesson => `lesson-${lesson.id}`)}
                 strategy={verticalListSortingStrategy}
               >
-                {module.lessons.map((lesson) => (
+                {module.lessons.map((lesson, lessonIndex) => (
                   <LessonTreeNode
                     key={lesson.id}
                     lesson={lesson}
+                    lessonIndex={lessonIndex}
                     isExpanded={expandedLessons.has(lesson.id)}
                     onToggle={() => onToggleLesson(lesson.id)}
                     availableTargets={availableTargets}
