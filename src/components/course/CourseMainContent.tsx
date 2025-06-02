@@ -7,12 +7,21 @@ import CourseCalendar from "./CourseCalendar";
 
 type Lesson = Tables<'lessons'>;
 type Unit = Tables<'units'>;
+type Quiz = Tables<'quizzes'>;
+
+interface UnitWithQuiz extends Unit {
+  quiz?: Quiz;
+}
+
+interface LessonWithUnits extends Lesson {
+  units: UnitWithQuiz[];
+}
 
 interface CourseMainContentProps {
   courseId: string;
-  lessons: (Lesson & { units: Unit[] })[];
-  selectedUnit: Unit | null;
-  onUnitSelect: (unit: Unit) => void;
+  lessons: LessonWithUnits[];
+  selectedUnit: UnitWithQuiz | null;
+  onUnitSelect: (unit: UnitWithQuiz) => void;
   isAdmin: boolean;
 }
 

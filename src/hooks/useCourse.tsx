@@ -8,16 +8,25 @@ import { Tables } from "@/integrations/supabase/types";
 type Course = Tables<'courses'>;
 type Lesson = Tables<'lessons'>;
 type Unit = Tables<'units'>;
+type Quiz = Tables<'quizzes'>;
+
+interface UnitWithQuiz extends Unit {
+  quiz?: Quiz;
+}
+
+interface LessonWithUnits extends Lesson {
+  units: UnitWithQuiz[];
+}
 
 interface CourseWithLessons extends Course {
-  lessons: (Lesson & { units: Unit[] })[];
+  lessons: LessonWithUnits[];
 }
 
 export const useCourse = (id: string | undefined) => {
   const { toast } = useToast();
   const { user } = useAuth();
   const [course, setCourse] = useState<CourseWithLessons | null>(null);
-  const [selectedUnit, setSelectedUnit] = useState<Unit | null>(null);
+  const [selectedUnit, setSelectedUnit] = useState<UnitWithQuiz | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
 
@@ -71,7 +80,10 @@ export const useCourse = (id: string | undefined) => {
           *,
           lessons:lessons(
             *,
-            units:units(*)
+            units:units(
+              *,
+              quiz:quizzes(*)
+            )
           )
         `)
         .eq('course_id', id)
@@ -88,7 +100,10 @@ export const useCourse = (id: string | undefined) => {
       const firstModule = modulesData?.[0];
       const lessons = firstModule?.lessons?.map(lesson => ({
         ...lesson,
-        units: (lesson.units || []).sort((a, b) => a.sort_order - b.sort_order)
+        units: (lesson.units || []).map(unit => ({
+          ...unit,
+          quiz: unit.quiz?.[0] || undefined
+        })).sort((a, b) => a.sort_order - b.sort_order)
       })).sort((a, b) => a.sort_order - b.sort_order) || [];
 
       const courseWithLessons: CourseWithLessons = {

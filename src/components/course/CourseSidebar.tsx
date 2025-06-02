@@ -1,22 +1,28 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Users, Play, ChevronDown, ChevronRight } from "lucide-react";
+import { Clock, Users, Play, ChevronDown, ChevronRight, BookOpen } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { useState } from "react";
 import CourseProgressBar from "./CourseProgressBar";
 
-type Lesson = Tables<'lessons'> & {
-  units: Tables<'units'>[];
-};
-
+type Lesson = Tables<'lessons'>;
 type Unit = Tables<'units'>;
+type Quiz = Tables<'quizzes'>;
+
+interface UnitWithQuiz extends Unit {
+  quiz?: Quiz;
+}
+
+interface LessonWithUnits extends Lesson {
+  units: UnitWithQuiz[];
+}
 
 interface CourseSidebarProps {
   courseId: string;
-  lessons: Lesson[];
-  selectedUnit: Unit | null;
-  onUnitSelect: (unit: Unit) => void;
+  lessons: LessonWithUnits[];
+  selectedUnit: UnitWithQuiz | null;
+  onUnitSelect: (unit: UnitWithQuiz) => void;
 }
 
 const CourseSidebar = ({ courseId, lessons, selectedUnit, onUnitSelect }: CourseSidebarProps) => {
@@ -40,10 +46,10 @@ const CourseSidebar = ({ courseId, lessons, selectedUnit, onUnitSelect }: Course
     }
     acc[moduleId].push(lesson);
     return acc;
-  }, {} as Record<string, Lesson[]>);
+  }, {} as Record<string, LessonWithUnits[]>);
 
   // Get module numbers for display
-  const getModuleAndLessonNumber = (lesson: Lesson) => {
+  const getModuleAndLessonNumber = (lesson: LessonWithUnits) => {
     const moduleId = lesson.module_id || 'no-module';
     const moduleKeys = Object.keys(lessonsByModule).sort();
     const moduleNumber = moduleKeys.indexOf(moduleId) + 1;
@@ -128,12 +134,22 @@ const CourseSidebar = ({ courseId, lessons, selectedUnit, onUnitSelect }: Course
                             <span className="text-xs font-medium">
                               {unitIndex + 1}. {unit.title}
                             </span>
+                            {unit.quiz && (
+                              <BookOpen className="h-3 w-3 text-blue-600" title="Has Quiz" />
+                            )}
                           </div>
-                          {unit.duration_minutes && (
-                            <Badge variant="outline" className="text-xs px-1 py-0">
-                              {unit.duration_minutes}m
-                            </Badge>
-                          )}
+                          <div className="flex items-center space-x-1">
+                            {unit.quiz && (
+                              <Badge variant="outline" className="text-xs px-1 py-0 bg-blue-50 text-blue-700 border-blue-200">
+                                Quiz
+                              </Badge>
+                            )}
+                            {unit.duration_minutes && (
+                              <Badge variant="outline" className="text-xs px-1 py-0">
+                                {unit.duration_minutes}m
+                              </Badge>
+                            )}
+                          </div>
                         </div>
                         {unit.description && (
                           <p className="text-xs text-gray-500 mt-1 truncate ml-5">

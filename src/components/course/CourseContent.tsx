@@ -1,13 +1,19 @@
 
 import { Tables } from "@/integrations/supabase/types";
 import CourseVideo from "./CourseVideo";
+import QuizDisplay from "./QuizDisplay";
 import { Button } from "@/components/ui/button";
 import { Download, File } from "lucide-react";
 
 type Unit = Tables<'units'>;
+type Quiz = Tables<'quizzes'>;
+
+interface UnitWithQuiz extends Unit {
+  quiz?: Quiz;
+}
 
 interface CourseContentProps {
-  unit: Unit | null;
+  unit: UnitWithQuiz | null;
   courseId: string;
 }
 
@@ -43,6 +49,10 @@ const CourseContent = ({ unit, courseId }: CourseContentProps) => {
             </Button>
           </div>
         </div>
+      )}
+      
+      {unit?.quiz && (
+        <QuizDisplay quiz={unit.quiz} unitTitle={unit.title} />
       )}
       
       {unit?.content && (
