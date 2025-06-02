@@ -110,11 +110,10 @@ const LessonTreeNode = ({
                 items={lesson.units.map(unit => `unit-${unit.id}`)}
                 strategy={verticalListSortingStrategy}
               >
-                {lesson.units.map((unit, unitIndex) => (
+                {lesson.units.map((unit) => (
                   <UnitTreeNode
                     key={unit.id}
                     unit={unit}
-                    unitIndex={unitIndex}
                     availableTargets={availableTargets}
                     onRefetch={onRefetch}
                   />
