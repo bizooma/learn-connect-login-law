@@ -51,7 +51,7 @@ const HeroSection = () => {
           </div>
 
           {/* Right Side - Professional Woman Image */}
-          <div className="relative h-full flex items-end justify-end lg:justify-start lg:pl-8">
+          <div className="relative h-full flex items-end justify-end lg:justify-start lg:pl-8" style={{ transform: 'translateY(-40px)' }}>
             <div className="relative z-50 w-full">
               <img 
                 src="/lovable-uploads/61c3f405-c372-43ea-a6e7-a12bcd703981.png" 
