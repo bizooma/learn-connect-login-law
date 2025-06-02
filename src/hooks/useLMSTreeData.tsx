@@ -48,13 +48,14 @@ export const useLMSTreeData = () => {
         throw coursesError;
       }
 
-      // Transform the data to handle the migration case
+      // Transform the data to handle the migration case and improve display
       const transformedCourses = coursesData?.map(course => {
         console.log('Processing course:', course.title, 'with modules:', course.modules?.length);
         
         // Check if we have a "Main Module" situation (migration case)
         const mainModule = course.modules?.find(m => 
           m.title === "Main Module" || 
+          m.title?.includes("Main Module") ||
           (m.description && m.description.includes("Default module created during migration"))
         );
 
@@ -68,6 +69,9 @@ export const useLMSTreeData = () => {
             title: lesson.title,
             description: lesson.description,
             image_url: lesson.image_url,
+            file_url: lesson.file_url,
+            file_name: lesson.file_name,
+            file_size: lesson.file_size,
             sort_order: index,
             is_draft: lesson.is_draft,
             created_at: lesson.created_at,
@@ -79,6 +83,9 @@ export const useLMSTreeData = () => {
               title: unit.title,
               description: unit.description,
               image_url: null,
+              file_url: unit.file_url,
+              file_name: unit.file_name,
+              file_size: unit.file_size,
               sort_order: unitIndex,
               is_draft: unit.is_draft,
               created_at: unit.created_at,
@@ -97,23 +104,23 @@ export const useLMSTreeData = () => {
           
           return {
             ...course,
-            modules: [...otherModules, ...newModules]
+            modules: [...otherModules, ...newModules].sort((a, b) => a.sort_order - b.sort_order)
           };
         }
 
-        // For courses without Main Module, check if any modules have lessons that should be converted
+        // For courses without Main Module, process normally but check for single-lesson modules
         const processedModules = course.modules?.map(module => {
-          // If a module has lessons but no nested units, those lessons might need to be converted
-          if (module.lessons && module.lessons.length > 0) {
-            const hasUnitsInLessons = module.lessons.some(lesson => lesson.units && lesson.units.length > 0);
-            
-            if (!hasUnitsInLessons) {
-              // These lessons should probably stay as lessons, not be converted to modules
-              return module;
-            }
+          // Sort lessons and units properly
+          if (module.lessons) {
+            module.lessons = module.lessons
+              .sort((a, b) => a.sort_order - b.sort_order)
+              .map(lesson => ({
+                ...lesson,
+                units: lesson.units?.sort((a, b) => a.sort_order - b.sort_order) || []
+              }));
           }
           return module;
-        }) || [];
+        }).sort((a, b) => a.sort_order - b.sort_order) || [];
 
         return {
           ...course,

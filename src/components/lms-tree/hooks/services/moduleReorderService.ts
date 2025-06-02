@@ -98,6 +98,7 @@ const handleLessonAsModuleReordering = async (lessonData: any, direction: 'up' |
 
   // Check if this is a "Main Module" or migration scenario
   const isMainModule = moduleData?.title === "Main Module" || 
+                      moduleData?.title?.includes("Main Module") ||
                       (moduleData?.description && moduleData.description.includes("migration"));
 
   let moduleLessons;
@@ -119,10 +120,17 @@ const handleLessonAsModuleReordering = async (lessonData: any, direction: 'up' |
     moduleLessons = allLessonsInModule || [];
     console.log('All lessons in Main Module (displayed as modules):', moduleLessons);
   } else {
-    // For other cases, use the original logic
+    // For other cases, get all lessons in the course and find standalone lessons
     const { data: allLessons, error: lessonsError } = await supabase
       .from('lessons')
-      .select('id, sort_order, title, module_id, course_id')
+      .select(`
+        id, 
+        sort_order, 
+        title, 
+        module_id, 
+        course_id,
+        units:units(id)
+      `)
       .eq('course_id', lessonData.course_id)
       .order('sort_order');
 
@@ -131,7 +139,7 @@ const handleLessonAsModuleReordering = async (lessonData: any, direction: 'up' |
       throw lessonsError;
     }
 
-    // Group lessons by module_id and find single-lesson modules
+    // Group lessons by module_id and find modules with single lessons (displayed as modules)
     const lessonsByModule = (allLessons || []).reduce((acc, lesson) => {
       if (!acc[lesson.module_id]) {
         acc[lesson.module_id] = [];
@@ -142,6 +150,7 @@ const handleLessonAsModuleReordering = async (lessonData: any, direction: 'up' |
 
     moduleLessons = [];
     for (const [moduleId, lessons] of Object.entries(lessonsByModule)) {
+      // If a module has only one lesson, that lesson should be displayed as a module
       if (lessons.length === 1) {
         moduleLessons.push(lessons[0]);
       }
