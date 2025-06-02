@@ -139,7 +139,7 @@ const BenefitsSection = () => {
           {openSections.purpose && (
             <div className="p-6 bg-white border-t border-gray-200">
               <p className="text-gray-600 leading-relaxed">
-                Reinvigorate your team's commitment to the mission of helping immigrants achieve their dreams through comprehensive, purpose-driven training.
+                You're an immigration lawyer because you want to help people. And you want to help more people than you're helping today. You want to do it at a high standard, yet your business is stalling.
               </p>
             </div>
           )}
