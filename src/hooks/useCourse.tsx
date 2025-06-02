@@ -73,7 +73,7 @@ export const useCourse = (id: string | undefined) => {
 
       console.log('Course data fetched:', courseData);
 
-      // Then fetch lessons directly from the course (not from modules)
+      // Then fetch lessons directly from the course
       const { data: lessonsData, error: lessonsError } = await supabase
         .from('lessons')
         .select(`
@@ -93,13 +93,19 @@ export const useCourse = (id: string | undefined) => {
 
       console.log('Lessons data fetched:', lessonsData);
 
-      // Process the lessons data
+      // Process the lessons data and handle units properly
       const lessons = lessonsData?.map(lesson => ({
         ...lesson,
-        units: (lesson.units || []).map(unit => ({
-          ...unit,
-          quiz: unit.quiz?.[0] || undefined
-        })).sort((a, b) => a.sort_order - b.sort_order)
+        units: (lesson.units || []).map(unit => {
+          // Handle quiz data - it comes as an array but we want a single quiz
+          const quizArray = unit.quiz;
+          const quiz = Array.isArray(quizArray) && quizArray.length > 0 ? quizArray[0] : undefined;
+          
+          return {
+            ...unit,
+            quiz: quiz
+          };
+        }).sort((a, b) => a.sort_order - b.sort_order)
       })).sort((a, b) => a.sort_order - b.sort_order) || [];
 
       const courseWithLessons: CourseWithLessons = {
