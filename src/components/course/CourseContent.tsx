@@ -24,6 +24,9 @@ const CourseContent = ({ unit, courseId }: CourseContentProps) => {
     }
   };
 
+  // Check if this is the first unit (Unit 1) that should show the quiz
+  const shouldShowQuiz = unit?.title === "Intro to Mentoring";
+
   return (
     <div className="space-y-6">
       <CourseVideo unit={unit} courseId={courseId} />
@@ -60,7 +63,7 @@ const CourseContent = ({ unit, courseId }: CourseContentProps) => {
         </div>
       )}
       
-      {unit?.quiz && (
+      {shouldShowQuiz && unit?.quiz && (
         <QuizDisplay quiz={unit.quiz} unitTitle={unit.title} />
       )}
     </div>
