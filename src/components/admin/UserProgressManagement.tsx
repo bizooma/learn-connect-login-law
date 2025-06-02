@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Search, Download, User, BookOpen, CheckCircle, Clock } from "lucide-react";
+import { usePagination } from "./user-management/usePagination";
 
 interface UserProgress {
   user_id: string;
@@ -34,6 +35,8 @@ interface UserUnitProgress {
   lesson_title: string;
 }
 
+const ITEMS_PER_PAGE = 50;
+
 const UserProgressManagement = () => {
   const [userProgress, setUserProgress] = useState<UserProgress[]>([]);
   const [selectedUser, setSelectedUser] = useState<string | null>(null);
@@ -44,6 +47,36 @@ const UserProgressManagement = () => {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [courses, setCourses] = useState<Array<{id: string, title: string}>>([]);
   const { toast } = useToast();
+
+  // Filter progress data
+  const filteredProgress = userProgress.filter(progress => {
+    const matchesSearch = progress.user_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         progress.user_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         progress.course_title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCourse = courseFilter === "all" || progress.course_id === courseFilter;
+    const matchesStatus = statusFilter === "all" || progress.status === statusFilter;
+    
+    return matchesSearch && matchesCourse && matchesStatus;
+  });
+
+  // Use pagination hook
+  const {
+    currentPage,
+    totalPages,
+    paginatedData: paginatedProgress,
+    goToPage,
+    resetPagination,
+    hasNextPage,
+    hasPreviousPage,
+  } = usePagination({
+    data: filteredProgress,
+    itemsPerPage: ITEMS_PER_PAGE,
+  });
+
+  // Reset pagination when filters change
+  useEffect(() => {
+    resetPagination();
+  }, [searchTerm, courseFilter, statusFilter, resetPagination]);
 
   const fetchUserProgress = async () => {
     try {
@@ -194,17 +227,6 @@ const UserProgressManagement = () => {
     fetchUserProgress();
   }, []);
 
-  // Filter progress data
-  const filteredProgress = userProgress.filter(progress => {
-    const matchesSearch = progress.user_name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         progress.user_email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         progress.course_title.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCourse = courseFilter === "all" || progress.course_id === courseFilter;
-    const matchesStatus = statusFilter === "all" || progress.status === statusFilter;
-    
-    return matchesSearch && matchesCourse && matchesStatus;
-  });
-
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
@@ -334,7 +356,12 @@ const UserProgressManagement = () => {
       {/* Progress Table */}
       <Card>
         <CardHeader>
-          <CardTitle>Course Progress</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Course Progress</CardTitle>
+            <div className="text-sm text-gray-600">
+              Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredProgress.length)} of {filteredProgress.length} results
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           <Table>
@@ -350,7 +377,7 @@ const UserProgressManagement = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredProgress.map((progress, index) => (
+              {paginatedProgress.map((progress, index) => (
                 <TableRow key={index}>
                   <TableCell>
                     <div>
@@ -396,6 +423,63 @@ const UserProgressManagement = () => {
               ))}
             </TableBody>
           </Table>
+
+          {/* Pagination Controls */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between mt-6">
+              <div className="text-sm text-gray-600">
+                Page {currentPage} of {totalPages}
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => goToPage(currentPage - 1)}
+                  disabled={!hasPreviousPage}
+                >
+                  Previous
+                </Button>
+                
+                {/* Page numbers */}
+                <div className="flex items-center space-x-1">
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <Button
+                        key={pageNum}
+                        variant={currentPage === pageNum ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => goToPage(pageNum)}
+                        className="w-8 h-8 p-0"
+                      >
+                        {pageNum}
+                      </Button>
+                    );
+                  })}
+                </div>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => goToPage(currentPage + 1)}
+                  disabled={!hasNextPage}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
