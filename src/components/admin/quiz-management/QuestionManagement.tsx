@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -7,7 +8,6 @@ import { Plus, Edit, Trash2 } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import CreateQuestionForm from "./CreateQuestionForm";
 import EditQuestionForm from "./EditQuestionForm";
-import DebugQuestionForm from "./DebugQuestionForm";
 
 type QuizQuestion = Tables<'quiz_questions'>;
 type QuizQuestionOption = Tables<'quiz_question_options'>;
@@ -34,6 +34,7 @@ const QuestionManagement = ({ quizId, quizTitle }: QuestionManagementProps) => {
   }, [quizId]);
 
   const fetchQuestions = async () => {
+    console.log('QUESTION MANAGEMENT: Fetching questions for quiz:', quizId);
     try {
       const { data, error } = await supabase
         .from('quiz_questions')
@@ -48,9 +49,10 @@ const QuestionManagement = ({ quizId, quizTitle }: QuestionManagementProps) => {
         throw error;
       }
 
+      console.log('QUESTION MANAGEMENT: Questions fetched:', data?.length || 0);
       setQuestions(data || []);
     } catch (error) {
-      console.error('Error fetching questions:', error);
+      console.error('QUESTION MANAGEMENT: Error fetching questions:', error);
       toast({
         title: "Error",
         description: "Failed to fetch questions",
@@ -62,6 +64,7 @@ const QuestionManagement = ({ quizId, quizTitle }: QuestionManagementProps) => {
   };
 
   const deleteQuestion = async (questionId: string) => {
+    console.log('QUESTION MANAGEMENT: Deleting question:', questionId);
     try {
       const { error } = await supabase
         .from('quiz_questions')
@@ -78,7 +81,7 @@ const QuestionManagement = ({ quizId, quizTitle }: QuestionManagementProps) => {
         description: "Question deleted successfully",
       });
     } catch (error) {
-      console.error('Error deleting question:', error);
+      console.error('QUESTION MANAGEMENT: Error deleting question:', error);
       toast({
         title: "Error",
         description: "Failed to delete question",
@@ -88,6 +91,7 @@ const QuestionManagement = ({ quizId, quizTitle }: QuestionManagementProps) => {
   };
 
   const handleEditQuestion = (question: QuestionWithOptions) => {
+    console.log('QUESTION MANAGEMENT: Opening edit form for question:', question.id);
     setSelectedQuestion(question);
     setEditFormOpen(true);
   };
@@ -96,6 +100,11 @@ const QuestionManagement = ({ quizId, quizTitle }: QuestionManagementProps) => {
     if (confirm("Are you sure you want to delete this question?")) {
       deleteQuestion(questionId);
     }
+  };
+
+  const handleCreateFormOpen = () => {
+    console.log('QUESTION MANAGEMENT: Opening create form');
+    setCreateFormOpen(true);
   };
 
   if (loading) {
@@ -113,12 +122,12 @@ const QuestionManagement = ({ quizId, quizTitle }: QuestionManagementProps) => {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">Questions for "{quizTitle}" (DEBUG MODE)</h3>
+          <h3 className="text-lg font-semibold">Questions for "{quizTitle}"</h3>
           <p className="text-sm text-gray-600">{questions.length} questions</p>
         </div>
-        <Button onClick={() => setCreateFormOpen(true)}>
+        <Button onClick={handleCreateFormOpen}>
           <Plus className="h-4 w-4 mr-2" />
-          Add Question (Debug)
+          Add Question
         </Button>
       </div>
 
@@ -182,16 +191,16 @@ const QuestionManagement = ({ quizId, quizTitle }: QuestionManagementProps) => {
         <div className="text-center py-8">
           <p className="text-gray-500">No questions added yet</p>
           <Button 
-            onClick={() => setCreateFormOpen(true)}
+            onClick={handleCreateFormOpen}
             className="mt-2"
             variant="outline"
           >
-            Add Your First Question (Debug)
+            Add Your First Question
           </Button>
         </div>
       )}
 
-      <DebugQuestionForm
+      <CreateQuestionForm
         open={createFormOpen}
         onOpenChange={setCreateFormOpen}
         quizId={quizId}

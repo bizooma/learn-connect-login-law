@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Plus, Trash2 } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 
@@ -40,6 +40,7 @@ const EditQuestionForm = ({ open, onOpenChange, question, onQuestionUpdated }: E
 
   useEffect(() => {
     if (open && question) {
+      console.log('EDIT QUESTION: Loading question data:', question.id);
       setQuestionText(question.question_text);
       setPoints(question.points);
       setOptions(
@@ -54,17 +55,24 @@ const EditQuestionForm = ({ open, onOpenChange, question, onQuestionUpdated }: E
     }
   }, [open, question]);
 
-  const addOption = () => {
+  const addOption = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('EDIT QUESTION: Adding option');
     setOptions([...options, { text: "", isCorrect: false }]);
   };
 
-  const removeOption = (index: number) => {
+  const removeOption = (index: number, e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('EDIT QUESTION: Removing option at index:', index);
     if (options.length > 2) {
       setOptions(options.filter((_, i) => i !== index));
     }
   };
 
   const updateOption = (index: number, field: keyof Option, value: string | boolean) => {
+    console.log('EDIT QUESTION: Updating option:', index, field, value);
     const newOptions = [...options];
     newOptions[index] = { ...newOptions[index], [field]: value };
     setOptions(newOptions);
@@ -72,6 +80,8 @@ const EditQuestionForm = ({ open, onOpenChange, question, onQuestionUpdated }: E
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    e.stopPropagation();
+    console.log('EDIT QUESTION: Form submit triggered');
     
     if (!question || !questionText.trim()) {
       toast({
@@ -103,6 +113,7 @@ const EditQuestionForm = ({ open, onOpenChange, question, onQuestionUpdated }: E
     }
 
     setLoading(true);
+    console.log('EDIT QUESTION: Starting update process');
     
     try {
       // Update the question
@@ -145,6 +156,7 @@ const EditQuestionForm = ({ open, onOpenChange, question, onQuestionUpdated }: E
         throw optionsError;
       }
 
+      console.log('EDIT QUESTION: Update completed successfully');
       toast({
         title: "Success",
         description: "Question updated successfully",
@@ -153,7 +165,7 @@ const EditQuestionForm = ({ open, onOpenChange, question, onQuestionUpdated }: E
       onQuestionUpdated();
       onOpenChange(false);
     } catch (error) {
-      console.error('Error updating question:', error);
+      console.error('EDIT QUESTION: Error updating question:', error);
       toast({
         title: "Error",
         description: "Failed to update question",
@@ -164,100 +176,117 @@ const EditQuestionForm = ({ open, onOpenChange, question, onQuestionUpdated }: E
     }
   };
 
+  const handleCancel = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    console.log('EDIT QUESTION: Cancel button clicked');
+    onOpenChange(false);
+  };
+
+  const handleSheetOpenChange = (newOpen: boolean) => {
+    console.log('EDIT QUESTION: Sheet open change:', newOpen);
+    if (!newOpen) {
+      console.log('EDIT QUESTION: Sheet is being closed');
+    }
+    onOpenChange(newOpen);
+  };
+
   if (!question) return null;
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Edit Question</DialogTitle>
-          <DialogDescription>
+    <Sheet open={open} onOpenChange={handleSheetOpenChange}>
+      <SheetContent side="right" className="w-[500px] sm:w-[600px] overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>Edit Question</SheetTitle>
+          <SheetDescription>
             Update the question and its answer options
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="questionText">Question *</Label>
-            <Textarea
-              id="questionText"
-              value={questionText}
-              onChange={(e) => setQuestionText(e.target.value)}
-              placeholder="Enter your question"
-              rows={3}
-              required
-            />
-          </div>
+        <div className="py-6">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="questionText">Question *</Label>
+              <Textarea
+                id="questionText"
+                value={questionText}
+                onChange={(e) => setQuestionText(e.target.value)}
+                placeholder="Enter your question"
+                rows={3}
+                required
+              />
+            </div>
 
-          <div>
-            <Label htmlFor="points">Points</Label>
-            <Input
-              id="points"
-              type="number"
-              min="1"
-              value={points}
-              onChange={(e) => setPoints(parseInt(e.target.value) || 1)}
-              className="w-24"
-            />
-          </div>
+            <div>
+              <Label htmlFor="points">Points</Label>
+              <Input
+                id="points"
+                type="number"
+                min="1"
+                value={points}
+                onChange={(e) => setPoints(parseInt(e.target.value) || 1)}
+                className="w-24"
+              />
+            </div>
 
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <Label>Answer Options *</Label>
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <Label>Answer Options *</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={addOption}
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  Add Option
+                </Button>
+              </div>
+              
+              {options.map((option, index) => (
+                <div key={index} className="flex items-center space-x-2 p-3 border rounded">
+                  <Checkbox
+                    checked={option.isCorrect}
+                    onCheckedChange={(checked) => updateOption(index, 'isCorrect', checked as boolean)}
+                  />
+                  <Input
+                    value={option.text}
+                    onChange={(e) => updateOption(index, 'text', e.target.value)}
+                    placeholder={`Option ${index + 1}`}
+                    className="flex-1"
+                  />
+                  {options.length > 2 && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={(e) => removeOption(index, e)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+              <p className="text-sm text-gray-600">Check the box to mark correct answers</p>
+            </div>
+
+            <SheetFooter className="pt-4">
               <Button
                 type="button"
                 variant="outline"
-                size="sm"
-                onClick={addOption}
+                onClick={handleCancel}
               >
-                <Plus className="h-4 w-4 mr-1" />
-                Add Option
+                Cancel
               </Button>
-            </div>
-            
-            {options.map((option, index) => (
-              <div key={index} className="flex items-center space-x-2 p-3 border rounded">
-                <Checkbox
-                  checked={option.isCorrect}
-                  onCheckedChange={(checked) => updateOption(index, 'isCorrect', checked as boolean)}
-                />
-                <Input
-                  value={option.text}
-                  onChange={(e) => updateOption(index, 'text', e.target.value)}
-                  placeholder={`Option ${index + 1}`}
-                  className="flex-1"
-                />
-                {options.length > 2 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeOption(index)}
-                    className="text-red-600 hover:text-red-700"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-            ))}
-            <p className="text-sm text-gray-600">Check the box to mark correct answers</p>
-          </div>
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Updating..." : "Update Question"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Updating..." : "Update Question"}
+              </Button>
+            </SheetFooter>
+          </form>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 };
 

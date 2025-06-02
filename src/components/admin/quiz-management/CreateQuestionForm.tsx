@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useCreateQuestionForm } from "./useCreateQuestionForm";
 import QuestionOptionsManager from "./QuestionOptionsManager";
 
@@ -33,81 +33,82 @@ const CreateQuestionForm = ({ open, onOpenChange, quizId, onQuestionCreated }: C
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Form submit triggered');
+    console.log('CREATE QUESTION: Form submit triggered');
     handleSubmit(e);
   };
 
   const handleCancel = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Cancel button clicked');
+    console.log('CREATE QUESTION: Cancel button clicked');
     onOpenChange(false);
   };
 
-  const handleDialogOpenChange = (newOpen: boolean) => {
-    console.log('Dialog open change:', newOpen);
+  const handleSheetOpenChange = (newOpen: boolean) => {
+    console.log('CREATE QUESTION: Sheet open change:', newOpen);
+    if (!newOpen) {
+      console.log('CREATE QUESTION: Sheet is being closed');
+    }
     onOpenChange(newOpen);
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
-      <DialogContent 
-        className="max-w-2xl max-h-[80vh] overflow-y-auto"
-        onPointerDownOutside={(e) => e.preventDefault()}
-        onEscapeKeyDown={(e) => e.preventDefault()}
-      >
-        <DialogHeader>
-          <DialogTitle>Create New Question</DialogTitle>
-          <DialogDescription>
+    <Sheet open={open} onOpenChange={handleSheetOpenChange}>
+      <SheetContent side="right" className="w-[500px] sm:w-[600px] overflow-y-auto">
+        <SheetHeader>
+          <SheetTitle>Create New Question</SheetTitle>
+          <SheetDescription>
             Add a multiple choice question to the quiz. Fill in the question text, set the points value, and create answer options.
-          </DialogDescription>
-        </DialogHeader>
+          </SheetDescription>
+        </SheetHeader>
         
-        <form onSubmit={handleFormSubmit} className="space-y-4">
-          <div>
-            <Label htmlFor="questionText">Question *</Label>
-            <Textarea
-              id="questionText"
-              value={questionText}
-              onChange={(e) => setQuestionText(e.target.value)}
-              placeholder="Enter your question"
-              rows={3}
-              required
+        <div className="py-6">
+          <form onSubmit={handleFormSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="questionText">Question *</Label>
+              <Textarea
+                id="questionText"
+                value={questionText}
+                onChange={(e) => setQuestionText(e.target.value)}
+                placeholder="Enter your question"
+                rows={3}
+                required
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="points">Points</Label>
+              <Input
+                id="points"
+                type="number"
+                min="1"
+                value={points}
+                onChange={(e) => setPoints(parseInt(e.target.value) || 1)}
+                className="w-24"
+              />
+            </div>
+
+            <QuestionOptionsManager
+              options={options}
+              onOptionsChange={setOptions}
             />
-          </div>
 
-          <div>
-            <Label htmlFor="points">Points</Label>
-            <Input
-              id="points"
-              type="number"
-              min="1"
-              value={points}
-              onChange={(e) => setPoints(parseInt(e.target.value) || 1)}
-              className="w-24"
-            />
-          </div>
-
-          <QuestionOptionsManager
-            options={options}
-            onOptionsChange={setOptions}
-          />
-
-          <DialogFooter>
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleCancel}
-            >
-              Cancel
-            </Button>
-            <Button type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create Question"}
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+            <SheetFooter className="pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleCancel}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? "Creating..." : "Create Question"}
+              </Button>
+            </SheetFooter>
+          </form>
+        </div>
+      </SheetContent>
+    </Sheet>
   );
 };
 
