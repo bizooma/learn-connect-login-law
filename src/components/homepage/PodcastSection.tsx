@@ -9,26 +9,50 @@ const PodcastSection = () => {
   const episodes = [
     {
       id: 1,
-      title: "#17 How Gratitude Transforms Culture | Law Firm",
-      duration: "23:12",
+      title: "#26 Turning Crisis Into Opportunity",
+      duration: "28:15",
       description: "Let's Get Rich by Hillary & Shawn Walsh"
     },
     {
       id: 2,
-      title: "#18 Leading Through Change: A Law Firm's Journey",
-      duration: "20:45",
+      title: "#25 Building Systems That Scale",
+      duration: "31:42",
       description: "Let's Get Rich by Hillary & Shawn Walsh"
     },
     {
       id: 3,
-      title: "#19 Using Frustration as Fuel for Growth",
-      duration: "16:33",
+      title: "#24 The Power of Delegation",
+      duration: "26:18",
       description: "Let's Get Rich by Hillary & Shawn Walsh"
     },
     {
       id: 4,
       title: "#23 Season Finale: Theory of Constraints",
       duration: "18:27",
+      description: "Let's Get Rich by Hillary & Shawn Walsh"
+    },
+    {
+      id: 5,
+      title: "#22 Mastering Client Relationships",
+      duration: "24:33",
+      description: "Let's Get Rich by Hillary & Shawn Walsh"
+    },
+    {
+      id: 6,
+      title: "#21 Financial Planning for Law Firms",
+      duration: "29:07",
+      description: "Let's Get Rich by Hillary & Shawn Walsh"
+    },
+    {
+      id: 7,
+      title: "#20 Technology in Modern Practice",
+      duration: "22:54",
+      description: "Let's Get Rich by Hillary & Shawn Walsh"
+    },
+    {
+      id: 8,
+      title: "#19 Using Frustration as Fuel for Growth",
+      duration: "16:33",
       description: "Let's Get Rich by Hillary & Shawn Walsh"
     }
   ];
