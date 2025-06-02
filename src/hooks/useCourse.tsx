@@ -73,32 +73,28 @@ export const useCourse = (id: string | undefined) => {
 
       console.log('Course data fetched:', courseData);
 
-      // Then fetch modules with lessons and units
-      const { data: modulesData, error: modulesError } = await supabase
-        .from('modules')
+      // Then fetch lessons directly from the course (not from modules)
+      const { data: lessonsData, error: lessonsError } = await supabase
+        .from('lessons')
         .select(`
           *,
-          lessons:lessons(
+          units:units(
             *,
-            units:units(
-              *,
-              quiz:quizzes(*)
-            )
+            quiz:quizzes(*)
           )
         `)
         .eq('course_id', id)
         .order('sort_order', { ascending: true });
 
-      if (modulesError) {
-        console.error('Error fetching modules:', modulesError);
-        throw modulesError;
+      if (lessonsError) {
+        console.error('Error fetching lessons:', lessonsError);
+        throw lessonsError;
       }
 
-      console.log('Modules data fetched:', modulesData);
+      console.log('Lessons data fetched:', lessonsData);
 
-      // For backward compatibility, flatten lessons from the first module
-      const firstModule = modulesData?.[0];
-      const lessons = firstModule?.lessons?.map(lesson => ({
+      // Process the lessons data
+      const lessons = lessonsData?.map(lesson => ({
         ...lesson,
         units: (lesson.units || []).map(unit => ({
           ...unit,

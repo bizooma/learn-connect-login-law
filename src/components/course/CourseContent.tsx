@@ -3,7 +3,10 @@ import { Tables } from "@/integrations/supabase/types";
 import CourseVideo from "./CourseVideo";
 import QuizDisplay from "./QuizDisplay";
 import { Button } from "@/components/ui/button";
-import { Download, File } from "lucide-react";
+import { Download, File, CheckCircle } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserProgress } from "@/hooks/useUserProgress";
+import { useState } from "react";
 
 type Unit = Tables<'units'>;
 type Quiz = Tables<'quizzes'>;
@@ -18,14 +21,31 @@ interface CourseContentProps {
 }
 
 const CourseContent = ({ unit, courseId }: CourseContentProps) => {
+  const { user } = useAuth();
+  const { markUnitComplete } = useUserProgress(user?.id);
+  const [isCompleting, setIsCompleting] = useState(false);
+
   const handleFileDownload = () => {
     if (unit?.file_url) {
       window.open(unit.file_url, '_blank');
     }
   };
 
-  // Check if this is the first unit (Unit 1) that should show the quiz
-  const shouldShowQuiz = unit?.title === "Intro to Mentoring";
+  const handleMarkComplete = async () => {
+    if (!unit || !user) return;
+    
+    setIsCompleting(true);
+    try {
+      await markUnitComplete(unit.id, courseId);
+    } catch (error) {
+      console.error('Error marking unit complete:', error);
+    } finally {
+      setIsCompleting(false);
+    }
+  };
+
+  // Check if this unit has a quiz attached to it
+  const hasQuiz = unit?.quiz && unit.quiz.is_active;
 
   return (
     <div className="space-y-6">
@@ -63,8 +83,27 @@ const CourseContent = ({ unit, courseId }: CourseContentProps) => {
         </div>
       )}
       
-      {shouldShowQuiz && unit?.quiz && (
-        <QuizDisplay quiz={unit.quiz} unitTitle={unit.title} />
+      {hasQuiz && (
+        <QuizDisplay quiz={unit.quiz!} unitTitle={unit.title} />
+      )}
+      
+      {!hasQuiz && unit && (
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Complete Unit</h3>
+              <p className="text-gray-600">Mark this unit as complete to track your progress.</p>
+            </div>
+            <Button 
+              onClick={handleMarkComplete}
+              disabled={isCompleting}
+              className="flex items-center space-x-2"
+            >
+              <CheckCircle className="h-4 w-4" />
+              <span>{isCompleting ? 'Completing...' : 'Mark Complete'}</span>
+            </Button>
+          </div>
+        </div>
       )}
     </div>
   );
