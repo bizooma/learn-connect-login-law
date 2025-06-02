@@ -15,7 +15,7 @@ interface FreeDashboardContentProps {
   activeTab: string;
   onTabChange: (value: string) => void;
   profile: ProfileData;
-  setProfile: (profile: ProfileData) => void;
+  setProfile: React.Dispatch<React.SetStateAction<ProfileData>>;
   userId: string;
 }
 

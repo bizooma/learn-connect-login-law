@@ -17,7 +17,7 @@ interface ProfileData {
 
 interface FreeProfileTabProps {
   profile: ProfileData;
-  setProfile: (profile: ProfileData) => void;
+  setProfile: React.Dispatch<React.SetStateAction<ProfileData>>;
   userId: string;
 }
 
