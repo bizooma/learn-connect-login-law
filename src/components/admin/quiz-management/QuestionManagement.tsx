@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -8,6 +7,7 @@ import { Plus, Edit, Trash2 } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import CreateQuestionForm from "./CreateQuestionForm";
 import EditQuestionForm from "./EditQuestionForm";
+import DebugQuestionForm from "./DebugQuestionForm";
 
 type QuizQuestion = Tables<'quiz_questions'>;
 type QuizQuestionOption = Tables<'quiz_question_options'>;
@@ -113,12 +113,12 @@ const QuestionManagement = ({ quizId, quizTitle }: QuestionManagementProps) => {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold">Questions for "{quizTitle}"</h3>
+          <h3 className="text-lg font-semibold">Questions for "{quizTitle}" (DEBUG MODE)</h3>
           <p className="text-sm text-gray-600">{questions.length} questions</p>
         </div>
         <Button onClick={() => setCreateFormOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
-          Add Question
+          Add Question (Debug)
         </Button>
       </div>
 
@@ -186,12 +186,12 @@ const QuestionManagement = ({ quizId, quizTitle }: QuestionManagementProps) => {
             className="mt-2"
             variant="outline"
           >
-            Add Your First Question
+            Add Your First Question (Debug)
           </Button>
         </div>
       )}
 
-      <CreateQuestionForm
+      <DebugQuestionForm
         open={createFormOpen}
         onOpenChange={setCreateFormOpen}
         quizId={quizId}
