@@ -9,6 +9,36 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      certificate_templates: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          template_image_url: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          template_image_url: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          template_image_url?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       course_assignments: {
         Row: {
           assigned_at: string
@@ -738,6 +768,57 @@ export type Database = {
           },
         ]
       }
+      user_certificates: {
+        Row: {
+          certificate_number: string
+          course_id: string
+          course_title: string
+          created_at: string
+          id: string
+          issued_at: string
+          recipient_name: string
+          template_id: string
+          user_id: string
+        }
+        Insert: {
+          certificate_number: string
+          course_id: string
+          course_title: string
+          created_at?: string
+          id?: string
+          issued_at?: string
+          recipient_name: string
+          template_id: string
+          user_id: string
+        }
+        Update: {
+          certificate_number?: string
+          course_id?: string
+          course_title?: string
+          created_at?: string
+          id?: string
+          issued_at?: string
+          recipient_name?: string
+          template_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_certificates_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_certificates_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "certificate_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_course_progress: {
         Row: {
           completed_at: string | null
@@ -912,6 +993,10 @@ export type Database = {
       cleanup_old_drafts: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      generate_certificate_number: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       get_user_law_firm_id: {
         Args: Record<PropertyKey, never>

@@ -2,10 +2,12 @@
 import { Tables } from "@/integrations/supabase/types";
 import CourseVideo from "./CourseVideo";
 import QuizDisplay from "./QuizDisplay";
+import CertificateDownload from "../certificates/CertificateDownload";
 import { Button } from "@/components/ui/button";
 import { Download, File, CheckCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserProgress } from "@/hooks/useUserProgress";
+import { useCourseCompletion } from "@/hooks/useCourseCompletion";
 import { useState } from "react";
 
 type Unit = Tables<'units'>;
@@ -18,11 +20,13 @@ interface UnitWithQuiz extends Unit {
 interface CourseContentProps {
   unit: UnitWithQuiz | null;
   courseId: string;
+  courseTitle?: string;
 }
 
-const CourseContent = ({ unit, courseId }: CourseContentProps) => {
+const CourseContent = ({ unit, courseId, courseTitle }: CourseContentProps) => {
   const { user } = useAuth();
   const { markUnitComplete } = useUserProgress(user?.id);
+  const { isCompleted } = useCourseCompletion(courseId);
   const [isCompleting, setIsCompleting] = useState(false);
 
   const handleFileDownload = () => {
@@ -105,6 +109,13 @@ const CourseContent = ({ unit, courseId }: CourseContentProps) => {
           </div>
         </div>
       )}
+
+      {/* Certificate Download Section */}
+      <CertificateDownload 
+        courseId={courseId}
+        courseTitle={courseTitle || 'Course'}
+        isCompleted={isCompleted}
+      />
     </div>
   );
 };

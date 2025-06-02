@@ -1,80 +1,37 @@
-
-import { Tables } from "@/integrations/supabase/types";
+import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import CourseSidebar from "./CourseSidebar";
 import CourseContent from "./CourseContent";
 import CourseCalendar from "./CourseCalendar";
 
-type Lesson = Tables<'lessons'>;
-type Unit = Tables<'units'>;
-type Quiz = Tables<'quizzes'>;
-
-interface UnitWithQuiz extends Unit {
-  quiz?: Quiz;
-}
-
-interface LessonWithUnits extends Lesson {
-  units: UnitWithQuiz[];
-}
-
 interface CourseMainContentProps {
-  courseId: string;
-  lessons: LessonWithUnits[];
-  selectedUnit: UnitWithQuiz | null;
-  onUnitSelect: (unit: UnitWithQuiz) => void;
-  isAdmin: boolean;
+  course: any;
+  selectedUnit: any;
+  courseTitle: string;
 }
 
-const CourseMainContent = ({ 
-  courseId,
-  lessons, 
-  selectedUnit, 
-  onUnitSelect, 
-  isAdmin 
-}: CourseMainContentProps) => {
-  console.log('CourseMainContent: Received isAdmin prop:', isAdmin);
+const CourseMainContent = ({ course, selectedUnit, courseTitle }: CourseMainContentProps) => {
+  const [activeTab, setActiveTab] = useState("content");
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-        <div className="lg:col-span-1">
-          <CourseSidebar 
-            courseId={courseId}
-            lessons={lessons} 
-            selectedUnit={selectedUnit}
-            onUnitSelect={onUnitSelect}
+    <div className="bg-white rounded-lg shadow-sm">
+      <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <TabsList className="w-full border-b rounded-none h-12">
+          <TabsTrigger value="content" className="flex-1">Course Content</TabsTrigger>
+          <TabsTrigger value="calendar" className="flex-1">Calendar</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="content" className="p-6">
+          <CourseContent 
+            unit={selectedUnit} 
+            courseId={course.id} 
+            courseTitle={courseTitle}
           />
-        </div>
-        <div className="lg:col-span-3">
-          <Tabs defaultValue="content" className="w-full">
-            <TabsList 
-              className="grid w-full grid-cols-2" 
-              style={{ backgroundColor: '#FFDA00' }}
-            >
-              <TabsTrigger 
-                value="content"
-                className="data-[state=active]:bg-white data-[state=active]:text-black"
-                style={{ color: 'black' }}
-              >
-                Course Content
-              </TabsTrigger>
-              <TabsTrigger 
-                value="calendar"
-                className="data-[state=active]:bg-white data-[state=active]:text-black"
-                style={{ color: 'black' }}
-              >
-                Calendar
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="content">
-              <CourseContent unit={selectedUnit} courseId={courseId} />
-            </TabsContent>
-            <TabsContent value="calendar">
-              <CourseCalendar courseId={courseId} isAdmin={isAdmin} />
-            </TabsContent>
-          </Tabs>
-        </div>
-      </div>
+        </TabsContent>
+        
+        <TabsContent value="calendar" className="p-6">
+          <CourseCalendar courseId={course.id} />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };

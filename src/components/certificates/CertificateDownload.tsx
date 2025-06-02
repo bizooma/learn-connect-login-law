@@ -1,0 +1,131 @@
+
+import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Download, Award, Loader2 } from "lucide-react";
+
+interface CertificateDownloadProps {
+  courseId: string;
+  courseTitle: string;
+  isCompleted: boolean;
+}
+
+const CertificateDownload = ({ courseId, courseTitle, isCompleted }: CertificateDownloadProps) => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [isDownloading, setIsDownloading] = useState(false);
+
+  const handleDownloadCertificate = async () => {
+    if (!user || !isCompleted) return;
+
+    setIsDownloading(true);
+    try {
+      console.log('Generating certificate for:', { courseId, userId: user.id });
+
+      const { data, error } = await supabase.functions.invoke('generate-certificate', {
+        body: { courseId, userId: user.id }
+      });
+
+      if (error) throw error;
+
+      // Convert the response to a blob and download
+      const response = await fetch(supabase.functions.getUrl('generate-certificate'), {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ courseId, userId: user.id })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to generate certificate');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `certificate-${courseTitle.replace(/[^a-zA-Z0-9]/g, '-')}.png`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+
+      toast({
+        title: "Certificate Downloaded",
+        description: "Your certificate has been downloaded successfully!",
+      });
+
+    } catch (error) {
+      console.error('Error downloading certificate:', error);
+      toast({
+        title: "Download Failed",
+        description: "Failed to download certificate. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
+  if (!isCompleted) {
+    return (
+      <Card className="bg-gray-50">
+        <CardHeader>
+          <CardTitle className="flex items-center text-gray-600">
+            <Award className="h-5 w-5 mr-2" />
+            Certificate of Completion
+          </CardTitle>
+          <CardDescription>
+            Complete this course to earn your certificate
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button disabled variant="outline" className="w-full">
+            <Award className="h-4 w-4 mr-2" />
+            Certificate Not Available
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+      <CardHeader>
+        <CardTitle className="flex items-center text-blue-900">
+          <Award className="h-5 w-5 mr-2" />
+          Certificate of Completion
+        </CardTitle>
+        <CardDescription>
+          Congratulations! You have successfully completed this course.
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <Button 
+          onClick={handleDownloadCertificate}
+          disabled={isDownloading}
+          className="w-full bg-blue-600 hover:bg-blue-700"
+        >
+          {isDownloading ? (
+            <>
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Generating Certificate...
+            </>
+          ) : (
+            <>
+              <Download className="h-4 w-4 mr-2" />
+              Download Certificate
+            </>
+          )}
+        </Button>
+      </CardContent>
+    </Card>
+  );
+};
+
+export default CertificateDownload;
