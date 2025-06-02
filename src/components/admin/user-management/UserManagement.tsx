@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
 import UserSearch from "./UserSearch";
-import UserGrid from "./UserGrid";
+import { UserGrid } from "./UserGrid";
 import DiagnosticPanel from "./DiagnosticPanel";
 import UserManagementHeader from "./UserManagementHeader";
 import EmptyUserState from "./EmptyUserState";
