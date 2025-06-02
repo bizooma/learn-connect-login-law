@@ -4,6 +4,7 @@ import CourseHeader from "@/components/course/CourseHeader";
 import CourseLoading from "@/components/course/CourseLoading";
 import CourseNotFound from "@/components/course/CourseNotFound";
 import CourseMainContent from "@/components/course/CourseMainContent";
+import LMSTreeFooter from "@/components/lms-tree/LMSTreeFooter";
 import { useCourse } from "@/hooks/useCourse";
 
 const Course = () => {
@@ -19,15 +20,18 @@ const Course = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <CourseHeader course={course} />
-      <CourseMainContent
-        courseId={course.id}
-        lessons={course.lessons}
-        selectedUnit={selectedUnit}
-        onUnitSelect={setSelectedUnit}
-        isAdmin={isAdmin}
-      />
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="flex-1">
+        <CourseHeader course={course} />
+        <CourseMainContent
+          courseId={course.id}
+          lessons={course.lessons}
+          selectedUnit={selectedUnit}
+          onUnitSelect={setSelectedUnit}
+          isAdmin={isAdmin}
+        />
+      </div>
+      <LMSTreeFooter />
     </div>
   );
 };
