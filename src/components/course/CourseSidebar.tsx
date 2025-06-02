@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Users, Play, ChevronDown, ChevronRight } from "lucide-react";
@@ -31,6 +32,25 @@ const CourseSidebar = ({ courseId, lessons, selectedUnit, onUnitSelect }: Course
     setExpandedLessons(newExpanded);
   };
 
+  // Group lessons by module_id to get module numbering
+  const lessonsByModule = lessons.reduce((acc, lesson) => {
+    const moduleId = lesson.module_id || 'no-module';
+    if (!acc[moduleId]) {
+      acc[moduleId] = [];
+    }
+    acc[moduleId].push(lesson);
+    return acc;
+  }, {} as Record<string, Lesson[]>);
+
+  // Get module numbers for display
+  const getModuleAndLessonNumber = (lesson: Lesson) => {
+    const moduleId = lesson.module_id || 'no-module';
+    const moduleKeys = Object.keys(lessonsByModule).sort();
+    const moduleNumber = moduleKeys.indexOf(moduleId) + 1;
+    const lessonNumber = lessonsByModule[moduleId].findIndex(l => l.id === lesson.id) + 1;
+    return { moduleNumber, lessonNumber };
+  };
+
   return (
     <div className="space-y-4">
       <CourseProgressBar courseId={courseId} lessons={lessons} />
@@ -43,9 +63,10 @@ const CourseSidebar = ({ courseId, lessons, selectedUnit, onUnitSelect }: Course
       </div>
       
       <div className="space-y-3">
-        {lessons.map((lesson, index) => {
+        {lessons.map((lesson) => {
           const totalMinutes = lesson.units.reduce((acc, unit) => acc + (unit.duration_minutes || 0), 0);
           const isExpanded = expandedLessons.has(lesson.id);
+          const { moduleNumber, lessonNumber } = getModuleAndLessonNumber(lesson);
           
           return (
             <Card key={lesson.id} className="overflow-hidden">
@@ -61,7 +82,7 @@ const CourseSidebar = ({ courseId, lessons, selectedUnit, onUnitSelect }: Course
                       <ChevronRight className="h-4 w-4 mt-1 shrink-0" />
                     )}
                     <CardTitle className="text-sm font-medium line-clamp-2 pr-2">
-                      {index + 1}. {lesson.title}
+                      Module {moduleNumber} - Lesson {lessonNumber}. {lesson.title}
                     </CardTitle>
                   </div>
                   <Badge variant="secondary" className="ml-2 shrink-0">
