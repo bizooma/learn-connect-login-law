@@ -35,6 +35,8 @@ export const useDragHandler = (onRefetch: () => void) => {
       
       // Handle module to module reordering (same level drag)
       if (activeType === 'module' && overType === 'module' && activeItemId !== overItemId) {
+        console.log('Attempting to reorder modules:', { activeItemId, overItemId });
+        
         // Get both modules to swap their sort orders
         const { data: activeModule, error: activeError } = await supabase
           .from('modules')
@@ -42,15 +44,27 @@ export const useDragHandler = (onRefetch: () => void) => {
           .eq('id', activeItemId)
           .single();
           
+        if (activeError) {
+          console.error('Error fetching active module:', activeError);
+          throw new Error(`Failed to fetch active module: ${activeError.message}`);
+        }
+          
         const { data: overModule, error: overError } = await supabase
           .from('modules')
           .select('sort_order, course_id')
           .eq('id', overItemId)
           .single();
           
-        if (activeError || overError || !activeModule || !overModule) {
-          throw new Error('Failed to fetch module data for reordering');
+        if (overError) {
+          console.error('Error fetching over module:', overError);
+          throw new Error(`Failed to fetch target module: ${overError.message}`);
         }
+        
+        if (!activeModule || !overModule) {
+          throw new Error('Module data not found');
+        }
+        
+        console.log('Module data fetched:', { activeModule, overModule });
         
         // Only allow reordering within the same course
         if (activeModule.course_id !== overModule.course_id) {
@@ -64,15 +78,34 @@ export const useDragHandler = (onRefetch: () => void) => {
         // Swap the sort orders
         const tempSortOrder = activeModule.sort_order;
         
-        await supabase
+        console.log('Swapping sort orders:', { 
+          activeId: activeItemId, 
+          newSortOrder: overModule.sort_order,
+          overId: overItemId,
+          newSortOrder2: tempSortOrder
+        });
+        
+        const { error: updateError1 } = await supabase
           .from('modules')
           .update({ sort_order: overModule.sort_order })
           .eq('id', activeItemId);
           
-        await supabase
+        if (updateError1) {
+          console.error('Error updating active module sort order:', updateError1);
+          throw new Error(`Failed to update active module: ${updateError1.message}`);
+        }
+          
+        const { error: updateError2 } = await supabase
           .from('modules')
           .update({ sort_order: tempSortOrder })
           .eq('id', overItemId);
+          
+        if (updateError2) {
+          console.error('Error updating target module sort order:', updateError2);
+          throw new Error(`Failed to update target module: ${updateError2.message}`);
+        }
+        
+        console.log('Module reordering completed successfully');
         
         toast({
           title: "Success",
@@ -129,7 +162,7 @@ export const useDragHandler = (onRefetch: () => void) => {
       console.error('Error during drag operation:', error);
       toast({
         title: "Error",
-        description: "Failed to reorder content",
+        description: error instanceof Error ? error.message : "Failed to reorder content",
         variant: "destructive",
       });
     }
