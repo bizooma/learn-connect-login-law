@@ -1,5 +1,4 @@
 
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, Users, Play, ChevronDown, ChevronRight } from "lucide-react";
@@ -83,7 +82,7 @@ const CourseSidebar = ({ courseId, lessons, selectedUnit, onUnitSelect }: Course
                       <ChevronRight className="h-4 w-4 mt-1 shrink-0" />
                     )}
                     <CardTitle className="text-sm font-medium line-clamp-2 pr-2">
-                      Module {moduleNumber} - Lesson {lessonNumber}: {lesson.title}
+                      Module {moduleNumber} - Lesson {lessonNumber}
                     </CardTitle>
                   </div>
                   <Badge variant="secondary" className="ml-2 shrink-0">
@@ -161,4 +160,3 @@ const CourseSidebar = ({ courseId, lessons, selectedUnit, onUnitSelect }: Course
 };
 
 export default CourseSidebar;
-
