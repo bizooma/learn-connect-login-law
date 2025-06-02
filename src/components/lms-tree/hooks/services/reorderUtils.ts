@@ -39,38 +39,25 @@ export const swapSortOrders = async (
   console.log('Current sort_order:', current.sort_order, 'Target sort_order:', target.sort_order);
 
   try {
-    // Use a transaction to ensure both updates succeed or fail together
-    const { error } = await supabase.rpc('swap_sort_orders', {
-      table_name: tableName,
-      id1: current.id,
-      id2: target.id,
-      sort_order1: target.sort_order,
-      sort_order2: current.sort_order
-    });
+    // Use individual updates to swap sort orders
+    const { error: updateError1 } = await supabase
+      .from(tableName)
+      .update({ sort_order: target.sort_order })
+      .eq('id', current.id);
 
-    if (error) {
-      // Fallback to individual updates if RPC fails
-      console.log('RPC failed, using fallback method');
-      
-      const { error: updateError1 } = await supabase
-        .from(tableName)
-        .update({ sort_order: target.sort_order })
-        .eq('id', current.id);
+    if (updateError1) {
+      console.error(`Error updating first ${tableName}:`, updateError1);
+      throw updateError1;
+    }
 
-      if (updateError1) {
-        console.error(`Error updating first ${tableName}:`, updateError1);
-        throw updateError1;
-      }
+    const { error: updateError2 } = await supabase
+      .from(tableName)
+      .update({ sort_order: current.sort_order })
+      .eq('id', target.id);
 
-      const { error: updateError2 } = await supabase
-        .from(tableName)
-        .update({ sort_order: current.sort_order })
-        .eq('id', target.id);
-
-      if (updateError2) {
-        console.error(`Error updating second ${tableName}:`, updateError2);
-        throw updateError2;
-      }
+    if (updateError2) {
+      console.error(`Error updating second ${tableName}:`, updateError2);
+      throw updateError2;
     }
 
     console.log(`Successfully swapped ${tableName} sort orders`);
