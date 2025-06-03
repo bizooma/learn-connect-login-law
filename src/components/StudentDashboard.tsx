@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, Clock, Trophy, Award, Target, TrendingUp } from "lucide-react";
-import { useCourseCompletion } from "@/hooks/useCourseCompletion";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useAuth } from "@/hooks/useAuth";
 import UserCourseProgress from "@/components/user/UserCourseProgress";
@@ -13,14 +12,18 @@ import GamificationDashboard from "@/components/gamification/GamificationDashboa
 
 const StudentDashboard = () => {
   const { user } = useAuth();
-  const { completedCoursesCount, totalProgressPercentage, loading: progressLoading } = useCourseCompletion(user?.id || '');
-  const { currentCourse, loading: courseLoading } = useUserProgress(user?.id || '');
+  const { completedCourses, currentCourse, loading } = useUserProgress(user?.id || '');
   
   // Check if user has gamification access
   const userEmail = user?.email;
   const showGamification = hasGamificationAccess(userEmail);
 
-  const loading = progressLoading || courseLoading;
+  // Calculate progress statistics
+  const completedCoursesCount = completedCourses.length;
+  const totalCourses = completedCourses.length + (currentCourse ? 1 : 0);
+  const totalProgressPercentage = totalCourses > 0 
+    ? Math.round(((completedCoursesCount * 100) + (currentCourse?.progress?.progress_percentage || 0)) / totalCourses)
+    : 0;
 
   if (loading) {
     return (
