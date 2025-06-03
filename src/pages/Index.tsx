@@ -1,7 +1,6 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
-import AuthPage from "../components/AuthPage";
 import Dashboard from "../components/Dashboard";
 import AdminDashboard from "../components/AdminDashboard";
 import NotificationBanner from "../components/notifications/NotificationBanner";
@@ -13,6 +12,14 @@ const Index = () => {
   const { isAdmin, isOwner, isStudent, isClient, isFree, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   const [hasRedirected, setHasRedirected] = useState(false);
+
+  // Redirect to login if no user
+  useEffect(() => {
+    if (!authLoading && !user) {
+      console.log('No user found, redirecting to login page');
+      navigate("/login", { replace: true });
+    }
+  }, [user, authLoading, navigate]);
 
   useEffect(() => {
     // Only proceed if we have auth data and roles are loaded
@@ -62,7 +69,7 @@ const Index = () => {
     setHasRedirected(false);
   }, [user?.id]);
 
-  // Show loading only while checking auth state
+  // Show loading while checking auth state
   if (authLoading) {
     console.log('Showing loading: auth loading');
     return (
@@ -75,10 +82,8 @@ const Index = () => {
     );
   }
 
-  // If no user, redirect to login page instead of showing AuthPage directly
+  // If no user, the useEffect above will handle redirect
   if (!user) {
-    console.log('No user found, redirecting to login page');
-    navigate("/login", { replace: true });
     return null;
   }
 

@@ -7,6 +7,8 @@ import { toast } from "@/components/ui/use-toast";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useEffect } from "react";
 import ForgotPasswordDialog from "./ForgotPasswordDialog";
 
 const LoginForm = () => {
@@ -16,32 +18,44 @@ const LoginForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
+
+  // Redirect if user is already logged in
+  useEffect(() => {
+    if (user) {
+      console.log('User is logged in, redirecting to dashboard');
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log('Attempting login...');
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
+        console.error('Login error:', error);
         toast({
           title: "Login Failed",
           description: error.message,
           variant: "destructive",
         });
-      } else {
+      } else if (data.user) {
+        console.log('Login successful, user:', data.user.id);
         toast({
           title: "Login Successful",
           description: "Welcome back to your learning platform!",
         });
-        // Redirect to dashboard after successful login
-        navigate("/dashboard", { replace: true });
+        // Don't manually navigate here - let the useEffect handle it when user state updates
       }
     } catch (error) {
+      console.error('Unexpected login error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred",
