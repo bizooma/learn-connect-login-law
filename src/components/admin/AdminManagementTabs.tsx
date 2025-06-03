@@ -1,14 +1,58 @@
 
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import CourseManagement from "./CourseManagement";
-import UserManagement from "./UserManagement";
-import QuizManagement from "./QuizManagement";
-import NotificationManagement from "./NotificationManagement";
-import ProfileManagement from "./ProfileManagement";
-import UserProgressManagement from "./UserProgressManagement";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useAuth } from "@/hooks/useAuth";
+
+// Import components with error handling
+let CourseManagement: React.ComponentType | null = null;
+let UserManagement: React.ComponentType | null = null;
+let QuizManagement: React.ComponentType | null = null;
+let NotificationManagement: React.ComponentType | null = null;
+let ProfileManagement: React.ComponentType | null = null;
+let UserProgressManagement: React.ComponentType | null = null;
+
+try {
+  CourseManagement = require("./CourseManagement").default;
+  console.log('CourseManagement loaded successfully');
+} catch (error) {
+  console.error('Failed to load CourseManagement:', error);
+}
+
+try {
+  UserManagement = require("./UserManagement").default;
+  console.log('UserManagement loaded successfully');
+} catch (error) {
+  console.error('Failed to load UserManagement:', error);
+}
+
+try {
+  QuizManagement = require("./QuizManagement").default;
+  console.log('QuizManagement loaded successfully');
+} catch (error) {
+  console.error('Failed to load QuizManagement:', error);
+}
+
+try {
+  NotificationManagement = require("./NotificationManagement").default;
+  console.log('NotificationManagement loaded successfully');
+} catch (error) {
+  console.error('Failed to load NotificationManagement:', error);
+}
+
+try {
+  ProfileManagement = require("./ProfileManagement").default;
+  console.log('ProfileManagement loaded successfully');
+} catch (error) {
+  console.error('Failed to load ProfileManagement:', error);
+}
+
+try {
+  UserProgressManagement = require("./UserProgressManagement").default;
+  console.log('UserProgressManagement loaded successfully');
+} catch (error) {
+  console.error('Failed to load UserProgressManagement:', error);
+}
 
 const AdminManagementTabs = () => {
   const [activeTab, setActiveTab] = useState("courses");
@@ -47,6 +91,32 @@ const AdminManagementTabs = () => {
 
   console.log('Rendering admin tabs for tab:', activeTab);
 
+  const renderTabContent = (tabName: string, Component: React.ComponentType | null, fallbackContent?: React.ReactNode) => {
+    console.log(`Attempting to render ${tabName} tab content`);
+    
+    if (!Component) {
+      console.error(`${tabName} component is not available`);
+      return (
+        <div className="text-center py-8">
+          <p className="text-red-600">Error: {tabName} component failed to load</p>
+          <p className="text-gray-500">Check the console for more details</p>
+        </div>
+      );
+    }
+
+    try {
+      return <Component />;
+    } catch (error) {
+      console.error(`Error rendering ${tabName}:`, error);
+      return (
+        <div className="text-center py-8">
+          <p className="text-red-600">Error rendering {tabName}</p>
+          <p className="text-gray-500">{String(error)}</p>
+        </div>
+      );
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -62,67 +132,39 @@ const AdminManagementTabs = () => {
         </TabsList>
 
         <TabsContent value="courses" className="mt-6">
-          {(() => {
-            console.log('Rendering Courses tab content');
-            return <CourseManagement />;
-          })()}
+          {renderTabContent('Courses', CourseManagement)}
         </TabsContent>
 
         <TabsContent value="gamification" className="mt-6">
-          {(() => {
-            console.log('Rendering Gamification tab content');
-            return (
-              <div className="text-center py-8">
-                <p className="text-gray-500">Gamification management coming soon...</p>
-              </div>
-            );
-          })()}
+          <div className="text-center py-8">
+            <p className="text-gray-500">Gamification management coming soon...</p>
+          </div>
         </TabsContent>
 
         <TabsContent value="users" className="mt-6">
-          {(() => {
-            console.log('Rendering Users tab content');
-            return <UserManagement />;
-          })()}
+          {renderTabContent('Users', UserManagement)}
         </TabsContent>
 
         <TabsContent value="progress" className="mt-6">
-          {(() => {
-            console.log('Rendering Progress tab content');
-            return <UserProgressManagement />;
-          })()}
+          {renderTabContent('Progress', UserProgressManagement)}
         </TabsContent>
 
         <TabsContent value="activity" className="mt-6">
-          {(() => {
-            console.log('Rendering Activity tab content');
-            return (
-              <div className="text-center py-8">
-                <p className="text-gray-500">Activity monitoring coming soon...</p>
-              </div>
-            );
-          })()}
+          <div className="text-center py-8">
+            <p className="text-gray-500">Activity monitoring coming soon...</p>
+          </div>
         </TabsContent>
 
         <TabsContent value="quizzes" className="mt-6">
-          {(() => {
-            console.log('Rendering Quizzes tab content');
-            return <QuizManagement />;
-          })()}
+          {renderTabContent('Quizzes', QuizManagement)}
         </TabsContent>
 
         <TabsContent value="notifications" className="mt-6">
-          {(() => {
-            console.log('Rendering Notifications tab content');
-            return <NotificationManagement />;
-          })()}
+          {renderTabContent('Notifications', NotificationManagement)}
         </TabsContent>
 
         <TabsContent value="profile" className="mt-6">
-          {(() => {
-            console.log('Rendering Profile tab content');
-            return <ProfileManagement />;
-          })()}
+          {renderTabContent('Profile', ProfileManagement)}
         </TabsContent>
       </Tabs>
     </div>
