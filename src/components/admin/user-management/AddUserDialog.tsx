@@ -29,56 +29,31 @@ const AddUserDialog = ({ onUserAdded }: AddUserDialogProps) => {
     setLoading(true);
 
     try {
-      // Create user in auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email: formData.email,
-        password: `temp${Math.random().toString(36).slice(-8)}`, // Temporary password
-        email_confirm: true,
-        user_metadata: {
-          first_name: formData.firstName,
-          last_name: formData.lastName
+      console.log('Attempting to create user via edge function:', formData);
+
+      // Call the edge function to create the user
+      const { data, error } = await supabase.functions.invoke('create-single-user', {
+        body: {
+          email: formData.email,
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          role: formData.role
         }
       });
 
-      if (authError) {
-        throw new Error(`Failed to create user: ${authError.message}`);
+      console.log('Edge function response:', { data, error });
+
+      if (error) {
+        throw new Error(error.message || 'Failed to create user');
       }
 
-      if (!authData.user) {
-        throw new Error("User creation failed - no user data returned");
-      }
-
-      // Create profile
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .insert({
-          id: authData.user.id,
-          email: formData.email,
-          first_name: formData.firstName,
-          last_name: formData.lastName
-        });
-
-      if (profileError) {
-        console.error('Profile creation error:', profileError);
-        // Don't throw here as the user was created, just log the error
-      }
-
-      // Set user role
-      const { error: roleError } = await supabase
-        .from('user_roles')
-        .insert({
-          user_id: authData.user.id,
-          role: formData.role
-        });
-
-      if (roleError) {
-        console.error('Role assignment error:', roleError);
-        // Don't throw here as the user was created
+      if (data?.error) {
+        throw new Error(data.error);
       }
 
       toast({
         title: "Success",
-        description: `User ${formData.email} has been created successfully`,
+        description: data?.message || `User ${formData.email} has been created successfully`,
       });
 
       // Reset form and close dialog
