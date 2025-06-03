@@ -37,7 +37,7 @@ const RoleChecker = () => {
     }
   };
 
-  const updateUserRole = async (userId: string, newRole: string) => {
+  const updateUserRole = async (userId: string, newRole: 'admin' | 'owner' | 'student' | 'client' | 'free') => {
     try {
       // First delete existing roles for this user
       const { error: deleteError } = await supabase
@@ -50,7 +50,10 @@ const RoleChecker = () => {
       // Then insert the new role
       const { error: insertError } = await supabase
         .from('user_roles')
-        .insert({ user_id: userId, role: newRole });
+        .insert({ 
+          user_id: userId, 
+          role: newRole 
+        });
 
       if (insertError) throw insertError;
 
