@@ -1,13 +1,11 @@
 
-import { useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
-import AdminDashboardHeader from "./admin/AdminDashboardHeader";
-import AdminManagementTabs from "./admin/AdminManagementTabs";
+import AdminManagementConsole from "./admin/AdminManagementConsole";
 import RoleChecker from "./admin/RoleChecker";
 
 const AdminDashboard = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { isAdmin, loading } = useUserRole();
 
   console.log('AdminDashboard render state:', { 
@@ -17,7 +15,7 @@ const AdminDashboard = () => {
     userExists: !!user
   });
 
-  // Show loading while role is being determined, but only briefly
+  // Show loading while role is being determined
   if (loading) {
     console.log('AdminDashboard: Showing loading state');
     return (
@@ -37,21 +35,17 @@ const AdminDashboard = () => {
   console.log('AdminDashboard access check:', {
     isAdmin,
     isKnownAdmin,
-    shouldShowAdminDashboard,
-    willRenderTabs: shouldShowAdminDashboard
+    shouldShowAdminDashboard
   });
 
   if (!shouldShowAdminDashboard) {
     console.log('AdminDashboard: Showing access denied with role checker');
     return (
       <div className="min-h-screen bg-gray-50">
-        <AdminDashboardHeader 
-          userFirstName={user?.user_metadata?.first_name}
-          onSignOut={signOut}
-        />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Role Debug - You don't have admin access</h2>
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
+            <p className="text-gray-600 mb-4">You don't have admin access.</p>
             <p className="text-gray-600 mb-4">Current user: {user?.email}</p>
           </div>
           <RoleChecker />
@@ -60,21 +54,9 @@ const AdminDashboard = () => {
     );
   }
 
-  console.log('AdminDashboard: Rendering full admin dashboard with tabs for user:', user?.id);
-  console.log('AdminDashboard: About to render AdminManagementTabs');
+  console.log('AdminDashboard: Rendering admin management console for user:', user?.id);
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <AdminDashboardHeader 
-        userFirstName={user?.user_metadata?.first_name}
-        onSignOut={signOut}
-      />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <AdminManagementTabs />
-      </div>
-    </div>
-  );
+  return <AdminManagementConsole />;
 };
 
 export default AdminDashboard;
