@@ -4,7 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Upload, FileText, CheckCircle, AlertCircle, Loader2, Video, Presentation } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { Upload, FileText, CheckCircle, AlertCircle, Loader2, Video, Presentation, Edit3 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
 interface PowerPointVideoGeneratorProps {
@@ -19,6 +20,8 @@ const PowerPointVideoGenerator = ({ onVideoGenerated }: PowerPointVideoGenerator
   const [generatingVideo, setGeneratingVideo] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [script, setScript] = useState<string>('');
+  const [editedScript, setEditedScript] = useState<string>('');
+  const [isEditingScript, setIsEditingScript] = useState(false);
   const [importId, setImportId] = useState<string>('');
 
   const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -110,6 +113,7 @@ const PowerPointVideoGenerator = ({ onVideoGenerated }: PowerPointVideoGenerator
 
       if (scriptResult.success) {
         setScript(scriptResult.script);
+        setEditedScript(scriptResult.script);
         toast({
           title: "Script generated",
           description: "PowerPoint content has been converted to a narration script",
@@ -128,6 +132,33 @@ const PowerPointVideoGenerator = ({ onVideoGenerated }: PowerPointVideoGenerator
     } finally {
       setUploading(false);
       setGeneratingScript(false);
+    }
+  };
+
+  const handleSaveScript = async () => {
+    if (!importId || !editedScript.trim()) return;
+
+    try {
+      const { error } = await supabase
+        .from('powerpoint_video_imports')
+        .update({ script_content: editedScript })
+        .eq('id', importId);
+
+      if (error) throw error;
+
+      setScript(editedScript);
+      setIsEditingScript(false);
+      toast({
+        title: "Script saved",
+        description: "Your edited script has been saved successfully",
+      });
+    } catch (error) {
+      console.error('Script save error:', error);
+      toast({
+        title: "Failed to save script",
+        description: error instanceof Error ? error.message : "Unknown error occurred",
+        variant: "destructive",
+      });
     }
   };
 
@@ -250,42 +281,84 @@ const PowerPointVideoGenerator = ({ onVideoGenerated }: PowerPointVideoGenerator
       {script && (
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center">
-              <FileText className="h-5 w-5 mr-2" />
-              Generated Script
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center">
+                <FileText className="h-5 w-5 mr-2" />
+                Generated Script
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setIsEditingScript(!isEditingScript);
+                  if (!isEditingScript) {
+                    setEditedScript(script);
+                  }
+                }}
+              >
+                <Edit3 className="h-4 w-4 mr-2" />
+                {isEditingScript ? 'Cancel Edit' : 'Edit Script'}
+              </Button>
             </CardTitle>
             <CardDescription>
-              Review the narration script generated from your PowerPoint content
+              {isEditingScript ? 'Edit the narration script as needed' : 'Review the narration script generated from your PowerPoint content'}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="bg-gray-50 p-4 rounded-lg max-h-60 overflow-y-auto">
-              <pre className="whitespace-pre-wrap text-sm">{script}</pre>
-            </div>
+            {isEditingScript ? (
+              <div className="space-y-4">
+                <Textarea
+                  value={editedScript}
+                  onChange={(e) => setEditedScript(e.target.value)}
+                  placeholder="Edit your script here..."
+                  className="min-h-[300px] font-mono text-sm"
+                />
+                <div className="flex gap-2">
+                  <Button onClick={handleSaveScript} disabled={!editedScript.trim()}>
+                    Save Changes
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setIsEditingScript(false);
+                      setEditedScript(script);
+                    }}
+                  >
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="bg-gray-50 p-4 rounded-lg max-h-60 overflow-y-auto">
+                <pre className="whitespace-pre-wrap text-sm">{script}</pre>
+              </div>
+            )}
             
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <h4 className="font-medium text-blue-900 mb-2">Video Generation</h4>
-              <p className="text-sm text-blue-800 mb-3">
-                Your script will be narrated by your custom AI avatar clone with the matching voice clone.
-              </p>
-              <Button
-                onClick={handleGenerateVideo}
-                disabled={generatingVideo}
-                className="w-full"
-              >
-                {generatingVideo ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Generating Video...
-                  </>
-                ) : (
-                  <>
-                    <Video className="h-4 w-4 mr-2" />
-                    Generate AI Avatar Video
-                  </>
-                )}
-              </Button>
-            </div>
+            {!isEditingScript && (
+              <div className="bg-blue-50 p-4 rounded-lg">
+                <h4 className="font-medium text-blue-900 mb-2">Video Generation</h4>
+                <p className="text-sm text-blue-800 mb-3">
+                  Your script will be narrated by your custom AI avatar clone with the matching voice clone.
+                </p>
+                <Button
+                  onClick={handleGenerateVideo}
+                  disabled={generatingVideo}
+                  className="w-full"
+                >
+                  {generatingVideo ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Generating Video...
+                    </>
+                  ) : (
+                    <>
+                      <Video className="h-4 w-4 mr-2" />
+                      Generate AI Avatar Video
+                    </>
+                  )}
+                </Button>
+              </div>
+            )}
 
             {generatingVideo && (
               <div className="bg-yellow-50 p-3 rounded-lg text-sm text-yellow-800">

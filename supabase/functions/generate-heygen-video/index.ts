@@ -214,7 +214,6 @@ serve(async (req) => {
     } else if (action === 'generate_video') {
       // Use your specific clone ID
       const avatarId = '1569542b64d048f9b6316e2f6c9276b7';
-      const voiceId = '1569542b64d048f9b6316e2f6c9276b7';
 
       // Update status
       await supabaseClient
@@ -222,14 +221,14 @@ serve(async (req) => {
         .update({ 
           status: 'generating_video',
           avatar_id: avatarId,
-          voice_id: voiceId
+          voice_id: avatarId
         })
         .eq('id', importId);
 
       console.log('Generating video with HeyGen using clone ID:', avatarId);
 
-      // Generate video with HeyGen
-      const videoUrl = await generateHeyGenVideo(importRecord.script_content, avatarId, voiceId);
+      // Generate video with HeyGen - try with just avatar_id for voice
+      const videoUrl = await generateHeyGenVideo(importRecord.script_content, avatarId);
 
       // Update record with video URL
       await supabaseClient
@@ -355,10 +354,10 @@ async function generateNarrationScript(filename: string, slideContents: SlideCon
   return script;
 }
 
-async function generateHeyGenVideo(script: string, avatarId: string, voiceId: string): Promise<string> {
+async function generateHeyGenVideo(script: string, avatarId: string): Promise<string> {
   console.log('Starting HeyGen video generation with clone ID:', avatarId);
   
-  // Updated API call structure for HeyGen v2 API
+  // Try the simplified API structure for clones
   const requestBody = {
     video_inputs: [{
       character: {
@@ -368,8 +367,8 @@ async function generateHeyGenVideo(script: string, avatarId: string, voiceId: st
       },
       voice: {
         type: "text",
-        input_text: script,
-        voice_id: voiceId
+        input_text: script
+        // Remove voice_id for clones - the voice is part of the avatar
       }
     }],
     dimension: {
