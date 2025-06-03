@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
-import { CourseFormData } from "./types";
+import { CourseFormData, ModuleData, LessonData, UnitData } from "./types";
 import { useCourseForm } from "./hooks/useCourseForm";
 import { useCourseContentManagement } from "./hooks/useCourseContentManagement";
 import { updateCourseBasicInfo } from "./services/courseUpdateService";
@@ -12,37 +12,6 @@ import { createWelcomeCalendarEvent } from "./services/calendarService";
 import { supabase } from "@/integrations/supabase/client";
 
 type Course = Tables<'courses'>;
-
-interface ModuleData {
-  id?: string;
-  title: string;
-  description: string;
-  image_url?: string;
-  sort_order: number;
-  lessons: LessonData[];
-}
-
-interface LessonData {
-  id?: string;
-  title: string;
-  description: string;
-  image_url?: string;
-  sort_order: number;
-  units: UnitData[];
-}
-
-interface UnitData {
-  id?: string;
-  title: string;
-  description: string;
-  content: string;
-  video_url: string;
-  video_type: 'youtube' | 'upload';
-  video_file?: File;
-  duration_minutes: number;
-  sort_order: number;
-  quiz_id?: string;
-}
 
 const ensureCalendarExists = async (courseId: string) => {
   try {
@@ -81,12 +50,18 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
       title: module.title,
       description: module.description || '',
       image_url: module.image_url || '',
+      file_url: module.file_url || '',
+      file_name: module.file_name || '',
+      file_size: module.file_size || 0,
       sort_order: module.sort_order,
       lessons: module.lessons?.map(lesson => ({
         id: lesson.id,
         title: lesson.title,
         description: lesson.description || '',
         image_url: lesson.image_url || '',
+        file_url: lesson.file_url || '',
+        file_name: lesson.file_name || '',
+        file_size: lesson.file_size || 0,
         sort_order: lesson.sort_order,
         units: lesson.units?.map(unit => ({
           id: unit.id,
@@ -94,12 +69,17 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
           description: unit.description || '',
           content: unit.content || '',
           video_url: unit.video_url || '',
-          video_type: (unit.video_url?.includes('youtube.com') || unit.video_url?.includes('youtu.be')) ? 'youtube' : 'upload',
+          video_type: (unit.video_url?.includes('youtube.com') || unit.video_url?.includes('youtu.be')) ? 'youtube' as const : 'upload' as const,
           duration_minutes: unit.duration_minutes || 0,
-          sort_order: unit.sort_order
-        })).sort((a, b) => a.sort_order - b.sort_order) || []
-      })).sort((a, b) => a.sort_order - b.sort_order) || []
-    })) || [];
+          sort_order: unit.sort_order,
+          quiz_id: undefined,
+          image_url: '',
+          file_url: unit.file_url || '',
+          file_name: unit.file_name || '',
+          file_size: unit.file_size || 0,
+        } as UnitData)).sort((a, b) => a.sort_order - b.sort_order) || []
+      } as LessonData)).sort((a, b) => a.sort_order - b.sort_order) || []
+    } as ModuleData)) || [];
 
     return modules;
   } catch (error) {
