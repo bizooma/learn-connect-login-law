@@ -43,7 +43,7 @@ const Index = () => {
       } else if (isFree) {
         console.log('Redirecting to free dashboard');
         navigate("/free-dashboard", { replace: true });
-      } else if (isStudent) {
+      } else if (isStudent && !isAdmin) {
         console.log('Redirecting to student dashboard');
         navigate("/student-dashboard", { replace: true });
       }
@@ -72,27 +72,14 @@ const Index = () => {
     return <AuthPage />;
   }
 
-  // Show loading while roles are being fetched
-  if (roleLoading) {
+  // Show loading while roles are being fetched for the first time only
+  if (roleLoading && !hasRedirected) {
     console.log('Showing loading: role loading');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading user data...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // If user has a specific role that should redirect, but hasn't redirected yet, show loading
-  if ((isOwner || isClient || isFree || (isStudent && !isAdmin)) && !hasRedirected) {
-    console.log('Preparing to redirect, showing loading');
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Redirecting...</p>
         </div>
       </div>
     );

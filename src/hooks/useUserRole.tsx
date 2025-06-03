@@ -17,7 +17,11 @@ export const useUserRole = () => {
     }
 
     try {
-      setLoading(true);
+      // Don't set loading to true if we already have a role - this prevents the loading loop
+      if (!role) {
+        setLoading(true);
+      }
+      
       console.log(`useUserRole: Fetching role for user ${user.id} (attempt ${retryCount + 1})`);
       
       const { data, error } = await supabase
@@ -87,6 +91,7 @@ export const useUserRole = () => {
   const refreshRole = () => {
     if (user?.id) {
       console.log('useUserRole: Manual role refresh requested');
+      setLoading(true);
       fetchUserRole();
     }
   };
