@@ -17,9 +17,60 @@ interface QuizDisplayProps {
 const QuizDisplay = ({ quiz, unitTitle }: QuizDisplayProps) => {
   const [quizStarted, setQuizStarted] = useState(false);
 
-  const handleQuizComplete = (score: number, passed: boolean) => {
+  const handleQuizComplete = async (score: number, passed: boolean) => {
     console.log('Quiz completed:', { score, passed });
-    // You can add additional logic here like updating progress
+    
+    // Import gamification utilities
+    const { useAuth } = await import("@/hooks/useAuth");
+    const { hasGamificationAccess } = await import("@/utils/gamificationAccess");
+    const { supabase } = await import("@/integrations/supabase/client");
+    
+    // Get current user
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (user) {
+      // Get user profile to check email
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('email')
+        .eq('id', user.id)
+        .single();
+      
+      // Check if user has gamification access
+      if (profile && hasGamificationAccess(profile.email)) {
+        try {
+          // Calculate points based on score
+          let points = Math.floor(score * 0.5); // Base points based on score
+          let activityType = 'quiz_completion';
+          let description = `Completed quiz: ${quiz.title} (${score}%)`;
+          
+          // Bonus points for perfect score
+          if (score === 100) {
+            points += 25;
+            activityType = 'perfect_quiz';
+            description = `Perfect score on quiz: ${quiz.title}!`;
+          }
+          
+          // Award points
+          await supabase.rpc('update_user_points', {
+            p_user_id: user.id,
+            p_points: points,
+            p_activity_type: activityType,
+            p_activity_id: quiz.id,
+            p_description: description
+          });
+          
+          // Check for new achievements
+          await supabase.rpc('check_achievements', {
+            p_user_id: user.id
+          });
+          
+          console.log(`Awarded ${points} XP for quiz completion`);
+        } catch (error) {
+          console.error('Error awarding quiz points:', error);
+        }
+      }
+    }
   };
 
   if (quizStarted) {

@@ -1,136 +1,117 @@
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BookOpen, Clock, Trophy, Award, Target, TrendingUp } from "lucide-react";
+import { useCourseCompletion } from "@/hooks/useCourseCompletion";
+import { useUserProgress } from "@/hooks/useUserProgress";
 import { useAuth } from "@/hooks/useAuth";
-import { useUserRole } from "@/hooks/useUserRole";
-import { supabase } from "@/integrations/supabase/client";
-import { BookOpen, Award, GraduationCap, User } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-import NotificationBanner from "./notifications/NotificationBanner";
-import LMSTreeFooter from "./lms-tree/LMSTreeFooter";
-import DashboardHeader from "./dashboard/DashboardHeader";
-import DashboardStats from "./dashboard/DashboardStats";
-import DashboardContent from "./dashboard/DashboardContent";
+import UserCourseProgress from "@/components/user/UserCourseProgress";
+import NotificationBanner from "@/components/notifications/NotificationBanner";
+import { hasGamificationAccess } from "@/utils/gamificationAccess";
+import GamificationDashboard from "@/components/gamification/GamificationDashboard";
 
 const StudentDashboard = () => {
-  const { user, signOut } = useAuth();
-  const { isStudent } = useUserRole();
-  const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("assigned");
-  const [stats, setStats] = useState({
-    assignedCourses: 0,
-    completedCourses: 0,
-    inProgressCourses: 0,
-    certificatesEarned: 0
-  });
-  const [loading, setLoading] = useState(true);
+  const { user } = useAuth();
+  const { completedCoursesCount, totalProgressPercentage, loading: progressLoading } = useCourseCompletion(user?.id || '');
+  const { currentCourse, loading: courseLoading } = useUserProgress(user?.id || '');
+  
+  // Check if user has gamification access
+  const userEmail = user?.email;
+  const showGamification = hasGamificationAccess(userEmail);
 
-  useEffect(() => {
-    if (!isStudent) {
-      navigate("/");
-      return;
-    }
-    fetchStats();
-  }, [isStudent, navigate]);
-
-  const fetchStats = async () => {
-    setLoading(true);
-    try {
-      // Fetch user course progress for actual stats
-      const { data: progressData } = await supabase
-        .from('user_course_progress')
-        .select('*')
-        .eq('user_id', user?.id);
-
-      const assignedCoursesCount = progressData?.length || 0;
-      const completedCoursesCount = progressData?.filter(p => p.status === 'completed').length || 0;
-      const inProgressCoursesCount = progressData?.filter(p => p.status === 'in_progress').length || 0;
-
-      setStats({
-        assignedCourses: assignedCoursesCount,
-        completedCourses: completedCoursesCount,
-        inProgressCourses: inProgressCoursesCount,
-        certificatesEarned: completedCoursesCount // For now, assume 1 certificate per completed course
-      });
-    } catch (error) {
-      console.error('Error fetching student stats:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  const loading = progressLoading || courseLoading;
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+      <div className="space-y-6">
+        <div className="animate-pulse">
+          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="h-32 bg-gray-200 rounded"></div>
+            ))}
+          </div>
         </div>
       </div>
     );
   }
 
-  if (!isStudent) {
-    return null;
-  }
-
-  const studentStats = [
-    {
-      title: "Assigned Courses",
-      value: stats.assignedCourses.toString(),
-      description: "Courses assigned to you",
-      icon: BookOpen,
-      color: "text-blue-600",
-    },
-    {
-      title: "In Progress",
-      value: stats.inProgressCourses.toString(),
-      description: "Currently studying",
-      icon: GraduationCap,
-      color: "text-orange-600",
-    },
-    {
-      title: "Completed",
-      value: stats.completedCourses.toString(),
-      description: "Courses completed",
-      icon: Award,
-      color: "text-green-600",
-    },
-    {
-      title: "Certificates",
-      value: stats.certificatesEarned.toString(),
-      description: "Certificates earned",
-      icon: User,
-      color: "text-purple-600",
-    },
-  ];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 flex flex-col">
-      <div className="flex-1">
-        <DashboardHeader
-          title="Student Dashboard"
-          subtitle="Welcome back, {name}! Continue your learning journey."
-          userFirstName={user?.user_metadata?.first_name}
-          onSignOut={signOut}
-        />
-
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <NotificationBanner />
-          
-          <DashboardStats stats={studentStats} />
-
-          <DashboardContent
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            userId={user.id}
-            title="My Learning Dashboard"
-            description="Track your assigned courses and learning progress"
-            assignedTabLabel="Assigned Courses"
-            completedTabLabel="Completed Courses"
-          />
-        </div>
+    <div className="space-y-6">
+      <NotificationBanner />
+      
+      <div>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">Student Dashboard</h1>
+        <p className="text-gray-600">Track your learning progress and achievements</p>
       </div>
-      <LMSTreeFooter />
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Courses Completed</CardTitle>
+            <BookOpen className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{completedCoursesCount}</div>
+            <p className="text-xs text-muted-foreground">
+              Keep learning to unlock more achievements
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Overall Progress</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{totalProgressPercentage}%</div>
+            <p className="text-xs text-muted-foreground">
+              Across all assigned courses
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Current Course</CardTitle>
+            <Clock className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-lg font-bold truncate">
+              {currentCourse?.title || 'No active course'}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {currentCourse?.progress?.progress_percentage || 0}% completed
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Content Tabs */}
+      <Tabs defaultValue="progress" className="space-y-4">
+        <TabsList className={`grid w-full ${showGamification ? 'grid-cols-2' : 'grid-cols-1'}`}>
+          <TabsTrigger value="progress">My Courses</TabsTrigger>
+          {showGamification && (
+            <TabsTrigger value="gamification" className="flex items-center gap-2">
+              <Trophy className="h-4 w-4" />
+              Achievements
+            </TabsTrigger>
+          )}
+        </TabsList>
+
+        <TabsContent value="progress" className="space-y-4">
+          <UserCourseProgress userId={user?.id || ''} />
+        </TabsContent>
+
+        {showGamification && (
+          <TabsContent value="gamification" className="space-y-4">
+            <GamificationDashboard />
+          </TabsContent>
+        )}
+      </Tabs>
     </div>
   );
 };
