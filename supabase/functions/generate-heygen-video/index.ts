@@ -357,7 +357,7 @@ async function generateNarrationScript(filename: string, slideContents: SlideCon
 async function generateHeyGenVideo(script: string, avatarId: string): Promise<string> {
   console.log('Starting HeyGen video generation with clone ID:', avatarId);
   
-  // Try the simplified API structure for clones
+  // For clones, use the correct API structure with voice settings
   const requestBody = {
     video_inputs: [{
       character: {
@@ -367,8 +367,8 @@ async function generateHeyGenVideo(script: string, avatarId: string): Promise<st
       },
       voice: {
         type: "text",
-        input_text: script
-        // Remove voice_id for clones - the voice is part of the avatar
+        input_text: script,
+        voice_id: avatarId  // For clones, voice_id should match avatar_id
       }
     }],
     dimension: {
@@ -398,6 +398,9 @@ async function generateHeyGenVideo(script: string, avatarId: string): Promise<st
       const errorData = JSON.parse(errorText);
       if (errorData.error?.code === 'avatar_not_found') {
         throw new Error(`Clone ID "${avatarId}" not found. Please verify your clone ID in HeyGen dashboard.`);
+      }
+      if (errorData.error?.code === 'invalid_parameter') {
+        throw new Error(`HeyGen API parameter error: ${errorData.error.message}`);
       }
       if (errorData.error?.message) {
         throw new Error(`HeyGen API error: ${errorData.error.message}`);
