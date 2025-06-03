@@ -25,14 +25,14 @@ interface ActivityLog {
   profiles?: {
     first_name?: string;
     last_name?: string;
-    email: string;
-  };
+    email?: string;
+  } | null;
   courses?: {
     title: string;
-  };
+  } | null;
   units?: {
     title: string;
-  };
+  } | null;
 }
 
 interface ActivityStats {
@@ -83,68 +83,74 @@ const ActivityTrackingDashboard = () => {
     try {
       setLoading(true);
       
-      // Calculate date range
-      let dateCondition = "";
-      const now = new Date();
-      
-      switch (dateFilter) {
-        case 'today':
-          dateCondition = `created_at >= '${format(now, 'yyyy-MM-dd')}'`;
-          break;
-        case 'week':
-          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
-          dateCondition = `created_at >= '${format(weekAgo, 'yyyy-MM-dd')}'`;
-          break;
-        case 'month':
-          const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-          dateCondition = `created_at >= '${format(monthAgo, 'yyyy-MM-dd')}'`;
-          break;
-        default:
-          dateCondition = "true";
-      }
-
-      // Build query
+      // Build query without complex joins first
       let query = supabase
         .from('user_activity_log')
         .select(`
           *,
-          profiles:user_id (first_name, last_name, email),
-          courses:course_id (title),
-          units:unit_id (title)
+          profiles!user_activity_log_user_id_fkey (first_name, last_name, email),
+          courses!user_activity_log_course_id_fkey (title),
+          units!user_activity_log_unit_id_fkey (title)
         `)
         .order('created_at', { ascending: false })
         .limit(100);
 
-      // Apply filters
+      // Apply activity filter
       if (activityFilter !== 'all') {
         query = query.eq('activity_type', activityFilter);
       }
 
+      // Apply date filter
+      const now = new Date();
+      switch (dateFilter) {
+        case 'today':
+          const today = format(now, 'yyyy-MM-dd');
+          query = query.gte('created_at', `${today}T00:00:00.000Z`);
+          break;
+        case 'week':
+          const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          query = query.gte('created_at', weekAgo.toISOString());
+          break;
+        case 'month':
+          const monthAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+          query = query.gte('created_at', monthAgo.toISOString());
+          break;
+      }
+
       const { data: activityData, error } = await query;
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching activity data:', error);
+        setActivities([]);
+        return;
+      }
 
-      // Filter by search term
-      const filteredData = activityData?.filter(activity => {
+      // Filter by search term if provided
+      let filteredData = activityData || [];
+      
+      if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
-        return (
-          activity.profiles?.email?.toLowerCase().includes(searchLower) ||
-          activity.profiles?.first_name?.toLowerCase().includes(searchLower) ||
-          activity.profiles?.last_name?.toLowerCase().includes(searchLower) ||
-          activity.courses?.title?.toLowerCase().includes(searchLower) ||
-          activity.activity_type.toLowerCase().includes(searchLower)
-        );
-      }) || [];
+        filteredData = filteredData.filter(activity => {
+          return (
+            activity.profiles?.email?.toLowerCase().includes(searchLower) ||
+            activity.profiles?.first_name?.toLowerCase().includes(searchLower) ||
+            activity.profiles?.last_name?.toLowerCase().includes(searchLower) ||
+            activity.courses?.title?.toLowerCase().includes(searchLower) ||
+            activity.activity_type.toLowerCase().includes(searchLower)
+          );
+        });
+      }
 
       setActivities(filteredData);
 
       // Calculate stats
       const totalActivities = filteredData.length;
       const activeUsers = new Set(filteredData.map(a => a.user_id)).size;
-      const totalDuration = filteredData
-        .filter(a => a.duration_seconds)
-        .reduce((sum, a) => sum + (a.duration_seconds || 0), 0);
-      const avgSessionDuration = totalDuration / Math.max(1, filteredData.filter(a => a.duration_seconds).length);
+      const durationsWithValues = filteredData.filter(a => a.duration_seconds && a.duration_seconds > 0);
+      const totalDuration = durationsWithValues.reduce((sum, a) => sum + (a.duration_seconds || 0), 0);
+      const avgSessionDuration = durationsWithValues.length > 0 
+        ? Math.round(totalDuration / durationsWithValues.length) 
+        : 0;
       
       // Find most common activity
       const activityCounts = filteredData.reduce((acc, activity) => {
@@ -158,12 +164,13 @@ const ActivityTrackingDashboard = () => {
       setStats({
         totalActivities,
         activeUsers,
-        avgSessionDuration: Math.round(avgSessionDuration),
+        avgSessionDuration,
         topActivity
       });
 
     } catch (error) {
       console.error('Error fetching activity data:', error);
+      setActivities([]);
     } finally {
       setLoading(false);
     }
@@ -186,13 +193,13 @@ const ActivityTrackingDashboard = () => {
 
     return (
       <Badge className={colors[activityType as keyof typeof colors] || 'bg-gray-100 text-gray-800'}>
-        {activityType.replace('_', ' ')}
+        {activityType.replace(/_/g, ' ')}
       </Badge>
     );
   };
 
   const formatDuration = (seconds?: number) => {
-    if (!seconds) return '-';
+    if (!seconds || seconds <= 0) return '-';
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
@@ -258,7 +265,7 @@ const ActivityTrackingDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-lg font-bold capitalize">
-              {stats.topActivity.replace('_', ' ')}
+              {stats.topActivity.replace(/_/g, ' ')}
             </div>
           </CardContent>
         </Card>
@@ -326,27 +333,35 @@ const ActivityTrackingDashboard = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {activities.map((activity) => (
-                <TableRow key={activity.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">
-                        {activity.profiles?.first_name && activity.profiles?.last_name
-                          ? `${activity.profiles.first_name} ${activity.profiles.last_name}`
-                          : 'Unknown User'
-                        }
-                      </div>
-                      <div className="text-sm text-gray-500">{activity.profiles?.email}</div>
-                    </div>
+              {activities.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center text-gray-500 py-8">
+                    No activity data found
                   </TableCell>
-                  <TableCell>{getActivityBadge(activity.activity_type)}</TableCell>
-                  <TableCell>
-                    {activity.courses?.title || activity.units?.title || '-'}
-                  </TableCell>
-                  <TableCell>{formatDuration(activity.duration_seconds)}</TableCell>
-                  <TableCell>{format(new Date(activity.created_at), 'MMM d, HH:mm')}</TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                activities.map((activity) => (
+                  <TableRow key={activity.id}>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium">
+                          {activity.profiles?.first_name && activity.profiles?.last_name
+                            ? `${activity.profiles.first_name} ${activity.profiles.last_name}`
+                            : 'Unknown User'
+                          }
+                        </div>
+                        <div className="text-sm text-gray-500">{activity.profiles?.email || 'No email'}</div>
+                      </div>
+                    </TableCell>
+                    <TableCell>{getActivityBadge(activity.activity_type)}</TableCell>
+                    <TableCell>
+                      {activity.courses?.title || activity.units?.title || '-'}
+                    </TableCell>
+                    <TableCell>{formatDuration(activity.duration_seconds)}</TableCell>
+                    <TableCell>{format(new Date(activity.created_at), 'MMM d, HH:mm')}</TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>
