@@ -42,7 +42,7 @@ export const useUserProgress = (userId?: string) => {
 
     try {
       await progressService.updateCourseProgress(userId, courseId, updates);
-      // Directly refetch instead of calling fetchUserProgress to avoid circular dependency
+      // Only refetch if this is not being called from calculateCourseProgress
       const progressData = await progressService.fetchUserProgress(userId);
       const coursesWithProgress = transformProgressData(progressData);
       setCourseProgress(coursesWithProgress);
@@ -67,6 +67,7 @@ export const useUserProgress = (userId?: string) => {
     try {
       const { progressPercentage, status } = await progressService.calculateCourseProgress(userId, courseId);
       
+      // Update progress directly without triggering a full refetch
       await progressService.updateCourseProgress(userId, courseId, {
         progress_percentage: progressPercentage,
         status,
@@ -74,10 +75,24 @@ export const useUserProgress = (userId?: string) => {
         ...(status === 'in_progress' && progressPercentage === 1 && { started_at: new Date().toISOString() })
       });
 
-      // Directly refetch instead of calling updateCourseProgress to avoid circular dependency
-      const progressData = await progressService.fetchUserProgress(userId);
-      const coursesWithProgress = transformProgressData(progressData);
-      setCourseProgress(coursesWithProgress);
+      // Update local state directly instead of refetching
+      setCourseProgress(prevProgress => 
+        prevProgress.map(course => {
+          if (course.id === courseId && course.progress) {
+            return {
+              ...course,
+              progress: {
+                ...course.progress,
+                progress_percentage: progressPercentage,
+                status,
+                ...(status === 'completed' && { completed_at: new Date().toISOString() }),
+                ...(status === 'in_progress' && progressPercentage === 1 && { started_at: new Date().toISOString() })
+              }
+            };
+          }
+          return course;
+        })
+      );
     } catch (error) {
       console.error('Error calculating course progress:', error);
     }
