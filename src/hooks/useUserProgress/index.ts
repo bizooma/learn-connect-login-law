@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { CourseWithProgress, CourseProgress } from "./types";
 import { progressService } from "./progressService";
@@ -10,7 +10,7 @@ export const useUserProgress = (userId?: string) => {
   const [courseProgress, setCourseProgress] = useState<CourseWithProgress[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const fetchUserProgress = async () => {
+  const fetchUserProgress = useCallback(async () => {
     if (!userId) {
       setLoading(false);
       return;
@@ -32,9 +32,9 @@ export const useUserProgress = (userId?: string) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId, toast]);
 
-  const updateCourseProgress = async (courseId: string, updates: Partial<CourseProgress>) => {
+  const updateCourseProgress = useCallback(async (courseId: string, updates: Partial<CourseProgress>) => {
     if (!userId) {
       console.warn('Cannot update course progress: no user ID');
       return;
@@ -53,9 +53,9 @@ export const useUserProgress = (userId?: string) => {
         });
       }
     }
-  };
+  }, [userId, fetchUserProgress, toast]);
 
-  const markUnitComplete = async (unitId: string, courseId: string) => {
+  const markUnitComplete = useCallback(async (unitId: string, courseId: string) => {
     if (!userId) {
       console.warn('Cannot mark unit complete: no user ID');
       return;
@@ -74,9 +74,9 @@ export const useUserProgress = (userId?: string) => {
         });
       }
     }
-  };
+  }, [userId, toast]);
 
-  const calculateCourseProgress = async (courseId: string) => {
+  const calculateCourseProgress = useCallback(async (courseId: string) => {
     if (!userId) {
       console.warn('Cannot calculate course progress: no user ID');
       return;
@@ -94,7 +94,7 @@ export const useUserProgress = (userId?: string) => {
     } catch (error) {
       console.error('Error calculating course progress:', error);
     }
-  };
+  }, [userId, updateCourseProgress]);
 
   useEffect(() => {
     if (userId) {
@@ -104,7 +104,7 @@ export const useUserProgress = (userId?: string) => {
       console.log('useUserProgress: No user ID provided');
       setLoading(false);
     }
-  }, [userId]);
+  }, [fetchUserProgress]);
 
   const completedCourses = courseProgress.filter(course => course.progress?.status === 'completed');
   const inProgressCourses = courseProgress.filter(course => course.progress?.status === 'in_progress');
