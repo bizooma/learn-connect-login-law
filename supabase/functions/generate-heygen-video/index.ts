@@ -1,4 +1,3 @@
-
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
@@ -359,31 +358,36 @@ async function generateNarrationScript(filename: string, slideContents: SlideCon
 async function generateHeyGenVideo(script: string, avatarId: string, voiceId: string): Promise<string> {
   console.log('Starting HeyGen video generation with clone ID:', avatarId);
   
+  // Updated API call structure for HeyGen v2 API
+  const requestBody = {
+    video_inputs: [{
+      character: {
+        type: "avatar",
+        avatar_id: avatarId,
+        scale: 1.0
+      },
+      voice: {
+        type: "text",
+        input_text: script,
+        voice_id: voiceId
+      }
+    }],
+    dimension: {
+      width: 1280,
+      height: 720
+    },
+    aspect_ratio: "16:9"
+  };
+
+  console.log('HeyGen request body:', JSON.stringify(requestBody, null, 2));
+  
   const heygenResponse = await fetch('https://api.heygen.com/v2/video/generate', {
     method: 'POST',
     headers: {
       'X-API-KEY': Deno.env.get('HEYGEN_API_KEY') ?? '',
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({
-      video_inputs: [{
-        character: {
-          type: "avatar",
-          avatar_id: avatarId,
-          scale: 1.0
-        },
-        voice: {
-          type: "text",
-          input_text: script,
-          voice_id: voiceId
-        }
-      }],
-      dimension: {
-        width: 1280,
-        height: 720
-      },
-      aspect_ratio: "16:9"
-    }),
+    body: JSON.stringify(requestBody),
   });
 
   if (!heygenResponse.ok) {
