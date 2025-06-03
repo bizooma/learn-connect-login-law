@@ -33,34 +33,34 @@ serve(async (req) => {
       throw new Error('All fields (email, firstName, lastName, role) are required');
     }
 
-    // Create Supabase client with service role key for admin operations
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    );
-
     // Get the authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
       throw new Error('Authorization header is required');
     }
 
+    console.log('Authorization header received:', authHeader ? 'Yes' : 'No');
+
+    // Extract the JWT token from the authorization header
+    const token = authHeader.replace('Bearer ', '');
+
     // Create Supabase client with anon key to check requesting user's permissions
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: authHeader },
-        },
-      }
+      Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
+
+    // Set the auth token manually
+    await supabaseClient.auth.setSession({
+      access_token: token,
+      refresh_token: '', // We don't need refresh token for this operation
+    });
 
     // Check if the requesting user is authenticated and has admin privileges
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     if (userError || !user) {
       console.error('Auth error:', userError);
-      throw new Error('Authentication required');
+      throw new Error('Authentication failed - invalid token');
     }
 
     console.log('Authenticated user:', user.id);
@@ -80,6 +80,12 @@ serve(async (req) => {
     }
 
     console.log('Admin user verified, proceeding with user creation');
+
+    // Create Supabase client with service role key for admin operations
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
 
     // Generate a temporary password
     const tempPassword = `temp${Math.random().toString(36).slice(-8)}!A1`;
