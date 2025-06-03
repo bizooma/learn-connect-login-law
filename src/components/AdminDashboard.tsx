@@ -7,8 +7,6 @@ import AdminManagementTabs from "./admin/AdminManagementTabs";
 import NotificationBanner from "./notifications/NotificationBanner";
 import RecentActivity from "./admin/RecentActivity";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trophy } from "lucide-react";
-import GamificationDashboard from "./gamification/GamificationDashboard";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("overview");
@@ -75,16 +73,12 @@ const AdminDashboard = () => {
         <NotificationBanner />
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-6">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="courses">Courses</TabsTrigger>
             <TabsTrigger value="users">Users</TabsTrigger>
             <TabsTrigger value="progress">Progress</TabsTrigger>
             <TabsTrigger value="notifications">Notifications</TabsTrigger>
-            <TabsTrigger value="gamification" className="flex items-center gap-2">
-              <Trophy className="h-4 w-4" />
-              Gamification
-            </TabsTrigger>
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6">
@@ -108,10 +102,6 @@ const AdminDashboard = () => {
 
           <TabsContent value="notifications">
             <AdminManagementTabs activeTab="notifications" onTabChange={() => {}} />
-          </TabsContent>
-
-          <TabsContent value="gamification" className="space-y-4">
-            <GamificationDashboard />
           </TabsContent>
         </Tabs>
       </div>

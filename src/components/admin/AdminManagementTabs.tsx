@@ -5,9 +5,9 @@ import CourseManagement from "./CourseManagement";
 import UserManagement from "./UserManagement";
 import ProfileManagement from "./ProfileManagement";
 import QuizManagement from "./QuizManagement";
-import CourseAssignmentManagement from "./CourseAssignmentManagement";
 import NotificationManagement from "./NotificationManagement";
 import UserProgressManagement from "./UserProgressManagement";
+import GamificationDashboard from "../gamification/GamificationDashboard";
 
 interface AdminManagementTabsProps {
   activeTab: string;
@@ -20,7 +20,7 @@ const AdminManagementTabs = ({ activeTab, onTabChange }: AdminManagementTabsProp
       <CardHeader>
         <CardTitle>Management Console</CardTitle>
         <CardDescription>
-          Manage courses, users, quizzes, assignments, notifications, progress tracking, and system settings
+          Manage courses, users, quizzes, gamification, notifications, progress tracking, and system settings
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -37,11 +37,11 @@ const AdminManagementTabs = ({ activeTab, onTabChange }: AdminManagementTabsProp
               Courses
             </TabsTrigger>
             <TabsTrigger 
-              value="assignments"
+              value="gamification"
               className="data-[state=active]:bg-white data-[state=active]:text-black"
               style={{ color: 'black' }}
             >
-              Assignments
+              Gamification
             </TabsTrigger>
             <TabsTrigger 
               value="users"
@@ -84,8 +84,8 @@ const AdminManagementTabs = ({ activeTab, onTabChange }: AdminManagementTabsProp
             <CourseManagement />
           </TabsContent>
           
-          <TabsContent value="assignments" className="mt-6">
-            <CourseAssignmentManagement />
+          <TabsContent value="gamification" className="mt-6">
+            <GamificationDashboard />
           </TabsContent>
           
           <TabsContent value="users" className="mt-6">
