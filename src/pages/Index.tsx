@@ -52,7 +52,7 @@ const Index = () => {
         console.log('Redirecting to student dashboard');
         navigate("/student-dashboard", { replace: true });
       }
-    }, 100); // Slightly longer delay to ensure role is properly set
+    }, 100);
 
     return () => clearTimeout(redirectTimer);
   }, [user, isOwner, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate, hasRedirected]);
@@ -75,10 +75,11 @@ const Index = () => {
     );
   }
 
-  // If no user, show auth page
+  // If no user, redirect to login page instead of showing AuthPage directly
   if (!user) {
-    console.log('No user found, showing auth page');
-    return <AuthPage />;
+    console.log('No user found, redirecting to login page');
+    navigate("/login", { replace: true });
+    return null;
   }
 
   // Show loading while roles are being fetched
