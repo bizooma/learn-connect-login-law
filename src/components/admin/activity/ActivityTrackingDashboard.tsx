@@ -15,17 +15,17 @@ interface ActivityLog {
   id: string;
   user_id: string;
   activity_type: string;
-  course_id?: string;
-  unit_id?: string;
-  quiz_id?: string;
-  session_id?: string;
-  duration_seconds?: number;
+  course_id?: string | null;
+  unit_id?: string | null;
+  quiz_id?: string | null;
+  session_id?: string | null;
+  duration_seconds?: number | null;
   metadata?: any;
   created_at: string;
   profiles?: {
-    first_name?: string;
-    last_name?: string;
-    email?: string;
+    first_name?: string | null;
+    last_name?: string | null;
+    email?: string | null;
   } | null;
   courses?: {
     title: string;
@@ -41,6 +41,8 @@ interface ActivityStats {
   avgSessionDuration: number;
   topActivity: string;
 }
+
+type ActivityType = "login" | "logout" | "course_access" | "unit_access" | "unit_complete" | "quiz_start" | "quiz_complete" | "video_play" | "video_pause" | "video_complete" | "page_view";
 
 const ActivityTrackingDashboard = () => {
   const [activities, setActivities] = useState<ActivityLog[]>([]);
@@ -94,7 +96,7 @@ const ActivityTrackingDashboard = () => {
 
       // Apply activity filter
       if (activityFilter !== 'all') {
-        query = query.eq('activity_type', activityFilter);
+        query = query.eq('activity_type', activityFilter as ActivityType);
       }
 
       // Apply date filter
@@ -145,10 +147,15 @@ const ActivityTrackingDashboard = () => {
         .select('id, title')
         .in('id', unitIds) : { data: [] };
 
-      // Create lookup maps
-      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
-      const courseMap = new Map(courses?.map(c => [c.id, c]) || []);
-      const unitMap = new Map(units?.map(u => [u.id, u]) || []);
+      // Create lookup maps with proper typing
+      const profileMap = new Map<string, {id: string, first_name?: string | null, last_name?: string | null, email?: string | null}>();
+      profiles?.forEach(p => profileMap.set(p.id, p));
+
+      const courseMap = new Map<string, {id: string, title: string}>();
+      courses?.forEach(c => courseMap.set(c.id, c));
+
+      const unitMap = new Map<string, {id: string, title: string}>();
+      units?.forEach(u => unitMap.set(u.id, u));
 
       // Combine data
       const enrichedData: ActivityLog[] = (activityData || []).map(activity => ({
@@ -231,7 +238,7 @@ const ActivityTrackingDashboard = () => {
     );
   };
 
-  const formatDuration = (seconds?: number) => {
+  const formatDuration = (seconds?: number | null) => {
     if (!seconds || seconds <= 0) return '-';
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
