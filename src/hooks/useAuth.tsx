@@ -33,11 +33,25 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   useEffect(() => {
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
+      async (event, session) => {
         console.log('Auth state changed:', event, session);
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Log authentication events
+        if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
+          try {
+            await supabase.rpc('log_user_activity', {
+              p_user_id: session.user.id,
+              p_activity_type: 'login',
+              p_metadata: { event },
+              p_user_agent: navigator.userAgent
+            });
+          } catch (error) {
+            console.error('Error logging login activity:', error);
+          }
+        }
       }
     );
 
@@ -53,6 +67,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     try {
+      // Log logout activity before signing out
+      if (user) {
+        try {
+          await supabase.rpc('log_user_activity', {
+            p_user_id: user.id,
+            p_activity_type: 'logout',
+            p_user_agent: navigator.userAgent
+          });
+        } catch (error) {
+          console.error('Error logging logout activity:', error);
+        }
+      }
+      
       // Clear local state first
       setUser(null);
       setSession(null);

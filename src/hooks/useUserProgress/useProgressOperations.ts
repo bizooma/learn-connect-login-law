@@ -71,6 +71,12 @@ export const useProgressOperations = (
 
     try {
       await progressService.markUnitComplete(userId, unitId, courseId);
+      
+      // Log unit completion activity
+      const { useActivityTracking } = await import("@/hooks/useActivityTracking");
+      const { logUnitComplete } = useActivityTracking();
+      logUnitComplete(unitId, courseId);
+      
       await calculateCourseProgress(courseId);
     } catch (error) {
       console.error('Error marking unit complete:', error);

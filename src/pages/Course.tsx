@@ -4,6 +4,7 @@ import { useCourse } from "@/hooks/useCourse";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useActivityTracking } from "@/hooks/useActivityTracking";
 import { useEffect, useRef } from "react";
 import CourseHeader from "@/components/course/CourseHeader";
 import CourseSidebar from "@/components/course/CourseSidebar";
@@ -19,7 +20,9 @@ const Course = () => {
   const { role } = useUserRole();
   const { course, selectedUnit, setSelectedUnit, loading, error } = useCourse(courseId!);
   const { updateCourseProgress } = useUserProgress(user?.id);
+  const { logCourseAccess } = useActivityTracking();
   const hasUpdatedProgress = useRef(false);
+  const hasLoggedAccess = useRef(false);
 
   const isAdmin = role === 'admin';
 
@@ -37,11 +40,18 @@ const Course = () => {
         last_accessed_at: new Date().toISOString()
       });
     }
-  }, [course?.id, user?.id, authLoading, navigate, updateCourseProgress]);
 
-  // Reset the ref when navigating to a different course
+    // Log course access once
+    if (course && user && !hasLoggedAccess.current) {
+      hasLoggedAccess.current = true;
+      logCourseAccess(course.id);
+    }
+  }, [course?.id, user?.id, authLoading, navigate, updateCourseProgress, logCourseAccess]);
+
+  // Reset the refs when navigating to a different course
   useEffect(() => {
     hasUpdatedProgress.current = false;
+    hasLoggedAccess.current = false;
   }, [courseId]);
 
   if (authLoading || loading) {

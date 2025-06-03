@@ -8,6 +8,7 @@ import QuizManagement from "./QuizManagement";
 import NotificationManagement from "./NotificationManagement";
 import UserProgressManagement from "./UserProgressManagement";
 import GamificationDashboard from "../gamification/GamificationDashboard";
+import ActivityTrackingDashboard from "./activity/ActivityTrackingDashboard";
 
 interface AdminManagementTabsProps {
   activeTab: string;
@@ -20,13 +21,13 @@ const AdminManagementTabs = ({ activeTab, onTabChange }: AdminManagementTabsProp
       <CardHeader>
         <CardTitle>Management Console</CardTitle>
         <CardDescription>
-          Manage courses, users, quizzes, gamification, notifications, progress tracking, and system settings
+          Manage courses, users, quizzes, gamification, notifications, progress tracking, activity monitoring, and system settings
         </CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={onTabChange}>
           <TabsList 
-            className="grid w-full grid-cols-7"
+            className="grid w-full grid-cols-8"
             style={{ backgroundColor: '#FFDA00' }}
           >
             <TabsTrigger 
@@ -56,6 +57,13 @@ const AdminManagementTabs = ({ activeTab, onTabChange }: AdminManagementTabsProp
               style={{ color: 'black' }}
             >
               Progress
+            </TabsTrigger>
+            <TabsTrigger 
+              value="activity"
+              className="data-[state=active]:bg-white data-[state=active]:text-black"
+              style={{ color: 'black' }}
+            >
+              Activity
             </TabsTrigger>
             <TabsTrigger 
               value="quizzes"
@@ -94,6 +102,10 @@ const AdminManagementTabs = ({ activeTab, onTabChange }: AdminManagementTabsProp
           
           <TabsContent value="progress" className="mt-6">
             <UserProgressManagement />
+          </TabsContent>
+          
+          <TabsContent value="activity" className="mt-6">
+            <ActivityTrackingDashboard />
           </TabsContent>
           
           <TabsContent value="quizzes" className="mt-6">
