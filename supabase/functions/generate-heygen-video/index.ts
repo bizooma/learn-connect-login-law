@@ -358,7 +358,7 @@ async function generateNarrationScript(filename: string, slideContents: SlideCon
 async function generateHeyGenVideo(script: string, avatarId: string): Promise<string> {
   console.log('Starting HeyGen video generation with clone ID:', avatarId);
   
-  // Updated API structure for v2 with proper clone format
+  // For avatar clones, the voice is embedded in the avatar - don't specify separate voice_id
   const requestBody = {
     video_inputs: [{
       character: {
@@ -367,8 +367,8 @@ async function generateHeyGenVideo(script: string, avatarId: string): Promise<st
       },
       voice: {
         type: "text",
-        input_text: script,
-        voice_id: avatarId
+        input_text: script
+        // Don't specify voice_id for avatar clones - voice is embedded in the avatar
       },
       background: {
         type: "color",
