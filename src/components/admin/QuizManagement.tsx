@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
-import { Plus, Upload } from "lucide-react";
+import { Plus } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import QuizCard from "./quiz-management/QuizCard";
 import CreateQuizForm from "./quiz-management/CreateQuizForm";
@@ -234,16 +233,10 @@ const QuizManagement = () => {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h2 className="text-2xl font-bold">Quiz Management</h2>
-        <div className="flex space-x-2">
-          <Button onClick={() => setActiveTab("import")} variant="outline">
-            <Upload className="h-4 w-4 mr-2" />
-            Import from PowerPoint
-          </Button>
-          <Button onClick={() => setShowCreateForm(true)}>
-            <Plus className="h-4 w-4 mr-2" />
-            Create Quiz
-          </Button>
-        </div>
+        <Button onClick={() => setShowCreateForm(true)}>
+          <Plus className="h-4 w-4 mr-2" />
+          Create Quiz
+        </Button>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -283,7 +276,6 @@ const QuizManagement = () => {
                   Create Your First Quiz
                 </Button>
                 <Button onClick={() => setActiveTab("import")} variant="outline">
-                  <Upload className="h-4 w-4 mr-2" />
                   Import from PowerPoint
                 </Button>
               </div>
