@@ -112,7 +112,7 @@ export const useUserProgress = (userId?: string) => {
       console.log('useUserProgress: No user ID provided');
       setLoading(false);
     }
-  }, [userId, toast]); // Remove fetchUserProgress from dependencies
+  }, [userId, fetchUserProgress]);
 
   const completedCourses = courseProgress.filter(course => course.progress?.status === 'completed');
   const inProgressCourses = courseProgress.filter(course => course.progress?.status === 'in_progress');

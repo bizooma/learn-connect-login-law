@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
 import { CourseFormData } from "./types";
@@ -9,6 +9,7 @@ import { updateCourseBasicInfo } from "./services/courseUpdateService";
 import { cleanupExistingCourseContent } from "./services/courseContentCleanup";
 import { createLessonsAndUnits } from "./services/sectionCreation";
 import { createWelcomeCalendarEvent } from "./services/calendarService";
+import { supabase } from "@/integrations/supabase/client";
 
 type Course = Tables<'courses'>;
 
@@ -51,12 +52,81 @@ const ensureCalendarExists = async (courseId: string) => {
   }
 };
 
+const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => {
+  try {
+    console.log('Fetching existing modules for course:', courseId);
+    
+    const { data: modulesData, error: modulesError } = await supabase
+      .from('modules')
+      .select(`
+        *,
+        lessons:lessons(
+          *,
+          units:units(*)
+        )
+      `)
+      .eq('course_id', courseId)
+      .order('sort_order', { ascending: true });
+
+    if (modulesError) {
+      console.error('Error fetching modules:', modulesError);
+      return [];
+    }
+
+    console.log('Modules data fetched:', modulesData);
+
+    // Transform the data to match our ModuleData interface
+    const modules: ModuleData[] = modulesData?.map(module => ({
+      id: module.id,
+      title: module.title,
+      description: module.description || '',
+      image_url: module.image_url || '',
+      sort_order: module.sort_order,
+      lessons: module.lessons?.map(lesson => ({
+        id: lesson.id,
+        title: lesson.title,
+        description: lesson.description || '',
+        image_url: lesson.image_url || '',
+        sort_order: lesson.sort_order,
+        units: lesson.units?.map(unit => ({
+          id: unit.id,
+          title: unit.title,
+          description: unit.description || '',
+          content: unit.content || '',
+          video_url: unit.video_url || '',
+          video_type: (unit.video_url?.includes('youtube.com') || unit.video_url?.includes('youtu.be')) ? 'youtube' : 'upload',
+          duration_minutes: unit.duration_minutes || 0,
+          sort_order: unit.sort_order
+        })).sort((a, b) => a.sort_order - b.sort_order) || []
+      })).sort((a, b) => a.sort_order - b.sort_order) || []
+    })) || [];
+
+    return modules;
+  } catch (error) {
+    console.error('Error fetching existing modules:', error);
+    return [];
+  }
+};
+
 export const useEditCourseForm = (course: Course | null, open: boolean, onSuccess: () => void) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [modules, setModules] = useState<ModuleData[]>([]);
   const { toast } = useToast();
   
   const form = useCourseForm(course, open);
+
+  // Load existing modules when the form opens
+  useEffect(() => {
+    if (course && open) {
+      console.log('Loading existing modules for course:', course.id);
+      fetchExistingModules(course.id).then(existingModules => {
+        console.log('Setting modules:', existingModules);
+        setModules(existingModules);
+      });
+    } else {
+      setModules([]);
+    }
+  }, [course, open]);
 
   const onSubmit = async (data: CourseFormData) => {
     if (!course) return;
