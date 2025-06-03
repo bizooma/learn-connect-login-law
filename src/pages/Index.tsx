@@ -33,8 +33,13 @@ const Index = () => {
     setHasRedirected(true);
 
     // Redirect based on role with a small delay to ensure state is stable
+    // IMPORTANT: Admins should NOT be redirected - they stay on the main page
     const redirectTimer = setTimeout(() => {
-      if (isOwner) {
+      if (isAdmin) {
+        console.log('User is admin, staying on main page to show AdminDashboard');
+        // Don't redirect admins - they should see the AdminDashboard on this page
+        return;
+      } else if (isOwner) {
         console.log('Redirecting to owner dashboard');
         navigate("/owner-dashboard", { replace: true });
       } else if (isClient) {
@@ -43,11 +48,10 @@ const Index = () => {
       } else if (isFree) {
         console.log('Redirecting to free dashboard');
         navigate("/free-dashboard", { replace: true });
-      } else if (isStudent && !isAdmin) {
+      } else if (isStudent) {
         console.log('Redirecting to student dashboard');
         navigate("/student-dashboard", { replace: true });
       }
-      // If none of the above (admin), stay on current page to show AdminDashboard
     }, 50);
 
     return () => clearTimeout(redirectTimer);
@@ -85,7 +89,8 @@ const Index = () => {
     );
   }
 
-  // Show admin dashboard for admins, regular dashboard for others (including students who stay on main page)
+  // Show admin dashboard for admins, regular dashboard for others
+  // Admins should always see the AdminDashboard when they stay on this page
   console.log('Rendering dashboard for user', { isAdmin });
   return (
     <div>
