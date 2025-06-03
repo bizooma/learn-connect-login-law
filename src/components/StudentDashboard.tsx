@@ -1,24 +1,17 @@
 
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, Clock, Trophy, Award, Target, TrendingUp } from "lucide-react";
+import { BookOpen, Clock, TrendingUp } from "lucide-react";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useAuth } from "@/hooks/useAuth";
 import UserCourseProgress from "@/components/user/UserCourseProgress";
 import NotificationBanner from "@/components/notifications/NotificationBanner";
-import { hasGamificationAccess } from "@/utils/gamificationAccess";
-import GamificationDashboard from "@/components/gamification/GamificationDashboard";
 import LMSTreeFooter from "@/components/lms-tree/LMSTreeFooter";
 
 const StudentDashboard = () => {
   const { user } = useAuth();
   const { completedCourses, currentCourse, loading } = useUserProgress(user?.id || '');
   
-  // Check if user has gamification access
-  const userEmail = user?.email;
-  const showGamification = hasGamificationAccess(userEmail);
-
   // Calculate progress statistics
   const completedCoursesCount = completedCourses.length;
   const totalCourses = completedCourses.length + (currentCourse ? 1 : 0);
@@ -48,7 +41,7 @@ const StudentDashboard = () => {
         
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Student Dashboard</h1>
-          <p className="text-gray-600">Track your learning progress and achievements</p>
+          <p className="text-gray-600">Track your learning progress</p>
         </div>
 
         {/* Stats Cards */}
@@ -95,28 +88,10 @@ const StudentDashboard = () => {
           </Card>
         </div>
 
-        {/* Main Content Tabs */}
-        <Tabs defaultValue="progress" className="space-y-4">
-          <TabsList className={`grid w-full ${showGamification ? 'grid-cols-2' : 'grid-cols-1'}`}>
-            <TabsTrigger value="progress">My Courses</TabsTrigger>
-            {showGamification && (
-              <TabsTrigger value="gamification" className="flex items-center gap-2">
-                <Trophy className="h-4 w-4" />
-                Achievements
-              </TabsTrigger>
-            )}
-          </TabsList>
-
-          <TabsContent value="progress" className="space-y-4">
-            <UserCourseProgress userId={user?.id || ''} />
-          </TabsContent>
-
-          {showGamification && (
-            <TabsContent value="gamification" className="space-y-4">
-              <GamificationDashboard />
-            </TabsContent>
-          )}
-        </Tabs>
+        {/* Main Content */}
+        <div className="space-y-4">
+          <UserCourseProgress userId={user?.id || ''} />
+        </div>
       </div>
       <LMSTreeFooter />
     </div>

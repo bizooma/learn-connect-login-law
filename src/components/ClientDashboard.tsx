@@ -2,12 +2,11 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, Clock, Users, Trophy } from "lucide-react";
+import { BookOpen, Clock, Users } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import UserCourseProgress from "@/components/user/UserCourseProgress";
 import NotificationBanner from "@/components/notifications/NotificationBanner";
-import GamificationDashboard from "@/components/gamification/GamificationDashboard";
 import LMSTreeFooter from "@/components/lms-tree/LMSTreeFooter";
 
 const ClientDashboard = () => {
@@ -91,23 +90,9 @@ const ClientDashboard = () => {
         </div>
 
         {/* Main Content */}
-        <Tabs defaultValue="courses" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="courses">My Training</TabsTrigger>
-            <TabsTrigger value="gamification" className="flex items-center gap-2">
-              <Trophy className="h-4 w-4" />
-              Achievements
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="courses" className="space-y-4">
-            <UserCourseProgress userId={user?.id || ''} />
-          </TabsContent>
-
-          <TabsContent value="gamification" className="space-y-4">
-            <GamificationDashboard />
-          </TabsContent>
-        </Tabs>
+        <div className="space-y-4">
+          <UserCourseProgress userId={user?.id || ''} />
+        </div>
       </div>
       <LMSTreeFooter />
     </div>
