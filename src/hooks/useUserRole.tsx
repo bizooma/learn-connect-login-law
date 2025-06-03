@@ -19,12 +19,19 @@ export const useUserRole = () => {
     try {
       console.log(`useUserRole: Fetching role for user ${user.id}`);
       
-      // Directly fetch the user's role without testing connection
-      const { data, error } = await supabase
+      // Create a promise that times out after 5 seconds
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Query timeout')), 5000);
+      });
+
+      // Race the query against the timeout
+      const queryPromise = supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
         .maybeSingle();
+
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
 
       console.log('useUserRole: Query result:', { 
         data, 
@@ -49,7 +56,7 @@ export const useUserRole = () => {
       
       setLoading(false);
     } catch (error) {
-      console.error('useUserRole: Unexpected error:', error);
+      console.error('useUserRole: Unexpected error or timeout:', error);
       setRole('student'); // Final fallback
       setLoading(false);
     }
