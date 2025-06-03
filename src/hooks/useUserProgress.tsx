@@ -92,29 +92,75 @@ export const useUserProgress = (userId?: string) => {
     try {
       console.log('Updating course progress:', { courseId, updates });
       
-      const { error } = await supabase
+      // First, try to update existing record
+      const { data: existingRecord, error: selectError } = await supabase
         .from('user_course_progress')
-        .upsert({
-          user_id: userId,
-          course_id: courseId,
-          ...updates,
-          updated_at: new Date().toISOString()
-        });
+        .select('id')
+        .eq('user_id', userId)
+        .eq('course_id', courseId)
+        .single();
 
-      if (error) {
-        console.error('Error updating course progress:', error);
-        throw error;
+      if (selectError && selectError.code !== 'PGRST116') {
+        // Error other than "no rows returned"
+        throw selectError;
+      }
+
+      let result;
+      if (existingRecord) {
+        // Update existing record
+        result = await supabase
+          .from('user_course_progress')
+          .update({
+            ...updates,
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', userId)
+          .eq('course_id', courseId);
+      } else {
+        // Insert new record
+        result = await supabase
+          .from('user_course_progress')
+          .insert({
+            user_id: userId,
+            course_id: courseId,
+            ...updates,
+            updated_at: new Date().toISOString()
+          });
+      }
+
+      if (result.error) {
+        // If we still get a duplicate key error, try to update instead
+        if (result.error.code === '23505') {
+          console.log('Duplicate key detected, attempting update instead');
+          const updateResult = await supabase
+            .from('user_course_progress')
+            .update({
+              ...updates,
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', userId)
+            .eq('course_id', courseId);
+          
+          if (updateResult.error) {
+            throw updateResult.error;
+          }
+        } else {
+          throw result.error;
+        }
       }
       
       // Refresh progress data
       await fetchUserProgress();
     } catch (error) {
       console.error('Error updating course progress:', error);
-      toast({
-        title: "Error",
-        description: "Failed to update progress",
-        variant: "destructive",
-      });
+      // Only show toast for non-duplicate key errors to avoid spam
+      if (error.code !== '23505') {
+        toast({
+          title: "Error",
+          description: "Failed to update progress",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -127,31 +173,80 @@ export const useUserProgress = (userId?: string) => {
     try {
       console.log('Marking unit complete:', { unitId, courseId });
       
-      const { error } = await supabase
+      // First, try to update existing record
+      const { data: existingRecord, error: selectError } = await supabase
         .from('user_unit_progress')
-        .upsert({
-          user_id: userId,
-          unit_id: unitId,
-          course_id: courseId,
-          completed: true,
-          completed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        });
+        .select('id')
+        .eq('user_id', userId)
+        .eq('unit_id', unitId)
+        .eq('course_id', courseId)
+        .single();
 
-      if (error) {
-        console.error('Error marking unit complete:', error);
-        throw error;
+      if (selectError && selectError.code !== 'PGRST116') {
+        throw selectError;
+      }
+
+      let result;
+      if (existingRecord) {
+        // Update existing record
+        result = await supabase
+          .from('user_unit_progress')
+          .update({
+            completed: true,
+            completed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('user_id', userId)
+          .eq('unit_id', unitId)
+          .eq('course_id', courseId);
+      } else {
+        // Insert new record
+        result = await supabase
+          .from('user_unit_progress')
+          .insert({
+            user_id: userId,
+            unit_id: unitId,
+            course_id: courseId,
+            completed: true,
+            completed_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          });
+      }
+
+      if (result.error) {
+        // Handle duplicate key error gracefully
+        if (result.error.code === '23505') {
+          console.log('Unit progress already exists, attempting update');
+          const updateResult = await supabase
+            .from('user_unit_progress')
+            .update({
+              completed: true,
+              completed_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', userId)
+            .eq('unit_id', unitId)
+            .eq('course_id', courseId);
+          
+          if (updateResult.error) {
+            throw updateResult.error;
+          }
+        } else {
+          throw result.error;
+        }
       }
 
       // Calculate overall course progress
       await calculateCourseProgress(courseId);
     } catch (error) {
       console.error('Error marking unit complete:', error);
-      toast({
-        title: "Error",
-        description: "Failed to mark unit as complete",
-        variant: "destructive",
-      });
+      if (error.code !== '23505') {
+        toast({
+          title: "Error",
+          description: "Failed to mark unit as complete",
+          variant: "destructive",
+        });
+      }
     }
   };
 
