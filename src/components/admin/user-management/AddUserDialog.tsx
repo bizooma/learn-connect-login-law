@@ -32,10 +32,19 @@ const AddUserDialog = ({ onUserAdded }: AddUserDialogProps) => {
       console.log('Attempting to create user via edge function:', formData);
 
       // Get the current session to ensure we have an auth token
-      const { data: { session } } = await supabase.auth.getSession();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (sessionError) {
+        console.error('Session error:', sessionError);
+        throw new Error('Failed to get session');
+      }
+      
       if (!session?.access_token) {
+        console.error('No session or access token found');
         throw new Error('You must be logged in to create users');
       }
+
+      console.log('Session found, calling edge function with token');
 
       // Call the edge function to create the user with proper auth headers
       const { data, error } = await supabase.functions.invoke('create-single-user', {
@@ -47,17 +56,25 @@ const AddUserDialog = ({ onUserAdded }: AddUserDialogProps) => {
         },
         headers: {
           Authorization: `Bearer ${session.access_token}`,
+          'Content-Type': 'application/json'
         }
       });
 
       console.log('Edge function response:', { data, error });
 
       if (error) {
+        console.error('Edge function error:', error);
         throw new Error(error.message || 'Failed to create user');
       }
 
       if (data?.error) {
+        console.error('Edge function returned error:', data.error);
         throw new Error(data.error);
+      }
+
+      if (!data?.success) {
+        console.error('Edge function did not return success:', data);
+        throw new Error(data?.message || 'Failed to create user');
       }
 
       toast({
