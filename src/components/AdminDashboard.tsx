@@ -1,62 +1,85 @@
 
-import { useAuth } from "@/hooks/useAuth";
-import { useUserRole } from "@/hooks/useUserRole";
-import AdminManagementConsole from "./admin/AdminManagementConsole";
-import RoleChecker from "./admin/RoleChecker";
+import { useState, useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import AdminDashboardHeader from "./admin/AdminDashboardHeader";
+import AdminStatsCards from "./admin/AdminStatsCards";
+import AdminManagementTabs from "./admin/AdminManagementTabs";
+import NotificationBanner from "./notifications/NotificationBanner";
+import RecentActivity from "./admin/RecentActivity";
 
 const AdminDashboard = () => {
-  const { user } = useAuth();
-  const { isAdmin, loading } = useUserRole();
-
-  console.log('AdminDashboard render state:', { 
-    isAdmin, 
-    loading, 
-    userId: user?.id,
-    userExists: !!user
+  const [activeTab, setActiveTab] = useState("courses");
+  const [stats, setStats] = useState({
+    totalCourses: 0,
+    totalUsers: 0,
+    activeEnrollments: 0,
+    totalQuizzes: 0,
+    completedCourses: 0,
+    averageProgress: 0
   });
 
-  // Show loading while role is being determined
-  if (loading) {
-    console.log('AdminDashboard: Showing loading state');
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading admin dashboard...</p>
+  useEffect(() => {
+    fetchStats();
+  }, []);
+
+  const fetchStats = async () => {
+    try {
+      // Fetch total courses
+      const { count: coursesCount } = await supabase
+        .from('courses')
+        .select('*', { count: 'exact', head: true });
+
+      // Fetch total users
+      const { count: usersCount } = await supabase
+        .from('profiles')
+        .select('*', { count: 'exact', head: true });
+
+      // Fetch total quizzes
+      const { count: quizzesCount } = await supabase
+        .from('quizzes')
+        .select('*', { count: 'exact', head: true });
+
+      // Fetch user course progress data
+      const { data: progressData } = await supabase
+        .from('user_course_progress')
+        .select('status, progress_percentage');
+
+      const totalEnrollments = progressData?.length || 0;
+      const completedCourses = progressData?.filter(p => p.status === 'completed').length || 0;
+      
+      // Calculate average progress across all enrollments
+      const totalProgress = progressData?.reduce((sum, p) => sum + (p.progress_percentage || 0), 0) || 0;
+      const averageProgress = totalEnrollments > 0 ? totalProgress / totalEnrollments : 0;
+
+      setStats({
+        totalCourses: coursesCount || 0,
+        totalUsers: usersCount || 0,
+        activeEnrollments: totalEnrollments,
+        totalQuizzes: quizzesCount || 0,
+        completedCourses,
+        averageProgress
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100">
+      <AdminDashboardHeader />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <NotificationBanner />
+        <AdminStatsCards stats={stats} />
+        
+        <div className="mb-8">
+          <RecentActivity />
         </div>
+        
+        <AdminManagementTabs activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
-    );
-  }
-
-  // Always show admin dashboard for the specific admin user
-  const isKnownAdmin = user?.id === 'b8ed63e9-60bc-4ddd-b7ad-01bf62a48f88';
-  const shouldShowAdminDashboard = isAdmin || isKnownAdmin;
-
-  console.log('AdminDashboard access check:', {
-    isAdmin,
-    isKnownAdmin,
-    shouldShowAdminDashboard
-  });
-
-  if (!shouldShowAdminDashboard) {
-    console.log('AdminDashboard: Showing access denied with role checker');
-    return (
-      <div className="min-h-screen bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="mb-8">
-            <h2 className="text-2xl font-bold text-gray-900 mb-4">Access Denied</h2>
-            <p className="text-gray-600 mb-4">You don't have admin access.</p>
-            <p className="text-gray-600 mb-4">Current user: {user?.email}</p>
-          </div>
-          <RoleChecker />
-        </div>
-      </div>
-    );
-  }
-
-  console.log('AdminDashboard: Rendering admin management console for user:', user?.id);
-
-  return <AdminManagementConsole />;
+    </div>
+  );
 };
 
 export default AdminDashboard;

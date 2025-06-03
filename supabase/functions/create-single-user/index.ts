@@ -44,15 +44,20 @@ serve(async (req) => {
     // Extract the JWT token from the authorization header
     const token = authHeader.replace('Bearer ', '');
 
-    // Create Supabase client with anon key
+    // Create Supabase client with anon key to check requesting user's permissions
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
-    // Verify the user token by setting the session
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
-    
+    // Set the auth token manually
+    await supabaseClient.auth.setSession({
+      access_token: token,
+      refresh_token: '', // We don't need refresh token for this operation
+    });
+
+    // Check if the requesting user is authenticated and has admin privileges
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
     if (userError || !user) {
       console.error('Auth error:', userError);
       throw new Error('Authentication failed - invalid token');

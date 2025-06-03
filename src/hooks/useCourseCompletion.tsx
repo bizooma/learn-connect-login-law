@@ -3,14 +3,14 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 
-export const useCourseCompletion = (userId: string) => {
+export const useCourseCompletion = (courseId: string) => {
   const { user } = useAuth();
   const [isCompleted, setIsCompleted] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkCompletion = async () => {
-      if (!user || !userId) {
+      if (!user || !courseId) {
         setLoading(false);
         return;
       }
@@ -20,7 +20,7 @@ export const useCourseCompletion = (userId: string) => {
           .from('user_course_progress')
           .select('status')
           .eq('user_id', user.id)
-          .eq('course_id', userId)
+          .eq('course_id', courseId)
           .maybeSingle();
 
         if (error) {
@@ -38,20 +38,7 @@ export const useCourseCompletion = (userId: string) => {
     };
 
     checkCompletion();
-  }, [user, userId]);
+  }, [user, courseId]);
 
-  const markCourseCompleted = async (courseId: string) => {
-    if (!userId) return false;
-
-    try {
-      // Simple course completion without gamification
-      console.log(`Course ${courseId} completed by user ${userId}`);
-      return true;
-    } catch (error) {
-      console.error('Error marking course as completed:', error);
-      return false;
-    }
-  };
-
-  return { isCompleted, loading, markCourseCompleted };
+  return { isCompleted, loading };
 };

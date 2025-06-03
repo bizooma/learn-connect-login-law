@@ -1,97 +1,133 @@
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BookOpen, Clock, Users } from "lucide-react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
-import { useUserProgress } from "@/hooks/useUserProgress";
-import UserCourseProgress from "@/components/user/UserCourseProgress";
-import NotificationBanner from "@/components/notifications/NotificationBanner";
-import LMSTreeFooter from "@/components/lms-tree/LMSTreeFooter";
+import { useUserRole } from "@/hooks/useUserRole";
+import { supabase } from "@/integrations/supabase/client";
+import { BookOpen, User, Award, Briefcase } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import NotificationBanner from "./notifications/NotificationBanner";
+import LMSTreeFooter from "./lms-tree/LMSTreeFooter";
+import DashboardHeader from "./dashboard/DashboardHeader";
+import DashboardStats from "./dashboard/DashboardStats";
+import DashboardContent from "./dashboard/DashboardContent";
 
 const ClientDashboard = () => {
-  const { user } = useAuth();
-  const { completedCourses, currentCourse, loading } = useUserProgress(user?.id || '');
-  
-  // Calculate progress statistics
-  const completedCoursesCount = completedCourses.length;
-  const totalCourses = completedCourses.length + (currentCourse ? 1 : 0);
-  const totalProgressPercentage = totalCourses > 0 
-    ? Math.round(((completedCoursesCount * 100) + (currentCourse?.progress?.progress_percentage || 0)) / totalCourses)
-    : 0;
+  const { user, signOut } = useAuth();
+  const { isClient } = useUserRole();
+  const navigate = useNavigate();
+  const [activeTab, setActiveTab] = useState("assigned");
+  const [stats, setStats] = useState({
+    assignedCourses: 0,
+    completedCourses: 0,
+    inProgressCourses: 0,
+    certificatesEarned: 0
+  });
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!isClient) {
+      navigate("/");
+      return;
+    }
+    fetchStats();
+  }, [isClient, navigate]);
+
+  const fetchStats = async () => {
+    try {
+      setLoading(true);
+      // Fetch user course progress for actual stats
+      const { data: progressData } = await supabase
+        .from('user_course_progress')
+        .select('*')
+        .eq('user_id', user?.id);
+
+      const assignedCoursesCount = progressData?.length || 0;
+      const completedCoursesCount = progressData?.filter(p => p.status === 'completed').length || 0;
+      const inProgressCoursesCount = progressData?.filter(p => p.status === 'in_progress').length || 0;
+
+      setStats({
+        assignedCourses: assignedCoursesCount,
+        completedCourses: completedCoursesCount,
+        inProgressCourses: inProgressCoursesCount,
+        certificatesEarned: completedCoursesCount // For now, assume 1 certificate per completed course
+      });
+    } catch (error) {
+      console.error("Error fetching client stats:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   if (loading) {
     return (
-      <div className="space-y-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-gray-200 rounded w-1/4 mb-6"></div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="h-32 bg-gray-200 rounded"></div>
-            ))}
-          </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     );
   }
 
+  if (!isClient) {
+    return null;
+  }
+
+  const clientStats = [
+    {
+      title: "Assigned Courses",
+      value: stats.assignedCourses.toString(),
+      description: "Courses assigned to you",
+      icon: BookOpen,
+      color: "text-purple-600",
+    },
+    {
+      title: "In Progress",
+      value: stats.inProgressCourses.toString(),
+      description: "Currently studying",
+      icon: Briefcase,
+      color: "text-orange-600",
+    },
+    {
+      title: "Completed",
+      value: stats.completedCourses.toString(),
+      description: "Courses completed",
+      icon: Award,
+      color: "text-green-600",
+    },
+    {
+      title: "Certificates",
+      value: stats.certificatesEarned.toString(),
+      description: "Certificates earned",
+      icon: User,
+      color: "text-blue-600",
+    },
+  ];
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 flex flex-col">
-      <div className="flex-1 space-y-6 p-6">
-        <NotificationBanner />
-        
-        <div>
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Client Dashboard</h1>
-          <p className="text-gray-600">Access your training materials and track progress</p>
-        </div>
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-purple-100 flex flex-col">
+      <div className="flex-1">
+        <DashboardHeader
+          title="Client Dashboard"
+          subtitle="Welcome, {name}! Access your assigned training materials."
+          userFirstName={user?.user_metadata?.first_name}
+          onSignOut={signOut}
+        />
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Courses Completed</CardTitle>
-              <BookOpen className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{completedCoursesCount}</div>
-              <p className="text-xs text-muted-foreground">
-                Training modules completed
-              </p>
-            </CardContent>
-          </Card>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <NotificationBanner />
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Overall Progress</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{totalProgressPercentage}%</div>
-              <p className="text-xs text-muted-foreground">
-                Across all assigned training
-              </p>
-            </CardContent>
-          </Card>
+          <DashboardStats stats={clientStats} />
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Current Training</CardTitle>
-              <Clock className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-lg font-bold truncate">
-                {currentCourse?.title || 'No active training'}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {currentCourse?.progress?.progress_percentage || 0}% completed
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Main Content */}
-        <div className="space-y-4">
-          <UserCourseProgress userId={user?.id || ''} />
+          <DashboardContent
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            userId={user.id}
+            title="Client Learning Portal"
+            description="Access your assigned courses and track your professional development"
+            assignedTabLabel="Assigned Training"
+            completedTabLabel="Completed Training"
+          />
         </div>
       </div>
       <LMSTreeFooter />

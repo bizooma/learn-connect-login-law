@@ -819,73 +819,6 @@ export type Database = {
           },
         ]
       }
-      user_activity_log: {
-        Row: {
-          activity_type: Database["public"]["Enums"]["activity_type"]
-          course_id: string | null
-          created_at: string
-          duration_seconds: number | null
-          id: string
-          ip_address: unknown | null
-          metadata: Json | null
-          quiz_id: string | null
-          session_id: string | null
-          unit_id: string | null
-          user_agent: string | null
-          user_id: string
-        }
-        Insert: {
-          activity_type: Database["public"]["Enums"]["activity_type"]
-          course_id?: string | null
-          created_at?: string
-          duration_seconds?: number | null
-          id?: string
-          ip_address?: unknown | null
-          metadata?: Json | null
-          quiz_id?: string | null
-          session_id?: string | null
-          unit_id?: string | null
-          user_agent?: string | null
-          user_id: string
-        }
-        Update: {
-          activity_type?: Database["public"]["Enums"]["activity_type"]
-          course_id?: string | null
-          created_at?: string
-          duration_seconds?: number | null
-          id?: string
-          ip_address?: unknown | null
-          metadata?: Json | null
-          quiz_id?: string | null
-          session_id?: string | null
-          unit_id?: string | null
-          user_agent?: string | null
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_activity_log_course_id_fkey"
-            columns: ["course_id"]
-            isOneToOne: false
-            referencedRelation: "courses"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_activity_log_quiz_id_fkey"
-            columns: ["quiz_id"]
-            isOneToOne: false
-            referencedRelation: "quizzes"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_activity_log_unit_id_fkey"
-            columns: ["unit_id"]
-            isOneToOne: false
-            referencedRelation: "units"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       user_certificates: {
         Row: {
           certificate_number: string
@@ -1139,21 +1072,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
-      log_user_activity: {
-        Args: {
-          p_user_id: string
-          p_activity_type: Database["public"]["Enums"]["activity_type"]
-          p_course_id?: string
-          p_unit_id?: string
-          p_quiz_id?: string
-          p_session_id?: string
-          p_duration_seconds?: number
-          p_metadata?: Json
-          p_ip_address?: unknown
-          p_user_agent?: string
-        }
-        Returns: string
-      }
       mark_course_completed: {
         Args: {
           p_user_id: string
@@ -1182,18 +1100,6 @@ export type Database = {
       }
     }
     Enums: {
-      activity_type:
-        | "login"
-        | "logout"
-        | "course_access"
-        | "unit_access"
-        | "unit_complete"
-        | "quiz_start"
-        | "quiz_complete"
-        | "video_play"
-        | "video_pause"
-        | "video_complete"
-        | "page_view"
       app_role: "admin" | "owner" | "student" | "client" | "free"
     }
     CompositeTypes: {
@@ -1310,19 +1216,6 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      activity_type: [
-        "login",
-        "logout",
-        "course_access",
-        "unit_access",
-        "unit_complete",
-        "quiz_start",
-        "quiz_complete",
-        "video_play",
-        "video_pause",
-        "video_complete",
-        "page_view",
-      ],
       app_role: ["admin", "owner", "student", "client", "free"],
     },
   },

@@ -31,85 +31,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let mounted = true;
-
-    // Get initial session first
-    const getInitialSession = async () => {
-      try {
-        console.log('Getting initial session...');
-        const { data: { session }, error } = await supabase.auth.getSession();
-        
-        if (mounted) {
-          if (error) {
-            console.error('Error getting initial session:', error);
-          }
-          
-          console.log('Initial session retrieved:', !!session);
-          setSession(session);
-          setUser(session?.user ?? null);
-          setLoading(false);
-        }
-      } catch (error) {
-        console.error('Error in getInitialSession:', error);
-        if (mounted) {
-          setLoading(false);
-        }
-      }
-    };
-
-    getInitialSession();
-
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
-        
-        console.log('Auth state changed:', event, !!session);
+      (event, session) => {
+        console.log('Auth state changed:', event, session);
         setSession(session);
         setUser(session?.user ?? null);
-        
-        // Ensure loading is false when auth state changes
-        if (loading) {
-          setLoading(false);
-        }
-        
-        // Log authentication events
-        if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
-          try {
-            await supabase.rpc('log_user_activity', {
-              p_user_id: session.user.id,
-              p_activity_type: 'login',
-              p_metadata: { event },
-              p_user_agent: navigator.userAgent
-            });
-          } catch (error) {
-            console.error('Error logging login activity:', error);
-          }
-        }
+        setLoading(false);
       }
     );
 
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const signOut = async () => {
     try {
-      // Log logout activity before signing out
-      if (user) {
-        try {
-          await supabase.rpc('log_user_activity', {
-            p_user_id: user.id,
-            p_activity_type: 'logout',
-            p_user_agent: navigator.userAgent
-          });
-        } catch (error) {
-          console.error('Error logging logout activity:', error);
-        }
-      }
-      
       // Clear local state first
       setUser(null);
       setSession(null);

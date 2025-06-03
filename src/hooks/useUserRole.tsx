@@ -8,102 +8,107 @@ export const useUserRole = () => {
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const fetchUserRole = async () => {
-      if (!user?.id) {
-        console.log('useUserRole: No user, setting default state');
-        setRole('student');
-        setLoading(false);
-        return;
-      }
+  // Add more detailed logging about the user state
+  console.log('useUserRole: Hook called with user:', {
+    user: user,
+    userId: user?.id,
+    userEmail: user?.email,
+    hasUser: !!user
+  });
 
-      // Special case for known admin user - immediate override at the start
-      if (user.id === 'b8ed63e9-60bc-4ddd-b7ad-01bf62a48f88') {
-        console.log('useUserRole: Applying immediate admin override for known admin user');
-        setRole('admin');
-        setLoading(false);
-        return;
-      }
+  const fetchUserRole = async () => {
+    console.log('useUserRole: fetchUserRole called with user:', {
+      user: user,
+      userId: user?.id,
+      userExists: !!user
+    });
 
-      console.log('useUserRole: Effect triggered', { userId: user.id });
-      console.log('useUserRole: Starting role fetch for user:', user.id);
+    if (!user?.id) {
+      console.log('useUserRole: No user ID available, user state:', user);
+      setRole(null);
+      setLoading(false);
+      return;
+    }
+
+    try {
       setLoading(true);
+      console.log('useUserRole: Fetching role for user:', user.id);
+      
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .single();
 
-      try {
-        console.log(`useUserRole: Fetching role for user ${user.id} (attempt 1)`);
-        
-        // Create a timeout promise that rejects after 2 seconds
-        const timeoutPromise = new Promise<never>((_, reject) => {
-          setTimeout(() => reject(new Error('Database query timeout')), 2000);
-        });
+      console.log('useUserRole: Query result:', { data, error, userId: user.id });
 
-        // Create the actual query promise with proper typing
-        const queryPromise = supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        // Race the query against the timeout
-        const result = await Promise.race([queryPromise, timeoutPromise]);
-        
-        // Type guard to check if result has the expected structure
-        if (result && typeof result === 'object' && 'data' in result) {
-          const { data, error } = result as { data: { role?: string } | null; error: any };
-          
-          if (error) {
-            console.error('useUserRole: Database error:', error);
-            setRole('student');
-          } else if (data?.role) {
-            console.log('useUserRole: Role fetched successfully:', data.role);
-            setRole(data.role);
-          } else {
-            console.log('useUserRole: No role found - defaulting to student');
-            setRole('student');
-          }
+      if (error) {
+        console.error('useUserRole: Error fetching user role:', error);
+        // If no role found, default to student
+        if (error.code === 'PGRST116') {
+          console.log('useUserRole: No role found, defaulting to student');
+          setRole('student');
         } else {
-          console.log('useUserRole: Unexpected result format - defaulting to student');
           setRole('student');
         }
-      } catch (error) {
-        console.error('useUserRole: Query failed or timed out:', error);
-        // Fallback to student for all users except the known admin
-        setRole('student');
-      } finally {
-        setLoading(false);
+      } else {
+        const userRole = data?.role || 'student';
+        console.log('useUserRole: Setting role to:', userRole);
+        setRole(userRole);
       }
-    };
-
-    fetchUserRole();
-  }, [user?.id]);
-
-  const refreshRole = () => {
-    if (user?.id) {
-      console.log('useUserRole: Manual role refresh requested');
-      // Re-trigger the effect by setting loading true
-      setLoading(true);
+    } catch (error) {
+      console.error('useUserRole: Catch block error:', error);
+      setRole('student');
+    } finally {
+      console.log('useUserRole: Setting loading to false');
+      setLoading(false);
     }
   };
 
-  // Compute derived values - ensure admin override is applied here too
-  const effectiveRole = role || 'student';
-  const isAdmin = effectiveRole === 'admin' || user?.id === 'b8ed63e9-60bc-4ddd-b7ad-01bf62a48f88';
-  const isOwner = effectiveRole === 'owner';
-  const isStudent = effectiveRole === 'student';
-  const isClient = effectiveRole === 'client';
-  const isFree = effectiveRole === 'free';
+  useEffect(() => {
+    console.log('useUserRole: useEffect triggered, user changed:', {
+      user: user,
+      userId: user?.id,
+      userExists: !!user
+    });
+    
+    if (user?.id) {
+      fetchUserRole();
+    } else {
+      console.log('useUserRole: No user, setting defaults');
+      setRole(null);
+      setLoading(false);
+    }
+  }, [user?.id]);
+
+  const refreshRole = () => {
+    console.log('useUserRole: refreshRole called');
+    if (user?.id) {
+      fetchUserRole();
+    }
+  };
+
+  // Compute derived values
+  const isAdmin = role === 'admin';
+  const isOwner = role === 'owner';
+  const isStudent = role === 'student';
+  const isClient = role === 'client';
+  const isFree = role === 'free';
   const hasAdminPrivileges = isAdmin || isOwner;
 
-  console.log('useUserRole current state:', {
-    userId: user?.id,
-    role: effectiveRole,
-    loading,
+  // Log every computation
+  console.log('useUserRole: Computing values:', { 
+    role,
     isAdmin,
-    hasAdminPrivileges
+    isOwner,
+    hasAdminPrivileges,
+    loading,
+    userId: user?.id,
+    userExists: !!user
   });
 
   return { 
-    role: effectiveRole, 
+    role, 
     isAdmin, 
     isOwner, 
     isStudent, 

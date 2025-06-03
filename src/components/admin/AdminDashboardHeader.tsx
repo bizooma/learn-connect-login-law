@@ -11,17 +11,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-interface AdminDashboardHeaderProps {
-  userFirstName?: string;
-  onSignOut: () => Promise<void>;
-}
-
-const AdminDashboardHeader = ({ userFirstName, onSignOut }: AdminDashboardHeaderProps) => {
+const AdminDashboardHeader = () => {
+  const { signOut } = useAuth();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
     try {
-      await onSignOut();
+      await signOut();
       // Redirect to homepage after successful sign out
       navigate('/', { replace: true });
     } catch (error) {
@@ -61,9 +57,7 @@ const AdminDashboardHeader = ({ userFirstName, onSignOut }: AdminDashboardHeader
               <BookOpen className="h-8 w-8 text-white" />
               <div>
                 <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
-                <p className="text-blue-100">
-                  {userFirstName ? `Welcome back, ${userFirstName}!` : "Manage New Frontier University Courses"}
-                </p>
+                <p className="text-blue-100">Manage New Frontier University Courses</p>
               </div>
             </div>
           </div>
