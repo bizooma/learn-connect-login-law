@@ -8,21 +8,16 @@ export const useUserRole = () => {
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchUserRole = async (retryCount = 0, maxRetries = 3) => {
+  const fetchUserRole = async () => {
     if (!user?.id) {
       console.log('useUserRole: No user ID available');
-      setRole(null);
+      setRole('student'); // Default fallback
       setLoading(false);
       return;
     }
 
     try {
-      // Don't set loading to true if we already have a role - this prevents the loading loop
-      if (!role) {
-        setLoading(true);
-      }
-      
-      console.log(`useUserRole: Fetching role for user ${user.id} (attempt ${retryCount + 1})`);
+      console.log(`useUserRole: Fetching role for user ${user.id}`);
       
       const { data, error } = await supabase
         .from('user_roles')
@@ -32,58 +27,35 @@ export const useUserRole = () => {
 
       if (error) {
         console.error('useUserRole: Database error:', error);
-        
-        // Retry on network or temporary errors
-        if (retryCount < maxRetries && (
-          error.message.includes('Failed to fetch') ||
-          error.message.includes('network') ||
-          error.code === 'PGRST301'
-        )) {
-          console.log(`useUserRole: Retrying in ${(retryCount + 1) * 1000}ms...`);
-          setTimeout(() => {
-            fetchUserRole(retryCount + 1, maxRetries);
-          }, (retryCount + 1) * 1000);
-          return;
-        }
-        
-        // For any error, default to student and stop loading
-        console.warn('useUserRole: Error occurred, defaulting to student:', error);
-        setRole('student');
+        setRole('student'); // Default fallback on error
         setLoading(false);
-      } else if (data && data.role) {
-        console.log('useUserRole: Role fetched successfully:', data.role);
-        setRole(data.role);
-        setLoading(false);
-      } else {
-        // No role found in database - this is the key fix
-        console.log('useUserRole: No role found for user, defaulting to student');
-        setRole('student');
-        setLoading(false);
-      }
-    } catch (error) {
-      console.error('useUserRole: Unexpected error:', error);
-      
-      // Retry on unexpected errors
-      if (retryCount < maxRetries) {
-        console.log(`useUserRole: Retrying after unexpected error in ${(retryCount + 1) * 1000}ms...`);
-        setTimeout(() => {
-          fetchUserRole(retryCount + 1, maxRetries);
-        }, (retryCount + 1) * 1000);
         return;
       }
+
+      if (data?.role) {
+        console.log('useUserRole: Role fetched successfully:', data.role);
+        setRole(data.role);
+      } else {
+        console.log('useUserRole: No role found for user, defaulting to student');
+        setRole('student');
+      }
       
-      // Final fallback after all retries
-      setRole('student');
+      setLoading(false);
+    } catch (error) {
+      console.error('useUserRole: Unexpected error:', error);
+      setRole('student'); // Final fallback
       setLoading(false);
     }
   };
 
   useEffect(() => {
     if (user?.id) {
+      console.log('useUserRole: User changed, fetching role for:', user.id);
+      setLoading(true);
       fetchUserRole();
     } else {
-      console.log('useUserRole: No user, clearing role');
-      setRole(null);
+      console.log('useUserRole: No user, setting default state');
+      setRole('student');
       setLoading(false);
     }
   }, [user?.id]);
@@ -96,7 +68,7 @@ export const useUserRole = () => {
     }
   };
 
-  // Compute derived values - ensure we always have a role
+  // Compute derived values
   const effectiveRole = role || 'student';
   const isAdmin = effectiveRole === 'admin';
   const isOwner = effectiveRole === 'owner';
@@ -105,8 +77,7 @@ export const useUserRole = () => {
   const isFree = effectiveRole === 'free';
   const hasAdminPrivileges = isAdmin || isOwner;
 
-  // Enhanced logging for debugging
-  console.log('useUserRole state:', {
+  console.log('useUserRole current state:', {
     userId: user?.id,
     role: effectiveRole,
     loading,
