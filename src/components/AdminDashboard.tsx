@@ -5,6 +5,7 @@ import AdminDashboardHeader from "./admin/AdminDashboardHeader";
 import AdminStatsCards from "./admin/AdminStatsCards";
 import AdminManagementTabs from "./admin/AdminManagementTabs";
 import NotificationBanner from "./notifications/NotificationBanner";
+import RecentActivity from "./admin/RecentActivity";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("courses");
@@ -70,7 +71,15 @@ const AdminDashboard = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <NotificationBanner />
         <AdminStatsCards stats={stats} />
-        <AdminManagementTabs activeTab={activeTab} onTabChange={setActiveTab} />
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <div className="lg:col-span-2">
+            <AdminManagementTabs activeTab={activeTab} onTabChange={setActiveTab} />
+          </div>
+          <div className="lg:col-span-1">
+            <RecentActivity />
+          </div>
+        </div>
       </div>
     </div>
   );

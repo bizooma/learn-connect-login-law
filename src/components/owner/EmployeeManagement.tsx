@@ -1,19 +1,26 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Plus, Users } from "lucide-react";
+import { Plus, Users, AlertCircle } from "lucide-react";
 import { useEmployees } from "@/hooks/useEmployees";
 import EmployeeCard from "./EmployeeCard";
 import AddEmployeeDialog from "./AddEmployeeDialog";
 import { useState } from "react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Tables } from "@/integrations/supabase/types";
+
+type LawFirm = Tables<'law_firms'>;
 
 interface EmployeeManagementProps {
-  lawFirmId: string;
+  lawFirm: LawFirm;
 }
 
-const EmployeeManagement = ({ lawFirmId }: EmployeeManagementProps) => {
-  const { employees, loading, fetchEmployees } = useEmployees(lawFirmId);
+const EmployeeManagement = ({ lawFirm }: EmployeeManagementProps) => {
+  const { employees, loading, fetchEmployees } = useEmployees(lawFirm.id);
   const [showAddDialog, setShowAddDialog] = useState(false);
+
+  const availableSeats = lawFirm.total_seats - lawFirm.used_seats;
+  const canAddEmployee = availableSeats > 0;
 
   if (loading) {
     return (
@@ -25,6 +32,19 @@ const EmployeeManagement = ({ lawFirmId }: EmployeeManagementProps) => {
 
   return (
     <div className="space-y-6">
+      {/* Seat Usage Alert */}
+      {availableSeats <= 2 && (
+        <Alert className={availableSeats === 0 ? "border-red-200 bg-red-50" : "border-yellow-200 bg-yellow-50"}>
+          <AlertCircle className={`h-4 w-4 ${availableSeats === 0 ? "text-red-600" : "text-yellow-600"}`} />
+          <AlertDescription className={availableSeats === 0 ? "text-red-800" : "text-yellow-800"}>
+            {availableSeats === 0 
+              ? "You've used all your available seats. Remove an employee or purchase more seats to add new employees."
+              : `Only ${availableSeats} seat${availableSeats === 1 ? '' : 's'} remaining. Consider purchasing more seats soon.`
+            }
+          </AlertDescription>
+        </Alert>
+      )}
+
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -32,10 +52,18 @@ const EmployeeManagement = ({ lawFirmId }: EmployeeManagementProps) => {
               <Users className="h-5 w-5" />
               <CardTitle>Employee Management</CardTitle>
             </div>
-            <Button onClick={() => setShowAddDialog(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Employee
-            </Button>
+            <div className="flex items-center space-x-4">
+              <div className="text-sm text-gray-600">
+                {lawFirm.used_seats} / {lawFirm.total_seats} seats used
+              </div>
+              <Button 
+                onClick={() => setShowAddDialog(true)}
+                disabled={!canAddEmployee}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                Add Employee
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -46,7 +74,10 @@ const EmployeeManagement = ({ lawFirmId }: EmployeeManagementProps) => {
               <p className="text-gray-500 mb-4">
                 Start building your team by adding your first employee.
               </p>
-              <Button onClick={() => setShowAddDialog(true)}>
+              <Button 
+                onClick={() => setShowAddDialog(true)}
+                disabled={!canAddEmployee}
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Add First Employee
               </Button>
@@ -57,6 +88,7 @@ const EmployeeManagement = ({ lawFirmId }: EmployeeManagementProps) => {
                 <EmployeeCard
                   key={employee.id}
                   employee={employee}
+                  lawFirm={lawFirm}
                   onEmployeeUpdated={fetchEmployees}
                 />
               ))}
@@ -68,8 +100,9 @@ const EmployeeManagement = ({ lawFirmId }: EmployeeManagementProps) => {
       <AddEmployeeDialog
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
-        lawFirmId={lawFirmId}
+        lawFirm={lawFirm}
         onEmployeeAdded={fetchEmployees}
+        canAddEmployee={canAddEmployee}
       />
     </div>
   );
