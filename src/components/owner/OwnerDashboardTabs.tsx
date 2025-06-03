@@ -40,7 +40,7 @@ const OwnerDashboardTabs = ({ lawFirm }: OwnerDashboardTabsProps) => {
       </TabsContent>
 
       <TabsContent value="employees">
-        <EmployeeManagement lawFirmId={lawFirm.id} />
+        <EmployeeManagement lawFirm={lawFirm} />
       </TabsContent>
 
       <TabsContent value="calendar">
