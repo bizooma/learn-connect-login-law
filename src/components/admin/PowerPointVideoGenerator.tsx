@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Upload, Video, FileText, Settings, Play } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -19,12 +18,13 @@ const PowerPointVideoGenerator = ({ onVideoGenerated }: PowerPointVideoGenerator
   const [status, setStatus] = useState<'idle' | 'uploading' | 'generating_script' | 'script_ready' | 'generating_video' | 'completed' | 'error'>('idle');
   const [script, setScript] = useState<string>('');
   const [editedScript, setEditedScript] = useState<string>('');
-  const [avatarId, setAvatarId] = useState<string>('');
+  const [avatarId, setAvatarId] = useState<string>('2e447da4016f4af48d233ddc95eb9dc2'); // Default to custom avatar
   const [voiceId, setVoiceId] = useState<string>('');
   const [progress, setProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string>('');
 
   const heygenAvatars = [
+    { id: '2e447da4016f4af48d233ddc95eb9dc2', name: 'Custom Avatar Clone (Default)' },
     { id: 'josh_lite3_20230714', name: 'Josh - Professional Male' },
     { id: 'susan_lite3_20230714', name: 'Susan - Professional Female' },
     { id: 'tyler_lite3_20230714', name: 'Tyler - Casual Male' },
