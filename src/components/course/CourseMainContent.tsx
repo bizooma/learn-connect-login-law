@@ -9,13 +9,13 @@ import CourseCalendar from "./CourseCalendar";
 type Course = Tables<'courses'> & {
   lessons: (Tables<'lessons'> & {
     units: (Tables<'units'> & {
-      quizzes: Tables<'quizzes'>[];
+      quiz?: Tables<'quizzes'>;
     })[];
   })[];
 };
 
 type Unit = Tables<'units'> & {
-  quizzes: Tables<'quizzes'>[];
+  quiz?: Tables<'quizzes'>;
 };
 
 interface CourseMainContentProps {
@@ -115,16 +115,13 @@ const CourseMainContent = ({ course, selectedUnit, courseTitle, isAdmin = false 
               </div>
             )}
 
-            {/* Quizzes */}
-            {selectedUnit.quizzes && selectedUnit.quizzes.length > 0 && (
+            {/* Quiz */}
+            {selectedUnit.quiz && (
               <div className="space-y-4">
-                {selectedUnit.quizzes.map((quiz) => (
-                  <QuizDisplay
-                    key={quiz.id}
-                    quiz={quiz}
-                    unitTitle={selectedUnit.title}
-                  />
-                ))}
+                <QuizDisplay
+                  quiz={selectedUnit.quiz}
+                  unitTitle={selectedUnit.title}
+                />
               </div>
             )}
           </CardContent>

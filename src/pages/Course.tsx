@@ -15,11 +15,11 @@ const Course = () => {
   const { id: courseId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { userRole } = useUserRole();
+  const { role } = useUserRole();
   const { course, selectedUnit, setSelectedUnit, loading, error } = useCourse(courseId!);
   const { updateCourseProgress } = useUserProgress(user?.id);
 
-  const isAdmin = userRole === 'admin';
+  const isAdmin = role === 'admin';
 
   useEffect(() => {
     if (!authLoading && !user) {
