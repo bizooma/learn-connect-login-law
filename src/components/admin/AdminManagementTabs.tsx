@@ -15,18 +15,37 @@ const AdminManagementTabs = () => {
   const { isAdmin, isOwner } = useUserRole();
   const { user } = useAuth();
 
-  console.log('AdminManagementTabs render:', { isAdmin, isOwner, userId: user?.id, activeTab });
+  console.log('AdminManagementTabs render:', { 
+    isAdmin, 
+    isOwner, 
+    userId: user?.id, 
+    activeTab,
+    userIdMatch: user?.id === 'b8ed63e9-60bc-4ddd-b7ad-01bf62a48f88'
+  });
 
-  // Special override for the specific admin user
-  const hasAdminAccess = isAdmin || isOwner || user?.id === 'b8ed63e9-60bc-4ddd-b7ad-01bf62a48f88';
+  // Always allow access for the specific admin user
+  const isKnownAdmin = user?.id === 'b8ed63e9-60bc-4ddd-b7ad-01bf62a48f88';
+  const hasAdminAccess = isAdmin || isOwner || isKnownAdmin;
+
+  console.log('Access check result:', { 
+    hasAdminAccess, 
+    isKnownAdmin, 
+    willRenderTabs: hasAdminAccess 
+  });
 
   if (!hasAdminAccess) {
+    console.log('Rendering access denied message');
     return (
       <div className="text-center py-8">
         <p className="text-red-600">Access denied. Admin privileges required.</p>
+        <p className="text-gray-500 mt-2">User ID: {user?.id}</p>
+        <p className="text-gray-500">Is Admin: {String(isAdmin)}</p>
+        <p className="text-gray-500">Is Owner: {String(isOwner)}</p>
       </div>
     );
   }
+
+  console.log('Rendering admin tabs for tab:', activeTab);
 
   return (
     <div className="space-y-6">
@@ -43,38 +62,46 @@ const AdminManagementTabs = () => {
         </TabsList>
 
         <TabsContent value="courses" className="mt-6">
+          {console.log('Rendering Courses tab content')}
           <CourseManagement />
         </TabsContent>
 
         <TabsContent value="gamification" className="mt-6">
+          {console.log('Rendering Gamification tab content')}
           <div className="text-center py-8">
             <p className="text-gray-500">Gamification management coming soon...</p>
           </div>
         </TabsContent>
 
         <TabsContent value="users" className="mt-6">
+          {console.log('Rendering Users tab content')}
           <UserManagement />
         </TabsContent>
 
         <TabsContent value="progress" className="mt-6">
+          {console.log('Rendering Progress tab content')}
           <UserProgressManagement />
         </TabsContent>
 
         <TabsContent value="activity" className="mt-6">
+          {console.log('Rendering Activity tab content')}
           <div className="text-center py-8">
             <p className="text-gray-500">Activity monitoring coming soon...</p>
           </div>
         </TabsContent>
 
         <TabsContent value="quizzes" className="mt-6">
+          {console.log('Rendering Quizzes tab content')}
           <QuizManagement />
         </TabsContent>
 
         <TabsContent value="notifications" className="mt-6">
+          {console.log('Rendering Notifications tab content')}
           <NotificationManagement />
         </TabsContent>
 
         <TabsContent value="profile" className="mt-6">
+          {console.log('Rendering Profile tab content')}
           <ProfileManagement />
         </TabsContent>
       </Tabs>
