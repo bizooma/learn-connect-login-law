@@ -7,36 +7,33 @@ export const useUserRole = () => {
   const { user } = useAuth();
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
+  const [fetchAttempted, setFetchAttempted] = useState(false);
 
-  const fetchUserRole = async () => {
-    if (!user?.id) {
-      console.log('useUserRole: No user ID available');
-      setRole('student'); // Default fallback
-      setLoading(false);
-      return;
-    }
-
-    // Prevent multiple simultaneous fetches
-    if (hasAttemptedFetch) {
-      console.log('useUserRole: Already attempted fetch, skipping');
-      return;
-    }
-
+  const fetchUserRole = async (userId: string, attempt: number = 1) => {
     try {
-      console.log(`useUserRole: Fetching role for user ${user.id}`);
-      setHasAttemptedFetch(true);
+      console.log(`useUserRole: Fetching role for user ${userId} (attempt ${attempt})`);
       
-      // Create a promise that times out after 3 seconds (reduced from 5)
+      // Test basic connectivity first
+      const { data: testData, error: testError } = await supabase
+        .from('user_roles')
+        .select('count')
+        .limit(1);
+      
+      if (testError) {
+        console.error('useUserRole: Database connectivity test failed:', testError);
+        throw testError;
+      }
+
+      // Create a promise that times out after 5 seconds
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Query timeout')), 3000);
+        setTimeout(() => reject(new Error('Query timeout')), 5000);
       });
 
       // Race the query against the timeout
       const queryPromise = supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .maybeSingle();
 
       const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
@@ -44,12 +41,21 @@ export const useUserRole = () => {
       console.log('useUserRole: Query result:', { 
         data, 
         error, 
-        userId: user.id
+        userId,
+        attempt
       });
 
       if (error) {
         console.error('useUserRole: Database error:', error);
-        setRole('student'); // Default fallback on error
+        
+        // Retry once on failure
+        if (attempt === 1) {
+          console.log('useUserRole: Retrying query...');
+          return await fetchUserRole(userId, 2);
+        }
+        
+        // After retry fails, default to student
+        setRole('student');
         setLoading(false);
         return;
       }
@@ -64,38 +70,60 @@ export const useUserRole = () => {
       
       setLoading(false);
     } catch (error) {
-      console.error('useUserRole: Unexpected error or timeout:', error);
-      setRole('student'); // Final fallback
+      console.error('useUserRole: Fetch error:', error);
+      
+      // Retry once on timeout/error
+      if (attempt === 1) {
+        console.log('useUserRole: Retrying after error...');
+        setTimeout(() => {
+          fetchUserRole(userId, 2);
+        }, 1000);
+        return;
+      }
+      
+      // Final fallback
+      console.log('useUserRole: Final fallback to student role');
+      setRole('student');
       setLoading(false);
     }
   };
 
+  // Single useEffect to handle all user changes and role fetching
   useEffect(() => {
-    if (user?.id && !hasAttemptedFetch) {
-      console.log('useUserRole: User changed, fetching role for:', user.id);
-      setLoading(true);
-      setRole(null); // Clear previous role
-      fetchUserRole();
-    } else if (!user?.id) {
-      console.log('useUserRole: No user, setting default state');
+    console.log('useUserRole: Effect triggered', { 
+      userId: user?.id, 
+      fetchAttempted 
+    });
+
+    if (!user?.id) {
+      console.log('useUserRole: No user, resetting to default state');
       setRole('student');
       setLoading(false);
-      setHasAttemptedFetch(false); // Reset for next user
+      setFetchAttempted(false);
+      return;
     }
-  }, [user?.id]);
 
-  // Reset hasAttemptedFetch when user changes
+    // Only fetch if we haven't attempted for this user yet
+    if (!fetchAttempted) {
+      console.log('useUserRole: Starting role fetch for user:', user.id);
+      setLoading(true);
+      setRole(null);
+      setFetchAttempted(true);
+      fetchUserRole(user.id);
+    }
+  }, [user?.id, fetchAttempted]);
+
+  // Reset fetch flag when user changes
   useEffect(() => {
-    setHasAttemptedFetch(false);
+    setFetchAttempted(false);
   }, [user?.id]);
 
   const refreshRole = () => {
     if (user?.id) {
       console.log('useUserRole: Manual role refresh requested');
-      setHasAttemptedFetch(false);
+      setFetchAttempted(false);
       setLoading(true);
-      setRole(null); // Clear current role
-      fetchUserRole();
+      setRole(null);
     }
   };
 
@@ -114,7 +142,7 @@ export const useUserRole = () => {
     loading,
     isAdmin,
     hasAdminPrivileges,
-    hasAttemptedFetch
+    fetchAttempted
   });
 
   return { 
