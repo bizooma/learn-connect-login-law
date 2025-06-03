@@ -9,6 +9,7 @@ import RoleChecker from "./admin/RoleChecker";
 const AdminDashboard = () => {
   const { user, signOut } = useAuth();
   const { isAdmin, loading } = useUserRole();
+  const [activeTab, setActiveTab] = useState("overview");
 
   // Show loading while role is being determined
   if (loading) {
@@ -49,7 +50,10 @@ const AdminDashboard = () => {
       />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <AdminManagementTabs />
+        <AdminManagementTabs 
+          activeTab={activeTab} 
+          onTabChange={setActiveTab} 
+        />
       </div>
     </div>
   );
