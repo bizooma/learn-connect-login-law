@@ -6,44 +6,56 @@ import Dashboard from "../components/Dashboard";
 import AdminDashboard from "../components/AdminDashboard";
 import NotificationBanner from "../components/notifications/NotificationBanner";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, isOwner, isStudent, isClient, isFree, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
+  const [hasRedirected, setHasRedirected] = useState(false);
 
   useEffect(() => {
-    // Only redirect if we have a user and roles are loaded
-    if (!authLoading && !roleLoading && user) {
-      console.log('User authenticated, redirecting based on role:', { isOwner, isStudent, isClient, isFree, isAdmin });
-      
-      // Add a small delay to prevent immediate redirects during initial load
-      const redirectTimer = setTimeout(() => {
-        // Redirect owners to their dedicated dashboard
-        if (isOwner) {
-          navigate("/owner-dashboard", { replace: true });
-        }
-        // Redirect students to their dedicated dashboard
-        else if (isStudent) {
-          navigate("/student-dashboard", { replace: true });
-        }
-        // Redirect clients to their dedicated dashboard
-        else if (isClient) {
-          navigate("/client-dashboard", { replace: true });
-        }
-        // Redirect free users to their dedicated dashboard
-        else if (isFree) {
-          navigate("/free-dashboard", { replace: true });
-        }
-      }, 100);
-
-      return () => clearTimeout(redirectTimer);
+    // Only proceed if we have auth data and roles are loaded
+    if (authLoading || !user || roleLoading || hasRedirected) {
+      return;
     }
-  }, [user, isOwner, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate]);
 
-  // Show loading while checking auth state or during role loading
-  if (authLoading || (user && roleLoading)) {
+    console.log('Processing redirect for user:', { 
+      userId: user.id, 
+      isOwner, 
+      isStudent, 
+      isClient, 
+      isFree, 
+      isAdmin 
+    });
+
+    // Set flag to prevent multiple redirects
+    setHasRedirected(true);
+
+    // Redirect based on role with a small delay to ensure state is stable
+    const redirectTimer = setTimeout(() => {
+      if (isOwner) {
+        console.log('Redirecting to owner dashboard');
+        navigate("/owner-dashboard", { replace: true });
+      } else if (isStudent) {
+        console.log('Redirecting to student dashboard');
+        navigate("/student-dashboard", { replace: true });
+      } else if (isClient) {
+        console.log('Redirecting to client dashboard');
+        navigate("/client-dashboard", { replace: true });
+      } else if (isFree) {
+        console.log('Redirecting to free dashboard');
+        navigate("/free-dashboard", { replace: true });
+      }
+      // If none of the above, stay on current page to show Dashboard/AdminDashboard
+    }, 50);
+
+    return () => clearTimeout(redirectTimer);
+  }, [user, isOwner, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate, hasRedirected]);
+
+  // Show loading only while checking auth state
+  if (authLoading) {
+    console.log('Showing loading: auth loading');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
@@ -60,7 +72,34 @@ const Index = () => {
     return <AuthPage />;
   }
 
-  // Show admin dashboard only for admins, regular dashboard for others
+  // Show loading while roles are being fetched
+  if (roleLoading) {
+    console.log('Showing loading: role loading');
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading user data...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If user has a specific role that should redirect, but hasn't redirected yet, show loading
+  if ((isOwner || isStudent || isClient || isFree) && !hasRedirected) {
+    console.log('Preparing to redirect, showing loading');
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Redirecting...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show admin dashboard for admins, regular dashboard for others
+  console.log('Rendering dashboard for user', { isAdmin });
   return (
     <div>
       <NotificationBanner />

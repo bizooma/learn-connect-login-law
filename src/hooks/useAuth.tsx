@@ -36,6 +36,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     // Get initial session first
     const getInitialSession = async () => {
       try {
+        console.log('Getting initial session...');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (mounted) {
@@ -43,6 +44,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             console.error('Error getting initial session:', error);
           }
           
+          console.log('Initial session retrieved:', !!session);
           setSession(session);
           setUser(session?.user ?? null);
           setLoading(false);
@@ -62,9 +64,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       async (event, session) => {
         if (!mounted) return;
         
-        console.log('Auth state changed:', event, session);
+        console.log('Auth state changed:', event, !!session);
         setSession(session);
         setUser(session?.user ?? null);
+        
+        // Ensure loading is false when auth state changes
+        if (loading) {
+          setLoading(false);
+        }
         
         // Log authentication events
         if (session?.user && (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED')) {
