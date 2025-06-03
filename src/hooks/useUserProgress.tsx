@@ -26,8 +26,6 @@ export const useUserProgress = (userId?: string) => {
     try {
       setLoading(true);
       
-      console.log('Fetching user progress for user:', userId);
-      
       // Fetch all course progress for the user
       const { data: progressData, error: progressError } = await supabase
         .from('user_course_progress')
@@ -39,16 +37,12 @@ export const useUserProgress = (userId?: string) => {
         .order('last_accessed_at', { ascending: false });
 
       if (progressError) {
-        console.error('Error fetching progress:', progressError);
         throw progressError;
       }
-
-      console.log('Progress data fetched:', progressData);
 
       // Transform the data to include course information
       const coursesWithProgress = progressData?.map(progress => {
         if (!progress.courses) {
-          console.warn('Course data missing for progress:', progress);
           return null;
         }
         
@@ -85,13 +79,10 @@ export const useUserProgress = (userId?: string) => {
 
   const updateCourseProgress = async (courseId: string, updates: Partial<CourseProgress>) => {
     if (!userId) {
-      console.warn('Cannot update course progress: no user ID');
       return;
     }
 
     try {
-      console.log('Updating course progress:', { courseId, updates });
-      
       // First, try to update existing record
       const { data: existingRecord, error: selectError } = await supabase
         .from('user_course_progress')
@@ -131,7 +122,6 @@ export const useUserProgress = (userId?: string) => {
       if (result.error) {
         // If we still get a duplicate key error, try to update instead
         if (result.error.code === '23505') {
-          console.log('Duplicate key detected, attempting update instead');
           const updateResult = await supabase
             .from('user_course_progress')
             .update({
@@ -166,13 +156,10 @@ export const useUserProgress = (userId?: string) => {
 
   const markUnitComplete = async (unitId: string, courseId: string) => {
     if (!userId) {
-      console.warn('Cannot mark unit complete: no user ID');
       return;
     }
 
     try {
-      console.log('Marking unit complete:', { unitId, courseId });
-      
       // First, try to update existing record
       const { data: existingRecord, error: selectError } = await supabase
         .from('user_unit_progress')
@@ -216,7 +203,6 @@ export const useUserProgress = (userId?: string) => {
       if (result.error) {
         // Handle duplicate key error gracefully
         if (result.error.code === '23505') {
-          console.log('Unit progress already exists, attempting update');
           const updateResult = await supabase
             .from('user_unit_progress')
             .update({
@@ -252,13 +238,10 @@ export const useUserProgress = (userId?: string) => {
 
   const calculateCourseProgress = async (courseId: string) => {
     if (!userId) {
-      console.warn('Cannot calculate course progress: no user ID');
       return;
     }
 
     try {
-      console.log('Calculating course progress for:', courseId);
-      
       // Get total units in course by first getting lessons
       const { data: lessons, error: lessonsError } = await supabase
         .from('lessons')
@@ -266,14 +249,12 @@ export const useUserProgress = (userId?: string) => {
         .eq('course_id', courseId);
 
       if (lessonsError) {
-        console.error('Error fetching lessons:', lessonsError);
         throw lessonsError;
       }
 
       const lessonIds = lessons?.map(s => s.id) || [];
       
       if (lessonIds.length === 0) {
-        console.log('No lessons found for course:', courseId);
         return;
       }
 
@@ -284,7 +265,6 @@ export const useUserProgress = (userId?: string) => {
         .in('section_id', lessonIds);
 
       if (unitsError) {
-        console.error('Error fetching units:', unitsError);
         throw unitsError;
       }
 
@@ -297,15 +277,12 @@ export const useUserProgress = (userId?: string) => {
         .eq('completed', true);
 
       if (completedError) {
-        console.error('Error fetching completed units:', completedError);
         throw completedError;
       }
 
       const totalUnits = units?.length || 0;
       const completedCount = completedUnits?.length || 0;
       const progressPercentage = totalUnits > 0 ? Math.round((completedCount / totalUnits) * 100) : 0;
-
-      console.log('Progress calculation:', { totalUnits, completedCount, progressPercentage });
 
       // Update course progress
       const status = progressPercentage === 100 ? 'completed' : 
@@ -324,10 +301,8 @@ export const useUserProgress = (userId?: string) => {
 
   useEffect(() => {
     if (userId) {
-      console.log('useUserProgress: Starting to fetch progress for user:', userId);
       fetchUserProgress();
     } else {
-      console.log('useUserProgress: No user ID provided');
       setLoading(false);
     }
   }, [userId]);

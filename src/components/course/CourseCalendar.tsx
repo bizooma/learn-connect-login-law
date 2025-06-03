@@ -25,19 +25,9 @@ const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
     getSelectedEvents
   } = useCourseCalendarEvents(courseId);
 
-  console.log('CourseCalendar: Component rendered with:', {
-    isAdmin,
-    courseId,
-    user: user,
-    userId: user?.id,
-    userEmail: user?.email,
-    isAuthenticated: !!user
-  });
-
   const selectedEvents = getSelectedEvents(selectedDate);
 
   if (loading) {
-    console.log('CourseCalendar: Showing loading state');
     return (
       <Card>
         <CardHeader>
@@ -54,14 +44,6 @@ const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
       </Card>
     );
   }
-
-  console.log('CourseCalendar: Rendering calendar. Admin button should be visible:', isAdmin);
-  console.log('CourseCalendar: Final render state:', {
-    isAdmin,
-    user: user,
-    userId: user?.id,
-    isAuthenticated: !!user
-  });
 
   return (
     <Card>
