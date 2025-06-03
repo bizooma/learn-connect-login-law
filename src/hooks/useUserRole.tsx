@@ -24,7 +24,7 @@ export const useUserRole = () => {
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
-        .maybeSingle(); // Use maybeSingle() instead of single() to handle no data gracefully
+        .maybeSingle();
 
       if (error) {
         console.error('useUserRole: Database error:', error);
@@ -33,7 +33,7 @@ export const useUserRole = () => {
         if (retryCount < maxRetries && (
           error.message.includes('Failed to fetch') ||
           error.message.includes('network') ||
-          error.code === 'PGRST301' // Temporary server error
+          error.code === 'PGRST301'
         )) {
           console.log(`useUserRole: Retrying in ${(retryCount + 1) * 1000}ms...`);
           setTimeout(() => {
@@ -42,21 +42,19 @@ export const useUserRole = () => {
           return;
         }
         
-        // For permission/auth errors, default to student but log the issue
-        if (error.code === 'PGRST116' || error.message.includes('permission')) {
-          console.warn('useUserRole: Permission/access error, defaulting to student:', error);
-          setRole('student');
-        } else {
-          console.error('useUserRole: Unhandled error, defaulting to student:', error);
-          setRole('student');
-        }
-      } else if (data?.role) {
+        // For any error, default to student and stop loading
+        console.warn('useUserRole: Error occurred, defaulting to student:', error);
+        setRole('student');
+        setLoading(false);
+      } else if (data && data.role) {
         console.log('useUserRole: Role fetched successfully:', data.role);
         setRole(data.role);
+        setLoading(false);
       } else {
-        // No role found in database
+        // No role found in database - this is the key fix
         console.log('useUserRole: No role found for user, defaulting to student');
         setRole('student');
+        setLoading(false);
       }
     } catch (error) {
       console.error('useUserRole: Unexpected error:', error);
@@ -72,7 +70,6 @@ export const useUserRole = () => {
       
       // Final fallback after all retries
       setRole('student');
-    } finally {
       setLoading(false);
     }
   };
