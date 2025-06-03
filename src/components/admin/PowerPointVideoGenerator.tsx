@@ -52,6 +52,12 @@ const PowerPointVideoGenerator = ({ onVideoGenerated }: PowerPointVideoGenerator
     setProgress(10);
 
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
       // Upload file to storage
       const fileExt = selectedFile.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExt}`;
@@ -64,13 +70,14 @@ const PowerPointVideoGenerator = ({ onVideoGenerated }: PowerPointVideoGenerator
 
       setProgress(30);
 
-      // Create import record
+      // Create import record with user_id
       const { data: importRecord, error: insertError } = await supabase
         .from('powerpoint_video_imports')
         .insert({
           filename: selectedFile.name,
           file_url: fileName,
-          status: 'uploaded'
+          status: 'uploaded',
+          user_id: user.id
         })
         .select()
         .single();
