@@ -8,21 +8,16 @@ export const useUserRole = () => {
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchUserRole = async (retryCount = 0, maxRetries = 3) => {
+  const fetchUserRole = async () => {
     if (!user?.id) {
       console.log('useUserRole: No user ID available');
-      setRole(null);
+      setRole('student'); // Default to student when no user
       setLoading(false);
       return;
     }
 
     try {
-      // Don't set loading to true if we already have a role - this prevents the loading loop
-      if (!role) {
-        setLoading(true);
-      }
-      
-      console.log(`useUserRole: Fetching role for user ${user.id} (attempt ${retryCount + 1})`);
+      console.log(`useUserRole: Fetching role for user ${user.id}`);
       
       const { data, error } = await supabase
         .from('user_roles')
@@ -32,57 +27,29 @@ export const useUserRole = () => {
 
       if (error) {
         console.error('useUserRole: Database error:', error);
-        
-        // Retry on network or temporary errors
-        if (retryCount < maxRetries && (
-          error.message.includes('Failed to fetch') ||
-          error.message.includes('network') ||
-          error.code === 'PGRST301'
-        )) {
-          console.log(`useUserRole: Retrying in ${(retryCount + 1) * 1000}ms...`);
-          setTimeout(() => {
-            fetchUserRole(retryCount + 1, maxRetries);
-          }, (retryCount + 1) * 1000);
-          return;
-        }
-        
-        // For any error, default to student and stop loading
-        console.warn('useUserRole: Error occurred, defaulting to student:', error);
+        // Default to student on error
         setRole('student');
-        setLoading(false);
       } else if (data && data.role) {
         console.log('useUserRole: Role fetched successfully:', data.role);
         setRole(data.role);
-        setLoading(false);
       } else {
-        // No role found in database - this is the key fix
+        // No role found - default to student
         console.log('useUserRole: No role found for user, defaulting to student');
         setRole('student');
-        setLoading(false);
       }
     } catch (error) {
       console.error('useUserRole: Unexpected error:', error);
-      
-      // Retry on unexpected errors
-      if (retryCount < maxRetries) {
-        console.log(`useUserRole: Retrying after unexpected error in ${(retryCount + 1) * 1000}ms...`);
-        setTimeout(() => {
-          fetchUserRole(retryCount + 1, maxRetries);
-        }, (retryCount + 1) * 1000);
-        return;
-      }
-      
-      // Final fallback after all retries
       setRole('student');
+    } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
     if (user?.id) {
+      setLoading(true);
       fetchUserRole();
     } else {
-      console.log('useUserRole: No user, clearing role');
       setRole(null);
       setLoading(false);
     }
@@ -90,29 +57,19 @@ export const useUserRole = () => {
 
   const refreshRole = () => {
     if (user?.id) {
-      console.log('useUserRole: Manual role refresh requested');
       setLoading(true);
       fetchUserRole();
     }
   };
 
-  // Compute derived values - ensure we always have a role
-  const effectiveRole = role || 'student';
+  // Compute derived values - ensure we always have a role when user exists
+  const effectiveRole = user ? (role || 'student') : null;
   const isAdmin = effectiveRole === 'admin';
   const isOwner = effectiveRole === 'owner';
   const isStudent = effectiveRole === 'student';
   const isClient = effectiveRole === 'client';
   const isFree = effectiveRole === 'free';
   const hasAdminPrivileges = isAdmin || isOwner;
-
-  // Enhanced logging for debugging
-  console.log('useUserRole state:', {
-    userId: user?.id,
-    role: effectiveRole,
-    loading,
-    isAdmin,
-    hasAdminPrivileges
-  });
 
   return { 
     role: effectiveRole, 

@@ -16,7 +16,7 @@ const Index = () => {
   const [hasRedirected, setHasRedirected] = useState(false);
 
   useEffect(() => {
-    // Only proceed if we have auth data and roles are loaded
+    // Only proceed if we have a user and roles are loaded
     if (authLoading || !user || roleLoading || hasRedirected) {
       return;
     }
@@ -34,33 +34,34 @@ const Index = () => {
     // Set flag to prevent multiple redirects
     setHasRedirected(true);
 
-    // Redirect based on role with a small delay to ensure state is stable
-    const redirectTimer = setTimeout(() => {
-      if (isAdmin) {
-        console.log('User is admin, staying on login page to show AdminDashboard');
-        // Admins stay on the login page to see AdminDashboard
-        return;
-      } else if (isOwner) {
-        console.log('Redirecting to owner dashboard');
-        navigate("/owner-dashboard", { replace: true });
-      } else if (isClient) {
-        console.log('Redirecting to client dashboard');
-        navigate("/client-dashboard", { replace: true });
-      } else if (isFree) {
-        console.log('Redirecting to free dashboard');
-        navigate("/free-dashboard", { replace: true });
-      } else if (isStudent) {
-        console.log('Redirecting to student dashboard');
-        navigate("/student-dashboard", { replace: true });
-      }
-    }, 50);
-
-    return () => clearTimeout(redirectTimer);
+    // Redirect based on role
+    if (isAdmin) {
+      console.log('User is admin, staying on login page to show AdminDashboard');
+      // Admins stay on the login page to see AdminDashboard
+      return;
+    } else if (isOwner) {
+      console.log('Redirecting to owner dashboard');
+      navigate("/owner-dashboard", { replace: true });
+    } else if (isClient) {
+      console.log('Redirecting to client dashboard');
+      navigate("/client-dashboard", { replace: true });
+    } else if (isFree) {
+      console.log('Redirecting to free dashboard');
+      navigate("/free-dashboard", { replace: true });
+    } else if (isStudent) {
+      console.log('Redirecting to student dashboard');
+      navigate("/student-dashboard", { replace: true });
+    }
   }, [user, isOwner, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate, hasRedirected, location.pathname]);
 
-  // Show loading only while checking auth state
-  if (authLoading) {
-    console.log('Showing loading: auth loading');
+  // Reset redirect flag when user changes
+  useEffect(() => {
+    setHasRedirected(false);
+  }, [user?.id]);
+
+  // Show loading only while checking auth state or role for the first time
+  if (authLoading || (user && roleLoading && !hasRedirected)) {
+    console.log('Showing loading:', { authLoading, roleLoading, hasRedirected });
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
@@ -75,19 +76,6 @@ const Index = () => {
   if (!user) {
     console.log('No user found, showing auth page');
     return <AuthPage />;
-  }
-
-  // Show loading while roles are being fetched for the first time only
-  if (roleLoading && !hasRedirected) {
-    console.log('Showing loading: role loading');
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading user data...</p>
-        </div>
-      </div>
-    );
   }
 
   // Show admin dashboard for admins, regular dashboard for others
