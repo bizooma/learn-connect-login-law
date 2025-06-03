@@ -42,7 +42,10 @@ export const useUserProgress = (userId?: string) => {
 
     try {
       await progressService.updateCourseProgress(userId, courseId, updates);
-      await fetchUserProgress();
+      // Directly refetch instead of calling fetchUserProgress to avoid circular dependency
+      const progressData = await progressService.fetchUserProgress(userId);
+      const coursesWithProgress = transformProgressData(progressData);
+      setCourseProgress(coursesWithProgress);
     } catch (error) {
       console.error('Error updating course progress:', error);
       if (error.code !== '23505') {
@@ -53,7 +56,32 @@ export const useUserProgress = (userId?: string) => {
         });
       }
     }
-  }, [userId, fetchUserProgress, toast]);
+  }, [userId, toast]);
+
+  const calculateCourseProgress = useCallback(async (courseId: string) => {
+    if (!userId) {
+      console.warn('Cannot calculate course progress: no user ID');
+      return;
+    }
+
+    try {
+      const { progressPercentage, status } = await progressService.calculateCourseProgress(userId, courseId);
+      
+      await progressService.updateCourseProgress(userId, courseId, {
+        progress_percentage: progressPercentage,
+        status,
+        ...(status === 'completed' && { completed_at: new Date().toISOString() }),
+        ...(status === 'in_progress' && progressPercentage === 1 && { started_at: new Date().toISOString() })
+      });
+
+      // Directly refetch instead of calling updateCourseProgress to avoid circular dependency
+      const progressData = await progressService.fetchUserProgress(userId);
+      const coursesWithProgress = transformProgressData(progressData);
+      setCourseProgress(coursesWithProgress);
+    } catch (error) {
+      console.error('Error calculating course progress:', error);
+    }
+  }, [userId]);
 
   const markUnitComplete = useCallback(async (unitId: string, courseId: string) => {
     if (!userId) {
@@ -74,27 +102,7 @@ export const useUserProgress = (userId?: string) => {
         });
       }
     }
-  }, [userId, toast]);
-
-  const calculateCourseProgress = useCallback(async (courseId: string) => {
-    if (!userId) {
-      console.warn('Cannot calculate course progress: no user ID');
-      return;
-    }
-
-    try {
-      const { progressPercentage, status } = await progressService.calculateCourseProgress(userId, courseId);
-      
-      await updateCourseProgress(courseId, {
-        progress_percentage: progressPercentage,
-        status,
-        ...(status === 'completed' && { completed_at: new Date().toISOString() }),
-        ...(status === 'in_progress' && progressPercentage === 1 && { started_at: new Date().toISOString() })
-      });
-    } catch (error) {
-      console.error('Error calculating course progress:', error);
-    }
-  }, [userId, updateCourseProgress]);
+  }, [userId, calculateCourseProgress, toast]);
 
   useEffect(() => {
     if (userId) {
@@ -104,7 +112,7 @@ export const useUserProgress = (userId?: string) => {
       console.log('useUserProgress: No user ID provided');
       setLoading(false);
     }
-  }, [fetchUserProgress]);
+  }, [userId, toast]); // Remove fetchUserProgress from dependencies
 
   const completedCourses = courseProgress.filter(course => course.progress?.status === 'completed');
   const inProgressCourses = courseProgress.filter(course => course.progress?.status === 'in_progress');
