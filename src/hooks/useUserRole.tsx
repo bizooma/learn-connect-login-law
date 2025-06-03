@@ -27,12 +27,15 @@ export const useUserRole = () => {
       if (error) {
         // If no role found, default to student
         if (error.code === 'PGRST116') {
+          console.log('No role found for user, defaulting to student');
           setRole('student');
         } else {
+          console.error('Error fetching user role:', error);
           setRole('student');
         }
       } else {
         const userRole = data?.role || 'student';
+        console.log('User role fetched:', userRole);
         setRole(userRole);
       }
     } catch (error) {
@@ -44,12 +47,22 @@ export const useUserRole = () => {
   };
 
   useEffect(() => {
+    let mounted = true;
+
     if (user?.id) {
-      fetchUserRole();
+      fetchUserRole().then(() => {
+        if (mounted) {
+          // Role has been set
+        }
+      });
     } else {
       setRole(null);
       setLoading(false);
     }
+
+    return () => {
+      mounted = false;
+    };
   }, [user?.id]);
 
   const refreshRole = () => {

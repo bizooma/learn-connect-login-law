@@ -18,26 +18,31 @@ const Index = () => {
     if (!authLoading && !roleLoading && user) {
       console.log('User authenticated, redirecting based on role:', { isOwner, isStudent, isClient, isFree, isAdmin });
       
-      // Redirect owners to their dedicated dashboard
-      if (isOwner) {
-        navigate("/owner-dashboard", { replace: true });
-      }
-      // Redirect students to their dedicated dashboard
-      else if (isStudent) {
-        navigate("/student-dashboard", { replace: true });
-      }
-      // Redirect clients to their dedicated dashboard
-      else if (isClient) {
-        navigate("/client-dashboard", { replace: true });
-      }
-      // Redirect free users to their dedicated dashboard
-      else if (isFree) {
-        navigate("/free-dashboard", { replace: true });
-      }
+      // Add a small delay to prevent immediate redirects during initial load
+      const redirectTimer = setTimeout(() => {
+        // Redirect owners to their dedicated dashboard
+        if (isOwner) {
+          navigate("/owner-dashboard", { replace: true });
+        }
+        // Redirect students to their dedicated dashboard
+        else if (isStudent) {
+          navigate("/student-dashboard", { replace: true });
+        }
+        // Redirect clients to their dedicated dashboard
+        else if (isClient) {
+          navigate("/client-dashboard", { replace: true });
+        }
+        // Redirect free users to their dedicated dashboard
+        else if (isFree) {
+          navigate("/free-dashboard", { replace: true });
+        }
+      }, 100);
+
+      return () => clearTimeout(redirectTimer);
     }
   }, [user, isOwner, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate]);
 
-  // Show loading while checking auth state
+  // Show loading while checking auth state or during role loading
   if (authLoading || (user && roleLoading)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -55,7 +60,7 @@ const Index = () => {
     return <AuthPage />;
   }
 
-  // Show admin dashboard only for admins, not owners, students, clients, or free users
+  // Show admin dashboard only for admins, regular dashboard for others
   return (
     <div>
       <NotificationBanner />
