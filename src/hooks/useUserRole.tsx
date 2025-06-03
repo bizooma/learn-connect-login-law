@@ -19,14 +19,34 @@ export const useUserRole = () => {
     try {
       console.log(`useUserRole: Fetching role for user ${user.id}`);
       
-      const { data, error } = await supabase
+      // Add more detailed logging for the database query
+      const { data, error, count } = await supabase
         .from('user_roles')
-        .select('role')
+        .select('role', { count: 'exact' })
         .eq('user_id', user.id)
         .maybeSingle();
 
+      console.log('useUserRole: Database query result:', { 
+        data, 
+        error, 
+        count,
+        userId: user.id 
+      });
+
       if (error) {
         console.error('useUserRole: Database error:', error);
+        
+        // Try a different approach - select all roles for debugging
+        console.log('useUserRole: Attempting to fetch all roles for debugging...');
+        const { data: allRoles, error: allRolesError } = await supabase
+          .from('user_roles')
+          .select('*');
+        
+        console.log('useUserRole: All roles in database:', { 
+          allRoles, 
+          error: allRolesError 
+        });
+        
         setRole('student'); // Default fallback on error
         setLoading(false);
         return;
@@ -36,7 +56,20 @@ export const useUserRole = () => {
         console.log('useUserRole: Role fetched successfully:', data.role);
         setRole(data.role);
       } else {
-        console.log('useUserRole: No role found for user, defaulting to student');
+        console.log('useUserRole: No role found for user, checking if any roles exist...');
+        
+        // Debug: Check if any roles exist for this user at all
+        const { data: debugRoles, error: debugError } = await supabase
+          .from('user_roles')
+          .select('*')
+          .eq('user_id', user.id);
+          
+        console.log('useUserRole: Debug - roles for this user:', { 
+          debugRoles, 
+          debugError,
+          userIdFromAuth: user.id 
+        });
+        
         setRole('student');
       }
       
