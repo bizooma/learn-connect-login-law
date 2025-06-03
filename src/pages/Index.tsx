@@ -13,9 +13,17 @@ const Index = () => {
   const navigate = useNavigate();
   const [hasRedirected, setHasRedirected] = useState(false);
 
-  // Redirect to login if no user
+  console.log('Index page - Auth state:', { 
+    user: !!user, 
+    authLoading, 
+    roleLoading,
+    isAdmin,
+    currentPath: window.location.pathname
+  });
+
+  // Redirect to login if no user and not already on login page
   useEffect(() => {
-    if (!authLoading && !user) {
+    if (!authLoading && !user && window.location.pathname !== '/login') {
       console.log('No user found, redirecting to login page');
       navigate("/login", { replace: true });
     }
@@ -34,8 +42,15 @@ const Index = () => {
       isStudent, 
       isClient, 
       isFree, 
-      isAdmin 
+      isAdmin,
+      currentPath: window.location.pathname
     });
+
+    // If we're already on the dashboard page and user is admin, don't redirect
+    if (window.location.pathname === '/dashboard' && isAdmin) {
+      console.log('User is admin and already on dashboard - staying here');
+      return;
+    }
 
     // Set flag to prevent multiple redirects
     setHasRedirected(true);

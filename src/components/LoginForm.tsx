@@ -20,10 +20,10 @@ const LoginForm = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Redirect if user is already logged in
+  // Redirect if user is already logged in - but avoid infinite loops
   useEffect(() => {
-    if (user) {
-      console.log('User is logged in, redirecting to dashboard');
+    if (user && window.location.pathname === '/login') {
+      console.log('User is logged in and on login page, redirecting to dashboard');
       navigate("/dashboard", { replace: true });
     }
   }, [user, navigate]);

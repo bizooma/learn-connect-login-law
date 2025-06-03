@@ -19,34 +19,34 @@ export const useUserRole = () => {
     try {
       console.log(`useUserRole: Fetching role for user ${user.id}`);
       
-      // Add more detailed logging for the database query
+      // First, let's see ALL roles in the database
+      const { data: allRoles, error: allRolesError } = await supabase
+        .from('user_roles')
+        .select('*');
+      
+      console.log('useUserRole: ALL roles in database:', { 
+        allRoles, 
+        error: allRolesError,
+        totalCount: allRoles?.length || 0
+      });
+      
+      // Now try to fetch this user's specific role
       const { data, error, count } = await supabase
         .from('user_roles')
         .select('role', { count: 'exact' })
         .eq('user_id', user.id)
         .maybeSingle();
 
-      console.log('useUserRole: Database query result:', { 
+      console.log('useUserRole: User-specific query result:', { 
         data, 
         error, 
         count,
-        userId: user.id 
+        userId: user.id,
+        query: `SELECT role FROM user_roles WHERE user_id = '${user.id}'`
       });
 
       if (error) {
         console.error('useUserRole: Database error:', error);
-        
-        // Try a different approach - select all roles for debugging
-        console.log('useUserRole: Attempting to fetch all roles for debugging...');
-        const { data: allRoles, error: allRolesError } = await supabase
-          .from('user_roles')
-          .select('*');
-        
-        console.log('useUserRole: All roles in database:', { 
-          allRoles, 
-          error: allRolesError 
-        });
-        
         setRole('student'); // Default fallback on error
         setLoading(false);
         return;
@@ -56,17 +56,18 @@ export const useUserRole = () => {
         console.log('useUserRole: Role fetched successfully:', data.role);
         setRole(data.role);
       } else {
-        console.log('useUserRole: No role found for user, checking if any roles exist...');
+        console.log('useUserRole: No role found for user - user may not have a role assigned');
         
-        // Debug: Check if any roles exist for this user at all
-        const { data: debugRoles, error: debugError } = await supabase
-          .from('user_roles')
+        // Let's also check if the user exists in the profiles table
+        const { data: profileData, error: profileError } = await supabase
+          .from('profiles')
           .select('*')
-          .eq('user_id', user.id);
+          .eq('id', user.id)
+          .maybeSingle();
           
-        console.log('useUserRole: Debug - roles for this user:', { 
-          debugRoles, 
-          debugError,
+        console.log('useUserRole: Profile check:', { 
+          profileData, 
+          profileError,
           userIdFromAuth: user.id 
         });
         
