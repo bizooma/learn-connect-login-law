@@ -7,6 +7,7 @@ export const useUserRole = () => {
   const { user } = useAuth();
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasAttemptedFetch, setHasAttemptedFetch] = useState(false);
 
   const fetchUserRole = async () => {
     if (!user?.id) {
@@ -16,12 +17,19 @@ export const useUserRole = () => {
       return;
     }
 
+    // Prevent multiple simultaneous fetches
+    if (hasAttemptedFetch) {
+      console.log('useUserRole: Already attempted fetch, skipping');
+      return;
+    }
+
     try {
       console.log(`useUserRole: Fetching role for user ${user.id}`);
+      setHasAttemptedFetch(true);
       
-      // Create a promise that times out after 5 seconds
+      // Create a promise that times out after 3 seconds (reduced from 5)
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Query timeout')), 5000);
+        setTimeout(() => reject(new Error('Query timeout')), 3000);
       });
 
       // Race the query against the timeout
@@ -63,21 +71,28 @@ export const useUserRole = () => {
   };
 
   useEffect(() => {
-    if (user?.id) {
+    if (user?.id && !hasAttemptedFetch) {
       console.log('useUserRole: User changed, fetching role for:', user.id);
       setLoading(true);
       setRole(null); // Clear previous role
       fetchUserRole();
-    } else {
+    } else if (!user?.id) {
       console.log('useUserRole: No user, setting default state');
       setRole('student');
       setLoading(false);
+      setHasAttemptedFetch(false); // Reset for next user
     }
+  }, [user?.id]);
+
+  // Reset hasAttemptedFetch when user changes
+  useEffect(() => {
+    setHasAttemptedFetch(false);
   }, [user?.id]);
 
   const refreshRole = () => {
     if (user?.id) {
       console.log('useUserRole: Manual role refresh requested');
+      setHasAttemptedFetch(false);
       setLoading(true);
       setRole(null); // Clear current role
       fetchUserRole();
@@ -98,7 +113,8 @@ export const useUserRole = () => {
     role: effectiveRole,
     loading,
     isAdmin,
-    hasAdminPrivileges
+    hasAdminPrivileges,
+    hasAttemptedFetch
   });
 
   return { 
