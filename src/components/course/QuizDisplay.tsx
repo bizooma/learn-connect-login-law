@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { BookOpen, Clock, CheckCircle } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
+import QuizInterface from "../quiz/QuizInterface";
 
 type Quiz = Tables<'quizzes'>;
 
@@ -16,11 +17,20 @@ interface QuizDisplayProps {
 const QuizDisplay = ({ quiz, unitTitle }: QuizDisplayProps) => {
   const [quizStarted, setQuizStarted] = useState(false);
 
-  const handleStartQuiz = () => {
-    setQuizStarted(true);
-    // TODO: Implement quiz taking functionality
-    console.log('Starting quiz:', quiz.id);
+  const handleQuizComplete = (score: number, passed: boolean) => {
+    console.log('Quiz completed:', { score, passed });
+    // You can add additional logic here like updating progress
   };
+
+  if (quizStarted) {
+    return (
+      <QuizInterface 
+        quiz={quiz}
+        unitTitle={unitTitle}
+        onQuizComplete={handleQuizComplete}
+      />
+    );
+  }
 
   return (
     <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
@@ -54,19 +64,13 @@ const QuizDisplay = ({ quiz, unitTitle }: QuizDisplayProps) => {
         
         <div className="pt-2">
           <Button 
-            onClick={handleStartQuiz}
+            onClick={() => setQuizStarted(true)}
             className="w-full bg-blue-600 hover:bg-blue-700"
             disabled={!quiz.is_active}
           >
             {quiz.is_active ? 'Start Quiz' : 'Quiz Not Available'}
           </Button>
         </div>
-        
-        {quizStarted && (
-          <div className="text-center text-sm text-gray-600 mt-2">
-            Quiz functionality will be implemented in a future update.
-          </div>
-        )}
       </CardContent>
     </Card>
   );
