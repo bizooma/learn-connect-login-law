@@ -52,6 +52,7 @@ export const useUserRole = () => {
     if (user?.id) {
       console.log('useUserRole: User changed, fetching role for:', user.id);
       setLoading(true);
+      setRole(null); // Clear previous role
       fetchUserRole();
     } else {
       console.log('useUserRole: No user, setting default state');
@@ -64,6 +65,7 @@ export const useUserRole = () => {
     if (user?.id) {
       console.log('useUserRole: Manual role refresh requested');
       setLoading(true);
+      setRole(null); // Clear current role
       fetchUserRole();
     }
   };

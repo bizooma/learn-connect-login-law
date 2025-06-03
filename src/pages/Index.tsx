@@ -52,10 +52,15 @@ const Index = () => {
         console.log('Redirecting to student dashboard');
         navigate("/student-dashboard", { replace: true });
       }
-    }, 50);
+    }, 100); // Slightly longer delay to ensure role is properly set
 
     return () => clearTimeout(redirectTimer);
   }, [user, isOwner, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate, hasRedirected]);
+
+  // Reset redirect flag when user changes
+  useEffect(() => {
+    setHasRedirected(false);
+  }, [user?.id]);
 
   // Show loading only while checking auth state
   if (authLoading) {
@@ -76,8 +81,8 @@ const Index = () => {
     return <AuthPage />;
   }
 
-  // Show loading while roles are being fetched for the first time only
-  if (roleLoading && !hasRedirected) {
+  // Show loading while roles are being fetched
+  if (roleLoading) {
     console.log('Showing loading: role loading');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
