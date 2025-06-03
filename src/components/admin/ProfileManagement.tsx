@@ -19,6 +19,7 @@ const ProfileManagement = () => {
     first_name: '',
     last_name: '',
     email: '',
+    law_firm_name: '',
     profile_image_url: '',
   });
 
@@ -44,6 +45,7 @@ const ProfileManagement = () => {
         first_name: data.first_name || '',
         last_name: data.last_name || '',
         email: data.email || '',
+        law_firm_name: data.law_firm_name || '',
         profile_image_url: data.profile_image_url || '',
       });
     } catch (error) {
@@ -66,7 +68,7 @@ const ProfileManagement = () => {
         .update({
           first_name: formData.first_name,
           last_name: formData.last_name,
-          email: formData.email,
+          law_firm_name: formData.law_firm_name,
           updated_at: new Date().toISOString(),
         })
         .eq('id', user?.id);
@@ -154,15 +156,30 @@ const ProfileManagement = () => {
                 </div>
 
                 <div className="space-y-2">
+                  <Label htmlFor="law_firm_name">Law Firm Name</Label>
+                  <Input
+                    id="law_firm_name"
+                    name="law_firm_name"
+                    type="text"
+                    value={formData.law_firm_name}
+                    onChange={handleInputChange}
+                    placeholder="Enter your law firm name"
+                  />
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="email">Email Address</Label>
                   <Input
                     id="email"
                     name="email"
                     type="email"
                     value={formData.email}
-                    onChange={handleInputChange}
-                    placeholder="Enter your email address"
+                    disabled
+                    className="bg-gray-50"
                   />
+                  <p className="text-sm text-gray-500">
+                    Email cannot be changed. Contact an administrator if you need to update your email address.
+                  </p>
                 </div>
 
                 <div className="flex justify-end">

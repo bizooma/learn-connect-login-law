@@ -4,9 +4,9 @@ export interface UserProfile {
   email: string;
   first_name: string;
   last_name: string;
+  law_firm_name?: string;
   created_at: string;
   profile_image_url?: string;
-  law_firm_name?: string;
   roles?: string[];
   // Add flag to indicate if this user has a complete profile record
   hasCompleteProfile?: boolean;

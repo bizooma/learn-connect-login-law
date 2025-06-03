@@ -12,6 +12,7 @@ interface ProfileData {
   first_name: string;
   last_name: string;
   email: string;
+  law_firm_name: string;
   profile_image_url: string;
 }
 
@@ -33,6 +34,7 @@ const FreeProfileTab = ({ profile, setProfile, userId }: FreeProfileTabProps) =>
         .update({
           first_name: profile.first_name,
           last_name: profile.last_name,
+          law_firm_name: profile.law_firm_name,
         })
         .eq('id', userId);
 
@@ -94,6 +96,16 @@ const FreeProfileTab = ({ profile, setProfile, userId }: FreeProfileTabProps) =>
       </div>
 
       <div>
+        <Label htmlFor="law_firm_name">Law Firm Name</Label>
+        <Input
+          id="law_firm_name"
+          value={profile.law_firm_name}
+          onChange={(e) => setProfile(prev => ({ ...prev, law_firm_name: e.target.value }))}
+          placeholder="Enter your law firm name"
+        />
+      </div>
+
+      <div>
         <Label htmlFor="email">Email</Label>
         <Input
           id="email"
@@ -102,7 +114,7 @@ const FreeProfileTab = ({ profile, setProfile, userId }: FreeProfileTabProps) =>
           className="bg-gray-50"
         />
         <p className="text-sm text-gray-500 mt-1">
-          Email cannot be changed. Contact support if needed.
+          Email cannot be changed. Contact an administrator if you need to update your email address.
         </p>
       </div>
 

@@ -7,10 +7,11 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import UserRoleSelect from "./UserRoleSelect";
 import DeleteUserDialog from "./DeleteUserDialog";
 import UserCourseAssignment from "./UserCourseAssignment";
+import UserEmailEditDialog from "./UserEmailEditDialog";
 import { UserProfile } from "./types";
 import { getUserRole, getRoleBadgeColor } from "./userRoleUtils";
 import { useUserRole } from "@/hooks/useUserRole";
-import { Trash2, BookOpen, BarChart3 } from "lucide-react";
+import { Trash2, BookOpen, BarChart3, Mail } from "lucide-react";
 
 interface UserCardProps {
   user: UserProfile;
@@ -28,6 +29,7 @@ export const UserCard = ({
   onViewProgress 
 }: UserCardProps) => {
   const [showCourseDialog, setShowCourseDialog] = useState(false);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
   const { isAdmin } = useUserRole();
   
   const userRole = getUserRole(user);
@@ -41,6 +43,13 @@ export const UserCard = ({
 
   const handleRoleChange = async (newRole: 'admin' | 'owner' | 'student' | 'client' | 'free') => {
     await onRoleUpdate(user.id, newRole);
+  };
+
+  const handleEmailUpdated = () => {
+    // Refresh the user data by calling the parent's refresh function
+    if (onCourseAssigned) {
+      onCourseAssigned();
+    }
   };
 
   return (
@@ -68,9 +77,15 @@ export const UserCard = ({
                 </Badge>
               </div>
               
-              <p className="text-sm text-gray-600 mb-4 truncate">
+              <p className="text-sm text-gray-600 mb-2 truncate">
                 {user.email}
               </p>
+
+              {user.law_firm_name && (
+                <p className="text-sm text-gray-500 mb-2 truncate">
+                  {user.law_firm_name}
+                </p>
+              )}
               
               <div className="space-y-3">
                 <UserRoleSelect
@@ -100,6 +115,18 @@ export const UserCard = ({
                       View Progress
                     </Button>
                   )}
+
+                  {isAdmin && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowEmailDialog(true)}
+                      className="flex items-center gap-1"
+                    >
+                      <Mail className="h-3 w-3" />
+                      Edit Email
+                    </Button>
+                  )}
                   
                   {isAdmin && (
                     <DeleteUserDialog
@@ -125,6 +152,15 @@ export const UserCard = ({
               onCourseAssigned();
             }
           }}
+        />
+      )}
+
+      {showEmailDialog && (
+        <UserEmailEditDialog
+          user={user}
+          open={showEmailDialog}
+          onOpenChange={setShowEmailDialog}
+          onEmailUpdated={handleEmailUpdated}
         />
       )}
     </>
