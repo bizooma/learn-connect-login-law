@@ -368,7 +368,8 @@ async function generateHeyGenVideo(script: string, avatarId: string): Promise<st
       },
       voice: {
         type: "text",
-        input_text: script
+        input_text: script,
+        voice_id: avatarId  // For clones, use the same ID for both avatar and voice
       },
       background: {
         type: "color",
