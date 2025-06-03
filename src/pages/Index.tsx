@@ -24,6 +24,7 @@ const Index = () => {
   useEffect(() => {
     // Only proceed if we have auth data and roles are loaded
     if (authLoading || !user || roleLoading || hasRedirected) {
+      console.log('Skipping redirect check:', { authLoading, hasUser: !!user, roleLoading, hasRedirected });
       return;
     }
 
