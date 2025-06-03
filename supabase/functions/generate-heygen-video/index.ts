@@ -124,10 +124,10 @@ serve(async (req) => {
   try {
     // Parse request body once and store it
     requestBody = await req.json();
-    const { importId: reqImportId, action, avatarId, voiceId } = requestBody;
+    const { importId: reqImportId, action } = requestBody;
     importId = reqImportId;
     
-    console.log('Processing HeyGen video generation:', { importId, action, avatarId, voiceId });
+    console.log('Processing HeyGen video generation:', { importId, action });
 
     // Validate required parameters
     if (!importId) {
@@ -194,12 +194,14 @@ serve(async (req) => {
       console.log('Generating narration script...');
       const script = await generateNarrationScript(importRecord.filename, slideContents);
 
-      // Update record with script
+      // Update record with script and default avatar/voice settings
       await supabaseClient
         .from('powerpoint_video_imports')
         .update({ 
           script_content: script,
-          status: 'script_ready' 
+          status: 'script_ready',
+          avatar_id: 'your_clone_avatar_id', // Use your specific clone ID here
+          voice_id: 'your_clone_voice_id'   // Use your specific clone voice ID here
         })
         .eq('id', importId);
 
@@ -211,11 +213,11 @@ serve(async (req) => {
       );
 
     } else if (action === 'generate_video') {
-      if (!avatarId || !voiceId) {
-        throw new Error('Avatar ID and Voice ID are required for video generation');
-      }
+      // Use the pre-configured avatar and voice from the record
+      const avatarId = importRecord.avatar_id || 'your_clone_avatar_id'; // Fallback to your clone
+      const voiceId = importRecord.voice_id || 'your_clone_voice_id';   // Fallback to your clone
 
-      // Update status and avatar/voice settings
+      // Update status
       await supabaseClient
         .from('powerpoint_video_imports')
         .update({ 
@@ -225,7 +227,7 @@ serve(async (req) => {
         })
         .eq('id', importId);
 
-      console.log('Generating video with HeyGen...');
+      console.log('Generating video with HeyGen using avatar:', avatarId, 'voice:', voiceId);
 
       // Generate video with HeyGen
       const videoUrl = await generateHeyGenVideo(importRecord.script_content, avatarId, voiceId);
@@ -355,7 +357,10 @@ async function generateNarrationScript(filename: string, slideContents: SlideCon
 }
 
 async function generateHeyGenVideo(script: string, avatarId: string, voiceId: string): Promise<string> {
-  console.log('Starting HeyGen video generation...');
+  console.log('Starting HeyGen video generation with avatar:', avatarId);
+  
+  // First, let's try to get available avatars to debug the issue
+  console.log('Checking HeyGen API connectivity...');
   
   const heygenResponse = await fetch('https://api.heygen.com/v2/video/generate', {
     method: 'POST',
@@ -387,6 +392,17 @@ async function generateHeyGenVideo(script: string, avatarId: string, voiceId: st
   if (!heygenResponse.ok) {
     const errorText = await heygenResponse.text();
     console.error('HeyGen API error:', errorText);
+    
+    // Try to parse the error to provide better feedback
+    try {
+      const errorData = JSON.parse(errorText);
+      if (errorData.error?.code === 'avatar_not_found') {
+        throw new Error(`Avatar ID "${avatarId}" not found. Please check your avatar ID in HeyGen dashboard and update the function.`);
+      }
+    } catch (parseError) {
+      // Fall back to original error
+    }
+    
     throw new Error(`HeyGen API error: ${heygenResponse.statusText} - ${errorText}`);
   }
 
