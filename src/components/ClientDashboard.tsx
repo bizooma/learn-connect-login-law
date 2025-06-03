@@ -7,17 +7,12 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import UserCourseProgress from "@/components/user/UserCourseProgress";
 import NotificationBanner from "@/components/notifications/NotificationBanner";
-import { hasGamificationAccess } from "@/utils/gamificationAccess";
 import GamificationDashboard from "@/components/gamification/GamificationDashboard";
 
 const ClientDashboard = () => {
   const { user } = useAuth();
   const { completedCourses, currentCourse, loading } = useUserProgress(user?.id || '');
   
-  // Check if user has gamification access
-  const userEmail = user?.email;
-  const showGamification = hasGamificationAccess(userEmail);
-
   // Calculate progress statistics
   const completedCoursesCount = completedCourses.length;
   const totalCourses = completedCourses.length + (currentCourse ? 1 : 0);
@@ -95,25 +90,21 @@ const ClientDashboard = () => {
 
       {/* Main Content */}
       <Tabs defaultValue="courses" className="space-y-4">
-        <TabsList className={`grid w-full ${showGamification ? 'grid-cols-2' : 'grid-cols-1'}`}>
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="courses">My Training</TabsTrigger>
-          {showGamification && (
-            <TabsTrigger value="gamification" className="flex items-center gap-2">
-              <Trophy className="h-4 w-4" />
-              Achievements
-            </TabsTrigger>
-          )}
+          <TabsTrigger value="gamification" className="flex items-center gap-2">
+            <Trophy className="h-4 w-4" />
+            Achievements
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="courses" className="space-y-4">
           <UserCourseProgress userId={user?.id || ''} />
         </TabsContent>
 
-        {showGamification && (
-          <TabsContent value="gamification" className="space-y-4">
-            <GamificationDashboard />
-          </TabsContent>
-        )}
+        <TabsContent value="gamification" className="space-y-4">
+          <GamificationDashboard />
+        </TabsContent>
       </Tabs>
     </div>
   );
