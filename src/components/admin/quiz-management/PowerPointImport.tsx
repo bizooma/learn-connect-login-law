@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Upload, FileText, CheckCircle, AlertCircle, Loader2 } from "lucide-react";
+import { Upload, FileText, CheckCircle, AlertCircle, Loader2, Presentation } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 interface PowerPointImportProps {
@@ -22,16 +22,20 @@ const PowerPointImport = ({ onImportComplete }: PowerPointImportProps) => {
     const selectedFile = event.target.files?.[0];
     if (!selectedFile) return;
 
-    // Validate file type
+    // Validate file type - support both .ppt and .pptx
     const validTypes = [
-      'application/vnd.openxmlformats-officedocument.presentationml.presentation',
-      'application/vnd.ms-powerpoint'
+      'application/vnd.openxmlformats-officedocument.presentationml.presentation', // .pptx
+      'application/vnd.ms-powerpoint' // .ppt
     ];
     
-    if (!validTypes.includes(selectedFile.type) && !selectedFile.name.toLowerCase().endsWith('.pptx')) {
+    const fileName = selectedFile.name.toLowerCase();
+    const hasValidExtension = fileName.endsWith('.pptx') || fileName.endsWith('.ppt');
+    const hasValidMimeType = validTypes.includes(selectedFile.type);
+    
+    if (!hasValidExtension && !hasValidMimeType) {
       toast({
         title: "Invalid file type",
-        description: "Please select a PowerPoint file (.pptx)",
+        description: "Please select a PowerPoint file (.pptx or .ppt)",
         variant: "destructive",
       });
       return;
@@ -100,7 +104,7 @@ const PowerPointImport = ({ onImportComplete }: PowerPointImportProps) => {
       if (processResult.success) {
         toast({
           title: "Import successful",
-          description: `Extracted ${processResult.data.questions.length} questions from your PowerPoint`,
+          description: `Successfully analyzed ${processResult.data.questions.length} questions from your PowerPoint slides`,
         });
         onImportComplete(processResult.data);
       } else {
@@ -125,11 +129,11 @@ const PowerPointImport = ({ onImportComplete }: PowerPointImportProps) => {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center">
-          <FileText className="h-5 w-5 mr-2" />
+          <Presentation className="h-5 w-5 mr-2" />
           Import Quiz from PowerPoint
         </CardTitle>
         <CardDescription>
-          Upload a PowerPoint presentation and we'll automatically extract quiz questions using AI
+          Upload a PowerPoint presentation (.pptx or .ppt) and our AI will extract quiz questions from each slide's content
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -144,12 +148,12 @@ const PowerPointImport = ({ onImportComplete }: PowerPointImportProps) => {
               <input
                 id="powerpoint-upload"
                 type="file"
-                accept=".pptx,.ppt"
+                accept=".pptx,.ppt,application/vnd.openxmlformats-officedocument.presentationml.presentation,application/vnd.ms-powerpoint"
                 onChange={handleFileSelect}
                 className="hidden"
               />
               <p className="text-xs text-gray-500 mt-2">
-                Supports .pptx files up to 50MB
+                Supports .pptx and .ppt files up to 50MB
               </p>
             </div>
           ) : (
@@ -163,13 +167,18 @@ const PowerPointImport = ({ onImportComplete }: PowerPointImportProps) => {
 
         {file && (
           <div className="bg-blue-50 p-4 rounded-lg">
-            <h4 className="font-medium text-blue-900 mb-2">What happens next:</h4>
+            <h4 className="font-medium text-blue-900 mb-2">How the AI Quiz Generation Works:</h4>
             <ul className="text-sm text-blue-800 space-y-1">
-              <li>• Your PowerPoint will be uploaded securely</li>
-              <li>• AI will analyze the content and extract quiz questions</li>
-              <li>• You'll review and edit the questions before creating the quiz</li>
-              <li>• The quiz can then be assigned to any unit in your system</li>
+              <li>• <strong>Slide Analysis:</strong> AI examines each slide's content individually</li>
+              <li>• <strong>Question Creation:</strong> Content from each slide becomes the correct answer</li>
+              <li>• <strong>Multiple Choice:</strong> AI generates 3 plausible incorrect options per question</li>
+              <li>• <strong>Context Preservation:</strong> Questions are linked to their source slides</li>
+              <li>• <strong>Review & Edit:</strong> You can modify questions before creating the quiz</li>
             </ul>
+            <div className="mt-3 p-2 bg-blue-100 rounded text-xs text-blue-700">
+              <strong>Example:</strong> If a slide contains "Form I-485 is used for adjustment of status", 
+              the AI creates: "Which form is used for adjustment of status?" with I-485 as the correct answer.
+            </div>
           </div>
         )}
 
@@ -181,27 +190,40 @@ const PowerPointImport = ({ onImportComplete }: PowerPointImportProps) => {
           {uploading ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Uploading...
+              Uploading PowerPoint...
             </>
           ) : processing ? (
             <>
               <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-              Processing with AI...
+              AI Analyzing Slides & Generating Questions...
             </>
           ) : (
             <>
               <Upload className="h-4 w-4 mr-2" />
-              Import Quiz Questions
+              Generate Quiz from PowerPoint
             </>
           )}
         </Button>
 
         {(uploading || processing) && (
-          <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
-            <AlertCircle className="h-4 w-4" />
-            <span>
-              {uploading ? 'Uploading file...' : 'AI is analyzing your presentation and extracting questions...'}
-            </span>
+          <div className="space-y-2">
+            <div className="flex items-center justify-center space-x-2 text-sm text-gray-600">
+              <AlertCircle className="h-4 w-4" />
+              <span>
+                {uploading ? 'Uploading your PowerPoint file...' : 'AI is analyzing each slide and creating targeted quiz questions...'}
+              </span>
+            </div>
+            {processing && (
+              <div className="bg-yellow-50 p-3 rounded-lg text-sm text-yellow-800">
+                <strong>Processing Steps:</strong>
+                <div className="mt-1 space-y-1">
+                  <div>✓ File uploaded successfully</div>
+                  <div>🔄 Extracting content from slides...</div>
+                  <div>🔄 Generating questions where slide content = correct answers...</div>
+                  <div>🔄 Creating multiple choice options...</div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </CardContent>

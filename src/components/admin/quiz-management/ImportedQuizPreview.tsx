@@ -1,275 +1,357 @@
 
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import { Edit, Save, X, Check, AlertCircle } from "lucide-react";
-
-interface ImportedQuizData {
-  title: string;
-  description: string;
-  questions: Array<{
-    question_text: string;
-    slide_number?: number;
-    options: Array<{
-      text: string;
-      is_correct: boolean;
-    }>;
-  }>;
-}
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { FileText, Edit, Save, X, Presentation, CheckCircle, AlertCircle } from "lucide-react";
 
 interface ImportedQuizPreviewProps {
-  importData: ImportedQuizData;
-  onConfirmImport: (finalData: ImportedQuizData & { unit_id: string; passing_score: number; time_limit_minutes?: number }) => void;
+  importData: any;
+  onConfirmImport: (finalData: any) => void;
   onCancel: () => void;
-  units: Array<{ id: string; title: string; lesson: { title: string; course: { title: string } } }>;
+  units: any[];
 }
 
 const ImportedQuizPreview = ({ importData, onConfirmImport, onCancel, units }: ImportedQuizPreviewProps) => {
-  const [editData, setEditData] = useState<ImportedQuizData>(importData);
+  const [editingQuiz, setEditingQuiz] = useState(false);
   const [editingQuestion, setEditingQuestion] = useState<number | null>(null);
-  const [selectedUnitId, setSelectedUnitId] = useState<string>("");
-  const [passingScore, setPassingScore] = useState(70);
-  const [timeLimit, setTimeLimit] = useState<number | undefined>(undefined);
+  const [quizData, setQuizData] = useState({
+    title: importData.title || "",
+    description: importData.description || "",
+    unit_id: "",
+    passing_score: 70,
+    time_limit_minutes: 60,
+    questions: importData.questions || []
+  });
 
-  const handleQuestionEdit = (index: number, field: string, value: any) => {
-    const newQuestions = [...editData.questions];
-    newQuestions[index] = { ...newQuestions[index], [field]: value };
-    setEditData({ ...editData, questions: newQuestions });
+  const handleQuizFieldChange = (field: string, value: any) => {
+    setQuizData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleOptionEdit = (questionIndex: number, optionIndex: number, field: string, value: any) => {
-    const newQuestions = [...editData.questions];
-    const newOptions = [...newQuestions[questionIndex].options];
-    newOptions[optionIndex] = { ...newOptions[optionIndex], [field]: value };
-    
-    // If marking as correct, unmark others
-    if (field === 'is_correct' && value === true) {
-      newOptions.forEach((opt, idx) => {
-        if (idx !== optionIndex) opt.is_correct = false;
-      });
-    }
-    
-    newQuestions[questionIndex].options = newOptions;
-    setEditData({ ...editData, questions: newQuestions });
+  const handleQuestionChange = (questionIndex: number, field: string, value: any) => {
+    setQuizData(prev => ({
+      ...prev,
+      questions: prev.questions.map((q, index) => 
+        index === questionIndex ? { ...q, [field]: value } : q
+      )
+    }));
   };
 
-  const removeQuestion = (index: number) => {
-    const newQuestions = editData.questions.filter((_, i) => i !== index);
-    setEditData({ ...editData, questions: newQuestions });
+  const handleOptionChange = (questionIndex: number, optionIndex: number, field: string, value: any) => {
+    setQuizData(prev => ({
+      ...prev,
+      questions: prev.questions.map((q, qIndex) => 
+        qIndex === questionIndex ? {
+          ...q,
+          options: q.options.map((opt, oIndex) => 
+            oIndex === optionIndex ? { ...opt, [field]: value } : opt
+          )
+        } : q
+      )
+    }));
+  };
+
+  const handleOptionCorrectChange = (questionIndex: number, optionIndex: number) => {
+    setQuizData(prev => ({
+      ...prev,
+      questions: prev.questions.map((q, qIndex) => 
+        qIndex === questionIndex ? {
+          ...q,
+          options: q.options.map((opt, oIndex) => ({ 
+            ...opt, 
+            is_correct: oIndex === optionIndex 
+          }))
+        } : q
+      )
+    }));
   };
 
   const handleConfirm = () => {
-    if (!selectedUnitId) return;
-    
-    onConfirmImport({
-      ...editData,
-      unit_id: selectedUnitId,
-      passing_score: passingScore,
-      time_limit_minutes: timeLimit
-    });
+    if (!quizData.unit_id) {
+      alert("Please select a unit for this quiz");
+      return;
+    }
+    onConfirmImport(quizData);
   };
 
-  const hasValidQuestions = editData.questions.length > 0 && 
-    editData.questions.every(q => 
-      q.question_text.trim() && 
-      q.options.length === 4 && 
-      q.options.some(opt => opt.is_correct) &&
-      q.options.every(opt => opt.text.trim())
-    );
+  const getSlidesAnalyzed = () => {
+    return importData.slides_analyzed || [];
+  };
+
+  const getQuestionValidation = (question: any) => {
+    const hasCorrectAnswer = question.options?.some(opt => opt.is_correct);
+    const hasQuestionText = question.question_text?.trim().length > 0;
+    const hasAllOptions = question.options?.length === 4 && question.options.every(opt => opt.text?.trim().length > 0);
+    
+    return {
+      isValid: hasCorrectAnswer && hasQuestionText && hasAllOptions,
+      issues: [
+        !hasQuestionText && "Missing question text",
+        !hasAllOptions && "Missing or incomplete answer options",
+        !hasCorrectAnswer && "No correct answer selected"
+      ].filter(Boolean)
+    };
+  };
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <Card>
         <CardHeader>
-          <CardTitle>Review Imported Quiz</CardTitle>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <Presentation className="h-5 w-5 text-blue-600" />
+              <CardTitle>Review Imported Quiz</CardTitle>
+            </div>
+            <Badge variant="secondary">
+              {quizData.questions.length} questions generated
+            </Badge>
+          </div>
+          <CardDescription>
+            Review and edit the quiz questions extracted from your PowerPoint presentation. 
+            Each question is based on content from a specific slide.
+          </CardDescription>
+        </CardHeader>
+      </Card>
+
+      {/* Slides Analysis Summary */}
+      {getSlidesAnalyzed().length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Slides Analyzed</CardTitle>
+            <CardDescription>
+              Content extracted from {getSlidesAnalyzed().length} slides
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-3">
+              {getSlidesAnalyzed().map((slide, index) => (
+                <div key={index} className="p-3 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-2 mb-2">
+                    <Badge variant="outline">Slide {slide.slide_number}</Badge>
+                    <span className="text-sm font-medium">{slide.content_summary}</span>
+                  </div>
+                  <p className="text-sm text-gray-600">{slide.content_extracted}</p>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Quiz Settings */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg">Quiz Settings</CardTitle>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setEditingQuiz(!editingQuiz)}
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              {editingQuiz ? "Cancel" : "Edit"}
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="quiz-title">Quiz Title</Label>
-              <Input
-                id="quiz-title"
-                value={editData.title}
-                onChange={(e) => setEditData({ ...editData, title: e.target.value })}
-              />
+          {editingQuiz ? (
+            <>
+              <div>
+                <Label htmlFor="title">Quiz Title</Label>
+                <Input
+                  id="title"
+                  value={quizData.title}
+                  onChange={(e) => handleQuizFieldChange("title", e.target.value)}
+                />
+              </div>
+              <div>
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  value={quizData.description}
+                  onChange={(e) => handleQuizFieldChange("description", e.target.value)}
+                  rows={3}
+                />
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="unit">Unit</Label>
+                  <Select value={quizData.unit_id} onValueChange={(value) => handleQuizFieldChange("unit_id", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select unit" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {units.map((unit) => (
+                        <SelectItem key={unit.id} value={unit.id}>
+                          {unit.title} ({unit.lesson?.course?.title})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="passing_score">Passing Score (%)</Label>
+                  <Input
+                    id="passing_score"
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={quizData.passing_score}
+                    onChange={(e) => handleQuizFieldChange("passing_score", parseInt(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="time_limit">Time Limit (minutes)</Label>
+                  <Input
+                    id="time_limit"
+                    type="number"
+                    min="1"
+                    value={quizData.time_limit_minutes}
+                    onChange={(e) => handleQuizFieldChange("time_limit_minutes", parseInt(e.target.value))}
+                  />
+                </div>
+              </div>
+              <Button onClick={() => setEditingQuiz(false)}>
+                <Save className="h-4 w-4 mr-2" />
+                Save Changes
+              </Button>
+            </>
+          ) : (
+            <div className="space-y-2">
+              <div><strong>Title:</strong> {quizData.title}</div>
+              <div><strong>Description:</strong> {quizData.description}</div>
+              <div><strong>Unit:</strong> {units.find(u => u.id === quizData.unit_id)?.title || "Not selected"}</div>
+              <div className="grid grid-cols-2 gap-4">
+                <div><strong>Passing Score:</strong> {quizData.passing_score}%</div>
+                <div><strong>Time Limit:</strong> {quizData.time_limit_minutes} minutes</div>
+              </div>
             </div>
-            <div>
-              <Label htmlFor="passing-score">Passing Score (%)</Label>
-              <Input
-                id="passing-score"
-                type="number"
-                min="1"
-                max="100"
-                value={passingScore}
-                onChange={(e) => setPassingScore(Number(e.target.value))}
-              />
-            </div>
-          </div>
-          
-          <div>
-            <Label htmlFor="quiz-description">Description</Label>
-            <Textarea
-              id="quiz-description"
-              value={editData.description}
-              onChange={(e) => setEditData({ ...editData, description: e.target.value })}
-            />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <Label htmlFor="unit-select">Assign to Unit</Label>
-              <select
-                id="unit-select"
-                value={selectedUnitId}
-                onChange={(e) => setSelectedUnitId(e.target.value)}
-                className="w-full p-2 border rounded-md"
-              >
-                <option value="">Select a unit...</option>
-                {units.map((unit) => (
-                  <option key={unit.id} value={unit.id}>
-                    {unit.lesson.course.title} → {unit.lesson.title} → {unit.title}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <Label htmlFor="time-limit">Time Limit (minutes, optional)</Label>
-              <Input
-                id="time-limit"
-                type="number"
-                min="1"
-                value={timeLimit || ""}
-                onChange={(e) => setTimeLimit(e.target.value ? Number(e.target.value) : undefined)}
-                placeholder="No time limit"
-              />
-            </div>
-          </div>
+          )}
         </CardContent>
       </Card>
 
+      {/* Questions */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-lg font-semibold">
-            Questions ({editData.questions.length})
-          </h3>
-          {!hasValidQuestions && (
-            <Badge variant="destructive" className="flex items-center">
-              <AlertCircle className="h-3 w-3 mr-1" />
-              Issues found
-            </Badge>
-          )}
+          <h3 className="text-lg font-semibold">Generated Questions</h3>
+          <Badge variant="outline">
+            {quizData.questions.filter(q => getQuestionValidation(q).isValid).length} / {quizData.questions.length} valid
+          </Badge>
         </div>
 
-        {editData.questions.map((question, questionIndex) => {
-          const hasCorrectAnswer = question.options.some(opt => opt.is_correct);
+        {quizData.questions.map((question, questionIndex) => {
+          const validation = getQuestionValidation(question);
           const isEditing = editingQuestion === questionIndex;
 
           return (
-            <Card key={questionIndex}>
-              <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
-                      <span className="text-sm font-medium">Question {questionIndex + 1}</span>
-                      {question.slide_number && (
-                        <Badge variant="outline">Slide {question.slide_number}</Badge>
-                      )}
-                      {!hasCorrectAnswer && (
-                        <Badge variant="destructive">No correct answer</Badge>
-                      )}
-                    </div>
-                    {isEditing ? (
-                      <Textarea
-                        value={question.question_text}
-                        onChange={(e) => handleQuestionEdit(questionIndex, 'question_text', e.target.value)}
-                        className="mb-2"
-                      />
+            <Card key={questionIndex} className={`${!validation.isValid ? 'border-orange-200 bg-orange-50' : ''}`}>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Badge variant="outline">Question {questionIndex + 1}</Badge>
+                    {question.slide_number && (
+                      <Badge variant="secondary">From Slide {question.slide_number}</Badge>
+                    )}
+                    {validation.isValid ? (
+                      <CheckCircle className="h-4 w-4 text-green-600" />
                     ) : (
-                      <p className="font-medium">{question.question_text}</p>
+                      <AlertCircle className="h-4 w-4 text-orange-600" />
                     )}
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setEditingQuestion(isEditing ? null : questionIndex)}
-                    >
-                      {isEditing ? <Save className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => removeQuestion(questionIndex)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditingQuestion(isEditing ? null : questionIndex)}
+                  >
+                    {isEditing ? <X className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
+                  </Button>
                 </div>
+                
+                {/* Show slide content reference */}
+                {question.slide_content_used && (
+                  <div className="bg-blue-50 p-3 rounded-lg mt-2">
+                    <div className="text-sm font-medium text-blue-900 mb-1">Original Slide Content:</div>
+                    <div className="text-sm text-blue-800">{question.slide_content_used}</div>
+                  </div>
+                )}
+
+                {!validation.isValid && (
+                  <div className="bg-orange-100 p-2 rounded text-sm text-orange-800">
+                    Issues: {validation.issues.join(", ")}
+                  </div>
+                )}
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  {question.options.map((option, optionIndex) => (
-                    <div
-                      key={optionIndex}
-                      className={`p-3 rounded border-2 ${
-                        option.is_correct 
-                          ? 'border-green-200 bg-green-50' 
-                          : 'border-gray-200'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        {isEditing ? (
-                          <div className="flex items-center space-x-2 flex-1">
-                            <Input
-                              value={option.text}
-                              onChange={(e) => handleOptionEdit(questionIndex, optionIndex, 'text', e.target.value)}
-                              className="flex-1"
-                            />
-                            <Button
-                              variant={option.is_correct ? "default" : "outline"}
-                              size="sm"
-                              onClick={() => handleOptionEdit(questionIndex, optionIndex, 'is_correct', !option.is_correct)}
-                            >
-                              {option.is_correct ? <Check className="h-4 w-4" /> : "Mark Correct"}
-                            </Button>
-                          </div>
-                        ) : (
-                          <div className="flex items-center justify-between w-full">
-                            <span className={option.is_correct ? 'font-medium' : ''}>
-                              {String.fromCharCode(65 + optionIndex)}. {option.text}
-                            </span>
-                            {option.is_correct && (
-                              <Check className="h-4 w-4 text-green-600" />
-                            )}
-                          </div>
-                        )}
-                      </div>
+                {isEditing ? (
+                  <div className="space-y-4">
+                    <div>
+                      <Label>Question Text</Label>
+                      <Textarea
+                        value={question.question_text}
+                        onChange={(e) => handleQuestionChange(questionIndex, "question_text", e.target.value)}
+                        rows={2}
+                      />
                     </div>
-                  ))}
-                </div>
+                    <div className="space-y-2">
+                      <Label>Answer Options</Label>
+                      {question.options?.map((option, optionIndex) => (
+                        <div key={optionIndex} className="flex items-center space-x-2">
+                          <Switch
+                            checked={option.is_correct}
+                            onCheckedChange={() => handleOptionCorrectChange(questionIndex, optionIndex)}
+                          />
+                          <Input
+                            value={option.text}
+                            onChange={(e) => handleOptionChange(questionIndex, optionIndex, "text", e.target.value)}
+                            className={option.is_correct ? "border-green-500 bg-green-50" : ""}
+                          />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="font-medium">{question.question_text}</div>
+                    <div className="space-y-1">
+                      {question.options?.map((option, optionIndex) => (
+                        <div
+                          key={optionIndex}
+                          className={`p-2 rounded ${
+                            option.is_correct 
+                              ? "bg-green-100 border border-green-300 text-green-800" 
+                              : "bg-gray-50"
+                          }`}
+                        >
+                          <span className="font-medium">{String.fromCharCode(65 + optionIndex)}.</span> {option.text}
+                          {option.is_correct && <Badge className="ml-2" variant="default">Correct</Badge>}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           );
         })}
       </div>
 
-      <Separator />
-
-      <div className="flex justify-end space-x-2">
+      {/* Actions */}
+      <div className="flex justify-end space-x-2 pt-4 border-t">
         <Button variant="outline" onClick={onCancel}>
           Cancel Import
         </Button>
-        <Button
+        <Button 
           onClick={handleConfirm}
-          disabled={!selectedUnitId || !hasValidQuestions || !editData.title.trim()}
+          disabled={!quizData.unit_id || quizData.questions.filter(q => getQuestionValidation(q).isValid).length === 0}
         >
-          Create Quiz ({editData.questions.length} questions)
+          Create Quiz ({quizData.questions.filter(q => getQuestionValidation(q).isValid).length} questions)
         </Button>
       </div>
     </div>
