@@ -5,13 +5,14 @@ import AuthPage from "../components/AuthPage";
 import Dashboard from "../components/Dashboard";
 import AdminDashboard from "../components/AdminDashboard";
 import NotificationBanner from "../components/notifications/NotificationBanner";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, isOwner, isStudent, isClient, isFree, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
+  const location = useLocation();
   const [hasRedirected, setHasRedirected] = useState(false);
 
   useEffect(() => {
@@ -26,18 +27,18 @@ const Index = () => {
       isStudent, 
       isClient, 
       isFree, 
-      isAdmin 
+      isAdmin,
+      currentPath: location.pathname
     });
 
     // Set flag to prevent multiple redirects
     setHasRedirected(true);
 
     // Redirect based on role with a small delay to ensure state is stable
-    // IMPORTANT: Admins should NOT be redirected - they stay on this page
     const redirectTimer = setTimeout(() => {
       if (isAdmin) {
         console.log('User is admin, staying on login page to show AdminDashboard');
-        // Don't redirect admins - they should see the AdminDashboard on this page
+        // Admins stay on the login page to see AdminDashboard
         return;
       } else if (isOwner) {
         console.log('Redirecting to owner dashboard');
@@ -55,7 +56,7 @@ const Index = () => {
     }, 50);
 
     return () => clearTimeout(redirectTimer);
-  }, [user, isOwner, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate, hasRedirected]);
+  }, [user, isOwner, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate, hasRedirected, location.pathname]);
 
   // Show loading only while checking auth state
   if (authLoading) {
@@ -90,7 +91,6 @@ const Index = () => {
   }
 
   // Show admin dashboard for admins, regular dashboard for others
-  // Admins should always see the AdminDashboard when they stay on this page
   console.log('Rendering dashboard for user', { isAdmin });
   return (
     <div>

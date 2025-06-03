@@ -1,9 +1,27 @@
 
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const NavigationHeader = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { isAdmin } = useUserRole();
+
+  const handleLoginClick = () => {
+    if (user && isAdmin) {
+      // If user is already logged in and is admin, go to login page to see admin dashboard
+      navigate("/login");
+    } else if (user) {
+      // If user is logged in but not admin, redirect based on their role
+      // This will be handled by the Index component's useEffect
+      navigate("/login");
+    } else {
+      // If no user, go to login page
+      navigate("/login");
+    }
+  };
 
   return (
     <header className="bg-black shadow-sm">
@@ -35,10 +53,10 @@ const NavigationHeader = () => {
 
           {/* Login Button */}
           <Button 
-            onClick={() => navigate("/login")}
+            onClick={handleLoginClick}
             className="bg-white text-black hover:bg-gray-100"
           >
-            Login
+            {user ? (isAdmin ? 'Admin Dashboard' : 'Dashboard') : 'Login'}
           </Button>
         </div>
       </div>
