@@ -8,10 +8,11 @@ import UserRoleSelect from "./UserRoleSelect";
 import DeleteUserDialog from "./DeleteUserDialog";
 import UserCourseAssignment from "./UserCourseAssignment";
 import UserEmailEditDialog from "./UserEmailEditDialog";
+import UserPasswordResetDialog from "./UserPasswordResetDialog";
 import { UserProfile } from "./types";
 import { getUserRole, getRoleBadgeColor } from "./userRoleUtils";
 import { useUserRole } from "@/hooks/useUserRole";
-import { Trash2, BookOpen, BarChart3, Mail } from "lucide-react";
+import { Trash2, BookOpen, BarChart3, Mail, Lock } from "lucide-react";
 
 interface UserCardProps {
   user: UserProfile;
@@ -30,6 +31,7 @@ export const UserCard = ({
 }: UserCardProps) => {
   const [showCourseDialog, setShowCourseDialog] = useState(false);
   const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const { isAdmin } = useUserRole();
   
   const userRole = getUserRole(user);
@@ -46,6 +48,13 @@ export const UserCard = ({
   };
 
   const handleEmailUpdated = () => {
+    // Refresh the user data by calling the parent's refresh function
+    if (onCourseAssigned) {
+      onCourseAssigned();
+    }
+  };
+
+  const handlePasswordReset = () => {
     // Refresh the user data by calling the parent's refresh function
     if (onCourseAssigned) {
       onCourseAssigned();
@@ -127,6 +136,18 @@ export const UserCard = ({
                       Edit Email
                     </Button>
                   )}
+
+                  {isAdmin && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowPasswordDialog(true)}
+                      className="flex items-center gap-1"
+                    >
+                      <Lock className="h-3 w-3" />
+                      Reset Password
+                    </Button>
+                  )}
                   
                   {isAdmin && (
                     <DeleteUserDialog
@@ -161,6 +182,15 @@ export const UserCard = ({
           open={showEmailDialog}
           onOpenChange={setShowEmailDialog}
           onEmailUpdated={handleEmailUpdated}
+        />
+      )}
+
+      {showPasswordDialog && (
+        <UserPasswordResetDialog
+          user={user}
+          open={showPasswordDialog}
+          onOpenChange={setShowPasswordDialog}
+          onPasswordReset={handlePasswordReset}
         />
       )}
     </>
