@@ -31,13 +31,22 @@ const AddUserDialog = ({ onUserAdded }: AddUserDialogProps) => {
     try {
       console.log('Attempting to create user via edge function:', formData);
 
-      // Call the edge function to create the user
+      // Get the current session to ensure we have an auth token
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('You must be logged in to create users');
+      }
+
+      // Call the edge function to create the user with proper auth headers
       const { data, error } = await supabase.functions.invoke('create-single-user', {
         body: {
           email: formData.email,
           firstName: formData.firstName,
           lastName: formData.lastName,
           role: formData.role
+        },
+        headers: {
+          Authorization: `Bearer ${session.access_token}`,
         }
       });
 

@@ -39,37 +39,50 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
+    // Get the authorization header
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      throw new Error('Authorization header is required');
+    }
+
     // Create Supabase client with anon key to check requesting user's permissions
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
       {
         global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
+          headers: { Authorization: authHeader },
         },
       }
     );
 
-    // Check if the requesting user is an admin
-    const { data: { user } } = await supabaseClient.auth.getUser();
-    if (!user) {
+    // Check if the requesting user is authenticated and has admin privileges
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    if (userError || !user) {
+      console.error('Auth error:', userError);
       throw new Error('Authentication required');
     }
 
-    const { data: userRole } = await supabaseClient
+    console.log('Authenticated user:', user.id);
+
+    // Check if the requesting user is an admin or owner
+    const { data: userRole, error: roleError } = await supabaseClient
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
       .single();
 
-    if (!userRole || (userRole.role !== 'admin' && userRole.role !== 'owner')) {
+    console.log('User role check:', { userRole, roleError });
+
+    if (roleError || !userRole || (userRole.role !== 'admin' && userRole.role !== 'owner')) {
+      console.error('Permission denied for user:', user.id, 'role:', userRole?.role);
       throw new Error('Admin privileges required');
     }
 
     console.log('Admin user verified, proceeding with user creation');
 
     // Generate a temporary password
-    const tempPassword = `temp${Math.random().toString(36).slice(-8)}`;
+    const tempPassword = `temp${Math.random().toString(36).slice(-8)}!A1`;
 
     // Create user in auth using admin client
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
