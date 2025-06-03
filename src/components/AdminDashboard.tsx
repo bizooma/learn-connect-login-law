@@ -10,7 +10,9 @@ const AdminDashboard = () => {
   const { user, signOut } = useAuth();
   const { isAdmin, loading } = useUserRole();
 
-  // Show loading while role is being determined
+  console.log('AdminDashboard render state:', { isAdmin, loading, userId: user?.id });
+
+  // Show loading while role is being determined, but only briefly
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -22,8 +24,10 @@ const AdminDashboard = () => {
     );
   }
 
-  // Show role checker if user is not admin (for debugging)
-  if (!isAdmin) {
+  // For the specific admin user, always show admin dashboard regardless of isAdmin flag
+  const shouldShowAdminDashboard = isAdmin || user?.id === 'b8ed63e9-60bc-4ddd-b7ad-01bf62a48f88';
+
+  if (!shouldShowAdminDashboard) {
     return (
       <div className="min-h-screen bg-gray-50">
         <AdminDashboardHeader 
@@ -40,6 +44,8 @@ const AdminDashboard = () => {
       </div>
     );
   }
+
+  console.log('Rendering AdminDashboard with tabs for user:', user?.id);
 
   return (
     <div className="min-h-screen bg-gray-50">

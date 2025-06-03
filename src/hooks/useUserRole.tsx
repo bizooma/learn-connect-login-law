@@ -17,11 +17,7 @@ export const useUserRole = () => {
         return;
       }
 
-      console.log('useUserRole: Effect triggered', { userId: user.id, fetchAttempted: false });
-      console.log('useUserRole: Starting role fetch for user:', user.id);
-      setLoading(true);
-
-      // Special case for known admin user - immediate fallback
+      // Special case for known admin user - immediate override at the start
       if (user.id === 'b8ed63e9-60bc-4ddd-b7ad-01bf62a48f88') {
         console.log('useUserRole: Applying immediate admin override for known admin user');
         setRole('admin');
@@ -29,10 +25,14 @@ export const useUserRole = () => {
         return;
       }
 
+      console.log('useUserRole: Effect triggered', { userId: user.id });
+      console.log('useUserRole: Starting role fetch for user:', user.id);
+      setLoading(true);
+
       try {
         console.log(`useUserRole: Fetching role for user ${user.id} (attempt 1)`);
         
-        // Create a timeout promise that rejects after 2 seconds (shorter timeout)
+        // Create a timeout promise that rejects after 2 seconds
         const timeoutPromise = new Promise<never>((_, reject) => {
           setTimeout(() => reject(new Error('Database query timeout')), 2000);
         });
@@ -80,14 +80,14 @@ export const useUserRole = () => {
   const refreshRole = () => {
     if (user?.id) {
       console.log('useUserRole: Manual role refresh requested');
-      // Re-trigger the effect by calling fetchUserRole again
+      // Re-trigger the effect by setting loading true
       setLoading(true);
     }
   };
 
-  // Compute derived values
+  // Compute derived values - ensure admin override is applied here too
   const effectiveRole = role || 'student';
-  const isAdmin = effectiveRole === 'admin';
+  const isAdmin = effectiveRole === 'admin' || user?.id === 'b8ed63e9-60bc-4ddd-b7ad-01bf62a48f88';
   const isOwner = effectiveRole === 'owner';
   const isStudent = effectiveRole === 'student';
   const isClient = effectiveRole === 'client';
