@@ -83,14 +83,11 @@ const ActivityTrackingDashboard = () => {
     try {
       setLoading(true);
       
-      // Build query without complex joins first
+      // Build base query - fetch raw data first
       let query = supabase
         .from('user_activity_log')
         .select(`
-          *,
-          profiles!user_activity_log_user_id_fkey (first_name, last_name, email),
-          courses!user_activity_log_course_id_fkey (title),
-          units!user_activity_log_unit_id_fkey (title)
+          *
         `)
         .order('created_at', { ascending: false })
         .limit(100);
@@ -125,8 +122,44 @@ const ActivityTrackingDashboard = () => {
         return;
       }
 
+      // Fetch related data separately
+      const userIds = [...new Set(activityData?.map(a => a.user_id) || [])];
+      const courseIds = [...new Set(activityData?.filter(a => a.course_id).map(a => a.course_id) || [])];
+      const unitIds = [...new Set(activityData?.filter(a => a.unit_id).map(a => a.unit_id) || [])];
+
+      // Fetch profiles
+      const { data: profiles } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, email')
+        .in('id', userIds);
+
+      // Fetch courses
+      const { data: courses } = courseIds.length > 0 ? await supabase
+        .from('courses')
+        .select('id, title')
+        .in('id', courseIds) : { data: [] };
+
+      // Fetch units
+      const { data: units } = unitIds.length > 0 ? await supabase
+        .from('units')
+        .select('id, title')
+        .in('id', unitIds) : { data: [] };
+
+      // Create lookup maps
+      const profileMap = new Map(profiles?.map(p => [p.id, p]) || []);
+      const courseMap = new Map(courses?.map(c => [c.id, c]) || []);
+      const unitMap = new Map(units?.map(u => [u.id, u]) || []);
+
+      // Combine data
+      const enrichedData: ActivityLog[] = (activityData || []).map(activity => ({
+        ...activity,
+        profiles: profileMap.get(activity.user_id) || null,
+        courses: activity.course_id ? courseMap.get(activity.course_id) || null : null,
+        units: activity.unit_id ? unitMap.get(activity.unit_id) || null : null
+      }));
+
       // Filter by search term if provided
-      let filteredData = activityData || [];
+      let filteredData = enrichedData;
       
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
