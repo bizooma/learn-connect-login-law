@@ -19,7 +19,27 @@ export const useUserRole = () => {
     try {
       console.log(`useUserRole: Fetching role for user ${user.id}`);
       
+      // Test basic connection first
+      console.log('useUserRole: Testing database connection...');
+      const { data: testData, error: testError } = await supabase
+        .from('user_roles')
+        .select('count', { count: 'exact', head: true });
+      
+      console.log('useUserRole: Connection test result:', { 
+        testData, 
+        testError,
+        connectionWorking: !testError
+      });
+      
+      if (testError) {
+        console.error('useUserRole: Database connection failed:', testError);
+        setRole('student');
+        setLoading(false);
+        return;
+      }
+      
       // First, let's see ALL roles in the database
+      console.log('useUserRole: Fetching all roles in database...');
       const { data: allRoles, error: allRolesError } = await supabase
         .from('user_roles')
         .select('*');
@@ -31,6 +51,7 @@ export const useUserRole = () => {
       });
       
       // Now try to fetch this user's specific role
+      console.log('useUserRole: Fetching user-specific role...');
       const { data, error, count } = await supabase
         .from('user_roles')
         .select('role', { count: 'exact' })
