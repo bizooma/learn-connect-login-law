@@ -47,22 +47,12 @@ export const useUserRole = () => {
   };
 
   useEffect(() => {
-    let mounted = true;
-
     if (user?.id) {
-      fetchUserRole().then(() => {
-        if (mounted) {
-          // Role has been set
-        }
-      });
+      fetchUserRole();
     } else {
       setRole(null);
       setLoading(false);
     }
-
-    return () => {
-      mounted = false;
-    };
   }, [user?.id]);
 
   const refreshRole = () => {
@@ -71,16 +61,17 @@ export const useUserRole = () => {
     }
   };
 
-  // Compute derived values
-  const isAdmin = role === 'admin';
-  const isOwner = role === 'owner';
-  const isStudent = role === 'student';
-  const isClient = role === 'client';
-  const isFree = role === 'free';
+  // Compute derived values - ensure we always have a role
+  const effectiveRole = role || 'student';
+  const isAdmin = effectiveRole === 'admin';
+  const isOwner = effectiveRole === 'owner';
+  const isStudent = effectiveRole === 'student';
+  const isClient = effectiveRole === 'client';
+  const isFree = effectiveRole === 'free';
   const hasAdminPrivileges = isAdmin || isOwner;
 
   return { 
-    role, 
+    role: effectiveRole, 
     isAdmin, 
     isOwner, 
     isStudent, 

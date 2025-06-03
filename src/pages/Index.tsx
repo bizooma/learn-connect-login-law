@@ -37,17 +37,17 @@ const Index = () => {
       if (isOwner) {
         console.log('Redirecting to owner dashboard');
         navigate("/owner-dashboard", { replace: true });
-      } else if (isStudent) {
-        console.log('Redirecting to student dashboard');
-        navigate("/student-dashboard", { replace: true });
       } else if (isClient) {
         console.log('Redirecting to client dashboard');
         navigate("/client-dashboard", { replace: true });
       } else if (isFree) {
         console.log('Redirecting to free dashboard');
         navigate("/free-dashboard", { replace: true });
+      } else if (isStudent) {
+        console.log('Redirecting to student dashboard');
+        navigate("/student-dashboard", { replace: true });
       }
-      // If none of the above, stay on current page to show Dashboard/AdminDashboard
+      // If none of the above (admin), stay on current page to show AdminDashboard
     }, 50);
 
     return () => clearTimeout(redirectTimer);
@@ -86,7 +86,7 @@ const Index = () => {
   }
 
   // If user has a specific role that should redirect, but hasn't redirected yet, show loading
-  if ((isOwner || isStudent || isClient || isFree) && !hasRedirected) {
+  if ((isOwner || isClient || isFree || (isStudent && !isAdmin)) && !hasRedirected) {
     console.log('Preparing to redirect, showing loading');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -98,7 +98,7 @@ const Index = () => {
     );
   }
 
-  // Show admin dashboard for admins, regular dashboard for others
+  // Show admin dashboard for admins, regular dashboard for others (including students who stay on main page)
   console.log('Rendering dashboard for user', { isAdmin });
   return (
     <div>
