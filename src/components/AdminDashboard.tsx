@@ -72,14 +72,11 @@ const AdminDashboard = () => {
         <NotificationBanner />
         <AdminStatsCards stats={stats} />
         
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-          <div className="lg:col-span-2">
-            <AdminManagementTabs activeTab={activeTab} onTabChange={setActiveTab} />
-          </div>
-          <div className="lg:col-span-1">
-            <RecentActivity />
-          </div>
+        <div className="mb-8">
+          <RecentActivity />
         </div>
+        
+        <AdminManagementTabs activeTab={activeTab} onTabChange={setActiveTab} />
       </div>
     </div>
   );
