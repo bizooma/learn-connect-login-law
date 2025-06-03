@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useCourse } from "@/hooks/useCourse";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserProgress } from "@/hooks/useUserProgress";
+import { useUserRole } from "@/hooks/useUserRole";
 import { useEffect } from "react";
 import CourseHeader from "@/components/course/CourseHeader";
 import CourseSidebar from "@/components/course/CourseSidebar";
@@ -14,8 +15,11 @@ const Course = () => {
   const { id: courseId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const { userRole } = useUserRole();
   const { course, selectedUnit, setSelectedUnit, loading, error } = useCourse(courseId!);
   const { updateCourseProgress } = useUserProgress(user?.id);
+
+  const isAdmin = userRole === 'admin';
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -59,6 +63,7 @@ const Course = () => {
               course={course} 
               selectedUnit={selectedUnit} 
               courseTitle={course.title}
+              isAdmin={isAdmin}
             />
           </div>
         </div>
