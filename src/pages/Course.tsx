@@ -11,7 +11,7 @@ import CourseLoading from "@/components/course/CourseLoading";
 import CourseNotFound from "@/components/course/CourseNotFound";
 
 const Course = () => {
-  const { courseId } = useParams<{ courseId: string }>();
+  const { id: courseId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { course, selectedUnit, setSelectedUnit, loading, error } = useCourse(courseId!);
