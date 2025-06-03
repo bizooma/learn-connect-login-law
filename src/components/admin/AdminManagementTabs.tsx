@@ -50,11 +50,10 @@ const AdminManagementTabs = () => {
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="courses">Courses</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="progress">Progress</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
           <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
           <TabsTrigger value="profile">Profile</TabsTrigger>
@@ -70,12 +69,6 @@ const AdminManagementTabs = () => {
 
         <TabsContent value="progress" className="mt-6">
           <UserProgressManagement />
-        </TabsContent>
-
-        <TabsContent value="activity" className="mt-6">
-          <div className="text-center py-8">
-            <p className="text-gray-500">Activity monitoring coming soon...</p>
-          </div>
         </TabsContent>
 
         <TabsContent value="quizzes" className="mt-6">
