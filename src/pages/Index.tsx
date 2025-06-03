@@ -33,10 +33,12 @@ const Index = () => {
     setHasRedirected(true);
 
     // Redirect based on role with a small delay to ensure state is stable
+    // IMPORTANT: Admins should NOT be redirected - they stay on this page
     const redirectTimer = setTimeout(() => {
       if (isAdmin) {
-        console.log('User is admin, redirecting to dashboard route');
-        navigate("/dashboard", { replace: true });
+        console.log('User is admin, staying on login page to show AdminDashboard');
+        // Don't redirect admins - they should see the AdminDashboard on this page
+        return;
       } else if (isOwner) {
         console.log('Redirecting to owner dashboard');
         navigate("/owner-dashboard", { replace: true });
@@ -88,6 +90,7 @@ const Index = () => {
   }
 
   // Show admin dashboard for admins, regular dashboard for others
+  // Admins should always see the AdminDashboard when they stay on this page
   console.log('Rendering dashboard for user', { isAdmin });
   return (
     <div>
