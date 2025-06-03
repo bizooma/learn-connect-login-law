@@ -137,6 +137,18 @@ serve(async (req) => {
       throw new Error('Action is required');
     }
 
+    // Check if required environment variables are set
+    const heygenApiKey = Deno.env.get('HEYGEN_API_KEY');
+    const openaiApiKey = Deno.env.get('OPENAI_API_KEY');
+    
+    if (!heygenApiKey) {
+      throw new Error('HEYGEN_API_KEY environment variable is not set');
+    }
+    
+    if (!openaiApiKey) {
+      throw new Error('OPENAI_API_KEY environment variable is not set');
+    }
+
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_ANON_KEY') ?? '',
@@ -307,7 +319,7 @@ async function generateNarrationScript(filename: string, slideContents: SlideCon
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: 'gpt-4o',
+      model: 'gpt-4o-mini',
       messages: [
         {
           role: 'system',
@@ -357,23 +369,29 @@ async function generateNarrationScript(filename: string, slideContents: SlideCon
 async function generateHeyGenVideo(script: string, avatarId: string): Promise<string> {
   console.log('Starting HeyGen video generation with clone ID:', avatarId);
   
-  // Use a simpler API structure for instant avatars
+  if (!script || script.trim().length === 0) {
+    throw new Error('Script content is required for video generation');
+  }
+  
+  // Use the updated HeyGen API structure
   const requestBody = {
     video_inputs: [{
       character: {
         type: "avatar",
-        avatar_id: avatarId
+        avatar_id: avatarId,
+        avatar_style: "normal"
       },
       voice: {
         type: "text",
-        input_text: script
+        input_text: script.substring(0, 4000) // Limit script length for API
       }
     }],
     test: false,
     dimension: {
       width: 1280,
       height: 720
-    }
+    },
+    aspect_ratio: "16:9"
   };
 
   console.log('HeyGen request body:', JSON.stringify(requestBody, null, 2));
@@ -414,37 +432,48 @@ async function generateHeyGenVideo(script: string, avatarId: string): Promise<st
   console.log('HeyGen response:', result);
   
   // HeyGen returns a job ID, we need to poll for completion
-  const jobId = result.data.video_id;
+  const jobId = result.data?.video_id;
+  if (!jobId) {
+    throw new Error('No video ID returned from HeyGen API');
+  }
+  
   console.log('Video job ID:', jobId);
   
-  // Poll for video completion (simplified - in production you'd want a webhook)
+  // Poll for video completion with improved error handling
   let attempts = 0;
-  const maxAttempts = 30; // 5 minutes max
+  const maxAttempts = 60; // 10 minutes max with 10-second intervals
   
   while (attempts < maxAttempts) {
     console.log(`Polling attempt ${attempts + 1}/${maxAttempts}`);
     await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 10 seconds
     
-    const statusResponse = await fetch(`https://api.heygen.com/v1/video_status.get?video_id=${jobId}`, {
-      headers: {
-        'X-API-KEY': Deno.env.get('HEYGEN_API_KEY') ?? '',
-      },
-    });
-    
-    if (statusResponse.ok) {
-      const statusResult = await statusResponse.json();
-      console.log('Video status:', statusResult.data.status);
+    try {
+      const statusResponse = await fetch(`https://api.heygen.com/v1/video_status.get?video_id=${jobId}`, {
+        headers: {
+          'X-API-KEY': Deno.env.get('HEYGEN_API_KEY') ?? '',
+        },
+      });
       
-      if (statusResult.data.status === 'completed') {
-        console.log('Video completed successfully:', statusResult.data.video_url);
-        return statusResult.data.video_url;
-      } else if (statusResult.data.status === 'failed') {
-        throw new Error('HeyGen video generation failed');
+      if (statusResponse.ok) {
+        const statusResult = await statusResponse.json();
+        console.log('Video status:', statusResult.data?.status);
+        
+        if (statusResult.data?.status === 'completed') {
+          console.log('Video completed successfully:', statusResult.data.video_url);
+          return statusResult.data.video_url;
+        } else if (statusResult.data?.status === 'failed') {
+          const errorMsg = statusResult.data?.error || 'Unknown error';
+          throw new Error(`HeyGen video generation failed: ${errorMsg}`);
+        }
+      } else {
+        console.log('Status check failed, continuing to poll...');
       }
+    } catch (pollError) {
+      console.log('Error during polling, continuing...', pollError);
     }
     
     attempts++;
   }
   
-  throw new Error('HeyGen video generation timed out');
+  throw new Error('HeyGen video generation timed out after 10 minutes');
 }
