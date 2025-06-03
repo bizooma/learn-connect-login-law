@@ -36,16 +36,12 @@ export const useUserProgress = (userId?: string) => {
 
   const updateCourseProgress = useCallback(async (courseId: string, updates: Partial<CourseProgress>) => {
     if (!userId) {
-      console.warn('Cannot update course progress: no user ID');
       return;
     }
 
     try {
       await progressService.updateCourseProgress(userId, courseId, updates);
-      // Only refetch if this is not being called from calculateCourseProgress
-      const progressData = await progressService.fetchUserProgress(userId);
-      const coursesWithProgress = transformProgressData(progressData);
-      setCourseProgress(coursesWithProgress);
+      // Don't refetch immediately to avoid loops - the data will be updated on next navigation or manual refresh
     } catch (error) {
       console.error('Error updating course progress:', error);
       if (error.code !== '23505') {
@@ -60,7 +56,6 @@ export const useUserProgress = (userId?: string) => {
 
   const calculateCourseProgress = useCallback(async (courseId: string) => {
     if (!userId) {
-      console.warn('Cannot calculate course progress: no user ID');
       return;
     }
 
@@ -100,7 +95,6 @@ export const useUserProgress = (userId?: string) => {
 
   const markUnitComplete = useCallback(async (unitId: string, courseId: string) => {
     if (!userId) {
-      console.warn('Cannot mark unit complete: no user ID');
       return;
     }
 
@@ -121,10 +115,8 @@ export const useUserProgress = (userId?: string) => {
 
   useEffect(() => {
     if (userId) {
-      console.log('useUserProgress: Starting to fetch progress for user:', userId);
       fetchUserProgress();
     } else {
-      console.log('useUserProgress: No user ID provided');
       setLoading(false);
     }
   }, [userId, fetchUserProgress]);

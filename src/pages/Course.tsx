@@ -4,7 +4,7 @@ import { useCourse } from "@/hooks/useCourse";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useUserRole } from "@/hooks/useUserRole";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import CourseHeader from "@/components/course/CourseHeader";
 import CourseSidebar from "@/components/course/CourseSidebar";
 import CourseMainContent from "@/components/course/CourseMainContent";
@@ -18,6 +18,7 @@ const Course = () => {
   const { role } = useUserRole();
   const { course, selectedUnit, setSelectedUnit, loading, error } = useCourse(courseId!);
   const { updateCourseProgress } = useUserProgress(user?.id);
+  const hasUpdatedProgress = useRef(false);
 
   const isAdmin = role === 'admin';
 
@@ -27,13 +28,20 @@ const Course = () => {
       return;
     }
 
-    if (course && user) {
+    // Only update progress once when course and user are available
+    if (course && user && !hasUpdatedProgress.current) {
+      hasUpdatedProgress.current = true;
       updateCourseProgress(course.id, {
         status: 'in_progress',
         last_accessed_at: new Date().toISOString()
       });
     }
-  }, [course, user, authLoading, navigate, updateCourseProgress]);
+  }, [course?.id, user?.id, authLoading, navigate, updateCourseProgress]);
+
+  // Reset the ref when navigating to a different course
+  useEffect(() => {
+    hasUpdatedProgress.current = false;
+  }, [courseId]);
 
   if (authLoading || loading) {
     return <CourseLoading />;
