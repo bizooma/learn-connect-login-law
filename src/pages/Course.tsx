@@ -10,6 +10,7 @@ import CourseSidebar from "@/components/course/CourseSidebar";
 import CourseMainContent from "@/components/course/CourseMainContent";
 import CourseLoading from "@/components/course/CourseLoading";
 import CourseNotFound from "@/components/course/CourseNotFound";
+import LMSTreeFooter from "@/components/lms-tree/LMSTreeFooter";
 
 const Course = () => {
   const { id: courseId } = useParams<{ id: string }>();
@@ -52,30 +53,33 @@ const Course = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <CourseHeader course={course} />
-      
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-          <div className="lg:col-span-1">
-            <CourseSidebar
-              courseId={course.id}
-              lessons={course.lessons}
-              selectedUnit={selectedUnit}
-              onUnitSelect={setSelectedUnit}
-            />
-          </div>
-          
-          <div className="lg:col-span-3">
-            <CourseMainContent 
-              course={course} 
-              selectedUnit={selectedUnit} 
-              courseTitle={course.title}
-              isAdmin={isAdmin}
-            />
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      <div className="flex-1">
+        <CourseHeader course={course} />
+        
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+            <div className="lg:col-span-1">
+              <CourseSidebar
+                courseId={course.id}
+                lessons={course.lessons}
+                selectedUnit={selectedUnit}
+                onUnitSelect={setSelectedUnit}
+              />
+            </div>
+            
+            <div className="lg:col-span-3">
+              <CourseMainContent 
+                course={course} 
+                selectedUnit={selectedUnit} 
+                courseTitle={course.title}
+                isAdmin={isAdmin}
+              />
+            </div>
           </div>
         </div>
       </div>
+      <LMSTreeFooter />
     </div>
   );
 };
