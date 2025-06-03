@@ -532,6 +532,54 @@ export type Database = {
         }
         Relationships: []
       }
+      powerpoint_video_imports: {
+        Row: {
+          avatar_id: string | null
+          created_at: string
+          error_message: string | null
+          file_url: string
+          filename: string
+          heygen_job_id: string | null
+          heygen_video_url: string | null
+          id: string
+          script_content: string | null
+          status: string
+          updated_at: string
+          user_id: string
+          voice_id: string | null
+        }
+        Insert: {
+          avatar_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          file_url: string
+          filename: string
+          heygen_job_id?: string | null
+          heygen_video_url?: string | null
+          id?: string
+          script_content?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+          voice_id?: string | null
+        }
+        Update: {
+          avatar_id?: string | null
+          created_at?: string
+          error_message?: string | null
+          file_url?: string
+          filename?: string
+          heygen_job_id?: string | null
+          heygen_video_url?: string | null
+          id?: string
+          script_content?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+          voice_id?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
