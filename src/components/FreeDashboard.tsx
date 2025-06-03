@@ -19,6 +19,7 @@ const FreeDashboard = () => {
     first_name: "",
     last_name: "",
     email: "",
+    law_firm_name: "",
     profile_image_url: ""
   });
   const [loading, setLoading] = useState(true);
@@ -51,6 +52,7 @@ const FreeDashboard = () => {
           first_name: data.first_name || "",
           last_name: data.last_name || "",
           email: data.email || "",
+          law_firm_name: data.law_firm_name || "",
           profile_image_url: data.profile_image_url || ""
         });
       }
