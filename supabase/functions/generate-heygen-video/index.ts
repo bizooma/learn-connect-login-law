@@ -1,3 +1,4 @@
+
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
@@ -227,7 +228,7 @@ serve(async (req) => {
 
       console.log('Generating video with HeyGen using clone ID:', avatarId);
 
-      // Generate video with HeyGen - try with just avatar_id for voice
+      // Generate video with HeyGen
       const videoUrl = await generateHeyGenVideo(importRecord.script_content, avatarId);
 
       // Update record with video URL
@@ -357,25 +358,29 @@ async function generateNarrationScript(filename: string, slideContents: SlideCon
 async function generateHeyGenVideo(script: string, avatarId: string): Promise<string> {
   console.log('Starting HeyGen video generation with clone ID:', avatarId);
   
-  // For clones, use the correct API structure with voice settings
+  // Updated API structure for v2 with proper clone format
   const requestBody = {
     video_inputs: [{
       character: {
         type: "avatar",
-        avatar_id: avatarId,
-        scale: 1.0
+        avatar_id: avatarId
       },
       voice: {
         type: "text",
         input_text: script,
-        voice_id: avatarId  // For clones, voice_id should match avatar_id
+        voice_id: avatarId
+      },
+      background: {
+        type: "color",
+        value: "#FFFFFF"
       }
     }],
+    test: false,
+    caption: false,
     dimension: {
       width: 1280,
       height: 720
-    },
-    aspect_ratio: "16:9"
+    }
   };
 
   console.log('HeyGen request body:', JSON.stringify(requestBody, null, 2));
