@@ -9,45 +9,6 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      achievements: {
-        Row: {
-          badge_color: string
-          badge_icon: string
-          category: string
-          created_at: string
-          description: string
-          id: string
-          is_active: boolean
-          name: string
-          points_required: number | null
-          rarity: string
-        }
-        Insert: {
-          badge_color?: string
-          badge_icon: string
-          category?: string
-          created_at?: string
-          description: string
-          id?: string
-          is_active?: boolean
-          name: string
-          points_required?: number | null
-          rarity?: string
-        }
-        Update: {
-          badge_color?: string
-          badge_icon?: string
-          category?: string
-          created_at?: string
-          description?: string
-          id?: string
-          is_active?: boolean
-          name?: string
-          points_required?: number | null
-          rarity?: string
-        }
-        Relationships: []
-      }
       certificate_templates: {
         Row: {
           created_at: string
@@ -359,39 +320,6 @@ export type Database = {
         }
         Relationships: []
       }
-      learning_streaks: {
-        Row: {
-          created_at: string
-          current_streak: number
-          id: string
-          last_activity_date: string | null
-          longest_streak: number
-          streak_start_date: string | null
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          current_streak?: number
-          id?: string
-          last_activity_date?: string | null
-          longest_streak?: number
-          streak_start_date?: string | null
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          current_streak?: number
-          id?: string
-          last_activity_date?: string | null
-          longest_streak?: number
-          streak_start_date?: string | null
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       lessons: {
         Row: {
           course_id: string
@@ -565,36 +493,6 @@ export type Database = {
           message?: string
           title?: string
           type?: string
-        }
-        Relationships: []
-      }
-      point_transactions: {
-        Row: {
-          activity_id: string | null
-          activity_type: string
-          created_at: string
-          description: string
-          id: string
-          points_earned: number
-          user_id: string
-        }
-        Insert: {
-          activity_id?: string | null
-          activity_type: string
-          created_at?: string
-          description: string
-          id?: string
-          points_earned: number
-          user_id: string
-        }
-        Update: {
-          activity_id?: string | null
-          activity_type?: string
-          created_at?: string
-          description?: string
-          id?: string
-          points_earned?: number
-          user_id?: string
         }
         Relationships: []
       }
@@ -921,35 +819,6 @@ export type Database = {
           },
         ]
       }
-      user_achievements: {
-        Row: {
-          achievement_id: string
-          earned_at: string
-          id: string
-          user_id: string
-        }
-        Insert: {
-          achievement_id: string
-          earned_at?: string
-          id?: string
-          user_id: string
-        }
-        Update: {
-          achievement_id?: string
-          earned_at?: string
-          id?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "user_achievements_achievement_id_fkey"
-            columns: ["achievement_id"]
-            isOneToOne: false
-            referencedRelation: "achievements"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       user_activity_log: {
         Row: {
           activity_type: Database["public"]["Enums"]["activity_type"]
@@ -1158,36 +1027,6 @@ export type Database = {
         }
         Relationships: []
       }
-      user_points: {
-        Row: {
-          created_at: string
-          current_level: number
-          id: string
-          points_to_next_level: number
-          total_points: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          created_at?: string
-          current_level?: number
-          id?: string
-          points_to_next_level?: number
-          total_points?: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          created_at?: string
-          current_level?: number
-          id?: string
-          points_to_next_level?: number
-          total_points?: number
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -1269,10 +1108,6 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      check_achievements: {
-        Args: { p_user_id: string }
-        Returns: undefined
-      }
       cleanup_old_drafts: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -1344,20 +1179,6 @@ export type Database = {
       reclassify_unit_to_section: {
         Args: { p_unit_id: string; p_module_id: string }
         Returns: string
-      }
-      update_learning_streak: {
-        Args: { p_user_id: string }
-        Returns: undefined
-      }
-      update_user_points: {
-        Args: {
-          p_user_id: string
-          p_points: number
-          p_activity_type: string
-          p_activity_id?: string
-          p_description?: string
-        }
-        Returns: undefined
       }
     }
     Enums: {
