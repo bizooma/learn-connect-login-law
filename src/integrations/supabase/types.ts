@@ -588,6 +588,7 @@ export type Database = {
           id: string
           last_name: string | null
           law_firm_id: string | null
+          law_firm_name: string | null
           profile_image_url: string | null
           updated_at: string | null
         }
@@ -598,6 +599,7 @@ export type Database = {
           id: string
           last_name?: string | null
           law_firm_id?: string | null
+          law_firm_name?: string | null
           profile_image_url?: string | null
           updated_at?: string | null
         }
@@ -608,6 +610,7 @@ export type Database = {
           id?: string
           last_name?: string | null
           law_firm_id?: string | null
+          law_firm_name?: string | null
           profile_image_url?: string | null
           updated_at?: string | null
         }
