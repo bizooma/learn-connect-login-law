@@ -61,6 +61,7 @@ const AdminDashboard = () => {
   }
 
   console.log('AdminDashboard: Rendering full admin dashboard with tabs for user:', user?.id);
+  console.log('AdminDashboard: About to render AdminManagementTabs');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -70,7 +71,6 @@ const AdminDashboard = () => {
       />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {console.log('AdminDashboard: About to render AdminManagementTabs')}
         <AdminManagementTabs />
       </div>
     </div>

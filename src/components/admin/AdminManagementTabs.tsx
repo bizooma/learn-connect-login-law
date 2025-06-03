@@ -62,47 +62,67 @@ const AdminManagementTabs = () => {
         </TabsList>
 
         <TabsContent value="courses" className="mt-6">
-          {console.log('Rendering Courses tab content')}
-          <CourseManagement />
+          {(() => {
+            console.log('Rendering Courses tab content');
+            return <CourseManagement />;
+          })()}
         </TabsContent>
 
         <TabsContent value="gamification" className="mt-6">
-          {console.log('Rendering Gamification tab content')}
-          <div className="text-center py-8">
-            <p className="text-gray-500">Gamification management coming soon...</p>
-          </div>
+          {(() => {
+            console.log('Rendering Gamification tab content');
+            return (
+              <div className="text-center py-8">
+                <p className="text-gray-500">Gamification management coming soon...</p>
+              </div>
+            );
+          })()}
         </TabsContent>
 
         <TabsContent value="users" className="mt-6">
-          {console.log('Rendering Users tab content')}
-          <UserManagement />
+          {(() => {
+            console.log('Rendering Users tab content');
+            return <UserManagement />;
+          })()}
         </TabsContent>
 
         <TabsContent value="progress" className="mt-6">
-          {console.log('Rendering Progress tab content')}
-          <UserProgressManagement />
+          {(() => {
+            console.log('Rendering Progress tab content');
+            return <UserProgressManagement />;
+          })()}
         </TabsContent>
 
         <TabsContent value="activity" className="mt-6">
-          {console.log('Rendering Activity tab content')}
-          <div className="text-center py-8">
-            <p className="text-gray-500">Activity monitoring coming soon...</p>
-          </div>
+          {(() => {
+            console.log('Rendering Activity tab content');
+            return (
+              <div className="text-center py-8">
+                <p className="text-gray-500">Activity monitoring coming soon...</p>
+              </div>
+            );
+          })()}
         </TabsContent>
 
         <TabsContent value="quizzes" className="mt-6">
-          {console.log('Rendering Quizzes tab content')}
-          <QuizManagement />
+          {(() => {
+            console.log('Rendering Quizzes tab content');
+            return <QuizManagement />;
+          })()}
         </TabsContent>
 
         <TabsContent value="notifications" className="mt-6">
-          {console.log('Rendering Notifications tab content')}
-          <NotificationManagement />
+          {(() => {
+            console.log('Rendering Notifications tab content');
+            return <NotificationManagement />;
+          })()}
         </TabsContent>
 
         <TabsContent value="profile" className="mt-6">
-          {console.log('Rendering Profile tab content')}
-          <ProfileManagement />
+          {(() => {
+            console.log('Rendering Profile tab content');
+            return <ProfileManagement />;
+          })()}
         </TabsContent>
       </Tabs>
     </div>
