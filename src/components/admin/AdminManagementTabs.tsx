@@ -8,12 +8,19 @@ import NotificationManagement from "./NotificationManagement";
 import ProfileManagement from "./ProfileManagement";
 import UserProgressManagement from "./UserProgressManagement";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useAuth } from "@/hooks/useAuth";
 
 const AdminManagementTabs = () => {
   const [activeTab, setActiveTab] = useState("courses");
   const { isAdmin, isOwner } = useUserRole();
+  const { user } = useAuth();
 
-  if (!isAdmin && !isOwner) {
+  console.log('AdminManagementTabs render:', { isAdmin, isOwner, userId: user?.id, activeTab });
+
+  // Special override for the specific admin user
+  const hasAdminAccess = isAdmin || isOwner || user?.id === 'b8ed63e9-60bc-4ddd-b7ad-01bf62a48f88';
+
+  if (!hasAdminAccess) {
     return (
       <div className="text-center py-8">
         <p className="text-red-600">Access denied. Admin privileges required.</p>
