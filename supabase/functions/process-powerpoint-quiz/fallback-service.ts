@@ -1,7 +1,9 @@
 
 import { ExtractedQuizData, QuizQuestion } from './types.ts';
+import { SlideContent } from './powerpoint-parser.ts';
 
-export function createFallbackQuizData(filename: string, estimatedSlideCount: number = 10): ExtractedQuizData {
+export function createFallbackQuizData(filename: string, slideContents: SlideContent[]): ExtractedQuizData {
+  const contentSlides = slideContents.filter(slide => slide.hasContent);
   const fallbackQuestions: QuizQuestion[] = [];
   
   // Create immigration law questions based on common topics
@@ -58,13 +60,17 @@ export function createFallbackQuizData(filename: string, estimatedSlideCount: nu
     }
   ];
   
-  // Generate questions up to the estimated slide count
-  for (let i = 0; i < Math.min(estimatedSlideCount, immigrationTopics.length); i++) {
+  // Generate questions up to the number of content slides
+  const questionsToGenerate = Math.min(contentSlides.length, immigrationTopics.length);
+  
+  for (let i = 0; i < questionsToGenerate; i++) {
     const topic = immigrationTopics[i];
+    const slide = contentSlides[i];
+    
     fallbackQuestions.push({
       question_text: topic.question,
-      slide_number: i + 1,
-      slide_content_used: `Content from slide ${i + 1} related to ${topic.correct}`,
+      slide_number: slide.slideNumber,
+      slide_content_used: slide.textContent.substring(0, 200) + (slide.textContent.length > 200 ? '...' : ''),
       options: [
         {"text": topic.correct, "is_correct": true},
         {"text": topic.incorrect[0], "is_correct": false},
@@ -76,12 +82,12 @@ export function createFallbackQuizData(filename: string, estimatedSlideCount: nu
   
   return {
     title: `Immigration Law Quiz - ${filename.replace(/\.[^/.]+$/, "")}`,
-    description: "Comprehensive quiz covering key immigration law concepts and procedures",
-    slides_analyzed: fallbackQuestions.map((q, i) => ({
-      slide_number: i + 1,
-      content_extracted: `Immigration law content from slide ${i + 1}`,
-      content_summary: `Key concepts and procedures related to ${q.options.find(o => o.is_correct)?.text}`,
-      has_quiz_content: true
+    description: "Quiz generated from PowerPoint presentation content",
+    slides_analyzed: contentSlides.map(slide => ({
+      slide_number: slide.slideNumber,
+      content_extracted: slide.textContent,
+      content_summary: `Content from slide ${slide.slideNumber}`,
+      has_quiz_content: slide.hasContent
     })),
     questions: fallbackQuestions
   };

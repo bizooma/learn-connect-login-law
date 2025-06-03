@@ -7,6 +7,7 @@ import { getImportRecord, updateImportStatus, updateImportWithData, updateImport
 import { processWithOpenAI } from './openai-service.ts';
 import { createFallbackQuizData } from './fallback-service.ts';
 import { validateAndCleanExtractedData } from './data-validator.ts';
+import { parsePowerPointFile } from './powerpoint-parser.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -39,21 +40,37 @@ serve(async (req) => {
     await updateImportStatus(supabaseClient, importId, 'processing');
 
     // Download the PowerPoint file from storage
-    await downloadFile(supabaseClient, importRecord.file_url);
+    const fileBlob = await downloadFile(supabaseClient, importRecord.file_url);
+    console.log('Downloaded PowerPoint file, size:', fileBlob.size);
 
-    // Use OpenAI to extract quiz questions from the PowerPoint content
+    // Parse the PowerPoint file to extract slide content
+    let slideContents;
+    try {
+      slideContents = await parsePowerPointFile(fileBlob);
+      console.log('Parsed PowerPoint file, found slides:', slideContents.length);
+      console.log('Content slides:', slideContents.filter(s => s.hasContent).length);
+    } catch (parseError) {
+      console.error('Failed to parse PowerPoint file:', parseError);
+      // Create basic slide structure for fallback
+      slideContents = Array.from({length: 10}, (_, i) => ({
+        slideNumber: i + 1,
+        textContent: `Content from slide ${i + 1}`,
+        hasContent: true
+      }));
+    }
+
+    // Use OpenAI to extract quiz questions from the actual PowerPoint content
     let extractedData;
 
     try {
-      extractedData = await processWithOpenAI(importRecord);
+      extractedData = await processWithOpenAI(importRecord, slideContents);
       console.log('Successfully parsed AI response:', extractedData);
       console.log('Generated questions count:', extractedData.questions?.length || 0);
-    } catch (parseError) {
-      console.error('Failed to parse OpenAI response, using fallback:', parseError);
+    } catch (aiError) {
+      console.error('Failed to process with OpenAI, using fallback:', aiError);
       
-      // Enhanced fallback that creates questions based on typical slide count
-      const estimatedSlideCount = 10; // Default assumption for content slides
-      extractedData = createFallbackQuizData(importRecord.filename, estimatedSlideCount);
+      // Enhanced fallback that creates questions based on actual slide content
+      extractedData = createFallbackQuizData(importRecord.filename, slideContents);
     }
 
     // Validate and clean the extracted data
@@ -71,7 +88,8 @@ serve(async (req) => {
         success: true, 
         data: extractedData,
         importId: importId,
-        questionsGenerated: extractedData.questions.length
+        questionsGenerated: extractedData.questions.length,
+        slidesAnalyzed: slideContents.filter(s => s.hasContent).length
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

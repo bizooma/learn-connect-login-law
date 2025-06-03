@@ -1,7 +1,20 @@
 
 import { ExtractedQuizData } from './types.ts';
+import { SlideContent } from './powerpoint-parser.ts';
 
-export async function processWithOpenAI(importRecord: any): Promise<ExtractedQuizData> {
+export async function processWithOpenAI(importRecord: any, slideContents: SlideContent[]): Promise<ExtractedQuizData> {
+  // Filter to only content slides
+  const contentSlides = slideContents.filter(slide => slide.hasContent);
+  
+  if (contentSlides.length === 0) {
+    throw new Error('No content slides found to generate questions from');
+  }
+  
+  // Create a detailed prompt with actual slide content
+  const slideContentSummary = contentSlides.map(slide => 
+    `Slide ${slide.slideNumber}: "${slide.textContent.substring(0, 200)}${slide.textContent.length > 200 ? '...' : ''}"`
+  ).join('\n');
+
   const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -14,14 +27,15 @@ export async function processWithOpenAI(importRecord: any): Promise<ExtractedQui
         {
           role: 'system',
           content: `You are an expert at creating quiz questions from PowerPoint presentations. 
-          Your task is to analyze the presentation and create exactly ONE multiple choice question per content slide.
+          Your task is to analyze the presentation content and create exactly ONE multiple choice question per content slide.
           
-          IMPORTANT REQUIREMENTS:
+          CRITICAL REQUIREMENTS:
           - Generate exactly 1 question per slide that contains meaningful content
           - Each question must have exactly 4 multiple choice options (A, B, C, D)
-          - Skip title slides, agenda slides, thank you slides, or other non-content slides
+          - Base each question ONLY on the actual content provided from that specific slide
           - Use the slide content to create the correct answer and 3 plausible incorrect options
           - Questions should test understanding of the key concept presented on each slide
+          - DO NOT use generic immigration law knowledge - only use what's provided in the slide content
           
           Return your response as a JSON object with this exact structure:
           {
@@ -51,33 +65,22 @@ export async function processWithOpenAI(importRecord: any): Promise<ExtractedQui
           }
           
           Guidelines for question creation:
-          - Focus on factual information, definitions, procedures, or key concepts from each slide
-          - Make incorrect options believable but clearly wrong
+          - Focus ONLY on the information provided in each slide
+          - Make incorrect options believable but clearly wrong based on the slide content
           - Ensure questions are clear and unambiguous
-          - Test practical knowledge that would be useful for someone learning the topic`
+          - Test practical knowledge from the specific slide content`
         },
         {
           role: 'user',
-          content: `Please analyze this PowerPoint file: "${importRecord.filename}" and create quiz questions.
+          content: `Please analyze this PowerPoint file: "${importRecord.filename}" and create quiz questions based on the actual slide content.
           
-          This appears to be an immigration law training presentation. Please:
+          Here is the actual content from each slide:
           
-          1. Identify all slides with meaningful educational content (skip title, agenda, conclusion slides)
-          2. For each content slide, create exactly ONE multiple choice question with 4 options
-          3. Base questions on key facts, procedures, forms, deadlines, or concepts from each slide
-          4. Ensure all 4 options are plausible but only 1 is correct
+          ${slideContentSummary}
           
-          Expected slide types in immigration law presentations:
-          - Form definitions and purposes (I-485, I-130, I-140, etc.)
-          - Process timelines and deadlines
-          - Legal requirements and criteria
-          - Document requirements
-          - Case types and classifications
-          - Important dates and priority dates
-          - Fee information
-          - Filing procedures
+          IMPORTANT: Create exactly one question per slide listed above. Base each question ONLY on the content from that specific slide. Do not use general knowledge - only use what's written in the slide content provided.
           
-          Generate 1 question per content slide, aiming for 8-12 questions total if there are that many content slides.`
+          For each slide, identify the main concept or key information and create a multiple choice question that tests understanding of that specific content.`
         }
       ],
       temperature: 0.2,
@@ -85,9 +88,26 @@ export async function processWithOpenAI(importRecord: any): Promise<ExtractedQui
   });
 
   if (!openAIResponse.ok) {
+    const errorText = await openAIResponse.text();
+    console.error('OpenAI API error:', errorText);
     throw new Error(`OpenAI API error: ${openAIResponse.statusText}`);
   }
 
   const aiResult = await openAIResponse.json();
-  return JSON.parse(aiResult.choices[0].message.content);
+  
+  if (!aiResult.choices || !aiResult.choices[0] || !aiResult.choices[0].message) {
+    throw new Error('Invalid response from OpenAI API');
+  }
+  
+  const content = aiResult.choices[0].message.content;
+  
+  // Clean up the response if it's wrapped in markdown code blocks
+  const cleanContent = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
+  
+  try {
+    return JSON.parse(cleanContent);
+  } catch (parseError) {
+    console.error('Failed to parse OpenAI response:', cleanContent);
+    throw new Error('Failed to parse AI response as JSON');
+  }
 }
