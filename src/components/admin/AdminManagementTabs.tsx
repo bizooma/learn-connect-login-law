@@ -3,56 +3,12 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useAuth } from "@/hooks/useAuth";
-
-// Import components with error handling
-let CourseManagement: React.ComponentType | null = null;
-let UserManagement: React.ComponentType | null = null;
-let QuizManagement: React.ComponentType | null = null;
-let NotificationManagement: React.ComponentType | null = null;
-let ProfileManagement: React.ComponentType | null = null;
-let UserProgressManagement: React.ComponentType | null = null;
-
-try {
-  CourseManagement = require("./CourseManagement").default;
-  console.log('CourseManagement loaded successfully');
-} catch (error) {
-  console.error('Failed to load CourseManagement:', error);
-}
-
-try {
-  UserManagement = require("./UserManagement").default;
-  console.log('UserManagement loaded successfully');
-} catch (error) {
-  console.error('Failed to load UserManagement:', error);
-}
-
-try {
-  QuizManagement = require("./QuizManagement").default;
-  console.log('QuizManagement loaded successfully');
-} catch (error) {
-  console.error('Failed to load QuizManagement:', error);
-}
-
-try {
-  NotificationManagement = require("./NotificationManagement").default;
-  console.log('NotificationManagement loaded successfully');
-} catch (error) {
-  console.error('Failed to load NotificationManagement:', error);
-}
-
-try {
-  ProfileManagement = require("./ProfileManagement").default;
-  console.log('ProfileManagement loaded successfully');
-} catch (error) {
-  console.error('Failed to load ProfileManagement:', error);
-}
-
-try {
-  UserProgressManagement = require("./UserProgressManagement").default;
-  console.log('UserProgressManagement loaded successfully');
-} catch (error) {
-  console.error('Failed to load UserProgressManagement:', error);
-}
+import CourseManagement from "./CourseManagement";
+import UserManagement from "./UserManagement";
+import QuizManagement from "./QuizManagement";
+import NotificationManagement from "./NotificationManagement";
+import ProfileManagement from "./ProfileManagement";
+import UserProgressManagement from "./UserProgressManagement";
 
 const AdminManagementTabs = () => {
   const [activeTab, setActiveTab] = useState("courses");
@@ -91,32 +47,6 @@ const AdminManagementTabs = () => {
 
   console.log('Rendering admin tabs for tab:', activeTab);
 
-  const renderTabContent = (tabName: string, Component: React.ComponentType | null, fallbackContent?: React.ReactNode) => {
-    console.log(`Attempting to render ${tabName} tab content`);
-    
-    if (!Component) {
-      console.error(`${tabName} component is not available`);
-      return (
-        <div className="text-center py-8">
-          <p className="text-red-600">Error: {tabName} component failed to load</p>
-          <p className="text-gray-500">Check the console for more details</p>
-        </div>
-      );
-    }
-
-    try {
-      return <Component />;
-    } catch (error) {
-      console.error(`Error rendering ${tabName}:`, error);
-      return (
-        <div className="text-center py-8">
-          <p className="text-red-600">Error rendering {tabName}</p>
-          <p className="text-gray-500">{String(error)}</p>
-        </div>
-      );
-    }
-  };
-
   return (
     <div className="space-y-6">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -132,7 +62,7 @@ const AdminManagementTabs = () => {
         </TabsList>
 
         <TabsContent value="courses" className="mt-6">
-          {renderTabContent('Courses', CourseManagement)}
+          <CourseManagement />
         </TabsContent>
 
         <TabsContent value="gamification" className="mt-6">
@@ -142,11 +72,11 @@ const AdminManagementTabs = () => {
         </TabsContent>
 
         <TabsContent value="users" className="mt-6">
-          {renderTabContent('Users', UserManagement)}
+          <UserManagement />
         </TabsContent>
 
         <TabsContent value="progress" className="mt-6">
-          {renderTabContent('Progress', UserProgressManagement)}
+          <UserProgressManagement />
         </TabsContent>
 
         <TabsContent value="activity" className="mt-6">
@@ -156,15 +86,15 @@ const AdminManagementTabs = () => {
         </TabsContent>
 
         <TabsContent value="quizzes" className="mt-6">
-          {renderTabContent('Quizzes', QuizManagement)}
+          <QuizManagement />
         </TabsContent>
 
         <TabsContent value="notifications" className="mt-6">
-          {renderTabContent('Notifications', NotificationManagement)}
+          <NotificationManagement />
         </TabsContent>
 
         <TabsContent value="profile" className="mt-6">
-          {renderTabContent('Profile', ProfileManagement)}
+          <ProfileManagement />
         </TabsContent>
       </Tabs>
     </div>
