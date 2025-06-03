@@ -22,6 +22,8 @@ const AdminManagementConsole = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
 
+  console.log('AdminManagementConsole rendering with activeSection:', activeSection);
+
   const handleSignOut = async () => {
     try {
       await signOut();
@@ -42,6 +44,8 @@ const AdminManagementConsole = () => {
   ];
 
   const renderContent = () => {
+    console.log('Rendering content for section:', activeSection);
+    
     switch (activeSection) {
       case "overview":
         return (
@@ -86,8 +90,10 @@ const AdminManagementConsole = () => {
           </Card>
         );
       case "users":
+        console.log('Rendering UserManagement component');
         return <UserManagement />;
       case "quizzes":
+        console.log('Rendering QuizManagement component');
         return <QuizManagement />;
       case "notifications":
         return (
@@ -112,9 +118,12 @@ const AdminManagementConsole = () => {
           </Card>
         );
       default:
+        console.log('Unknown section, returning null');
         return null;
     }
   };
+
+  console.log('AdminManagementConsole about to render');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -174,7 +183,10 @@ const AdminManagementConsole = () => {
                     return (
                       <button
                         key={item.id}
-                        onClick={() => setActiveSection(item.id)}
+                        onClick={() => {
+                          console.log('Navigation clicked:', item.id);
+                          setActiveSection(item.id);
+                        }}
                         className={`w-full flex items-center space-x-3 px-4 py-3 text-left hover:bg-gray-50 transition-colors ${
                           activeSection === item.id 
                             ? 'bg-blue-50 border-r-2 border-blue-500 text-blue-700' 
