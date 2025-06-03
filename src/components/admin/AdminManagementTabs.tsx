@@ -3,12 +3,7 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useAuth } from "@/hooks/useAuth";
-import CourseManagement from "./CourseManagement";
-import UserManagement from "./user-management/UserManagement";
-import QuizManagement from "./QuizManagement";
-import NotificationManagement from "./NotificationManagement";
-import ProfileManagement from "./ProfileManagement";
-import UserProgressManagement from "./UserProgressManagement";
+import { Card, CardContent } from "@/components/ui/card";
 
 const AdminManagementTabs = () => {
   const [activeTab, setActiveTab] = useState("courses");
@@ -49,6 +44,16 @@ const AdminManagementTabs = () => {
 
   return (
     <div className="space-y-6">
+      <div className="bg-blue-50 border-l-4 border-blue-400 p-4">
+        <div className="flex">
+          <div className="ml-3">
+            <p className="text-sm text-blue-700">
+              <strong>Debug Mode:</strong> Using minimal admin components. Active tab: {activeTab}
+            </p>
+          </div>
+        </div>
+      </div>
+
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="courses">Courses</TabsTrigger>
@@ -60,27 +65,75 @@ const AdminManagementTabs = () => {
         </TabsList>
 
         <TabsContent value="courses" className="mt-6">
-          <CourseManagement />
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Courses Management</h3>
+              <p className="text-gray-600">Course management functionality (simplified for debugging)</p>
+              <div className="mt-4 text-sm text-green-600">
+                ✓ Courses tab is rendering successfully
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="users" className="mt-6">
-          <UserManagement />
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-4">User Management</h3>
+              <p className="text-gray-600">User management functionality (simplified for debugging)</p>
+              <div className="mt-4 text-sm text-green-600">
+                ✓ Users tab is rendering successfully
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="progress" className="mt-6">
-          <UserProgressManagement />
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-4">User Progress</h3>
+              <p className="text-gray-600">Progress tracking functionality (simplified for debugging)</p>
+              <div className="mt-4 text-sm text-green-600">
+                ✓ Progress tab is rendering successfully
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="quizzes" className="mt-6">
-          <QuizManagement />
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Quiz Management</h3>
+              <p className="text-gray-600">Quiz management functionality (simplified for debugging)</p>
+              <div className="mt-4 text-sm text-green-600">
+                ✓ Quizzes tab is rendering successfully
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="notifications" className="mt-6">
-          <NotificationManagement />
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Notifications</h3>
+              <p className="text-gray-600">Notification management functionality (simplified for debugging)</p>
+              <div className="mt-4 text-sm text-green-600">
+                ✓ Notifications tab is rendering successfully
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="profile" className="mt-6">
-          <ProfileManagement />
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Profile Management</h3>
+              <p className="text-gray-600">Profile management functionality (simplified for debugging)</p>
+              <div className="mt-4 text-sm text-green-600">
+                ✓ Profile tab is rendering successfully
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
