@@ -4,7 +4,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useAuth } from "@/hooks/useAuth";
 import CourseManagement from "./CourseManagement";
-import UserManagement from "./UserManagement";
+import UserManagement from "./user-management/UserManagement";
 import QuizManagement from "./QuizManagement";
 import NotificationManagement from "./NotificationManagement";
 import ProfileManagement from "./ProfileManagement";
