@@ -66,15 +66,15 @@ serve(async (req) => {
     console.log('Authenticated user:', user.id);
 
     // Check if the requesting user is an admin or owner
-    const { data: userRole, error: roleError } = await supabaseClient
+    const { data: userRole, error: userRoleError } = await supabaseClient
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
       .single();
 
-    console.log('User role check:', { userRole, roleError });
+    console.log('User role check:', { userRole, userRoleError });
 
-    if (roleError || !userRole || (userRole.role !== 'admin' && userRole.role !== 'owner')) {
+    if (userRoleError || !userRole || (userRole.role !== 'admin' && userRole.role !== 'owner')) {
       console.error('Permission denied for user:', user.id, 'role:', userRole?.role);
       throw new Error('Admin privileges required');
     }
@@ -124,15 +124,15 @@ serve(async (req) => {
     }
 
     // Set user role
-    const { error: roleError } = await supabaseAdmin
+    const { error: assignRoleError } = await supabaseAdmin
       .from('user_roles')
       .insert({
         user_id: authData.user.id,
         role
       });
 
-    if (roleError) {
-      console.error('Role assignment error:', roleError);
+    if (assignRoleError) {
+      console.error('Role assignment error:', assignRoleError);
       // Don't throw here as the user was created
     } else {
       console.log('Role assigned successfully:', role);
