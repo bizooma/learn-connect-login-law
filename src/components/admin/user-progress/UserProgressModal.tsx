@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { User, BookOpen, CheckCircle, Clock, Calendar } from "lucide-react";
+import { User, BookOpen, CheckCircle, Clock, Calendar, Trash2 } from "lucide-react";
 
 interface UserProgressData {
   user_id: string;
@@ -145,6 +145,54 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
     }
   };
 
+  const handleDeleteAssignment = async (courseId: string) => {
+    if (!userId) return;
+
+    try {
+      // Delete the course assignment
+      const { error: assignmentError } = await supabase
+        .from('course_assignments')
+        .delete()
+        .eq('user_id', userId)
+        .eq('course_id', courseId);
+
+      if (assignmentError) throw assignmentError;
+
+      // Delete the user course progress
+      const { error: progressError } = await supabase
+        .from('user_course_progress')
+        .delete()
+        .eq('user_id', userId)
+        .eq('course_id', courseId);
+
+      if (progressError) throw progressError;
+
+      // Delete any unit progress for this course
+      const { error: unitProgressError } = await supabase
+        .from('user_unit_progress')
+        .delete()
+        .eq('user_id', userId)
+        .eq('course_id', courseId);
+
+      if (unitProgressError) throw unitProgressError;
+
+      toast({
+        title: "Success",
+        description: "Course assignment deleted successfully",
+      });
+
+      // Refresh the data
+      await fetchUserProgress();
+    } catch (error) {
+      console.error('Error deleting course assignment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete course assignment",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'completed':
@@ -265,7 +313,17 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
                     <div key={index} className="border rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="font-medium">{course.course_title}</h4>
-                        {getStatusBadge(course.status)}
+                        <div className="flex items-center gap-2">
+                          {getStatusBadge(course.status)}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDeleteAssignment(course.course_id)}
+                            className="text-red-600 border-red-200 hover:bg-red-50 hover:border-red-300"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                       
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-3">
