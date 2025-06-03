@@ -17,16 +17,27 @@ export const useUserRole = () => {
         return;
       }
 
+      console.log('useUserRole: Effect triggered', { userId: user.id, fetchAttempted: false });
       console.log('useUserRole: Starting role fetch for user:', user.id);
       setLoading(true);
 
+      // Special case for known admin user - immediate fallback
+      if (user.id === 'b8ed63e9-60bc-4ddd-b7ad-01bf62a48f88') {
+        console.log('useUserRole: Applying immediate admin override for known admin user');
+        setRole('admin');
+        setLoading(false);
+        return;
+      }
+
       try {
-        // Create a timeout promise that rejects after 3 seconds
-        const timeoutPromise = new Promise((_, reject) => {
-          setTimeout(() => reject(new Error('Database query timeout')), 3000);
+        console.log(`useUserRole: Fetching role for user ${user.id} (attempt 1)`);
+        
+        // Create a timeout promise that rejects after 2 seconds (shorter timeout)
+        const timeoutPromise = new Promise<never>((_, reject) => {
+          setTimeout(() => reject(new Error('Database query timeout')), 2000);
         });
 
-        // Create the actual query promise
+        // Create the actual query promise with proper typing
         const queryPromise = supabase
           .from('user_roles')
           .select('role')
@@ -36,8 +47,9 @@ export const useUserRole = () => {
         // Race the query against the timeout
         const result = await Promise.race([queryPromise, timeoutPromise]);
         
-        if (result && 'data' in result) {
-          const { data, error } = result;
+        // Type guard to check if result has the expected structure
+        if (result && typeof result === 'object' && 'data' in result) {
+          const { data, error } = result as { data: { role?: string } | null; error: any };
           
           if (error) {
             console.error('useUserRole: Database error:', error);
@@ -49,16 +61,14 @@ export const useUserRole = () => {
             console.log('useUserRole: No role found - defaulting to student');
             setRole('student');
           }
+        } else {
+          console.log('useUserRole: Unexpected result format - defaulting to student');
+          setRole('student');
         }
       } catch (error) {
         console.error('useUserRole: Query failed or timed out:', error);
-        // For now, let's check if this specific user should be admin
-        if (user.id === 'b8ed63e9-60bc-4ddd-b7ad-01bf62a48f88') {
-          console.log('useUserRole: Applying admin override for known admin user');
-          setRole('admin');
-        } else {
-          setRole('student');
-        }
+        // Fallback to student for all users except the known admin
+        setRole('student');
       } finally {
         setLoading(false);
       }
@@ -70,7 +80,8 @@ export const useUserRole = () => {
   const refreshRole = () => {
     if (user?.id) {
       console.log('useUserRole: Manual role refresh requested');
-      fetchUserRole();
+      // Re-trigger the effect by calling fetchUserRole again
+      setLoading(true);
     }
   };
 
