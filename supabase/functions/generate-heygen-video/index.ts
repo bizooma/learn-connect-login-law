@@ -118,19 +118,15 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const supabaseClient = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
-      {
-        global: {
-          headers: { Authorization: req.headers.get('Authorization')! },
-        },
-      }
-    );
+  let requestBody: any;
+  let importId: string | undefined;
 
-    const requestBody = await req.json();
-    const { importId, action, avatarId, voiceId } = requestBody;
+  try {
+    // Parse request body once and store it
+    requestBody = await req.json();
+    const { importId: reqImportId, action, avatarId, voiceId } = requestBody;
+    importId = reqImportId;
+    
     console.log('Processing HeyGen video generation:', { importId, action, avatarId, voiceId });
 
     // Validate required parameters
@@ -141,6 +137,16 @@ serve(async (req) => {
     if (!action) {
       throw new Error('Action is required');
     }
+
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: { Authorization: req.headers.get('Authorization')! },
+        },
+      }
+    );
 
     // Get the import record
     const { data: importRecord, error: fetchError } = await supabaseClient
@@ -249,15 +255,14 @@ serve(async (req) => {
   } catch (error) {
     console.error('Error in HeyGen video generation:', error);
     
-    try {
-      const supabaseClient = createClient(
-        Deno.env.get('SUPABASE_URL') ?? '',
-        Deno.env.get('SUPABASE_ANON_KEY') ?? ''
-      );
-      
-      const requestBody = await req.json().catch(() => ({}));
-      const { importId } = requestBody;
-      if (importId) {
+    // Only try to update error status if we have an importId and can create supabase client
+    if (importId) {
+      try {
+        const supabaseClient = createClient(
+          Deno.env.get('SUPABASE_URL') ?? '',
+          Deno.env.get('SUPABASE_ANON_KEY') ?? ''
+        );
+        
         await supabaseClient
           .from('powerpoint_video_imports')
           .update({ 
@@ -265,9 +270,9 @@ serve(async (req) => {
             error_message: error.message 
           })
           .eq('id', importId);
+      } catch (updateError) {
+        console.error('Failed to update error status:', updateError);
       }
-    } catch (updateError) {
-      console.error('Failed to update error status:', updateError);
     }
 
     return new Response(
