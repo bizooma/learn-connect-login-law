@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +13,7 @@ import DashboardContent from "./dashboard/DashboardContent";
 
 const ClientDashboard = () => {
   const { user, signOut } = useAuth();
-  const { isClient } = useUserRole();
+  const { isClient, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("assigned");
   const [stats, setStats] = useState({
@@ -24,22 +24,20 @@ const ClientDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    if (!isClient) {
-      navigate("/");
+  const fetchStats = useCallback(async () => {
+    if (!user?.id) {
+      console.log('ClientDashboard: No user ID, skipping stats fetch');
       return;
     }
-    fetchStats();
-  }, [isClient, navigate]);
 
-  const fetchStats = async () => {
     try {
+      console.log('ClientDashboard: Fetching stats for user:', user.id);
       setLoading(true);
       // Fetch user course progress for actual stats
       const { data: progressData } = await supabase
         .from('user_course_progress')
         .select('*')
-        .eq('user_id', user?.id);
+        .eq('user_id', user.id);
 
       const assignedCoursesCount = progressData?.length || 0;
       const completedCoursesCount = progressData?.filter(p => p.status === 'completed').length || 0;
@@ -51,14 +49,38 @@ const ClientDashboard = () => {
         inProgressCourses: inProgressCoursesCount,
         certificatesEarned: completedCoursesCount // For now, assume 1 certificate per completed course
       });
+      console.log('ClientDashboard: Stats updated successfully');
     } catch (error) {
       console.error("Error fetching client stats:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
-  if (loading) {
+  useEffect(() => {
+    console.log('ClientDashboard: useEffect triggered', {
+      hasUser: !!user,
+      userId: user?.id,
+      isClient,
+      roleLoading
+    });
+
+    // Only redirect if role loading is complete and user is NOT a client
+    if (!roleLoading && user && !isClient) {
+      console.log('ClientDashboard: User is not a client, redirecting to main dashboard');
+      navigate("/", { replace: true });
+      return;
+    }
+
+    // Fetch stats if we have a user and they are a client
+    if (!roleLoading && user?.id && isClient) {
+      console.log('ClientDashboard: User is a client, fetching stats');
+      fetchStats();
+    }
+  }, [user?.id, isClient, roleLoading, navigate, fetchStats]);
+
+  // Show loading while checking role or fetching stats
+  if (roleLoading || (loading && isClient)) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-100">
         <div className="text-center">
@@ -69,6 +91,7 @@ const ClientDashboard = () => {
     );
   }
 
+  // If not a client, return null (redirect will handle navigation)
   if (!isClient) {
     return null;
   }
@@ -115,7 +138,10 @@ const ClientDashboard = () => {
         />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <NotificationBanner />
+          {/* Full-width notification banner above main dashboard content */}
+          <div className="mb-8">
+            <NotificationBanner />
+          </div>
 
           <DashboardStats stats={clientStats} />
 

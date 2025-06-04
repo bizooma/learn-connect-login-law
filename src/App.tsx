@@ -6,46 +6,43 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
-import Homepage from "./pages/Homepage";
 import Course from "./pages/Course";
 import Section from "./pages/Section";
 import Courses from "./pages/Courses";
 import LMSTree from "./pages/LMSTree";
 import OwnerDashboard from "./pages/OwnerDashboard";
-import StudentDashboard from "./components/StudentDashboard";
-import ClientDashboard from "./components/ClientDashboard";
-import FreeDashboard from "./components/FreeDashboard";
-import ResetPassword from "./pages/ResetPassword";
-import AuthPage from "./components/AuthPage";
+import Homepage from "./pages/Homepage";
 import NotFound from "./pages/NotFound";
+import ResetPassword from "./pages/ResetPassword";
+import AdminResources from "./pages/AdminResources";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
+    <AuthProvider>
+      <TooltipProvider>
         <Toaster />
         <Sonner />
         <BrowserRouter>
           <Routes>
-            <Route path="/" element={<Homepage />} />
-            <Route path="/app" element={<Index />} />
-            <Route path="/login" element={<AuthPage />} />
-            <Route path="/courses" element={<Courses />} />
+            <Route path="/" element={<Index />} />
+            <Route path="/homepage" element={<Homepage />} />
             <Route path="/course/:id" element={<Course />} />
             <Route path="/section/:id" element={<Section />} />
+            <Route path="/courses" element={<Courses />} />
             <Route path="/lms-tree" element={<LMSTree />} />
             <Route path="/owner-dashboard" element={<OwnerDashboard />} />
-            <Route path="/student-dashboard" element={<StudentDashboard />} />
-            <Route path="/client-dashboard" element={<ClientDashboard />} />
-            <Route path="/free-dashboard" element={<FreeDashboard />} />
+            <Route path="/student-dashboard" element={<Index />} />
+            <Route path="/client-dashboard" element={<Index />} />
+            <Route path="/free-dashboard" element={<Index />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/admin/resources" element={<AdminResources />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
-      </AuthProvider>
-    </TooltipProvider>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 

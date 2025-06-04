@@ -1,31 +1,27 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
+import AuthPage from "../components/AuthPage";
 import Dashboard from "../components/Dashboard";
 import AdminDashboard from "../components/AdminDashboard";
-import NotificationBanner from "../components/notifications/NotificationBanner";
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import ClientDashboard from "../components/ClientDashboard";
+import StudentDashboard from "../components/StudentDashboard";
+import FreeDashboard from "../components/FreeDashboard";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, isOwner, isStudent, isClient, isFree, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
-
-  console.log('Index: Current state:', {
-    user: !!user,
-    userId: user?.id,
-    authLoading,
-    roleLoading,
-    isAdmin,
-    isOwner,
-    isStudent,
-    isClient,
-    isFree
-  });
+  const location = useLocation();
+  const hasRedirectedRef = useRef(false);
+  const redirectCountRef = useRef(0);
+  const lastUserIdRef = useRef<string | null>(null);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
-    console.log('Index: useEffect triggered with:', {
+    console.log('Index useEffect triggered with:', {
       user: !!user,
       authLoading,
       roleLoading,
@@ -33,60 +29,91 @@ const Index = () => {
       isStudent,
       isClient,
       isFree,
-      isAdmin
+      isAdmin,
+      userEmail: user?.email,
+      currentPath: location.pathname,
+      hasRedirected: hasRedirectedRef.current,
+      redirectCount: redirectCountRef.current,
+      isRedirecting
     });
 
-    // If no user, redirect to login
-    if (!authLoading && !user) {
-      console.log('Index: No user, redirecting to login');
-      navigate("/login", { replace: true });
+    // Circuit breaker: prevent too many redirects
+    if (redirectCountRef.current > 5) {
+      console.error('Index: Too many redirect attempts, stopping redirects');
       return;
     }
 
-    // Only redirect if we have a user and roles are loaded
-    if (!authLoading && !roleLoading && user) {
-      console.log('Index: User authenticated, redirecting based on role:', { 
-        isOwner, 
-        isStudent, 
-        isClient, 
-        isFree, 
-        isAdmin 
-      });
+    // Prevent multiple redirects or redirects while already redirecting
+    if (hasRedirectedRef.current || isRedirecting) {
+      console.log('Index: Already redirected or redirecting, skipping');
+      return;
+    }
+
+    // Only redirect if we have a user, roles are loaded, and we're on the root path
+    if (!authLoading && !roleLoading && user && location.pathname === "/") {
+      console.log('Index: User authenticated on root path, checking redirects...');
+      
+      setIsRedirecting(true);
+      redirectCountRef.current += 1;
       
       // Redirect owners to their dedicated dashboard
       if (isOwner) {
         console.log('Index: Redirecting owner to owner dashboard');
+        hasRedirectedRef.current = true;
         navigate("/owner-dashboard", { replace: true });
         return;
       }
       // Redirect students to their dedicated dashboard
       if (isStudent) {
         console.log('Index: Redirecting student to student dashboard');
+        hasRedirectedRef.current = true;
         navigate("/student-dashboard", { replace: true });
         return;
       }
       // Redirect clients to their dedicated dashboard
       if (isClient) {
         console.log('Index: Redirecting client to client dashboard');
+        hasRedirectedRef.current = true;
         navigate("/client-dashboard", { replace: true });
         return;
       }
       // Redirect free users to their dedicated dashboard
       if (isFree) {
         console.log('Index: Redirecting free user to free dashboard');
+        hasRedirectedRef.current = true;
         navigate("/free-dashboard", { replace: true });
         return;
       }
-      
-      // If no specific role is found, log this for debugging
-      if (!isAdmin && !isOwner && !isStudent && !isClient && !isFree) {
-        console.log('Index: No role detected, user might not have a role assigned');
-      }
+      // If no specific role, stay on main dashboard (this page)
+      console.log('Index: No specific role found, staying on main dashboard');
+      setIsRedirecting(false);
+    } else {
+      console.log('Index: Not redirecting because:', {
+        hasUser: !!user,
+        authLoading,
+        roleLoading,
+        currentPath: location.pathname
+      });
+      setIsRedirecting(false);
     }
-  }, [user, isOwner, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate]);
+  }, [user?.id, isOwner, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate, location.pathname, isRedirecting]);
+
+  // Reset redirect flags when user changes
+  useEffect(() => {
+    const currentUserId = user?.id;
+    const lastUserId = lastUserIdRef.current;
+    
+    if (currentUserId !== lastUserId) {
+      console.log('Index: User changed, resetting redirect flags');
+      hasRedirectedRef.current = false;
+      redirectCountRef.current = 0;
+      setIsRedirecting(false);
+      lastUserIdRef.current = currentUserId || null;
+    }
+  }, [user?.id]);
 
   // Show loading while checking auth state
-  if (authLoading || (user && roleLoading)) {
+  if (authLoading || (user && roleLoading) || isRedirecting) {
     console.log('Index: Showing loading state');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -98,21 +125,42 @@ const Index = () => {
     );
   }
 
-  // If user is not authenticated, don't render anything (will redirect to login)
+  // If no user, show auth page
   if (!user) {
-    console.log('Index: No user, rendering null');
-    return null;
+    console.log('Index: No user found, showing auth page');
+    return <AuthPage />;
   }
 
-  console.log('Index: Rendering dashboard for role:', { isAdmin });
+  // Show appropriate dashboard based on user role for specific paths
+  console.log('Index: Showing dashboard for path:', location.pathname);
   
-  // Show admin dashboard only for admins, not owners, students, clients, or free users
-  return (
-    <div>
-      <NotificationBanner />
-      {isAdmin ? <AdminDashboard /> : <Dashboard />}
-    </div>
-  );
+  // Show role-specific dashboards for their dedicated paths
+  if (location.pathname === "/student-dashboard" && isStudent) {
+    return <StudentDashboard />;
+  }
+  
+  if (location.pathname === "/client-dashboard" && isClient) {
+    return <ClientDashboard />;
+  }
+  
+  if (location.pathname === "/free-dashboard" && isFree) {
+    return <FreeDashboard />;
+  }
+  
+  // Show admin dashboard only for admins on root path
+  if (location.pathname === "/" && isAdmin) {
+    return <AdminDashboard />;
+  }
+  
+  // Default dashboard for root path (for users without specific roles)
+  if (location.pathname === "/") {
+    return <Dashboard />;
+  }
+
+  // For other paths that shouldn't be handled by Index, redirect to root
+  console.log('Index: Unexpected path, redirecting to root');
+  navigate("/", { replace: true });
+  return null;
 };
 
 export default Index;

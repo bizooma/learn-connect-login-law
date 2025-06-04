@@ -1,24 +1,16 @@
 
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 
-const NavigationHeader = () => {
+const SimpleNavigationHeader = () => {
   const navigate = useNavigate();
-  const { user, loading } = useAuth();
 
   const handleLoginClick = () => {
-    if (user) {
-      // If user is already logged in, go to dashboard
-      navigate("/dashboard");
-    } else {
-      // If not logged in, go to login page
-      navigate("/login");
-    }
+    navigate("/login");
   };
 
   return (
-    <nav className="bg-white shadow-sm sticky top-0 z-50">
+    <nav className="bg-gray-900 shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
@@ -31,19 +23,19 @@ const NavigationHeader = () => {
           
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-8">
-              <a href="#home" className="text-gray-900 hover:text-blue-600 px-3 py-2 text-sm font-medium">
+              <a href="#home" className="text-white hover:text-blue-400 px-3 py-2 text-sm font-medium">
                 Home
               </a>
-              <a href="#law-firms" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">
+              <a href="#law-firms" className="text-gray-300 hover:text-blue-400 px-3 py-2 text-sm font-medium">
                 Law Firms
               </a>
-              <a href="#staff-training" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">
+              <a href="#staff-training" className="text-gray-300 hover:text-blue-400 px-3 py-2 text-sm font-medium">
                 Staff Training
               </a>
-              <a href="#immigration-law" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">
+              <a href="#immigration-law" className="text-gray-300 hover:text-blue-400 px-3 py-2 text-sm font-medium">
                 Immigration Law
               </a>
-              <a href="#podcast" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">
+              <a href="#podcast" className="text-gray-300 hover:text-blue-400 px-3 py-2 text-sm font-medium">
                 Podcast
               </a>
             </div>
@@ -52,10 +44,9 @@ const NavigationHeader = () => {
           <div className="flex items-center">
             <Button 
               onClick={handleLoginClick}
-              disabled={loading}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
-              {loading ? "Loading..." : user ? "Dashboard" : "Login"}
+              Login
             </Button>
           </div>
         </div>
@@ -64,4 +55,4 @@ const NavigationHeader = () => {
   );
 };
 
-export default NavigationHeader;
+export default SimpleNavigationHeader;
