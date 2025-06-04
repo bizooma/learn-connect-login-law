@@ -55,8 +55,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       console.log('Starting sign out process');
       
-      // Sign out from Supabase first
-      const { error } = await supabase.auth.signOut();
+      // Sign out from Supabase with global scope to clear all sessions
+      const { error } = await supabase.auth.signOut({ scope: 'global' });
       
       if (error) {
         console.error('Error signing out:', error);
@@ -65,23 +65,43 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       
       console.log('Successfully signed out from Supabase');
       
+      // Force clear all Supabase-related localStorage items
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('supabase.') || key.includes('auth-token'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      console.log('Cleared localStorage items:', keysToRemove);
+      
       // Clear local state
       setUser(null);
       setSession(null);
       
-      // Small delay to ensure state is cleared before redirect
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 100);
+      // Force a full page reload to clear all cached state
+      console.log('Forcing page reload to clear all cached state');
+      window.location.replace('/');
       
     } catch (error) {
       console.error('Unexpected error during sign out:', error);
-      // Even if there's an error, clear the local state and redirect
+      
+      // Even if there's an error, force clear everything
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (key.startsWith('supabase.') || key.includes('auth-token'))) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      
       setUser(null);
       setSession(null);
-      setTimeout(() => {
-        window.location.href = '/';
-      }, 100);
+      
+      // Force reload even on error
+      window.location.replace('/');
     }
   };
 

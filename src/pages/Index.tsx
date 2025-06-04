@@ -6,17 +6,19 @@ import Dashboard from "../components/Dashboard";
 import AdminDashboard from "../components/AdminDashboard";
 import NotificationBanner from "../components/notifications/NotificationBanner";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, isOwner, isStudent, isClient, isFree, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
+  const [sessionValidated, setSessionValidated] = useState(false);
 
   useEffect(() => {
     // Only redirect if we have a user and roles are loaded
-    if (!authLoading && !roleLoading && user) {
-      console.log('User authenticated, redirecting based on role:', { isOwner, isStudent, isClient, isFree, isAdmin });
+    if (!authLoading && !roleLoading && user && sessionValidated) {
+      console.log('User authenticated and session validated, redirecting based on role:', { isOwner, isStudent, isClient, isFree, isAdmin });
       
       // Redirect owners to their dedicated dashboard
       if (isOwner) {
@@ -35,10 +37,30 @@ const Index = () => {
         navigate("/free-dashboard", { replace: true });
       }
     }
-  }, [user, isOwner, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate]);
+  }, [user, isOwner, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate, sessionValidated]);
+
+  useEffect(() => {
+    // Validate session with server when user exists
+    if (user && !authLoading) {
+      console.log('Validating session with server...');
+      supabase.auth.getSession().then(({ data: { session }, error }) => {
+        if (error) {
+          console.error('Session validation error:', error);
+          // If session is invalid, clear it
+          supabase.auth.signOut();
+          setSessionValidated(false);
+        } else {
+          console.log('Session validation result:', !!session);
+          setSessionValidated(!!session);
+        }
+      });
+    } else if (!user) {
+      setSessionValidated(false);
+    }
+  }, [user, authLoading]);
 
   // Show loading while checking auth state
-  if (authLoading || (user && roleLoading)) {
+  if (authLoading || (user && (roleLoading || !sessionValidated))) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
@@ -49,9 +71,9 @@ const Index = () => {
     );
   }
 
-  // If no user, show auth page
-  if (!user) {
-    console.log('No user found, showing auth page');
+  // If no user or session is invalid, show auth page
+  if (!user || !sessionValidated) {
+    console.log('No user found or session invalid, showing auth page');
     return <AuthPage />;
   }
 
