@@ -31,7 +31,8 @@ const DiagnosticPanel = ({
           <div className="mt-2 text-xs">
             <p>• Users with roles: {diagnosticInfo.rolesCount}</p>
             <p>• Auth Users: {diagnosticInfo.authUsersCount}</p>
-            <p>• All users have corresponding profiles</p>
+            <p>• Profiles: {diagnosticInfo.profilesCount}</p>
+            <p>• All auth users have corresponding profiles</p>
           </div>
         </div>
       </div>
@@ -46,6 +47,7 @@ const DiagnosticPanel = ({
           <div>
             <p className="font-medium">Users with roles: {diagnosticInfo.rolesCount}</p>
             <p className="font-medium">Auth Users: {diagnosticInfo.authUsersCount}</p>
+            <p className="font-medium">Profiles: {diagnosticInfo.profilesCount}</p>
           </div>
           <div>
             <p className="font-medium">Role Distribution:</p>
@@ -86,8 +88,8 @@ const DiagnosticPanel = ({
 
         {diagnosticInfo.missingProfilesCount > 0 && (
           <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded">
-            <p className="text-blue-600 font-medium">ℹ️ Found {diagnosticInfo.missingProfilesCount} users without profiles</p>
-            <p className="text-xs text-blue-500 mt-1">These are auth users that don't have corresponding profile records</p>
+            <p className="text-blue-600 font-medium">ℹ️ Found {diagnosticInfo.missingProfilesCount} auth users without profiles</p>
+            <p className="text-xs text-blue-500 mt-1">These are authenticated users that don't have corresponding profile records</p>
             {isAdmin && (
               <Button 
                 onClick={onCreateMissingProfiles}

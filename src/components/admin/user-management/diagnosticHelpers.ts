@@ -13,10 +13,6 @@ export const createDiagnosticInfo = async (
   const orphanedUserIds = orphanedRoles?.map((r: OrphanedRoleData) => r.user_id) || [];
   const orphanedRoleEmails = await fetchOrphanedRoleEmails(orphanedUserIds);
 
-  // Calculate unique users with roles
-  const uniqueUsersWithRoles = rolesCount > 0 ? Object.values(roleCounts).length > 0 ? 
-    Math.max(...Object.values(roleCounts)) : rolesCount : 0;
-
   console.log(`=== FINAL COUNTS ===`);
   console.log(`Profiles: ${profilesCount}`);
   console.log(`Roles: ${rolesCount}`);
@@ -25,13 +21,17 @@ export const createDiagnosticInfo = async (
   console.log('Role distribution:', roleCounts);
   console.log(`Users displayed will be based on roles: ${rolesCount > 0 ? 'Yes' : 'No'}`);
   
+  // Calculate missing profiles based on auth users vs existing profiles
+  const missingProfilesCount = Math.max(0, authUsersCount - profilesCount);
+  console.log(`Missing profiles calculation: ${authUsersCount} auth users - ${profilesCount} profiles = ${missingProfilesCount}`);
+  
   return {
     profilesCount,
     rolesCount,
     authUsersCount,
     roleCounts,
     orphanedRolesCount: orphanedRoles?.length || 0,
-    missingProfilesCount: Math.max(0, rolesCount - profilesCount),
+    missingProfilesCount,
     timestamp: new Date().toISOString(),
     orphanedRoleEmails
   };
