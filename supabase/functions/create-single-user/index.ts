@@ -37,6 +37,16 @@ serve(async (req) => {
       );
     }
 
+    // Validate role
+    const validRoles = ['admin', 'owner', 'student', 'client', 'free'];
+    if (!validRoles.includes(role)) {
+      console.error('Invalid role:', role);
+      return new Response(
+        JSON.stringify({ error: `Invalid role. Must be one of: ${validRoles.join(', ')}` }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     // Get the authorization header
     const authHeader = req.headers.get('Authorization');
     if (!authHeader) {
@@ -173,12 +183,13 @@ serve(async (req) => {
       console.log('Profile created successfully');
     }
 
-    // Set user role
+    // Set user role - use the exact role passed in without normalization
+    console.log('Assigning role:', role, 'to user:', authData.user.id);
     const { error: assignRoleError } = await supabaseAdmin
       .from('user_roles')
       .insert({
         user_id: authData.user.id,
-        role
+        role: role
       });
 
     if (assignRoleError) {
