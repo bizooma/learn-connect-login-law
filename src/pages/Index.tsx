@@ -142,6 +142,13 @@ const Index = () => {
     return <AdminDashboard />;
   }
   
+  // If we reach here and user is a student but not redirected, force redirect
+  if (isStudent && location.pathname === "/") {
+    console.log('Index: Student user on root path, forcing redirect to student dashboard');
+    navigate("/student-dashboard", { replace: true });
+    return null;
+  }
+  
   // Default dashboard for root path
   if (location.pathname === "/") {
     return <Dashboard />;
