@@ -1,3 +1,4 @@
+
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useLawFirm } from "@/hooks/useLawFirm";
@@ -7,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import OwnerDashboardHeader from "@/components/owner/OwnerDashboardHeader";
 import OwnerDashboardTabs from "@/components/owner/OwnerDashboardTabs";
 import NotificationBanner from "@/components/notifications/NotificationBanner";
+import LMSTreeFooter from "@/components/lms-tree/LMSTreeFooter";
 
 const OwnerDashboard = () => {
   const navigate = useNavigate();
@@ -48,16 +50,19 @@ const OwnerDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <OwnerDashboardHeader lawFirm={lawFirm} />
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex flex-col">
+      <div className="flex-1">
+        <OwnerDashboardHeader lawFirm={lawFirm} />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        {/* Notification Banner */}
-        <NotificationBanner />
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+          {/* Notification Banner */}
+          <NotificationBanner />
 
-        {/* Show main dashboard with tabs - law firm will be auto-created if needed */}
-        {lawFirm && <OwnerDashboardTabs lawFirm={lawFirm} onUpdateLawFirm={updateLawFirm} />}
+          {/* Show main dashboard with tabs - law firm will be auto-created if needed */}
+          {lawFirm && <OwnerDashboardTabs lawFirm={lawFirm} onUpdateLawFirm={updateLawFirm} />}
+        </div>
       </div>
+      <LMSTreeFooter />
     </div>
   );
 };
