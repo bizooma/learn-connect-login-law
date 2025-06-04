@@ -19,6 +19,25 @@ const DiagnosticPanel = ({
 }: DiagnosticPanelProps) => {
   if (!diagnosticInfo) return null;
 
+  const hasIssues = diagnosticInfo.orphanedRolesCount > 0 || diagnosticInfo.missingProfilesCount > 0;
+
+  // Don't show the panel if there are no issues
+  if (!hasIssues) {
+    return (
+      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+        <h3 className="font-semibold text-green-800 mb-2">✅ Database Health Check</h3>
+        <div className="text-sm text-green-700">
+          <p>All systems are healthy! No orphaned roles or missing profiles found.</p>
+          <div className="mt-2 text-xs">
+            <p>• Users with roles: {diagnosticInfo.rolesCount}</p>
+            <p>• Auth Users: {diagnosticInfo.authUsersCount}</p>
+            <p>• All users have corresponding profiles</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
       <h3 className="font-semibold text-yellow-800 mb-2">📊 Database Analysis</h3>

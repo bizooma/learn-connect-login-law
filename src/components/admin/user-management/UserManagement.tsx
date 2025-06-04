@@ -22,12 +22,14 @@ const UserManagement = () => {
   const [diagnosticInfo, setDiagnosticInfo] = useState<DiagnosticInfo | null>(null);
   const [isCleaningUp, setIsCleaningUp] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedUserForProgress, setSelectedUserForProgress] = useState<string | null>(null);
   const { toast } = useToast();
   const { isAdmin } = useUserRole();
 
   const fetchUsers = async () => {
     try {
       console.log('Fetching users data...');
+      setLoading(true);
       const { users: fetchedUsers, diagnosticInfo: fetchedDiagnosticInfo } = await fetchUsersData();
       console.log('Fetched users:', fetchedUsers.length);
       setUsers(fetchedUsers);
@@ -36,11 +38,16 @@ const UserManagement = () => {
       // Reset pagination when users data changes
       setCurrentPage(1);
       
-      // Show updated role counts in a toast
+      // Show updated role counts in a toast only if there are actual issues
       if (fetchedDiagnosticInfo) {
-        const adminCount = fetchedDiagnosticInfo.roleCounts.admin || 0;
-        const studentCount = fetchedDiagnosticInfo.roleCounts.student || 0;
-        console.log(`Role counts updated - Admins: ${adminCount}, Students: ${studentCount}`);
+        const hasIssues = fetchedDiagnosticInfo.orphanedRolesCount > 0 || fetchedDiagnosticInfo.missingProfilesCount > 0;
+        if (hasIssues) {
+          toast({
+            title: "Database Issues Detected",
+            description: `Found ${fetchedDiagnosticInfo.orphanedRolesCount} orphaned roles and ${fetchedDiagnosticInfo.missingProfilesCount} missing profiles`,
+            variant: "default",
+          });
+        }
       }
     } catch (error: any) {
       console.error('Error fetching users:', error);
@@ -82,8 +89,7 @@ const UserManagement = () => {
   };
 
   const handleViewProgress = (userId: string) => {
-    console.log(`View progress for user: ${userId}`);
-    // This will be handled by the UserCard component's UserProgressModal
+    setSelectedUserForProgress(userId);
   };
 
   if (loading) {
@@ -131,6 +137,13 @@ const UserManagement = () => {
           onRefresh={fetchUsers}
         />
       )}
+
+      {/* User Progress Modal */}
+      <UserProgressModal
+        isOpen={!!selectedUserForProgress}
+        onClose={() => setSelectedUserForProgress(null)}
+        userId={selectedUserForProgress}
+      />
     </div>
   );
 };
