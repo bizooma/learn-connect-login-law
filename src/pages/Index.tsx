@@ -1,10 +1,10 @@
 
+
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import AuthPage from "../components/AuthPage";
 import Dashboard from "../components/Dashboard";
 import AdminDashboard from "../components/AdminDashboard";
-import NotificationBanner from "../components/notifications/NotificationBanner";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useRef } from "react";
 
@@ -107,10 +107,10 @@ const Index = () => {
   console.log('Index: Showing dashboard');
   return (
     <div>
-      <NotificationBanner />
       {isAdmin ? <AdminDashboard /> : <Dashboard />}
     </div>
   );
 };
 
 export default Index;
+
