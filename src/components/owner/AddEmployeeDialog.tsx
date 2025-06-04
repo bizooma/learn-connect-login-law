@@ -112,7 +112,7 @@ const AddEmployeeDialog = ({
         return;
       }
 
-      // 2. Assign the role
+      // 2. Assign the role (always student for employees)
       const { error: roleError } = await supabase
         .from('user_roles')
         .delete()
@@ -124,7 +124,7 @@ const AddEmployeeDialog = ({
         .from('user_roles')
         .insert({
           user_id: employeeProfile.id,
-          role: formData.role as 'student' | 'client'
+          role: 'student'
         });
 
       if (newRoleError) throw newRoleError;
@@ -142,7 +142,7 @@ const AddEmployeeDialog = ({
         .from('notifications')
         .insert({
           title: 'New Employee Added',
-          message: `${lawFirm.name} added new employee ${formData.firstName} ${formData.lastName} (${formData.email}) with role ${formData.role}. Seat count updated to ${lawFirm.used_seats + 1}/${lawFirm.total_seats}.`,
+          message: `${lawFirm.name} added new employee ${formData.firstName} ${formData.lastName} (${formData.email}) as a student. Seat count updated to ${lawFirm.used_seats + 1}/${lawFirm.total_seats}.`,
           type: 'info',
           created_by: user.id
         });
@@ -154,7 +154,7 @@ const AddEmployeeDialog = ({
 
       toast({
         title: "Success",
-        description: `${formData.firstName} ${formData.lastName} has been added to your law firm.`,
+        description: `${formData.firstName} ${formData.lastName} has been added to your law firm as a student.`,
       });
       
       onEmployeeAdded();
@@ -256,7 +256,6 @@ const AddEmployeeDialog = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="student">Student</SelectItem>
-                <SelectItem value="client">Client</SelectItem>
               </SelectContent>
             </Select>
           </div>
