@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -104,8 +105,8 @@ const FreeDashboard = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-100 flex flex-col">
       <div className="flex-1">
-        {/* Header */}
-        <div className="bg-white shadow-sm border-b">
+        {/* Header with blue background */}
+        <div className="text-white shadow-lg" style={{ backgroundColor: '#213C82' }}>
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -122,10 +123,10 @@ const FreeDashboard = () => {
                   />
                 </a>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">
+                  <h1 className="text-3xl font-bold">
                     Free Dashboard
                   </h1>
-                  <p className="text-gray-600 mt-1">
+                  <p className="text-blue-100 mt-1">
                     Welcome, {profile.first_name || "User"}! Explore our free resources.
                   </p>
                 </div>
@@ -133,7 +134,7 @@ const FreeDashboard = () => {
               <div className="flex items-center space-x-4">
                 <button
                   onClick={signOut}
-                  className="flex items-center text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
+                  className="flex items-center text-white hover:bg-white/10 px-3 py-2 rounded-md transition-colors"
                 >
                   <LogOut className="h-4 w-4 mr-2" />
                   Sign Out

@@ -5,6 +5,8 @@ import AuthPage from "../components/AuthPage";
 import Dashboard from "../components/Dashboard";
 import AdminDashboard from "../components/AdminDashboard";
 import ClientDashboard from "../components/ClientDashboard";
+import StudentDashboard from "../components/StudentDashboard";
+import FreeDashboard from "../components/FreeDashboard";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 
@@ -132,9 +134,17 @@ const Index = () => {
   // Show appropriate dashboard based on user role for specific paths
   console.log('Index: Showing dashboard for path:', location.pathname);
   
-  // If we're on client-dashboard path and user is a client, show ClientDashboard
+  // Show role-specific dashboards for their dedicated paths
+  if (location.pathname === "/student-dashboard" && isStudent) {
+    return <StudentDashboard />;
+  }
+  
   if (location.pathname === "/client-dashboard" && isClient) {
     return <ClientDashboard />;
+  }
+  
+  if (location.pathname === "/free-dashboard" && isFree) {
+    return <FreeDashboard />;
   }
   
   // Show admin dashboard only for admins on root path
@@ -142,14 +152,7 @@ const Index = () => {
     return <AdminDashboard />;
   }
   
-  // If we reach here and user is a student but not redirected, force redirect
-  if (isStudent && location.pathname === "/") {
-    console.log('Index: Student user on root path, forcing redirect to student dashboard');
-    navigate("/student-dashboard", { replace: true });
-    return null;
-  }
-  
-  // Default dashboard for root path
+  // Default dashboard for root path (for users without specific roles)
   if (location.pathname === "/") {
     return <Dashboard />;
   }
