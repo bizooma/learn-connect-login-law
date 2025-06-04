@@ -1,20 +1,23 @@
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { BookOpen } from "lucide-react";
+import { BookOpen, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-const StudentDashboardHeader = () => {
+interface StudentDashboardHeaderProps {
+  onSignOut: () => void;
+}
+
+const StudentDashboardHeader = ({ onSignOut }: StudentDashboardHeaderProps) => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<{
     first_name?: string;
     last_name?: string;
     profile_image_url?: string;
-    law_firm_name?: string;
   }>({});
 
   useEffect(() => {
@@ -27,7 +30,7 @@ const StudentDashboardHeader = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('first_name, last_name, profile_image_url, law_firm_name')
+        .select('first_name, last_name, profile_image_url')
         .eq('id', user?.id)
         .single();
 
@@ -56,12 +59,8 @@ const StudentDashboardHeader = () => {
     return `${firstName} ${lastName}`.trim() || user?.email || "Student";
   };
 
-  const getLawFirmName = () => {
-    return profile.law_firm_name || "No law firm specified";
-  };
-
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
+    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Left side - Profile */}
@@ -79,12 +78,12 @@ const StudentDashboardHeader = () => {
               <p className="text-sm font-medium text-gray-900">
                 {getDisplayName()}
               </p>
-              <p className="text-xs text-gray-500">{getLawFirmName()}</p>
+              <p className="text-xs text-gray-500">Student</p>
             </div>
           </div>
 
-          {/* Right side - Course Catalog */}
-          <div className="flex items-center">
+          {/* Right side - Actions */}
+          <div className="flex items-center space-x-4">
             <Button
               variant="outline"
               size="sm"
@@ -93,6 +92,16 @@ const StudentDashboardHeader = () => {
             >
               <BookOpen className="h-4 w-4" />
               <span>Course Catalog</span>
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onSignOut}
+              className="flex items-center space-x-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Sign Out</span>
             </Button>
           </div>
         </div>
