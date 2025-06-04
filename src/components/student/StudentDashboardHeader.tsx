@@ -14,6 +14,7 @@ const StudentDashboardHeader = () => {
     first_name?: string;
     last_name?: string;
     profile_image_url?: string;
+    law_firm_name?: string;
   }>({});
 
   useEffect(() => {
@@ -26,7 +27,7 @@ const StudentDashboardHeader = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('first_name, last_name, profile_image_url')
+        .select('first_name, last_name, profile_image_url, law_firm_name')
         .eq('id', user?.id)
         .single();
 
@@ -55,6 +56,10 @@ const StudentDashboardHeader = () => {
     return `${firstName} ${lastName}`.trim() || user?.email || "Student";
   };
 
+  const getLawFirmName = () => {
+    return profile.law_firm_name || "No law firm specified";
+  };
+
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -74,7 +79,7 @@ const StudentDashboardHeader = () => {
               <p className="text-sm font-medium text-gray-900">
                 {getDisplayName()}
               </p>
-              <p className="text-xs text-gray-500">Student</p>
+              <p className="text-xs text-gray-500">{getLawFirmName()}</p>
             </div>
           </div>
 
