@@ -1,9 +1,19 @@
+
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { LogOut, Menu } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
 
 const AdminDashboardHeader = () => {
   const { signOut } = useAuth();
+  const navigate = useNavigate();
 
   return (
     <div className="text-white shadow-lg" style={{ backgroundColor: '#213C82' }}>
@@ -36,9 +46,27 @@ const AdminDashboardHeader = () => {
               <LogOut className="h-4 w-4 mr-2" />
               Sign Out
             </Button>
-            <Button variant="ghost" size="sm" className="text-white hover:bg-white/10 lg:hidden">
-              <Menu className="h-5 w-5" />
-            </Button>
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
+                  <Menu className="h-5 w-5" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent>
+                <SheetHeader>
+                  <SheetTitle>Navigation Menu</SheetTitle>
+                </SheetHeader>
+                <div className="py-4">
+                  <Button
+                    variant="ghost"
+                    onClick={() => navigate("/lms-tree")}
+                    className="w-full justify-start"
+                  >
+                    LMS Tree
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
           </div>
         </div>
       </div>
