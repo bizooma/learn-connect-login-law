@@ -127,6 +127,7 @@ const StudentDashboard = () => {
             description="Track your assigned courses and learning progress"
             assignedTabLabel="Assigned Courses"
             completedTabLabel="Completed Courses"
+            yellowTabs={true}
           />
         </div>
       </div>
