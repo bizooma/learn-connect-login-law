@@ -6,8 +6,14 @@ const NavigationHeader = () => {
   const navigate = useNavigate();
 
   const handleLoginClick = () => {
-    console.log('Login button clicked, navigating to /login');
-    navigate("/login");
+    console.log('Login button clicked, current location:', window.location.href);
+    console.log('Attempting to navigate to /login');
+    try {
+      navigate("/login");
+      console.log('Navigate function called successfully');
+    } catch (error) {
+      console.error('Error during navigation:', error);
+    }
   };
 
   return (
