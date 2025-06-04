@@ -17,39 +17,20 @@ interface OwnerDashboardTabsProps {
 const OwnerDashboardTabs = ({ lawFirm, onUpdateLawFirm }: OwnerDashboardTabsProps) => {
   return (
     <Tabs defaultValue="overview" className="w-full">
-      <TabsList 
-        className="grid w-full grid-cols-4"
-        style={{ backgroundColor: '#FFDA00' }}
-      >
-        <TabsTrigger 
-          value="overview" 
-          className="flex items-center data-[state=active]:bg-white data-[state=active]:text-black"
-          style={{ color: 'black' }}
-        >
+      <TabsList className="grid w-full grid-cols-4">
+        <TabsTrigger value="overview" className="flex items-center">
           <Building2 className="h-4 w-4 mr-2" />
           Overview
         </TabsTrigger>
-        <TabsTrigger 
-          value="team" 
-          className="flex items-center data-[state=active]:bg-white data-[state=active]:text-black"
-          style={{ color: 'black' }}
-        >
+        <TabsTrigger value="team" className="flex items-center">
           <Users className="h-4 w-4 mr-2" />
           Team Members
         </TabsTrigger>
-        <TabsTrigger 
-          value="calendar" 
-          className="flex items-center data-[state=active]:bg-white data-[state=active]:text-black"
-          style={{ color: 'black' }}
-        >
+        <TabsTrigger value="calendar" className="flex items-center">
           <CalendarIcon className="h-4 w-4 mr-2" />
           Calendar
         </TabsTrigger>
-        <TabsTrigger 
-          value="profile" 
-          className="flex items-center data-[state=active]:bg-white data-[state=active]:text-black"
-          style={{ color: 'black' }}
-        >
+        <TabsTrigger value="profile" className="flex items-center">
           <User className="h-4 w-4 mr-2" />
           Profile
         </TabsTrigger>
