@@ -1,5 +1,5 @@
 
-import { useState, useEffect, createContext, useContext, useMemo } from 'react';
+import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       (event, session) => {
         if (!mounted) return;
         
-        console.log('Auth state changed:', event, session?.user?.id);
+        console.log('Auth state changed:', event, session);
         
         if (event === 'SIGNED_OUT' || !session) {
           setSession(null);
@@ -135,17 +135,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  // Memoize the context value to prevent unnecessary re-renders
-  // Only recreate when the actual values change
-  const contextValue = useMemo(() => ({
-    user,
-    session,
-    loading,
-    signOut
-  }), [user?.id, session?.access_token, loading]); // Use stable references
-
   return (
-    <AuthContext.Provider value={contextValue}>
+    <AuthContext.Provider value={{ user, session, loading, signOut }}>
       {children}
     </AuthContext.Provider>
   );

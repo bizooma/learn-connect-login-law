@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -7,37 +7,39 @@ export const useUserRole = () => {
   const { user } = useAuth();
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const fetchCountRef = useRef(0);
-  const lastUserIdRef = useRef<string | null>(null);
 
   console.log('useUserRole: Hook called with user:', {
+    user: user,
     userId: user?.id,
-    hasUser: !!user,
-    currentRole: role,
-    fetchCount: fetchCountRef.current
+    userEmail: user?.email,
+    hasUser: !!user
   });
 
-  const fetchUserRole = useCallback(async (userId: string) => {
-    // Circuit breaker: prevent too many rapid fetches
-    fetchCountRef.current += 1;
-    if (fetchCountRef.current > 10) {
-      console.error('useUserRole: Too many fetch attempts, circuit breaker activated');
+  const fetchUserRole = async () => {
+    console.log('useUserRole: fetchUserRole called with user:', {
+      user: user,
+      userId: user?.id,
+      userExists: !!user
+    });
+
+    if (!user?.id) {
+      console.log('useUserRole: No user ID available, user state:', user);
+      setRole(null);
       setLoading(false);
       return;
     }
 
-    console.log('useUserRole: Fetching role for user:', userId, 'attempt:', fetchCountRef.current);
-
     try {
       setLoading(true);
+      console.log('useUserRole: Fetching role for user:', user.id);
       
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', userId)
+        .eq('user_id', user.id)
         .single();
 
-      console.log('useUserRole: Query result:', { data, error, userId });
+      console.log('useUserRole: Query result:', { data, error, userId: user.id });
 
       if (error) {
         console.error('useUserRole: Error fetching user role:', error);
@@ -62,44 +64,30 @@ export const useUserRole = () => {
       console.log('useUserRole: Setting loading to false');
       setLoading(false);
     }
-  }, []);
+  };
 
   useEffect(() => {
-    const currentUserId = user?.id;
-    
-    console.log('useUserRole: useEffect triggered', {
-      currentUserId,
-      lastUserId: lastUserIdRef.current,
-      userChanged: currentUserId !== lastUserIdRef.current,
-      currentRole: role,
-      loading
+    console.log('useUserRole: useEffect triggered, user changed:', {
+      user: user,
+      userId: user?.id,
+      userExists: !!user
     });
     
-    // Reset fetch counter when user changes
-    if (currentUserId !== lastUserIdRef.current) {
-      fetchCountRef.current = 0;
-      lastUserIdRef.current = currentUserId || null;
-    }
-    
-    // Only fetch if we have a user ID and it's different from last time
-    if (currentUserId && currentUserId !== lastUserIdRef.current) {
-      fetchUserRole(currentUserId);
-    } else if (!currentUserId) {
+    if (user?.id) {
+      fetchUserRole();
+    } else {
       console.log('useUserRole: No user, setting defaults');
       setRole(null);
       setLoading(false);
-      fetchCountRef.current = 0;
     }
-  }, [user?.id, fetchUserRole]);
+  }, [user?.id]);
 
-  const refreshRole = useCallback(() => {
+  const refreshRole = () => {
     console.log('useUserRole: refreshRole called');
-    const currentUserId = user?.id;
-    if (currentUserId) {
-      fetchCountRef.current = 0; // Reset counter for manual refresh
-      fetchUserRole(currentUserId);
+    if (user?.id) {
+      fetchUserRole();
     }
-  }, [user?.id, fetchUserRole]);
+  };
 
   // Compute derived values
   const isAdmin = role === 'admin';
@@ -110,7 +98,7 @@ export const useUserRole = () => {
   const hasAdminPrivileges = isAdmin || isOwner;
 
   // Log every computation
-  console.log('useUserRole: Final values:', { 
+  console.log('useUserRole: Computing values:', { 
     role,
     isAdmin,
     isOwner,
@@ -119,7 +107,8 @@ export const useUserRole = () => {
     isFree,
     hasAdminPrivileges,
     loading,
-    userId: user?.id
+    userId: user?.id,
+    userExists: !!user
   });
 
   return { 
