@@ -1,7 +1,6 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
-import AuthPage from "../components/AuthPage";
 import Dashboard from "../components/Dashboard";
 import AdminDashboard from "../components/AdminDashboard";
 import NotificationBanner from "../components/notifications/NotificationBanner";
@@ -14,6 +13,12 @@ const Index = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // If no user, redirect to login
+    if (!authLoading && !user) {
+      navigate("/login", { replace: true });
+      return;
+    }
+
     // Only redirect if we have a user and roles are loaded
     if (!authLoading && !roleLoading && user) {
       console.log('User authenticated, redirecting based on role:', { isOwner, isStudent, isClient, isFree, isAdmin });
@@ -47,12 +52,6 @@ const Index = () => {
         </div>
       </div>
     );
-  }
-
-  // If no user, show auth page
-  if (!user) {
-    console.log('No user found, showing auth page');
-    return <AuthPage />;
   }
 
   // Show admin dashboard only for admins, not owners, students, clients, or free users
