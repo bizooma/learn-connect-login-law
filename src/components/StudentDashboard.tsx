@@ -5,17 +5,20 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { BookOpen, Award, GraduationCap, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import NotificationBanner from "./notifications/NotificationBanner";
 import LMSTreeFooter from "./lms-tree/LMSTreeFooter";
 import DashboardHeader from "./dashboard/DashboardHeader";
 import DashboardStats from "./dashboard/DashboardStats";
 import DashboardContent from "./dashboard/DashboardContent";
+import StudentProfileTab from "./student/StudentProfileTab";
 
 const StudentDashboard = () => {
   const { user, signOut } = useAuth();
   const { isStudent, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("assigned");
+  const [mainTab, setMainTab] = useState("dashboard");
   const [stats, setStats] = useState({
     assignedCourses: 0,
     completedCourses: 0,
@@ -138,18 +141,31 @@ const StudentDashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <NotificationBanner />
           
-          <DashboardStats stats={studentStats} />
+          <Tabs value={mainTab} onValueChange={setMainTab} className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-8">
+              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+              <TabsTrigger value="profile">Profile</TabsTrigger>
+            </TabsList>
 
-          <DashboardContent
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            userId={user.id}
-            title="My Learning Dashboard"
-            description="Track your assigned courses and learning progress"
-            assignedTabLabel="Assigned Courses"
-            completedTabLabel="Completed Courses"
-            yellowTabs={true}
-          />
+            <TabsContent value="dashboard" className="space-y-8">
+              <DashboardStats stats={studentStats} />
+
+              <DashboardContent
+                activeTab={activeTab}
+                onTabChange={setActiveTab}
+                userId={user.id}
+                title="My Learning Dashboard"
+                description="Track your assigned courses and learning progress"
+                assignedTabLabel="Assigned Courses"
+                completedTabLabel="Completed Courses"
+                yellowTabs={true}
+              />
+            </TabsContent>
+
+            <TabsContent value="profile">
+              <StudentProfileTab />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
       <LMSTreeFooter />
