@@ -29,35 +29,16 @@ export const UserPasswordResetDialog = ({
   onOpenChange,
   onPasswordReset,
 }: UserPasswordResetDialogProps) => {
-  const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
 
   const handlePasswordReset = async () => {
-    if (password !== confirmPassword) {
-      toast({
-        title: "Error",
-        description: "Passwords do not match",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (password.length < 6) {
-      toast({
-        title: "Error",
-        description: "Password must be at least 6 characters long",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setIsLoading(true);
     
     try {
-      const { error } = await supabase.auth.admin.updateUserById(user.id, {
-        password: password,
+      // Send password reset email instead of trying to update password directly
+      const { error } = await supabase.auth.resetPasswordForEmail(user.email, {
+        redirectTo: `${window.location.origin}/reset-password`,
       });
 
       if (error) {
@@ -65,32 +46,22 @@ export const UserPasswordResetDialog = ({
       }
 
       toast({
-        title: "Success",
-        description: `Password updated successfully for ${user.email}`,
+        title: "Password Reset Email Sent",
+        description: `A password reset email has been sent to ${user.email}`,
       });
 
       onPasswordReset();
       onOpenChange(false);
-      setPassword("");
-      setConfirmPassword("");
     } catch (error: any) {
-      console.error('Error updating password:', error);
+      console.error('Error sending password reset email:', error);
       toast({
         title: "Error",
-        description: `Failed to update password: ${error.message}`,
+        description: `Failed to send password reset email: ${error.message}`,
         variant: "destructive",
       });
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPassword(e.target.value);
-  };
-
-  const handleConfirmPasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setConfirmPassword(e.target.value);
   };
 
   return (
@@ -99,20 +70,18 @@ export const UserPasswordResetDialog = ({
         <DialogHeader>
           <DialogTitle>Reset Password</DialogTitle>
           <DialogDescription>
-            Set a new password for {user.first_name && user.last_name 
+            Send a password reset email to {user.first_name && user.last_name 
               ? `${user.first_name} ${user.last_name}` 
               : user.email
             }
           </DialogDescription>
         </DialogHeader>
         
-        <div className="space-y-4 py-4">
-          <PasswordFields
-            password={password}
-            confirmPassword={confirmPassword}
-            onPasswordChange={handlePasswordChange}
-            onConfirmPasswordChange={handleConfirmPasswordChange}
-          />
+        <div className="py-4">
+          <p className="text-sm text-gray-600">
+            A password reset email will be sent to <strong>{user.email}</strong>. 
+            They will be able to set a new password by clicking the link in the email.
+          </p>
         </div>
 
         <DialogFooter>
@@ -125,9 +94,9 @@ export const UserPasswordResetDialog = ({
           </Button>
           <Button
             onClick={handlePasswordReset}
-            disabled={isLoading || !password || !confirmPassword}
+            disabled={isLoading}
           >
-            {isLoading ? "Updating..." : "Update Password"}
+            {isLoading ? "Sending Email..." : "Send Reset Email"}
           </Button>
         </DialogFooter>
       </DialogContent>
