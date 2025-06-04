@@ -65,11 +65,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
       
       console.log('Successfully signed out');
+      
+      // Redirect to home page after successful logout
+      window.location.href = '/';
     } catch (error) {
       console.error('Unexpected error during sign out:', error);
-      // Even if there's an error, clear the local state
+      // Even if there's an error, clear the local state and redirect
       setUser(null);
       setSession(null);
+      window.location.href = '/';
     }
   };
 
