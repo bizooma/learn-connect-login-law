@@ -1,4 +1,5 @@
-import { useState, useEffect } from "react";
+
+import { useState, useEffect, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
@@ -27,9 +28,43 @@ const StudentDashboard = () => {
   });
   const [loading, setLoading] = useState(true);
 
+  const fetchStats = useCallback(async () => {
+    if (!user?.id) {
+      console.log('StudentDashboard: No user ID, skipping stats fetch');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      console.log('StudentDashboard: Fetching stats for user:', user.id);
+      // Fetch user course progress for actual stats
+      const { data: progressData } = await supabase
+        .from('user_course_progress')
+        .select('*')
+        .eq('user_id', user.id);
+
+      const assignedCoursesCount = progressData?.length || 0;
+      const completedCoursesCount = progressData?.filter(p => p.status === 'completed').length || 0;
+      const inProgressCoursesCount = progressData?.filter(p => p.status === 'in_progress').length || 0;
+
+      setStats({
+        assignedCourses: assignedCoursesCount,
+        completedCourses: completedCoursesCount,
+        inProgressCourses: inProgressCoursesCount,
+        certificatesEarned: completedCoursesCount // For now, assume 1 certificate per completed course
+      });
+      console.log('StudentDashboard: Stats updated successfully');
+    } catch (error) {
+      console.error('Error fetching student stats:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.id]);
+
   useEffect(() => {
     console.log('StudentDashboard: useEffect triggered with:', {
       user: !!user,
+      userId: user?.id,
       isStudent,
       roleLoading,
       userEmail: user?.email
@@ -43,41 +78,14 @@ const StudentDashboard = () => {
     }
 
     // If we have a student user and roles are loaded, fetch stats
-    if (!roleLoading && isStudent && user) {
+    if (!roleLoading && isStudent && user?.id) {
       console.log('StudentDashboard: Student confirmed, fetching stats');
       fetchStats();
     }
-  }, [isStudent, roleLoading, user, navigate]);
-
-  const fetchStats = async () => {
-    setLoading(true);
-    try {
-      console.log('StudentDashboard: Fetching stats for user:', user?.id);
-      // Fetch user course progress for actual stats
-      const { data: progressData } = await supabase
-        .from('user_course_progress')
-        .select('*')
-        .eq('user_id', user?.id);
-
-      const assignedCoursesCount = progressData?.length || 0;
-      const completedCoursesCount = progressData?.filter(p => p.status === 'completed').length || 0;
-      const inProgressCoursesCount = progressData?.filter(p => p.status === 'in_progress').length || 0;
-
-      setStats({
-        assignedCourses: assignedCoursesCount,
-        completedCourses: completedCoursesCount,
-        inProgressCourses: inProgressCoursesCount,
-        certificatesEarned: completedCoursesCount // For now, assume 1 certificate per completed course
-      });
-    } catch (error) {
-      console.error('Error fetching student stats:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [user?.id, isStudent, roleLoading, navigate, fetchStats]);
 
   // Show loading while checking roles or fetching data
-  if (roleLoading || loading) {
+  if (roleLoading || (loading && isStudent)) {
     console.log('StudentDashboard: Showing loading state, roleLoading:', roleLoading, 'loading:', loading);
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
