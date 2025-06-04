@@ -7,14 +7,16 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Video, Upload, Youtube } from 'lucide-react';
 import PowerPointVideoIntegration from './PowerPointVideoIntegration';
+import FileUpload from '../FileUpload';
 
 interface UnitFormProps {
   unit: any;
   onUnitChange: (field: string, value: any) => void;
   onRemove: () => void;
+  unitIndex: number;
 }
 
-const UnitForm = ({ unit, onUnitChange, onRemove }: UnitFormProps) => {
+const UnitForm = ({ unit, onUnitChange, onRemove, unitIndex }: UnitFormProps) => {
   const handleVideoGenerated = (videoUrl: string) => {
     onUnitChange('video_url', videoUrl);
     onUnitChange('video_type', 'upload');
@@ -118,6 +120,19 @@ const UnitForm = ({ unit, onUnitChange, onRemove }: UnitFormProps) => {
             </div>
           )}
         </div>
+
+        <FileUpload
+          currentFileUrl={unit.file_url}
+          currentFileName={unit.file_name}
+          onFileUpdate={(fileUrl, fileName, fileSize) => {
+            onUnitChange('file_url', fileUrl);
+            onUnitChange('file_name', fileName);
+            onUnitChange('file_size', fileSize);
+          }}
+          label="Unit Download File"
+          contentType="unit"
+          contentIndex={unitIndex}
+        />
 
         <div>
           <Label htmlFor="duration">Duration (minutes)</Label>

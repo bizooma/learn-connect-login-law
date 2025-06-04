@@ -1,17 +1,15 @@
 
-export interface ModuleData {
-  id?: string;
+export interface CourseFormData {
   title: string;
   description: string;
-  image_url?: string;
-  file_url?: string;
-  file_name?: string;
-  file_size?: number;
-  sort_order: number;
-  lessons: LessonData[];
+  instructor: string;
+  category: string;
+  level: string;
+  duration: string;
+  image_file?: File;
 }
 
-export interface LessonData {
+export interface SectionData {
   id?: string;
   title: string;
   description: string;
@@ -40,18 +38,6 @@ export interface UnitData {
   file_size?: number;
 }
 
-export interface SectionData {
-  id?: string;
-  title: string;
-  description: string;
-  image_url?: string;
-  file_url?: string;
-  file_name?: string;
-  file_size?: number;
-  sort_order: number;
-  units: UnitData[];
-}
-
 export interface QuizData {
   id?: string;
   title: string;
@@ -76,14 +62,4 @@ export interface OptionData {
   option_text: string;
   is_correct: boolean;
   sort_order: number;
-}
-
-export interface CourseFormData {
-  title: string;
-  description: string;
-  instructor: string;
-  category: string;
-  level: string;
-  duration: string;
-  image_file?: File;
 }

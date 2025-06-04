@@ -27,6 +27,9 @@ export const createUnit = async (lessonId: string, unit: UnitData) => {
       video_url: videoUrl || null,
       duration_minutes: unit.duration_minutes,
       sort_order: unit.sort_order,
+      file_url: unit.file_url || null,
+      file_name: unit.file_name || null,
+      file_size: unit.file_size || null,
     })
     .select()
     .single();
