@@ -38,14 +38,6 @@ const AdminDashboardHeader = () => {
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <Button
-              variant="ghost"
-              onClick={signOut}
-              className="text-white hover:bg-white/10 flex items-center"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
             <Sheet>
               <SheetTrigger asChild>
                 <Button variant="ghost" size="sm" className="text-white hover:bg-white/10">
@@ -56,13 +48,21 @@ const AdminDashboardHeader = () => {
                 <SheetHeader>
                   <SheetTitle>Navigation Menu</SheetTitle>
                 </SheetHeader>
-                <div className="py-4">
+                <div className="py-4 space-y-2">
                   <Button
                     variant="ghost"
                     onClick={() => navigate("/lms-tree")}
                     className="w-full justify-start"
                   >
                     LMS Tree
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={signOut}
+                    className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <LogOut className="h-4 w-4 mr-2" />
+                    Sign Out
                   </Button>
                 </div>
               </SheetContent>
