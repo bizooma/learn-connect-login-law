@@ -67,7 +67,7 @@ const Index = () => {
         console.log('Redirecting free user to free dashboard');
         navigate("/free-dashboard", { replace: true });
       }
-      // If no specific role, stay on main dashboard
+      // If no specific role, stay on main dashboard (this page)
       else {
         console.log('No specific role found, staying on main dashboard');
       }
