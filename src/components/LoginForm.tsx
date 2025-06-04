@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/components/ui/use-toast";
 import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
 import ForgotPasswordDialog from "./ForgotPasswordDialog";
 
 const LoginForm = () => {
@@ -13,6 +14,7 @@ const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,6 +37,8 @@ const LoginForm = () => {
           title: "Login Successful",
           description: "Welcome back to your learning platform!",
         });
+        // Redirect to app page which will handle role-based redirects
+        navigate("/app", { replace: true });
       }
     } catch (error) {
       toast({
