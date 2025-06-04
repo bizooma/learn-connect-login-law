@@ -8,6 +8,7 @@ import DiagnosticPanel from "./DiagnosticPanel";
 import UserManagementHeader from "./UserManagementHeader";
 import EmptyUserState from "./EmptyUserState";
 import LoadingState from "./LoadingState";
+import UserProgressModal from "../user-progress/UserProgressModal";
 import { filterUsers } from "./userRoleUtils";
 import { UserProfile, DiagnosticInfo } from "./types";
 import { fetchUsersData } from "./userDataService";

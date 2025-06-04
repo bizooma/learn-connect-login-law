@@ -16,14 +16,6 @@ const UserManagementHeader = ({
   diagnosticInfo, 
   onUserAdded 
 }: UserManagementHeaderProps) => {
-  const [showAddDialog, setShowAddDialog] = useState(false);
-
-  const handleUserAdded = async () => {
-    setShowAddDialog(false);
-    // Refresh the users data
-    await onUserAdded();
-  };
-
   return (
     <div className="flex justify-between items-center">
       <div className="flex items-center space-x-2">
@@ -50,17 +42,8 @@ const UserManagementHeader = ({
           <RefreshCw className="h-4 w-4 mr-2" />
           Refresh
         </Button>
-        <Button onClick={() => setShowAddDialog(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add User
-        </Button>
+        <AddUserDialog onUserAdded={onUserAdded} />
       </div>
-      
-      <AddUserDialog
-        open={showAddDialog}
-        onOpenChange={setShowAddDialog}
-        onUserAdded={handleUserAdded}
-      />
     </div>
   );
 };
