@@ -64,7 +64,7 @@ export const useUserRole = () => {
       console.log('useUserRole: Setting loading to false');
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id]); // Only depend on user?.id, not the entire user object
 
   useEffect(() => {
     console.log('useUserRole: useEffect triggered, user changed:', {
@@ -73,6 +73,7 @@ export const useUserRole = () => {
       userExists: !!user
     });
     
+    // Only fetch if we have a user ID and don't already have a role for this user
     if (user?.id) {
       fetchUserRole();
     } else {
@@ -80,7 +81,7 @@ export const useUserRole = () => {
       setRole(null);
       setLoading(false);
     }
-  }, [user?.id, fetchUserRole]);
+  }, [user?.id, fetchUserRole]); // Only depend on user?.id and the memoized fetchUserRole
 
   const refreshRole = useCallback(() => {
     console.log('useUserRole: refreshRole called');
