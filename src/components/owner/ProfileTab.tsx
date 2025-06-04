@@ -1,9 +1,9 @@
 
+import React, { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
 import LawFirmLogoUpload from "./LawFirmLogoUpload";
@@ -184,7 +184,6 @@ const ProfileTab = ({ lawFirm, onUpdateLawFirm }: ProfileTabProps) => {
         <CardContent className="space-y-6">
           <ProfileImageUpload 
             currentImageUrl={profileImageUrl}
-            userId={user?.id || ''}
             onImageUpdate={handleProfileImageUpdate}
           />
 
