@@ -1,10 +1,10 @@
 
-
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import AuthPage from "../components/AuthPage";
 import Dashboard from "../components/Dashboard";
 import AdminDashboard from "../components/AdminDashboard";
+import ClientDashboard from "../components/ClientDashboard";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useRef } from "react";
 
@@ -54,8 +54,8 @@ const Index = () => {
         navigate("/student-dashboard", { replace: true });
         return;
       }
-      // Redirect clients to their dedicated dashboard
-      if (isClient) {
+      // Redirect clients to their dedicated dashboard only if not already on client dashboard path
+      if (isClient && location.pathname !== "/client-dashboard") {
         console.log('Index: Redirecting client to client dashboard');
         hasRedirected.current = true;
         navigate("/client-dashboard", { replace: true });
@@ -103,14 +103,21 @@ const Index = () => {
     return <AuthPage />;
   }
 
-  // Show admin dashboard only for admins, not owners, students, clients, or free users
-  console.log('Index: Showing dashboard');
-  return (
-    <div>
-      {isAdmin ? <AdminDashboard /> : <Dashboard />}
-    </div>
-  );
+  // Show appropriate dashboard based on user role and current path
+  console.log('Index: Showing dashboard for path:', location.pathname);
+  
+  // If we're on client-dashboard path and user is a client, show ClientDashboard
+  if (location.pathname === "/client-dashboard" && isClient) {
+    return <ClientDashboard />;
+  }
+  
+  // Show admin dashboard only for admins
+  if (isAdmin) {
+    return <AdminDashboard />;
+  }
+  
+  // Default dashboard for other cases
+  return <Dashboard />;
 };
 
 export default Index;
-
