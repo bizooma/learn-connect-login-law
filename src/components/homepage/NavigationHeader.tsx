@@ -5,6 +5,11 @@ import { useNavigate } from "react-router-dom";
 const NavigationHeader = () => {
   const navigate = useNavigate();
 
+  const handleLoginClick = () => {
+    console.log('Login button clicked, navigating to /login');
+    navigate("/login");
+  };
+
   return (
     <header className="bg-black shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -35,7 +40,7 @@ const NavigationHeader = () => {
 
           {/* Login Button */}
           <Button 
-            onClick={() => navigate("/login")}
+            onClick={handleLoginClick}
             className="bg-white text-black hover:bg-gray-100"
           >
             Login
