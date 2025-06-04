@@ -61,7 +61,7 @@ const StudentDashboardHeader = () => {
   };
 
   return (
-    <header className="shadow-sm border-b border-gray-200" style={{ backgroundColor: '#213C82', minHeight: '64px' }}>
+    <header className="bg-white shadow-sm border-b border-gray-200" style={{ minHeight: '64px' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Left side - Profile */}
@@ -76,10 +76,10 @@ const StudentDashboardHeader = () => {
               </AvatarFallback>
             </Avatar>
             <div>
-              <p className="text-sm font-medium text-white">
+              <p className="text-sm font-medium text-gray-900">
                 {getDisplayName()}
               </p>
-              <p className="text-xs text-white/70">{getLawFirmName()}</p>
+              <p className="text-xs text-gray-600">{getLawFirmName()}</p>
             </div>
           </div>
 
@@ -89,7 +89,7 @@ const StudentDashboardHeader = () => {
               variant="outline"
               size="sm"
               onClick={handleCourseCatalogClick}
-              className="flex items-center space-x-2 border-white/20 bg-white text-black hover:bg-gray-100"
+              className="flex items-center space-x-2 border-gray-300 bg-white text-gray-900 hover:bg-gray-50"
             >
               <BookOpen className="h-4 w-4" />
               <span>Course Catalog</span>
