@@ -6,14 +6,16 @@ import Dashboard from "../components/Dashboard";
 import AdminDashboard from "../components/AdminDashboard";
 import ClientDashboard from "../components/ClientDashboard";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, isOwner, isStudent, isClient, isFree, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   const location = useLocation();
-  const hasRedirected = useRef(false);
+  const hasRedirectedRef = useRef(false);
+  const redirectCountRef = useRef(0);
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
     console.log('Index useEffect triggered with:', {
@@ -27,12 +29,20 @@ const Index = () => {
       isAdmin,
       userEmail: user?.email,
       currentPath: location.pathname,
-      hasRedirected: hasRedirected.current
+      hasRedirected: hasRedirectedRef.current,
+      redirectCount: redirectCountRef.current,
+      isRedirecting
     });
 
-    // Prevent multiple redirects
-    if (hasRedirected.current) {
-      console.log('Index: Already redirected, skipping');
+    // Circuit breaker: prevent too many redirects
+    if (redirectCountRef.current > 5) {
+      console.error('Index: Too many redirect attempts, stopping redirects');
+      return;
+    }
+
+    // Prevent multiple redirects or redirects while already redirecting
+    if (hasRedirectedRef.current || isRedirecting) {
+      console.log('Index: Already redirected or redirecting, skipping');
       return;
     }
 
@@ -40,36 +50,40 @@ const Index = () => {
     if (!authLoading && !roleLoading && user && location.pathname === "/") {
       console.log('Index: User authenticated on root path, checking redirects...');
       
+      setIsRedirecting(true);
+      redirectCountRef.current += 1;
+      
       // Redirect owners to their dedicated dashboard
       if (isOwner) {
         console.log('Index: Redirecting owner to owner dashboard');
-        hasRedirected.current = true;
+        hasRedirectedRef.current = true;
         navigate("/owner-dashboard", { replace: true });
         return;
       }
       // Redirect students to their dedicated dashboard
       if (isStudent) {
         console.log('Index: Redirecting student to student dashboard');
-        hasRedirected.current = true;
+        hasRedirectedRef.current = true;
         navigate("/student-dashboard", { replace: true });
         return;
       }
       // Redirect clients to their dedicated dashboard
       if (isClient) {
         console.log('Index: Redirecting client to client dashboard');
-        hasRedirected.current = true;
+        hasRedirectedRef.current = true;
         navigate("/client-dashboard", { replace: true });
         return;
       }
       // Redirect free users to their dedicated dashboard
       if (isFree) {
         console.log('Index: Redirecting free user to free dashboard');
-        hasRedirected.current = true;
+        hasRedirectedRef.current = true;
         navigate("/free-dashboard", { replace: true });
         return;
       }
       // If no specific role, stay on main dashboard (this page)
       console.log('Index: No specific role found, staying on main dashboard');
+      setIsRedirecting(false);
     } else {
       console.log('Index: Not redirecting because:', {
         hasUser: !!user,
@@ -77,16 +91,22 @@ const Index = () => {
         roleLoading,
         currentPath: location.pathname
       });
+      setIsRedirecting(false);
     }
-  }, [user, isOwner, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate, location.pathname]);
+  }, [user?.id, isOwner, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate, location.pathname, isRedirecting]);
 
-  // Reset redirect flag when user changes
+  // Reset redirect flags when user changes
   useEffect(() => {
-    hasRedirected.current = false;
+    const currentUserId = user?.id;
+    if (currentUserId !== hasRedirectedRef.current) {
+      hasRedirectedRef.current = false;
+      redirectCountRef.current = 0;
+      setIsRedirecting(false);
+    }
   }, [user?.id]);
 
   // Show loading while checking auth state
-  if (authLoading || (user && roleLoading)) {
+  if (authLoading || (user && roleLoading) || isRedirecting) {
     console.log('Index: Showing loading state');
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">

@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       (event, session) => {
         if (!mounted) return;
         
-        console.log('Auth state changed:', event, session);
+        console.log('Auth state changed:', event, session?.user?.id);
         
         if (event === 'SIGNED_OUT' || !session) {
           setSession(null);
@@ -136,12 +136,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   // Memoize the context value to prevent unnecessary re-renders
+  // Only recreate when the actual values change
   const contextValue = useMemo(() => ({
     user,
     session,
     loading,
     signOut
-  }), [user, session, loading]);
+  }), [user?.id, session?.access_token, loading]); // Use stable references
 
   return (
     <AuthContext.Provider value={contextValue}>
