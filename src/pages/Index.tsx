@@ -16,33 +16,9 @@ const Index = () => {
   const [sessionValidated, setSessionValidated] = useState(false);
 
   useEffect(() => {
-    // Only redirect if we have a user and roles are loaded
-    if (!authLoading && !roleLoading && user && sessionValidated) {
-      console.log('User authenticated and session validated, redirecting based on role:', { isOwner, isStudent, isClient, isFree, isAdmin });
-      
-      // Redirect owners to their dedicated dashboard
-      if (isOwner) {
-        navigate("/owner-dashboard", { replace: true });
-      }
-      // Redirect students to their dedicated dashboard
-      else if (isStudent) {
-        navigate("/student-dashboard", { replace: true });
-      }
-      // Redirect clients to their dedicated dashboard
-      else if (isClient) {
-        navigate("/client-dashboard", { replace: true });
-      }
-      // Redirect free users to their dedicated dashboard
-      else if (isFree) {
-        navigate("/free-dashboard", { replace: true });
-      }
-    }
-  }, [user, isOwner, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate, sessionValidated]);
-
-  useEffect(() => {
     // Validate session with server when user exists
     if (user && !authLoading) {
-      console.log('Validating session with server...');
+      console.log('Validating session with server for user:', user.email);
       supabase.auth.getSession().then(({ data: { session }, error }) => {
         if (error) {
           console.error('Session validation error:', error);
@@ -58,6 +34,45 @@ const Index = () => {
       setSessionValidated(false);
     }
   }, [user, authLoading]);
+
+  useEffect(() => {
+    // Only redirect if we have a user, session is validated, and roles are loaded
+    if (!authLoading && !roleLoading && user && sessionValidated) {
+      console.log('User authenticated and session validated, redirecting based on role:', { 
+        isOwner, 
+        isStudent, 
+        isClient, 
+        isFree, 
+        isAdmin,
+        userEmail: user.email 
+      });
+      
+      // Redirect owners to their dedicated dashboard
+      if (isOwner) {
+        console.log('Redirecting owner to owner dashboard');
+        navigate("/owner-dashboard", { replace: true });
+      }
+      // Redirect students to their dedicated dashboard
+      else if (isStudent) {
+        console.log('Redirecting student to student dashboard');
+        navigate("/student-dashboard", { replace: true });
+      }
+      // Redirect clients to their dedicated dashboard
+      else if (isClient) {
+        console.log('Redirecting client to client dashboard');
+        navigate("/client-dashboard", { replace: true });
+      }
+      // Redirect free users to their dedicated dashboard
+      else if (isFree) {
+        console.log('Redirecting free user to free dashboard');
+        navigate("/free-dashboard", { replace: true });
+      }
+      // If no specific role, stay on main dashboard
+      else {
+        console.log('No specific role found, staying on main dashboard');
+      }
+    }
+  }, [user, isOwner, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate, sessionValidated]);
 
   // Show loading while checking auth state
   if (authLoading || (user && (roleLoading || !sessionValidated))) {

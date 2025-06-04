@@ -8,7 +8,6 @@ export const useUserRole = () => {
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Add more detailed logging about the user state
   console.log('useUserRole: Hook called with user:', {
     user: user,
     userId: user?.id,
@@ -49,6 +48,7 @@ export const useUserRole = () => {
           console.log('useUserRole: No role found, defaulting to student');
           setRole('student');
         } else {
+          console.log('useUserRole: Database error, defaulting to student');
           setRole('student');
         }
       } else {
@@ -58,6 +58,7 @@ export const useUserRole = () => {
       }
     } catch (error) {
       console.error('useUserRole: Catch block error:', error);
+      console.log('useUserRole: Exception occurred, defaulting to student');
       setRole('student');
     } finally {
       console.log('useUserRole: Setting loading to false');
@@ -101,6 +102,9 @@ export const useUserRole = () => {
     role,
     isAdmin,
     isOwner,
+    isStudent,
+    isClient,
+    isFree,
     hasAdminPrivileges,
     loading,
     userId: user?.id,
