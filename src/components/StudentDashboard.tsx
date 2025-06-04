@@ -8,10 +8,10 @@ import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import NotificationBanner from "./notifications/NotificationBanner";
 import LMSTreeFooter from "./lms-tree/LMSTreeFooter";
-import DashboardHeader from "./dashboard/DashboardHeader";
 import DashboardStats from "./dashboard/DashboardStats";
 import DashboardContent from "./dashboard/DashboardContent";
 import StudentProfileTab from "./student/StudentProfileTab";
+import StudentDashboardHeader from "./student/StudentDashboardHeader";
 
 const StudentDashboard = () => {
   const { user, signOut } = useAuth();
@@ -130,16 +130,16 @@ const StudentDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 flex flex-col">
+      <StudentDashboardHeader onSignOut={signOut} />
+      
       <div className="flex-1">
-        <DashboardHeader
-          title="Student Dashboard"
-          subtitle="Welcome back, {name}! Continue your learning journey."
-          userFirstName={user?.user_metadata?.first_name}
-          onSignOut={signOut}
-        />
-
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <NotificationBanner />
+          
+          <div className="mb-8">
+            <h1 className="text-3xl font-bold text-gray-900 mb-2">Student Dashboard</h1>
+            <p className="text-gray-600">Welcome back! Continue your learning journey.</p>
+          </div>
           
           <Tabs value={mainTab} onValueChange={setMainTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-8">
