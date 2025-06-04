@@ -61,7 +61,7 @@ const StudentDashboardHeader = () => {
   };
 
   return (
-    <header className="shadow-sm border-b border-gray-200" style={{ backgroundColor: '#213C82' }}>
+    <header className="shadow-sm border-b border-gray-200" style={{ backgroundColor: '#213C82', minHeight: '64px' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Left side - Profile */}
