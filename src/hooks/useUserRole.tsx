@@ -16,13 +16,14 @@ export const useUserRole = () => {
   });
 
   const fetchUserRole = useCallback(async () => {
+    const userId = user?.id;
     console.log('useUserRole: fetchUserRole called with user:', {
       user: user,
-      userId: user?.id,
+      userId: userId,
       userExists: !!user
     });
 
-    if (!user?.id) {
+    if (!userId) {
       console.log('useUserRole: No user ID available, user state:', user);
       setRole(null);
       setLoading(false);
@@ -31,15 +32,15 @@ export const useUserRole = () => {
 
     try {
       setLoading(true);
-      console.log('useUserRole: Fetching role for user:', user.id);
+      console.log('useUserRole: Fetching role for user:', userId);
       
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .single();
 
-      console.log('useUserRole: Query result:', { data, error, userId: user.id });
+      console.log('useUserRole: Query result:', { data, error, userId: userId });
 
       if (error) {
         console.error('useUserRole: Error fetching user role:', error);
@@ -70,10 +71,12 @@ export const useUserRole = () => {
     console.log('useUserRole: useEffect triggered, user changed:', {
       user: user,
       userId: user?.id,
-      userExists: !!user
+      userExists: !!user,
+      currentRole: role,
+      currentLoading: loading
     });
     
-    // Only fetch if we have a user ID and don't already have a role for this user
+    // Only fetch if we have a user ID
     if (user?.id) {
       fetchUserRole();
     } else {
@@ -81,7 +84,7 @@ export const useUserRole = () => {
       setRole(null);
       setLoading(false);
     }
-  }, [user?.id, fetchUserRole]); // Only depend on user?.id and the memoized fetchUserRole
+  }, [user?.id]); // Remove fetchUserRole from dependencies to prevent loops
 
   const refreshRole = useCallback(() => {
     console.log('useUserRole: refreshRole called');
