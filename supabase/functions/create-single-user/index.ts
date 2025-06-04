@@ -50,17 +50,11 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_ANON_KEY') ?? ''
     );
 
-    // Set the auth token manually
-    await supabaseClient.auth.setSession({
-      access_token: token,
-      refresh_token: '', // We don't need refresh token for this operation
-    });
-
-    // Check if the requesting user is authenticated and has admin privileges
-    const { data: { user }, error: userError } = await supabaseClient.auth.getUser();
+    // Verify the token and get user info directly
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
     if (userError || !user) {
       console.error('Auth error:', userError);
-      throw new Error('Authentication failed - invalid token');
+      throw new Error('Authentication failed - invalid or expired token');
     }
 
     console.log('Authenticated user:', user.id);
@@ -76,7 +70,7 @@ serve(async (req) => {
 
     if (userRoleError || !userRole || (userRole.role !== 'admin' && userRole.role !== 'owner')) {
       console.error('Permission denied for user:', user.id, 'role:', userRole?.role);
-      throw new Error('Admin privileges required');
+      throw new Error('Admin or owner privileges required to create users');
     }
 
     console.log('Admin user verified, proceeding with user creation');
@@ -87,8 +81,8 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Generate a temporary password
-    const tempPassword = `temp${Math.random().toString(36).slice(-8)}!A1`;
+    // Generate a secure temporary password
+    const tempPassword = `TempPass${Math.random().toString(36).slice(-8)}!${Math.floor(Math.random() * 100)}`;
 
     // Create user in auth using admin client
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
@@ -149,8 +143,9 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `User ${email} has been created successfully`,
-        userId: authData.user.id
+        message: `User ${email} has been created successfully with role ${role}`,
+        userId: authData.user.id,
+        tempPassword: tempPassword
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
