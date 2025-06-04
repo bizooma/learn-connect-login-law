@@ -9,6 +9,30 @@ export interface CourseFormData {
   image_file?: File;
 }
 
+export interface ModuleData {
+  id?: string;
+  title: string;
+  description: string;
+  image_url?: string;
+  file_url?: string;
+  file_name?: string;
+  file_size?: number;
+  sort_order: number;
+  lessons: LessonData[];
+}
+
+export interface LessonData {
+  id?: string;
+  title: string;
+  description: string;
+  image_url?: string;
+  file_url?: string;
+  file_name?: string;
+  file_size?: number;
+  sort_order: number;
+  units: UnitData[];
+}
+
 export interface SectionData {
   id?: string;
   title: string;

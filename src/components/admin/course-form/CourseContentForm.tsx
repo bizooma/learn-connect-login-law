@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -219,6 +218,7 @@ const CourseContentForm = ({ modules, onModulesChange }: CourseContentFormProps)
                           unit={unit}
                           onUnitChange={(field, value) => updateUnit(moduleIndex, lessonIndex, unitIndex, field, value)}
                           onRemove={() => removeUnit(moduleIndex, lessonIndex, unitIndex)}
+                          unitIndex={unitIndex}
                         />
                       ))}
                     </div>
