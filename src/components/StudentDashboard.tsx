@@ -13,7 +13,7 @@ import DashboardContent from "./dashboard/DashboardContent";
 
 const StudentDashboard = () => {
   const { user, signOut } = useAuth();
-  const { isStudent } = useUserRole();
+  const { isStudent, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("assigned");
   const [stats, setStats] = useState({
@@ -25,16 +25,31 @@ const StudentDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isStudent) {
-      navigate("/");
+    console.log('StudentDashboard: useEffect triggered with:', {
+      user: !!user,
+      isStudent,
+      roleLoading,
+      userEmail: user?.email
+    });
+
+    // Only redirect if role loading is complete AND user is definitely not a student
+    if (!roleLoading && user && !isStudent) {
+      console.log('StudentDashboard: User is not a student, redirecting to main dashboard');
+      navigate("/", { replace: true });
       return;
     }
-    fetchStats();
-  }, [isStudent, navigate]);
+
+    // If we have a student user and roles are loaded, fetch stats
+    if (!roleLoading && isStudent && user) {
+      console.log('StudentDashboard: Student confirmed, fetching stats');
+      fetchStats();
+    }
+  }, [isStudent, roleLoading, user, navigate]);
 
   const fetchStats = async () => {
     setLoading(true);
     try {
+      console.log('StudentDashboard: Fetching stats for user:', user?.id);
       // Fetch user course progress for actual stats
       const { data: progressData } = await supabase
         .from('user_course_progress')
@@ -58,7 +73,9 @@ const StudentDashboard = () => {
     }
   };
 
-  if (loading) {
+  // Show loading while checking roles or fetching data
+  if (roleLoading || loading) {
+    console.log('StudentDashboard: Showing loading state, roleLoading:', roleLoading, 'loading:', loading);
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
@@ -69,9 +86,13 @@ const StudentDashboard = () => {
     );
   }
 
+  // Don't render anything if user is not a student (redirect will happen in useEffect)
   if (!isStudent) {
+    console.log('StudentDashboard: User is not a student, returning null');
     return null;
   }
+
+  console.log('StudentDashboard: Rendering dashboard for student');
 
   const studentStats = [
     {

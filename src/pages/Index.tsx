@@ -5,13 +5,15 @@ import AuthPage from "../components/AuthPage";
 import Dashboard from "../components/Dashboard";
 import AdminDashboard from "../components/AdminDashboard";
 import NotificationBanner from "../components/notifications/NotificationBanner";
-import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
+import { useEffect, useRef } from "react";
 
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, isOwner, isStudent, isClient, isFree, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
+  const location = useLocation();
+  const hasRedirected = useRef(false);
 
   useEffect(() => {
     console.log('Index useEffect triggered with:', {
@@ -23,8 +25,16 @@ const Index = () => {
       isClient,
       isFree,
       isAdmin,
-      userEmail: user?.email
+      userEmail: user?.email,
+      currentPath: location.pathname,
+      hasRedirected: hasRedirected.current
     });
+
+    // Prevent multiple redirects
+    if (hasRedirected.current) {
+      console.log('Index: Already redirected, skipping');
+      return;
+    }
 
     // Only redirect if we have a user and roles are loaded
     if (!authLoading && !roleLoading && user) {
@@ -33,24 +43,28 @@ const Index = () => {
       // Redirect owners to their dedicated dashboard
       if (isOwner) {
         console.log('Index: Redirecting owner to owner dashboard');
+        hasRedirected.current = true;
         navigate("/owner-dashboard", { replace: true });
         return;
       }
       // Redirect students to their dedicated dashboard
       if (isStudent) {
         console.log('Index: Redirecting student to student dashboard');
+        hasRedirected.current = true;
         navigate("/student-dashboard", { replace: true });
         return;
       }
       // Redirect clients to their dedicated dashboard
       if (isClient) {
         console.log('Index: Redirecting client to client dashboard');
+        hasRedirected.current = true;
         navigate("/client-dashboard", { replace: true });
         return;
       }
       // Redirect free users to their dedicated dashboard
       if (isFree) {
         console.log('Index: Redirecting free user to free dashboard');
+        hasRedirected.current = true;
         navigate("/free-dashboard", { replace: true });
         return;
       }
@@ -63,7 +77,12 @@ const Index = () => {
         roleLoading
       });
     }
-  }, [user, isOwner, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate]);
+  }, [user, isOwner, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate, location.pathname]);
+
+  // Reset redirect flag when user changes
+  useEffect(() => {
+    hasRedirected.current = false;
+  }, [user?.id]);
 
   // Show loading while checking auth state
   if (authLoading || (user && roleLoading)) {
