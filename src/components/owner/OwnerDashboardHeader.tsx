@@ -87,11 +87,6 @@ const OwnerDashboardHeader = ({ lawFirm }: OwnerDashboardHeaderProps) => {
                   <p className="text-gray-600">Law Firm Dashboard</p>
                 </div>
               </div>
-              
-              {/* Additional info on the right if needed */}
-              <div className="text-sm text-gray-500">
-                Established • Professional Legal Services
-              </div>
             </div>
           </div>
         </div>
