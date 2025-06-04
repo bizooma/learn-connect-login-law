@@ -55,10 +55,8 @@ const OwnerDashboard = () => {
         <OwnerDashboardHeader lawFirm={lawFirm} />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          {/* Full-width notification banner above main dashboard content */}
-          <div className="mb-8">
-            <NotificationBanner />
-          </div>
+          {/* Notification Banner */}
+          <NotificationBanner />
 
           {/* Show main dashboard with tabs - law firm will be auto-created if needed */}
           {lawFirm && <OwnerDashboardTabs lawFirm={lawFirm} onUpdateLawFirm={updateLawFirm} />}

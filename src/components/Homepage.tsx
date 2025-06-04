@@ -1,5 +1,5 @@
 
-import SimpleNavigationHeader from "./homepage/SimpleNavigationHeader";
+import NavigationHeader from "./homepage/NavigationHeader";
 import HeroSection from "./homepage/HeroSection";
 import ServicesSection from "./homepage/ServicesSection";
 import BenefitsSection from "./homepage/BenefitsSection";
@@ -15,7 +15,7 @@ import Footer from "./homepage/Footer";
 const Homepage = () => {
   return (
     <div className="min-h-screen">
-      <SimpleNavigationHeader />
+      <NavigationHeader />
       <HeroSection />
 
       {/* Services Section */}

@@ -1,8 +1,7 @@
 
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Building2, BookOpen, LogOut } from "lucide-react";
+import { ArrowLeft, Building2, BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 import { Tables } from "@/integrations/supabase/types";
 
 type LawFirm = Tables<'law_firms'>;
@@ -13,7 +12,6 @@ interface OwnerDashboardHeaderProps {
 
 const OwnerDashboardHeader = ({ lawFirm }: OwnerDashboardHeaderProps) => {
   const navigate = useNavigate();
-  const { signOut } = useAuth();
 
   return (
     <div>
@@ -58,14 +56,6 @@ const OwnerDashboardHeader = ({ lawFirm }: OwnerDashboardHeaderProps) => {
                   {lawFirm.used_seats}/{lawFirm.total_seats} seats used
                 </div>
               )}
-              <Button
-                variant="ghost"
-                onClick={signOut}
-                className="flex items-center text-white hover:bg-white/10"
-              >
-                <LogOut className="h-4 w-4 mr-2" />
-                Sign Out
-              </Button>
             </div>
           </div>
         </div>

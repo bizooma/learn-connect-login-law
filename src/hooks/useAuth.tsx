@@ -1,5 +1,5 @@
 
-import { useState, useEffect, createContext, useContext, useMemo } from 'react';
+import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -31,121 +31,50 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    let mounted = true;
-
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        if (!mounted) return;
-        
-        console.log('Auth state changed:', event, session?.user?.id);
-        
-        if (event === 'SIGNED_OUT' || !session) {
-          setSession(null);
-          setUser(null);
-        } else {
-          setSession(session);
-          setUser(session?.user ?? null);
-        }
-        
+        console.log('Auth state changed:', event, session);
+        setSession(session);
+        setUser(session?.user ?? null);
         setLoading(false);
       }
     );
 
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (!mounted) return;
-      
-      if (error) {
-        console.error('Error getting session:', error);
-        setSession(null);
-        setUser(null);
-      } else {
-        setSession(session);
-        setUser(session?.user ?? null);
-      }
-      
-      setLoading(false);
-    }).catch((error) => {
-      if (!mounted) return;
-      
-      console.error('Session fetch error:', error);
-      setSession(null);
-      setUser(null);
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
       setLoading(false);
     });
 
-    return () => {
-      mounted = false;
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   const signOut = async () => {
     try {
-      console.log('Starting sign out process');
+      // Clear local state first
+      setUser(null);
+      setSession(null);
       
-      // Sign out from Supabase with global scope to clear all sessions
-      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      // Then sign out from Supabase
+      const { error } = await supabase.auth.signOut();
       
       if (error) {
         console.error('Error signing out:', error);
-        throw error;
       }
       
-      console.log('Successfully signed out from Supabase');
-      
-      // Force clear all Supabase-related localStorage items
-      const keysToRemove = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.startsWith('supabase.') || key.includes('auth-token'))) {
-          keysToRemove.push(key);
-        }
-      }
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-      console.log('Cleared localStorage items:', keysToRemove);
-      
-      // Clear local state
-      setUser(null);
-      setSession(null);
-      
-      // Force a full page reload to clear all cached state
-      console.log('Forcing page reload to clear all cached state');
-      window.location.replace('/');
-      
+      console.log('Successfully signed out');
     } catch (error) {
       console.error('Unexpected error during sign out:', error);
-      
-      // Even if there's an error, force clear everything
-      const keysToRemove = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.startsWith('supabase.') || key.includes('auth-token'))) {
-          keysToRemove.push(key);
-        }
-      }
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-      
+      // Even if there's an error, clear the local state
       setUser(null);
       setSession(null);
-      
-      // Force reload even on error
-      window.location.replace('/');
     }
   };
 
-  // Memoize the context value to prevent unnecessary re-renders
-  // Only recreate when the actual values change
-  const contextValue = useMemo(() => ({
-    user,
-    session,
-    loading,
-    signOut
-  }), [user?.id, session?.access_token, loading]); // Use stable references
-
   return (
-    <AuthContext.Provider value={contextValue}>
+    <AuthContext.Provider value={{ user, session, loading, signOut }}>
       {children}
     </AuthContext.Provider>
   );
