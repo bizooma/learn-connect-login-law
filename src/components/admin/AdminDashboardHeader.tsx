@@ -1,7 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { LogOut, Menu } from "lucide-react";
+import { LogOut, Menu, FolderOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import {
   Sheet,
@@ -55,6 +55,14 @@ const AdminDashboardHeader = () => {
                     className="w-full justify-start"
                   >
                     LMS Tree
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    onClick={() => navigate("/admin/resources")}
+                    className="w-full justify-start"
+                  >
+                    <FolderOpen className="h-4 w-4 mr-2" />
+                    Resources
                   </Button>
                   <Button
                     variant="ghost"
