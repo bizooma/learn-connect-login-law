@@ -53,27 +53,35 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     try {
-      // Clear local state first
-      setUser(null);
-      setSession(null);
+      console.log('Starting sign out process');
       
-      // Then sign out from Supabase
+      // Sign out from Supabase first
       const { error } = await supabase.auth.signOut();
       
       if (error) {
         console.error('Error signing out:', error);
+        throw error;
       }
       
-      console.log('Successfully signed out');
+      console.log('Successfully signed out from Supabase');
       
-      // Redirect to home page after successful logout
-      window.location.href = '/';
+      // Clear local state
+      setUser(null);
+      setSession(null);
+      
+      // Small delay to ensure state is cleared before redirect
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 100);
+      
     } catch (error) {
       console.error('Unexpected error during sign out:', error);
       // Even if there's an error, clear the local state and redirect
       setUser(null);
       setSession(null);
-      window.location.href = '/';
+      setTimeout(() => {
+        window.location.href = '/';
+      }, 100);
     }
   };
 
