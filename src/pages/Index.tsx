@@ -26,18 +26,22 @@ const Index = () => {
       // Redirect owners to their dedicated dashboard
       if (isOwner) {
         navigate("/owner-dashboard", { replace: true });
+        return;
       }
       // Redirect students to their dedicated dashboard
-      else if (isStudent) {
+      if (isStudent) {
         navigate("/student-dashboard", { replace: true });
+        return;
       }
       // Redirect clients to their dedicated dashboard
-      else if (isClient) {
+      if (isClient) {
         navigate("/client-dashboard", { replace: true });
+        return;
       }
       // Redirect free users to their dedicated dashboard
-      else if (isFree) {
+      if (isFree) {
         navigate("/free-dashboard", { replace: true });
+        return;
       }
     }
   }, [user, isOwner, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate]);
@@ -52,6 +56,11 @@ const Index = () => {
         </div>
       </div>
     );
+  }
+
+  // If user is not authenticated, don't render anything (will redirect to login)
+  if (!user) {
+    return null;
   }
 
   // Show admin dashboard only for admins, not owners, students, clients, or free users
