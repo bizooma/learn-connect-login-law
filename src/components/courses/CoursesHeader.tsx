@@ -1,3 +1,4 @@
+
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -13,7 +14,7 @@ const CoursesHeader = ({ filteredCoursesCount }: CoursesHeaderProps) => {
 
   const handleBackToDashboard = () => {
     if (isAdmin) {
-      navigate("/login"); // Admin users go to the main admin dashboard
+      navigate("/"); // Admin users go to the main admin dashboard
     } else if (isOwner) {
       navigate("/owner-dashboard");
     } else if (isStudent) {
@@ -24,7 +25,7 @@ const CoursesHeader = ({ filteredCoursesCount }: CoursesHeaderProps) => {
       navigate("/free-dashboard");
     } else {
       // Default fallback
-      navigate("/login");
+      navigate("/");
     }
   };
 
