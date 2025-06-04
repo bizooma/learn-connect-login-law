@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -15,7 +15,7 @@ export const useUserRole = () => {
     hasUser: !!user
   });
 
-  const fetchUserRole = async () => {
+  const fetchUserRole = useCallback(async () => {
     console.log('useUserRole: fetchUserRole called with user:', {
       user: user,
       userId: user?.id,
@@ -64,7 +64,7 @@ export const useUserRole = () => {
       console.log('useUserRole: Setting loading to false');
       setLoading(false);
     }
-  };
+  }, [user?.id]);
 
   useEffect(() => {
     console.log('useUserRole: useEffect triggered, user changed:', {
@@ -80,14 +80,14 @@ export const useUserRole = () => {
       setRole(null);
       setLoading(false);
     }
-  }, [user?.id]);
+  }, [user?.id, fetchUserRole]);
 
-  const refreshRole = () => {
+  const refreshRole = useCallback(() => {
     console.log('useUserRole: refreshRole called');
     if (user?.id) {
       fetchUserRole();
     }
-  };
+  }, [user?.id, fetchUserRole]);
 
   // Compute derived values
   const isAdmin = role === 'admin';
