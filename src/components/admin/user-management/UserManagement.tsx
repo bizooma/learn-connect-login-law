@@ -4,15 +4,14 @@ import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
 import UserSearch from "./UserSearch";
 import { UserGrid } from "./UserGrid";
-import DiagnosticPanel from "./DiagnosticPanel";
-import UserManagementHeader from "./UserManagementHeader";
+import SimplifiedUserManagementHeader from "./SimplifiedUserManagementHeader";
 import EmptyUserState from "./EmptyUserState";
 import LoadingState from "./LoadingState";
 import UserProgressModal from "../user-progress/UserProgressModal";
 import { filterUsers } from "./userRoleUtils";
-import { UserProfile, DiagnosticInfo } from "./types";
-import { fetchUsersData } from "./userDataService";
-import { useUserManagementOperations } from "./userManagementOperations";
+import { UserProfile } from "./types";
+import { fetchUsersWithStats, SimplifiedUserStats } from "./simplifiedDataService";
+import { updateUserRole as updateUserRoleService } from "./roleOperations";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -20,8 +19,7 @@ const UserManagement = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
-  const [diagnosticInfo, setDiagnosticInfo] = useState<DiagnosticInfo | null>(null);
-  const [isCleaningUp, setIsCleaningUp] = useState(false);
+  const [stats, setStats] = useState<SimplifiedUserStats>({ totalUsers: 0, roleCounts: {} });
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedUserForProgress, setSelectedUserForProgress] = useState<string | null>(null);
   const { toast } = useToast();
@@ -31,25 +29,14 @@ const UserManagement = () => {
     try {
       console.log('Fetching users data...');
       setLoading(true);
-      const { users: fetchedUsers, diagnosticInfo: fetchedDiagnosticInfo } = await fetchUsersData();
+      const { users: fetchedUsers, stats: fetchedStats } = await fetchUsersWithStats();
       console.log('Fetched users:', fetchedUsers.length);
       setUsers(fetchedUsers);
-      setDiagnosticInfo(fetchedDiagnosticInfo);
+      setStats(fetchedStats);
       
       // Reset pagination when users data changes
       setCurrentPage(1);
       
-      // Show updated role counts in a toast only if there are actual issues
-      if (fetchedDiagnosticInfo) {
-        const hasIssues = fetchedDiagnosticInfo.orphanedRolesCount > 0 || fetchedDiagnosticInfo.missingProfilesCount > 0;
-        if (hasIssues) {
-          toast({
-            title: "Database Issues Detected",
-            description: `Found ${fetchedDiagnosticInfo.orphanedRolesCount} orphaned roles and ${fetchedDiagnosticInfo.missingProfilesCount} missing profiles`,
-            variant: "default",
-          });
-        }
-      }
     } catch (error: any) {
       console.error('Error fetching users:', error);
       toast({
@@ -62,7 +49,36 @@ const UserManagement = () => {
     }
   };
 
-  const { cleanupOrphanedRoles, createMissingProfiles, updateUserRole } = useUserManagementOperations(fetchUsers);
+  const updateUserRole = async (userId: string, newRole: 'admin' | 'owner' | 'student' | 'client' | 'free') => {
+    try {
+      // Check if current user can assign this role
+      if (!isAdmin && (newRole === 'admin' || newRole === 'owner')) {
+        toast({
+          title: "Access Denied",
+          description: "You don't have permission to assign admin or owner roles",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      await updateUserRoleService(userId, newRole);
+
+      // Refresh users list
+      await fetchUsers();
+      
+      toast({
+        title: "Success",
+        description: "User role updated successfully",
+      });
+    } catch (error: any) {
+      console.error('Error updating user role:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update user role",
+        variant: "destructive",
+      });
+    }
+  };
 
   useEffect(() => {
     fetchUsers();
@@ -99,18 +115,9 @@ const UserManagement = () => {
 
   return (
     <div className="space-y-6">
-      <UserManagementHeader 
-        usersCount={users.length} 
-        diagnosticInfo={diagnosticInfo} 
-        onUserAdded={fetchUsers}
-      />
-
-      <DiagnosticPanel
-        diagnosticInfo={diagnosticInfo}
-        isAdmin={isAdmin}
-        isCleaningUp={isCleaningUp}
-        onCleanupOrphanedRoles={() => cleanupOrphanedRoles(setIsCleaningUp)}
-        onCreateMissingProfiles={createMissingProfiles}
+      <SimplifiedUserManagementHeader 
+        stats={stats}
+        onRefresh={fetchUsers}
       />
       
       <UserSearch 
@@ -134,7 +141,7 @@ const UserManagement = () => {
       
       {users.length === 0 && (
         <EmptyUserState 
-          diagnosticInfo={diagnosticInfo}
+          diagnosticInfo={null}
           onRefresh={fetchUsers}
         />
       )}
