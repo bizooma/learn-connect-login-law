@@ -24,25 +24,15 @@ serve(async (req) => {
   }
 
   try {
-    const { email, firstName, lastName, role } = await req.json();
+    const { email, firstName, lastName } = await req.json();
 
-    console.log('Creating user:', { email, firstName, lastName, role });
+    console.log('Creating user:', { email, firstName, lastName });
 
     // Validate required fields
-    if (!email || !firstName || !lastName || !role) {
+    if (!email || !firstName || !lastName) {
       console.error('Missing required fields');
       return new Response(
-        JSON.stringify({ error: 'All fields (email, firstName, lastName, role) are required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    // Validate role
-    const validRoles = ['admin', 'owner', 'student', 'client', 'free'];
-    if (!validRoles.includes(role)) {
-      console.error('Invalid role:', role);
-      return new Response(
-        JSON.stringify({ error: `Invalid role. Must be one of: ${validRoles.join(', ')}` }),
+        JSON.stringify({ error: 'All fields (email, firstName, lastName) are required' }),
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
@@ -95,7 +85,7 @@ serve(async (req) => {
 
     console.log('User role check:', { userRole, userRoleError });
 
-    // If no role found, this might be the first user - allow creation of admin/owner users
+    // If no role found, this might be the first user - allow creation
     if (userRoleError && userRoleError.code === 'PGRST116') {
       console.log('No role found for user - checking if this is the first user');
       
@@ -114,9 +104,9 @@ serve(async (req) => {
         );
       }
 
-      // If no admins exist, allow creation of admin/owner users
+      // If no admins exist, allow creation
       if (!existingAdmins || existingAdmins.length === 0) {
-        console.log('No admin users exist - allowing creation of first admin/owner user');
+        console.log('No admin users exist - allowing creation of first user');
       } else {
         console.error('Permission denied - user has no role but admins exist');
         return new Response(
@@ -183,28 +173,12 @@ serve(async (req) => {
       console.log('Profile created successfully');
     }
 
-    // Set user role - use the exact role passed in without normalization
-    console.log('Assigning role:', role, 'to user:', authData.user.id);
-    const { error: assignRoleError } = await supabaseAdmin
-      .from('user_roles')
-      .insert({
-        user_id: authData.user.id,
-        role: role
-      });
-
-    if (assignRoleError) {
-      console.error('Role assignment error:', assignRoleError);
-      // Don't throw here as the user was created
-    } else {
-      console.log('Role assigned successfully:', role);
-    }
-
     console.log('User created successfully:', email);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: `User ${email} has been created successfully with role ${role}`,
+        message: `User ${email} has been created successfully. You can assign a role manually.`,
         userId: authData.user.id,
         tempPassword: tempPassword
       }),
