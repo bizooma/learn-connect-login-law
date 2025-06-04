@@ -15,6 +15,7 @@ const Index = () => {
   const location = useLocation();
   const hasRedirectedRef = useRef(false);
   const redirectCountRef = useRef(0);
+  const lastUserIdRef = useRef<string | null>(null);
   const [isRedirecting, setIsRedirecting] = useState(false);
 
   useEffect(() => {
@@ -98,10 +99,14 @@ const Index = () => {
   // Reset redirect flags when user changes
   useEffect(() => {
     const currentUserId = user?.id;
-    if (currentUserId !== hasRedirectedRef.current) {
+    const lastUserId = lastUserIdRef.current;
+    
+    if (currentUserId !== lastUserId) {
+      console.log('Index: User changed, resetting redirect flags');
       hasRedirectedRef.current = false;
       redirectCountRef.current = 0;
       setIsRedirecting(false);
+      lastUserIdRef.current = currentUserId || null;
     }
   }, [user?.id]);
 
