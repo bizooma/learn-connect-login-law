@@ -1,11 +1,10 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, Users, Settings, Calendar as CalendarIcon } from "lucide-react";
+import { Building2, Users, Calendar as CalendarIcon } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import EmployeeManagement from "./EmployeeManagement";
 import OverviewTab from "./OverviewTab";
 import CalendarTab from "./CalendarTab";
-import SettingsTab from "./SettingsTab";
 
 type LawFirm = Tables<'law_firms'>;
 
@@ -16,22 +15,18 @@ interface OwnerDashboardTabsProps {
 const OwnerDashboardTabs = ({ lawFirm }: OwnerDashboardTabsProps) => {
   return (
     <Tabs defaultValue="overview" className="w-full">
-      <TabsList className="grid w-full grid-cols-4">
+      <TabsList className="grid w-full grid-cols-3">
         <TabsTrigger value="overview" className="flex items-center">
           <Building2 className="h-4 w-4 mr-2" />
           Overview
         </TabsTrigger>
-        <TabsTrigger value="employees" className="flex items-center">
+        <TabsTrigger value="team" className="flex items-center">
           <Users className="h-4 w-4 mr-2" />
-          Employees
+          Team Members
         </TabsTrigger>
         <TabsTrigger value="calendar" className="flex items-center">
           <CalendarIcon className="h-4 w-4 mr-2" />
           Calendar
-        </TabsTrigger>
-        <TabsTrigger value="settings" className="flex items-center">
-          <Settings className="h-4 w-4 mr-2" />
-          Settings
         </TabsTrigger>
       </TabsList>
 
@@ -39,16 +34,12 @@ const OwnerDashboardTabs = ({ lawFirm }: OwnerDashboardTabsProps) => {
         <OverviewTab lawFirm={lawFirm} />
       </TabsContent>
 
-      <TabsContent value="employees">
+      <TabsContent value="team">
         <EmployeeManagement lawFirm={lawFirm} />
       </TabsContent>
 
       <TabsContent value="calendar">
         <CalendarTab />
-      </TabsContent>
-
-      <TabsContent value="settings">
-        <SettingsTab lawFirm={lawFirm} />
       </TabsContent>
     </Tabs>
   );

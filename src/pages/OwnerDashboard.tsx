@@ -4,9 +4,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { useLawFirm } from "@/hooks/useLawFirm";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import LawFirmSetup from "@/components/owner/LawFirmSetup";
 import OwnerDashboardHeader from "@/components/owner/OwnerDashboardHeader";
 import OwnerDashboardTabs from "@/components/owner/OwnerDashboardTabs";
 import NotificationBanner from "@/components/notifications/NotificationBanner";
@@ -18,7 +16,7 @@ const OwnerDashboard = () => {
   const { lawFirm, loading: lawFirmLoading } = useLawFirm();
 
   // Show loading state while checking authentication and role
-  if (authLoading || roleLoading) {
+  if (authLoading || roleLoading || lawFirmLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
@@ -58,26 +56,8 @@ const OwnerDashboard = () => {
         {/* Notification Banner */}
         <NotificationBanner />
 
-        {!lawFirm && !lawFirmLoading ? (
-          // Show law firm setup if no law firm exists
-          <Card className="max-w-2xl mx-auto">
-            <CardHeader>
-              <CardTitle className="flex items-center">
-                <Building2 className="h-6 w-6 mr-2" />
-                Set Up Your Law Firm
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-gray-600 mb-6">
-                Welcome! Let's start by setting up your law firm profile and purchasing employee seats.
-              </p>
-              <LawFirmSetup />
-            </CardContent>
-          </Card>
-        ) : lawFirm ? (
-          // Show main dashboard with tabs
-          <OwnerDashboardTabs lawFirm={lawFirm} />
-        ) : null}
+        {/* Show main dashboard with tabs - law firm will be auto-created if needed */}
+        {lawFirm && <OwnerDashboardTabs lawFirm={lawFirm} />}
       </div>
     </div>
   );

@@ -13,7 +13,7 @@ export const useLawFirm = () => {
   const [lawFirm, setLawFirm] = useState<LawFirm | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const fetchLawFirm = async () => {
+  const fetchOrCreateLawFirm = async () => {
     if (!user?.id) {
       setLoading(false);
       return;
@@ -22,6 +22,7 @@ export const useLawFirm = () => {
     try {
       console.log('Fetching law firm for owner:', user.id);
       
+      // First try to fetch existing law firm
       const { data, error } = await supabase
         .from('law_firms')
         .select('*')
@@ -33,13 +34,42 @@ export const useLawFirm = () => {
         throw error;
       }
 
-      console.log('Law firm data:', data);
-      setLawFirm(data);
+      if (data) {
+        console.log('Existing law firm found:', data);
+        setLawFirm(data);
+      } else {
+        // No law firm exists, create a default one automatically
+        console.log('No law firm found, creating default law firm for owner:', user.id);
+        
+        const { data: newLawFirm, error: createError } = await supabase
+          .from('law_firms')
+          .insert({
+            name: 'My Law Firm',
+            total_seats: 4,
+            owner_id: user.id,
+            used_seats: 0
+          })
+          .select()
+          .single();
+
+        if (createError) {
+          console.error('Error creating default law firm:', createError);
+          throw createError;
+        }
+
+        console.log('Default law firm created:', newLawFirm);
+        setLawFirm(newLawFirm);
+        
+        toast({
+          title: "Welcome",
+          description: "Your dashboard is ready to use!",
+        });
+      }
     } catch (error) {
-      console.error('Error fetching law firm:', error);
+      console.error('Error in fetchOrCreateLawFirm:', error);
       toast({
         title: "Error",
-        description: "Failed to load law firm data",
+        description: "Failed to initialize dashboard",
         variant: "destructive",
       });
     } finally {
@@ -128,7 +158,7 @@ export const useLawFirm = () => {
   };
 
   useEffect(() => {
-    fetchLawFirm();
+    fetchOrCreateLawFirm();
   }, [user?.id]);
 
   return {
@@ -136,6 +166,6 @@ export const useLawFirm = () => {
     loading,
     createLawFirm,
     updateLawFirm,
-    refetch: fetchLawFirm
+    refetch: fetchOrCreateLawFirm
   };
 };
