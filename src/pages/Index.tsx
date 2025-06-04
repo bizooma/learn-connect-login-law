@@ -36,9 +36,9 @@ const Index = () => {
       return;
     }
 
-    // Only redirect if we have a user and roles are loaded
-    if (!authLoading && !roleLoading && user) {
-      console.log('Index: User authenticated, checking redirects...');
+    // Only redirect if we have a user, roles are loaded, and we're on the root path
+    if (!authLoading && !roleLoading && user && location.pathname === "/") {
+      console.log('Index: User authenticated on root path, checking redirects...');
       
       // Redirect owners to their dedicated dashboard
       if (isOwner) {
@@ -54,8 +54,8 @@ const Index = () => {
         navigate("/student-dashboard", { replace: true });
         return;
       }
-      // Redirect clients to their dedicated dashboard only if not already on client dashboard path
-      if (isClient && location.pathname !== "/client-dashboard") {
+      // Redirect clients to their dedicated dashboard
+      if (isClient) {
         console.log('Index: Redirecting client to client dashboard');
         hasRedirected.current = true;
         navigate("/client-dashboard", { replace: true });
@@ -74,7 +74,8 @@ const Index = () => {
       console.log('Index: Not redirecting because:', {
         hasUser: !!user,
         authLoading,
-        roleLoading
+        roleLoading,
+        currentPath: location.pathname
       });
     }
   }, [user, isOwner, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate, location.pathname]);
@@ -103,7 +104,7 @@ const Index = () => {
     return <AuthPage />;
   }
 
-  // Show appropriate dashboard based on user role and current path
+  // Show appropriate dashboard based on user role for specific paths
   console.log('Index: Showing dashboard for path:', location.pathname);
   
   // If we're on client-dashboard path and user is a client, show ClientDashboard
@@ -111,13 +112,20 @@ const Index = () => {
     return <ClientDashboard />;
   }
   
-  // Show admin dashboard only for admins
-  if (isAdmin) {
+  // Show admin dashboard only for admins on root path
+  if (location.pathname === "/" && isAdmin) {
     return <AdminDashboard />;
   }
   
-  // Default dashboard for other cases
-  return <Dashboard />;
+  // Default dashboard for root path
+  if (location.pathname === "/") {
+    return <Dashboard />;
+  }
+
+  // For other paths that shouldn't be handled by Index, redirect to root
+  console.log('Index: Unexpected path, redirecting to root');
+  navigate("/", { replace: true });
+  return null;
 };
 
 export default Index;
