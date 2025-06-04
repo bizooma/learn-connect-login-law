@@ -7,10 +7,15 @@ const NavigationHeader = () => {
 
   const handleLoginClick = () => {
     console.log('Login button clicked, current location:', window.location.href);
+    console.log('Navigate function available:', typeof navigate);
     console.log('Attempting to navigate to /login');
     try {
       navigate("/login");
       console.log('Navigate function called successfully');
+      // Add a small delay to check if navigation actually happened
+      setTimeout(() => {
+        console.log('Current location after navigation attempt:', window.location.href);
+      }, 100);
     } catch (error) {
       console.error('Error during navigation:', error);
     }
