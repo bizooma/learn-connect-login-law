@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useLawFirm } from "@/hooks/useLawFirm";
@@ -13,7 +12,7 @@ const OwnerDashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { isOwner, loading: roleLoading } = useUserRole();
-  const { lawFirm, loading: lawFirmLoading } = useLawFirm();
+  const { lawFirm, loading: lawFirmLoading, updateLawFirm } = useLawFirm();
 
   // Show loading state while checking authentication and role
   if (authLoading || roleLoading || lawFirmLoading) {
@@ -57,7 +56,7 @@ const OwnerDashboard = () => {
         <NotificationBanner />
 
         {/* Show main dashboard with tabs - law firm will be auto-created if needed */}
-        {lawFirm && <OwnerDashboardTabs lawFirm={lawFirm} />}
+        {lawFirm && <OwnerDashboardTabs lawFirm={lawFirm} onUpdateLawFirm={updateLawFirm} />}
       </div>
     </div>
   );

@@ -294,6 +294,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          logo_url: string | null
           name: string
           owner_id: string
           total_seats: number
@@ -303,6 +304,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          logo_url?: string | null
           name: string
           owner_id: string
           total_seats?: number
@@ -312,6 +314,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          logo_url?: string | null
           name?: string
           owner_id?: string
           total_seats?: number

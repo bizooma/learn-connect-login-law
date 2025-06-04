@@ -1,21 +1,23 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, Users, Calendar as CalendarIcon } from "lucide-react";
+import { Building2, Users, Calendar as CalendarIcon, User } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import EmployeeManagement from "./EmployeeManagement";
 import OverviewTab from "./OverviewTab";
 import CalendarTab from "./CalendarTab";
+import ProfileTab from "./ProfileTab";
 
 type LawFirm = Tables<'law_firms'>;
 
 interface OwnerDashboardTabsProps {
   lawFirm: LawFirm;
+  onUpdateLawFirm: (updates: Partial<LawFirm>) => Promise<LawFirm | null>;
 }
 
-const OwnerDashboardTabs = ({ lawFirm }: OwnerDashboardTabsProps) => {
+const OwnerDashboardTabs = ({ lawFirm, onUpdateLawFirm }: OwnerDashboardTabsProps) => {
   return (
     <Tabs defaultValue="overview" className="w-full">
-      <TabsList className="grid w-full grid-cols-3">
+      <TabsList className="grid w-full grid-cols-4">
         <TabsTrigger value="overview" className="flex items-center">
           <Building2 className="h-4 w-4 mr-2" />
           Overview
@@ -27,6 +29,10 @@ const OwnerDashboardTabs = ({ lawFirm }: OwnerDashboardTabsProps) => {
         <TabsTrigger value="calendar" className="flex items-center">
           <CalendarIcon className="h-4 w-4 mr-2" />
           Calendar
+        </TabsTrigger>
+        <TabsTrigger value="profile" className="flex items-center">
+          <User className="h-4 w-4 mr-2" />
+          Profile
         </TabsTrigger>
       </TabsList>
 
@@ -40,6 +46,10 @@ const OwnerDashboardTabs = ({ lawFirm }: OwnerDashboardTabsProps) => {
 
       <TabsContent value="calendar">
         <CalendarTab />
+      </TabsContent>
+
+      <TabsContent value="profile">
+        <ProfileTab lawFirm={lawFirm} onUpdateLawFirm={onUpdateLawFirm} />
       </TabsContent>
     </Tabs>
   );
