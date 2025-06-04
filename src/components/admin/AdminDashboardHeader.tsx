@@ -1,4 +1,3 @@
-
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { LogOut, Menu } from "lucide-react";
@@ -7,7 +6,7 @@ const AdminDashboardHeader = () => {
   const { signOut } = useAuth();
 
   return (
-    <div className="bg-gradient-to-r from-blue-600 to-purple-700 text-white shadow-lg">
+    <div className="text-white shadow-lg" style={{ backgroundColor: '#213C82' }}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
