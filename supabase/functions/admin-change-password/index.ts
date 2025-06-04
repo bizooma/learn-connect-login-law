@@ -55,8 +55,8 @@ Deno.serve(async (req) => {
 
     console.log('Requesting user ID:', user.id);
 
-    // Check if user has admin role
-    const { data: userRoles, error: roleError } = await supabase
+    // Check if user has admin role - use service role client for this check
+    const { data: userRoles, error: roleError } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id);
@@ -69,9 +69,11 @@ Deno.serve(async (req) => {
       );
     }
 
+    console.log('User roles found:', userRoles);
+
     const isAdmin = userRoles?.some(role => role.role === 'admin');
     if (!isAdmin) {
-      console.log('User roles:', userRoles);
+      console.log('Access denied - user is not admin. User roles:', userRoles);
       return new Response(
         JSON.stringify({ error: 'Access denied. Admin privileges required.' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
