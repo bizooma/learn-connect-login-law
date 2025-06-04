@@ -1,37 +1,12 @@
 
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
-import { useUserRole } from "@/hooks/useUserRole";
 
 const SimpleNavigationHeader = () => {
   const navigate = useNavigate();
-  const { user, loading: authLoading } = useAuth();
-  const { isStudent, isClient, isFree, isOwner, loading: roleLoading } = useUserRole();
 
   const handleLoginClick = () => {
-    if (user && !roleLoading) {
-      // Redirect authenticated users to their appropriate dashboard
-      if (isOwner) {
-        navigate("/owner-dashboard");
-      } else if (isStudent) {
-        navigate("/student-dashboard");
-      } else if (isClient) {
-        navigate("/client-dashboard");
-      } else if (isFree) {
-        navigate("/free-dashboard");
-      } else {
-        navigate("/dashboard");
-      }
-    } else {
-      // Redirect unauthenticated users to login
-      navigate("/login");
-    }
-  };
-
-  const getButtonText = () => {
-    if (authLoading || (user && roleLoading)) return "Loading...";
-    return user ? "Dashboard" : "Login";
+    navigate("/login");
   };
 
   return (
@@ -69,10 +44,9 @@ const SimpleNavigationHeader = () => {
           <div className="flex items-center">
             <Button 
               onClick={handleLoginClick}
-              disabled={authLoading || (user && roleLoading)}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
-              {getButtonText()}
+              Login
             </Button>
           </div>
         </div>
