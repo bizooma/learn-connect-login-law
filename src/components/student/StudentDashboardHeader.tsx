@@ -1,17 +1,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { BookOpen, LogOut } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-interface StudentDashboardHeaderProps {
-  onSignOut: () => void;
-}
-
-const StudentDashboardHeader = ({ onSignOut }: StudentDashboardHeaderProps) => {
+const StudentDashboardHeader = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<{
@@ -60,7 +56,7 @@ const StudentDashboardHeader = ({ onSignOut }: StudentDashboardHeaderProps) => {
   };
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
+    <header className="bg-white shadow-sm border-b border-gray-200">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Left side - Profile */}
@@ -82,8 +78,8 @@ const StudentDashboardHeader = ({ onSignOut }: StudentDashboardHeaderProps) => {
             </div>
           </div>
 
-          {/* Right side - Actions */}
-          <div className="flex items-center space-x-4">
+          {/* Right side - Course Catalog */}
+          <div className="flex items-center">
             <Button
               variant="outline"
               size="sm"
@@ -92,16 +88,6 @@ const StudentDashboardHeader = ({ onSignOut }: StudentDashboardHeaderProps) => {
             >
               <BookOpen className="h-4 w-4" />
               <span>Course Catalog</span>
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onSignOut}
-              className="flex items-center space-x-2 text-gray-500 hover:text-gray-700 hover:bg-gray-50"
-            >
-              <LogOut className="h-4 w-4" />
-              <span>Sign Out</span>
             </Button>
           </div>
         </div>

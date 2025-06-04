@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -11,6 +10,7 @@ import LMSTreeFooter from "./lms-tree/LMSTreeFooter";
 import DashboardStats from "./dashboard/DashboardStats";
 import DashboardContent from "./dashboard/DashboardContent";
 import StudentProfileTab from "./student/StudentProfileTab";
+import StudentMainHeader from "./student/StudentMainHeader";
 import StudentDashboardHeader from "./student/StudentDashboardHeader";
 
 const StudentDashboard = () => {
@@ -130,7 +130,8 @@ const StudentDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 flex flex-col">
-      <StudentDashboardHeader onSignOut={signOut} />
+      <StudentMainHeader onSignOut={signOut} />
+      <StudentDashboardHeader />
       
       <div className="flex-1">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
