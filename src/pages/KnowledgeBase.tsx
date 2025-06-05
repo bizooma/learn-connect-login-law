@@ -252,7 +252,7 @@ const KnowledgeBase = () => {
             </p>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-600">
               <div>
-                <strong>Technical Issues:</strong> Contact your system administrator
+                <strong>Technical Issues:</strong> Contact Erin Walsh <a href="mailto:erin.walsh@newfrontier.us" className="text-blue-600 hover:text-blue-800 underline">erin.walsh@newfrontier.us</a>
               </div>
               <div>
                 <strong>Course Content:</strong> Reach out to your course instructor
