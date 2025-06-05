@@ -34,6 +34,7 @@ Deno.serve(async (req) => {
     // Get the auth header
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
+      console.log('No authorization header provided')
       return new Response(
         JSON.stringify({ error: 'No authorization header' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -46,20 +47,44 @@ Deno.serve(async (req) => {
     )
 
     if (authError || !user) {
+      console.log('Authentication failed:', authError)
       return new Response(
         JSON.stringify({ error: 'Invalid token' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    // Check if the user has admin role
-    const { data: userRole, error: roleError } = await supabaseClient
+    console.log(`User ${user.id} (${user.email}) is attempting to delete a user`)
+
+    // Check if the user has admin role with improved error handling
+    const { data: userRoles, error: roleError } = await supabaseClient
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
-      .single()
 
-    if (roleError || !userRole || userRole.role !== 'admin') {
+    console.log('Role query result:', { userRoles, roleError })
+
+    if (roleError) {
+      console.error('Error fetching user roles:', roleError)
+      return new Response(
+        JSON.stringify({ error: `Failed to verify user permissions: ${roleError.message}` }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    if (!userRoles || userRoles.length === 0) {
+      console.log(`User ${user.id} has no roles assigned`)
+      return new Response(
+        JSON.stringify({ error: 'Insufficient permissions. No roles assigned.' }),
+        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+
+    const hasAdminRole = userRoles.some(roleRow => roleRow.role === 'admin')
+    console.log(`User roles:`, userRoles.map(r => r.role), `Has admin role: ${hasAdminRole}`)
+
+    if (!hasAdminRole) {
+      console.log(`User ${user.id} does not have admin role`)
       return new Response(
         JSON.stringify({ error: 'Insufficient permissions. Admin role required.' }),
         { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
