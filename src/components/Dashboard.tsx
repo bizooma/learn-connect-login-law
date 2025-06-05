@@ -3,26 +3,20 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
-import { supabase } from "@/integrations/supabase/client";
 import { BookOpen, Users, User, Library, Building2, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import UserCourseProgress from "./user/UserCourseProgress";
 import NotificationBanner from "./notifications/NotificationBanner";
 import LMSTreeFooter from "./lms-tree/LMSTreeFooter";
 import DashboardStats from "./dashboard/DashboardStats";
 import DashboardContent from "./dashboard/DashboardContent";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
   const { isOwner, isStudent, isClient, isFree } = useUserRole();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("courses");
-  const [stats, setStats] = useState({
-    totalCourses: 0,
-    enrolledCourses: 0,
-    completedCourses: 0,
-    certificatesEarned: 0
-  });
+  const { stats, loading: statsLoading } = useDashboardStats();
 
   useEffect(() => {
     // Redirect students to their dedicated dashboard
@@ -42,55 +36,33 @@ const Dashboard = () => {
       navigate("/free-dashboard");
       return;
     }
-    
-    fetchStats();
   }, [isStudent, isClient, isFree, navigate]);
-
-  const fetchStats = async () => {
-    try {
-      // Fetch total courses
-      const { count: coursesCount } = await supabase
-        .from('courses')
-        .select('*', { count: 'exact', head: true });
-
-      // For now, we'll use placeholder values for user-specific stats
-      // In the future, you might want to create actual enrollment tracking
-      setStats({
-        totalCourses: coursesCount || 0,
-        enrolledCourses: 0, // TODO: Implement actual enrollment tracking
-        completedCourses: 0, // TODO: Implement actual completion tracking
-        certificatesEarned: 0 // TODO: Implement actual certificate tracking
-      });
-    } catch (error) {
-      console.error('Error fetching stats:', error);
-    }
-  };
 
   const userStats = [
     {
       title: "Available Courses",
-      value: stats.totalCourses.toString(),
+      value: statsLoading ? "..." : stats.totalCourses.toString(),
       description: "Courses to explore",
       icon: BookOpen,
       color: "text-blue-600",
     },
     {
       title: "Enrolled Courses",
-      value: stats.enrolledCourses.toString(),
+      value: statsLoading ? "..." : stats.assignedCourses.toString(),
       description: "Currently enrolled",
       icon: User,
       color: "text-green-600",
     },
     {
       title: "Completed",
-      value: stats.completedCourses.toString(),
+      value: statsLoading ? "..." : stats.completedCourses.toString(),
       description: "Courses completed",
       icon: Users,
       color: "text-purple-600",
     },
     {
       title: "Certificates",
-      value: stats.certificatesEarned.toString(),
+      value: statsLoading ? "..." : stats.certificatesEarned.toString(),
       description: "Earned certificates",
       icon: Library,
       color: "text-orange-600",

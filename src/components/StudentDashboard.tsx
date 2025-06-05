@@ -2,7 +2,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
-import { supabase } from "@/integrations/supabase/client";
 import { BookOpen, Award, GraduationCap, User } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -12,6 +11,7 @@ import DashboardStats from "./dashboard/DashboardStats";
 import DashboardContent from "./dashboard/DashboardContent";
 import StudentProfileTab from "./student/StudentProfileTab";
 import StudentDashboardHeader from "./student/StudentDashboardHeader";
+import { useDashboardStats } from "@/hooks/useDashboardStats";
 
 const StudentDashboard = () => {
   const { user, signOut } = useAuth();
@@ -19,13 +19,7 @@ const StudentDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("assigned");
   const [mainTab, setMainTab] = useState("dashboard");
-  const [stats, setStats] = useState({
-    assignedCourses: 0,
-    completedCourses: 0,
-    inProgressCourses: 0,
-    certificatesEarned: 0
-  });
-  const [loading, setLoading] = useState(true);
+  const { stats, loading: statsLoading } = useDashboardStats();
 
   useEffect(() => {
     console.log('StudentDashboard: useEffect triggered with:', {
@@ -48,50 +42,11 @@ const StudentDashboard = () => {
       navigate("/", { replace: true });
       return;
     }
-
-    // If we have a student user and roles are loaded, fetch stats
-    if (!roleLoading && isStudent && user) {
-      console.log('StudentDashboard: Student confirmed, fetching stats');
-      fetchStats();
-    }
   }, [isStudent, roleLoading, user, navigate]);
 
-  const fetchStats = async () => {
-    // Early return if no user
-    if (!user?.id) {
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-    try {
-      console.log('StudentDashboard: Fetching stats for user:', user.id);
-      // Fetch user course progress for actual stats
-      const { data: progressData } = await supabase
-        .from('user_course_progress')
-        .select('*')
-        .eq('user_id', user.id);
-
-      const assignedCoursesCount = progressData?.length || 0;
-      const completedCoursesCount = progressData?.filter(p => p.status === 'completed').length || 0;
-      const inProgressCoursesCount = progressData?.filter(p => p.status === 'in_progress').length || 0;
-
-      setStats({
-        assignedCourses: assignedCoursesCount,
-        completedCourses: completedCoursesCount,
-        inProgressCourses: inProgressCoursesCount,
-        certificatesEarned: completedCoursesCount // For now, assume 1 certificate per completed course
-      });
-    } catch (error) {
-      console.error('Error fetching student stats:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   // Show loading while checking roles or fetching data
-  if (roleLoading || loading || !user) {
-    console.log('StudentDashboard: Showing loading state, roleLoading:', roleLoading, 'loading:', loading, 'hasUser:', !!user);
+  if (roleLoading || statsLoading || !user) {
+    console.log('StudentDashboard: Showing loading state, roleLoading:', roleLoading, 'statsLoading:', statsLoading, 'hasUser:', !!user);
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
