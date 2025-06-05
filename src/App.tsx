@@ -1,4 +1,3 @@
-
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -21,39 +20,43 @@ import AdminKnowledgeBase from "./pages/AdminKnowledgeBase";
 import StudentDashboard from "./components/StudentDashboard";
 import ClientDashboard from "./components/ClientDashboard";
 import FreeDashboard from "./components/FreeDashboard";
+import FlowchartLMSTree from "@/pages/FlowchartLMSTree";
 
 const queryClient = new QueryClient();
 
-const App = () => (
-  <ErrorBoundary>
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <AuthProvider>
-          <BrowserRouter>
-            <Routes>
-              <Route path="/" element={<HomepagePage />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/dashboard" element={<Index />} />
-              <Route path="/course/:id" element={<Course />} />
-              <Route path="/section/:id" element={<Section />} />
-              <Route path="/courses" element={<Courses />} />
-              <Route path="/owner-dashboard" element={<OwnerDashboard />} />
-              <Route path="/student-dashboard" element={<StudentDashboard />} />
-              <Route path="/client-dashboard" element={<ClientDashboard />} />
-              <Route path="/free-dashboard" element={<FreeDashboard />} />
-              <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/lms-tree" element={<LMSTree />} />
-              <Route path="/knowledge-base" element={<KnowledgeBase />} />
-              <Route path="/admin-knowledge-base" element={<AdminKnowledgeBase />} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </AuthProvider>
-      </TooltipProvider>
-    </QueryClientProvider>
-  </ErrorBoundary>
-);
+function App() {
+  return (
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <AuthProvider>
+            <BrowserRouter>
+              <Routes>
+                <Route path="/" element={<HomepagePage />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/dashboard" element={<Index />} />
+                <Route path="/course/:id" element={<Course />} />
+                <Route path="/section/:id" element={<Section />} />
+                <Route path="/courses" element={<Courses />} />
+                <Route path="/owner-dashboard" element={<OwnerDashboard />} />
+                <Route path="/student-dashboard" element={<StudentDashboard />} />
+                <Route path="/client-dashboard" element={<ClientDashboard />} />
+                <Route path="/free-dashboard" element={<FreeDashboard />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
+                <Route path="/lms-tree" element={<LMSTree />} />
+                <Route path="/knowledge-base" element={<KnowledgeBase />} />
+                <Route path="/admin-knowledge-base" element={<AdminKnowledgeBase />} />
+                <Route path="/flowchart-lms-tree" element={<FlowchartLMSTree />} />
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </AuthProvider>
+        </TooltipProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
+  );
+}
 
 export default App;
