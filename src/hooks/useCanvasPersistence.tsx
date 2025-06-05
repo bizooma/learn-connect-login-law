@@ -30,7 +30,19 @@ export const useCanvasPersistence = () => {
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
-      setSavedCanvases(data || []);
+      
+      // Convert the data to match our SavedCanvas interface
+      const transformedData: SavedCanvas[] = (data || []).map(item => ({
+        id: item.id,
+        name: item.name,
+        description: item.description,
+        nodes_data: (item.nodes_data as unknown as Node[]) || [],
+        edges_data: (item.edges_data as unknown as Edge[]) || [],
+        created_at: item.created_at,
+        updated_at: item.updated_at
+      }));
+      
+      setSavedCanvases(transformedData);
     } catch (error) {
       console.error('Error fetching canvases:', error);
       toast.error('Failed to load saved canvases');
@@ -52,8 +64,8 @@ export const useCanvasPersistence = () => {
           .update({
             name,
             description,
-            nodes_data: nodes,
-            edges_data: edges,
+            nodes_data: nodes as unknown as any,
+            edges_data: edges as unknown as any,
             updated_at: new Date().toISOString()
           })
           .eq('id', currentCanvasId);
@@ -64,13 +76,13 @@ export const useCanvasPersistence = () => {
         // Create new canvas
         const { data, error } = await supabase
           .from('flowchart_canvases')
-          .insert({
+          .insert([{
             name,
             description,
-            nodes_data: nodes,
-            edges_data: edges,
+            nodes_data: nodes as unknown as any,
+            edges_data: edges as unknown as any,
             user_id: (await supabase.auth.getUser()).data.user?.id
-          })
+          }])
           .select()
           .single();
 
@@ -103,8 +115,8 @@ export const useCanvasPersistence = () => {
       setCurrentCanvasId(data.id);
       setCurrentCanvasName(data.name);
       return {
-        nodes: data.nodes_data as Node[],
-        edges: data.edges_data as Edge[]
+        nodes: (data.nodes_data as unknown as Node[]) || [],
+        edges: (data.edges_data as unknown as Edge[]) || []
       };
     } catch (error) {
       console.error('Error loading canvas:', error);
@@ -151,8 +163,8 @@ export const useCanvasPersistence = () => {
         await supabase
           .from('flowchart_canvases')
           .update({
-            nodes_data: nodes,
-            edges_data: edges,
+            nodes_data: nodes as unknown as any,
+            edges_data: edges as unknown as any,
             updated_at: new Date().toISOString()
           })
           .eq('id', currentCanvasId);
