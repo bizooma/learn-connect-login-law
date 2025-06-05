@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -24,20 +25,44 @@ const ClientDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Only redirect if role loading is complete and user is not a client
-    if (!roleLoading && !isClient) {
-      navigate("/");
+    console.log('ClientDashboard: useEffect triggered with:', {
+      user: !!user,
+      isClient,
+      roleLoading,
+      userEmail: user?.email
+    });
+
+    // Don't redirect if we're still loading roles
+    if (roleLoading) {
+      console.log('ClientDashboard: Still loading roles, waiting...');
       return;
     }
-    // Only fetch stats if user is confirmed to be a client
-    if (!roleLoading && isClient) {
+
+    // If user exists but is not a client, redirect
+    if (user && !isClient) {
+      console.log('ClientDashboard: User is not a client, redirecting to main dashboard');
+      navigate("/dashboard", { replace: true });
+      return;
+    }
+
+    // If user doesn't exist, redirect to login
+    if (!user) {
+      console.log('ClientDashboard: No user found, redirecting to home');
+      navigate("/", { replace: true });
+      return;
+    }
+
+    // If we have a client user and roles are loaded, fetch stats
+    if (isClient && user) {
+      console.log('ClientDashboard: Client confirmed, fetching stats');
       fetchStats();
     }
-  }, [isClient, roleLoading, navigate]);
+  }, [user, isClient, roleLoading, navigate]);
 
   const fetchStats = async () => {
     try {
       setLoading(true);
+      console.log('ClientDashboard: Fetching stats for client:', user?.id);
       // Fetch user course progress for actual stats
       const { data: progressData } = await supabase
         .from('user_course_progress')
@@ -63,6 +88,7 @@ const ClientDashboard = () => {
 
   // Show loading while checking role or fetching stats
   if (roleLoading || loading) {
+    console.log('ClientDashboard: Showing loading state, roleLoading:', roleLoading, 'loading:', loading);
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-100">
         <div className="text-center">
@@ -73,9 +99,13 @@ const ClientDashboard = () => {
     );
   }
 
+  // Don't render anything if user is not a client (redirect will happen in useEffect)
   if (!isClient) {
+    console.log('ClientDashboard: User is not a client, returning null');
     return null;
   }
+
+  console.log('ClientDashboard: Rendering dashboard for client');
 
   const clientStats = [
     {
