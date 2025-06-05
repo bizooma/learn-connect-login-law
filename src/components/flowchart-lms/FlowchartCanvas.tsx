@@ -26,7 +26,8 @@ const FlowchartCanvas: React.FC = () => {
     onNodesChange, 
     onEdgesChange, 
     onConnect, 
-    addNodeToCanvas 
+    addNodeToCanvas,
+    sidebarItems 
   } = useFlowchart();
 
   const onDrop = useCallback(
@@ -106,7 +107,7 @@ const FlowchartCanvas: React.FC = () => {
           </div>
         </Panel>
 
-        {nodes.length === 0 && (
+        {nodes.length === 0 && sidebarItems.length > 0 && (
           <Panel position="top-center" className="pointer-events-none">
             <div className="bg-white/90 rounded-lg p-8 text-center shadow-lg border border-gray-200">
               <div className="text-gray-400 mb-4">
