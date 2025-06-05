@@ -10,6 +10,7 @@ import LMSTreeFooter from "./lms-tree/LMSTreeFooter";
 import DashboardStats from "./dashboard/DashboardStats";
 import DashboardContent from "./dashboard/DashboardContent";
 import StudentProfileTab from "./student/StudentProfileTab";
+import StudentCertificatesTab from "./student/StudentCertificatesTab";
 import StudentDashboardHeader from "./student/StudentDashboardHeader";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 
@@ -110,8 +111,9 @@ const StudentDashboard = () => {
           </div>
           
           <Tabs value={mainTab} onValueChange={setMainTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-8">
+            <TabsList className="grid w-full grid-cols-3 mb-8">
               <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+              <TabsTrigger value="certificates">Certificates</TabsTrigger>
               <TabsTrigger value="profile">Profile</TabsTrigger>
             </TabsList>
 
@@ -128,6 +130,10 @@ const StudentDashboard = () => {
                 completedTabLabel="Completed Courses"
                 yellowTabs={true}
               />
+            </TabsContent>
+
+            <TabsContent value="certificates">
+              <StudentCertificatesTab />
             </TabsContent>
 
             <TabsContent value="profile">
