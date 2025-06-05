@@ -32,6 +32,13 @@ const ClientDashboard = () => {
       userEmail: user?.email
     });
 
+    // If no user, redirect immediately
+    if (!user) {
+      console.log('ClientDashboard: No user found, redirecting to home');
+      navigate("/", { replace: true });
+      return;
+    }
+
     // Don't redirect if we're still loading roles
     if (roleLoading) {
       console.log('ClientDashboard: Still loading roles, waiting...');
@@ -45,13 +52,6 @@ const ClientDashboard = () => {
       return;
     }
 
-    // If user doesn't exist, redirect to login
-    if (!user) {
-      console.log('ClientDashboard: No user found, redirecting to home');
-      navigate("/", { replace: true });
-      return;
-    }
-
     // If we have a client user and roles are loaded, fetch stats
     if (isClient && user) {
       console.log('ClientDashboard: Client confirmed, fetching stats');
@@ -60,14 +60,21 @@ const ClientDashboard = () => {
   }, [user, isClient, roleLoading, navigate]);
 
   const fetchStats = async () => {
+    // Early return if no user or user.id
+    if (!user?.id) {
+      console.log('ClientDashboard: No user or user.id, skipping stats fetch');
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-      console.log('ClientDashboard: Fetching stats for client:', user?.id);
+      console.log('ClientDashboard: Fetching stats for client:', user.id);
       // Fetch user course progress for actual stats
       const { data: progressData } = await supabase
         .from('user_course_progress')
         .select('*')
-        .eq('user_id', user?.id);
+        .eq('user_id', user.id);
 
       const assignedCoursesCount = progressData?.length || 0;
       const completedCoursesCount = progressData?.filter(p => p.status === 'completed').length || 0;
@@ -87,8 +94,8 @@ const ClientDashboard = () => {
   };
 
   // Show loading while checking role or fetching stats
-  if (roleLoading || loading) {
-    console.log('ClientDashboard: Showing loading state, roleLoading:', roleLoading, 'loading:', loading);
+  if (roleLoading || loading || !user) {
+    console.log('ClientDashboard: Showing loading state, roleLoading:', roleLoading, 'loading:', loading, 'hasUser:', !!user);
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-100">
         <div className="text-center">
