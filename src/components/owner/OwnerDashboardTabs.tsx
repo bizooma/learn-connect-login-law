@@ -1,11 +1,12 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Building2, Users, Calendar as CalendarIcon, User } from "lucide-react";
+import { Building2, Users, Calendar as CalendarIcon, User, BookOpen } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import EmployeeManagement from "./EmployeeManagement";
 import OverviewTab from "./OverviewTab";
 import CalendarTab from "./CalendarTab";
 import ProfileTab from "./ProfileTab";
+import OwnerCourseAssignmentTab from "./OwnerCourseAssignmentTab";
 
 type LawFirm = Tables<'law_firms'>;
 
@@ -18,7 +19,7 @@ const OwnerDashboardTabs = ({ lawFirm, onUpdateLawFirm }: OwnerDashboardTabsProp
   return (
     <Tabs defaultValue="overview" className="w-full">
       <TabsList 
-        className="grid w-full grid-cols-4"
+        className="grid w-full grid-cols-5"
         style={{ backgroundColor: '#FFDA00' }}
       >
         <TabsTrigger 
@@ -36,6 +37,14 @@ const OwnerDashboardTabs = ({ lawFirm, onUpdateLawFirm }: OwnerDashboardTabsProp
         >
           <Users className="h-4 w-4 mr-2" />
           Team Members
+        </TabsTrigger>
+        <TabsTrigger 
+          value="assignments" 
+          className="flex items-center data-[state=active]:bg-white data-[state=active]:text-black"
+          style={{ color: 'black' }}
+        >
+          <BookOpen className="h-4 w-4 mr-2" />
+          Assignments
         </TabsTrigger>
         <TabsTrigger 
           value="calendar" 
@@ -61,6 +70,10 @@ const OwnerDashboardTabs = ({ lawFirm, onUpdateLawFirm }: OwnerDashboardTabsProp
 
       <TabsContent value="team">
         <EmployeeManagement lawFirm={lawFirm} />
+      </TabsContent>
+
+      <TabsContent value="assignments">
+        <OwnerCourseAssignmentTab lawFirm={lawFirm} />
       </TabsContent>
 
       <TabsContent value="calendar">
