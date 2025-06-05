@@ -56,13 +56,13 @@ Deno.serve(async (req) => {
 
     console.log(`User ${user.id} (${user.email}) is attempting to delete a user`)
 
-    // Check if the user has admin role with improved error handling
-    const { data: userRoles, error: roleError } = await supabaseClient
+    // Check if the user has admin role using the admin client to bypass RLS
+    const { data: userRoles, error: roleError } = await supabaseAdmin
       .from('user_roles')
       .select('role')
       .eq('user_id', user.id)
 
-    console.log('Role query result:', { userRoles, roleError })
+    console.log('Role query result:', { userRoles, roleError, userId: user.id })
 
     if (roleError) {
       console.error('Error fetching user roles:', roleError)
