@@ -111,10 +111,31 @@ const StudentDashboard = () => {
           </div>
           
           <Tabs value={mainTab} onValueChange={setMainTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-8">
-              <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-              <TabsTrigger value="certificates">Certificates</TabsTrigger>
-              <TabsTrigger value="profile">Profile</TabsTrigger>
+            <TabsList 
+              className="grid w-full grid-cols-3 mb-8"
+              style={{ backgroundColor: '#FFDA00' }}
+            >
+              <TabsTrigger 
+                value="dashboard"
+                className="flex items-center data-[state=active]:bg-white data-[state=active]:text-black"
+                style={{ color: 'black' }}
+              >
+                Dashboard
+              </TabsTrigger>
+              <TabsTrigger 
+                value="certificates"
+                className="flex items-center data-[state=active]:bg-white data-[state=active]:text-black"
+                style={{ color: 'black' }}
+              >
+                Certificates
+              </TabsTrigger>
+              <TabsTrigger 
+                value="profile"
+                className="flex items-center data-[state=active]:bg-white data-[state=active]:text-black"
+                style={{ color: 'black' }}
+              >
+                Profile
+              </TabsTrigger>
             </TabsList>
 
             <TabsContent value="dashboard" className="space-y-8">
