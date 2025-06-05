@@ -65,11 +65,11 @@ const AdminKnowledgeBaseSection = ({
   }
 
   return (
-    <Card className="overflow-hidden bg-gray-800 border-gray-700">
-      <CardHeader className="bg-gray-750">
+    <Card className="overflow-hidden bg-white border-gray-200">
+      <CardHeader className="bg-gray-50 border-b border-gray-200">
         <CardTitle className={`flex items-center text-xl ${color}`}>
           <Icon className="h-6 w-6 mr-3" />
-          <span className="text-white">{title}</span>
+          <span className="text-gray-900">{title}</span>
         </CardTitle>
       </CardHeader>
       <CardContent className="p-0">
@@ -83,20 +83,20 @@ const AdminKnowledgeBaseSection = ({
               <CollapsibleTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="w-full justify-between p-4 h-auto text-left hover:bg-gray-700 rounded-none border-b border-gray-700 last:border-b-0 text-white"
+                  className="w-full justify-between p-4 h-auto text-left hover:bg-gray-50 rounded-none border-b border-gray-100 last:border-b-0 text-gray-900"
                 >
                   <span className="font-medium">
                     {highlightText(item.title, searchTerm)}
                   </span>
                   {openItems.has(index) ? (
-                    <ChevronDown className="h-4 w-4 text-gray-400" />
+                    <ChevronDown className="h-4 w-4 text-gray-500" />
                   ) : (
-                    <ChevronRight className="h-4 w-4 text-gray-400" />
+                    <ChevronRight className="h-4 w-4 text-gray-500" />
                   )}
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent className="px-4 pb-4">
-                <div className="text-gray-300 leading-relaxed">
+                <div className="text-gray-600 leading-relaxed">
                   {highlightText(item.content, searchTerm)}
                 </div>
               </CollapsibleContent>

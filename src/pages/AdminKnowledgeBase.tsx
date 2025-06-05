@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Search, Shield, Users, BookOpen, ClipboardList, BarChart3, Settings } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -30,10 +29,10 @@ const AdminKnowledgeBase = () => {
   // Show loading while auth/role is being determined
   if (authLoading || roleLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-300">Loading...</p>
+          <p className="text-gray-600">Loading...</p>
         </div>
       </div>
     );
@@ -228,13 +227,13 @@ const AdminKnowledgeBase = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800">
+    <div className="min-h-screen bg-white">
       <AdminKnowledgeBaseHeader />
       
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-4xl font-bold text-white mb-4">Administrator Knowledge Base</h1>
-          <p className="text-xl text-gray-300 mb-6">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Administrator Knowledge Base</h1>
+          <p className="text-xl text-gray-600 mb-6">
             Comprehensive guide for managing the learning platform and supporting users
           </p>
           
@@ -245,7 +244,7 @@ const AdminKnowledgeBase = () => {
               placeholder="Search admin topics..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 py-3 text-lg bg-gray-800 border-gray-700 text-white placeholder-gray-400"
+              className="pl-10 py-3 text-lg bg-white border-gray-300 text-gray-900 placeholder-gray-500"
             />
           </div>
         </div>
@@ -264,34 +263,34 @@ const AdminKnowledgeBase = () => {
         </div>
 
         {filteredSections.length === 0 && (
-          <Card className="text-center py-12 bg-gray-800 border-gray-700">
+          <Card className="text-center py-12 bg-white border-gray-200">
             <CardContent>
               <Search className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-white mb-2">No results found</h3>
-              <p className="text-gray-400">
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No results found</h3>
+              <p className="text-gray-600">
                 Try searching with different keywords or browse the sections above.
               </p>
             </CardContent>
           </Card>
         )}
 
-        <Card className="mt-8 bg-gray-800 border-gray-700">
+        <Card className="mt-8 bg-white border-gray-200">
           <CardHeader>
-            <CardTitle className="flex items-center text-white">
+            <CardTitle className="flex items-center text-gray-900">
               <Shield className="h-5 w-5 mr-2" />
               Need Technical Support?
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-300 mb-4">
+            <p className="text-gray-600 mb-4">
               For technical issues not covered in this knowledge base, contact the development team or system administrator.
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-400">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-500">
               <div>
-                <strong className="text-gray-300">System Issues:</strong> Contact technical support
+                <strong className="text-gray-700">System Issues:</strong> Contact technical support
               </div>
               <div>
-                <strong className="text-gray-300">Feature Requests:</strong> Submit through admin portal
+                <strong className="text-gray-700">Feature Requests:</strong> Submit through admin portal
               </div>
             </div>
           </CardContent>
