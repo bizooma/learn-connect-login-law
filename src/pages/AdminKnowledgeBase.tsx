@@ -277,20 +277,33 @@ const AdminKnowledgeBase = () => {
         <Card className="mt-8 bg-white border-gray-200">
           <CardHeader>
             <CardTitle className="flex items-center text-gray-900">
-              <Shield className="h-5 w-5 mr-2" />
-              Need Technical Support?
+              <img 
+                src="/lovable-uploads/bizooma-logo.png" 
+                alt="Bizooma" 
+                className="h-6 w-6 mr-2 object-contain"
+              />
+              Tech Support
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-gray-600 mb-4">
-              For technical issues not covered in this knowledge base, contact the development team or system administrator.
-            </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-500">
-              <div>
-                <strong className="text-gray-700">System Issues:</strong> Contact technical support
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <span className="font-semibold text-gray-700">Call:</span>
+                <a 
+                  href="tel:904-295-6670" 
+                  className="text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  Joseph Murphy - 904-295-6670
+                </a>
               </div>
-              <div>
-                <strong className="text-gray-700">Feature Requests:</strong> Submit through admin portal
+              <div className="flex items-center space-x-2">
+                <span className="font-semibold text-gray-700">Email:</span>
+                <a 
+                  href="mailto:joe@bizooma.com" 
+                  className="text-blue-600 hover:text-blue-800 font-medium"
+                >
+                  joe@bizooma.com
+                </a>
               </div>
             </div>
           </CardContent>
