@@ -88,7 +88,7 @@ const CourseContent = ({ unit, courseId, courseTitle }: CourseContentProps) => {
       )}
       
       {hasQuiz && (
-        <QuizDisplay quiz={unit.quiz!} unitTitle={unit.title} />
+        <QuizDisplay quiz={unit.quiz!} unitTitle={unit.title} courseId={courseId} />
       )}
       
       {!hasQuiz && unit && (
