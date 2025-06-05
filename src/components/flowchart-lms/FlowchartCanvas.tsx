@@ -3,6 +3,7 @@ import React, { useCallback } from 'react';
 import { ReactFlow, Background, Controls, MiniMap, Panel } from '@xyflow/react';
 import { Package } from 'lucide-react';
 import { useFlowchart } from './FlowchartContext';
+import CanvasManager from './CanvasManager';
 import { CourseNode } from './nodes/CourseNode';
 import { ModuleNode } from './nodes/ModuleNode';
 import { LessonNode } from './nodes/LessonNode';
@@ -28,7 +29,8 @@ const FlowchartCanvas: React.FC = () => {
     onConnect, 
     addNodeToCanvas,
     sidebarItems,
-    loading
+    loading,
+    loadCanvas
   } = useFlowchart();
 
   const onDrop = useCallback(
@@ -98,12 +100,23 @@ const FlowchartCanvas: React.FC = () => {
           maskColor="rgb(240, 242, 246, 0.7)"
         />
         
+        {/* Canvas Management Panel */}
+        <Panel position="top-right" className="m-4">
+          <div className="bg-white rounded-lg shadow-lg p-3 border border-gray-200">
+            <CanvasManager 
+              nodes={nodes} 
+              edges={edges} 
+              onLoadCanvas={loadCanvas}
+            />
+          </div>
+        </Panel>
+
         <Panel position="top-left" className="m-4">
           <div className="bg-white rounded-lg shadow-lg p-4 border border-gray-200">
             <h3 className="text-sm font-medium text-gray-900 mb-2">LMS Course Structure Builder</h3>
             <p className="text-xs text-gray-600">
               Drag your courses and content from the sidebar to visualize and plan your course structure. 
-              Connect elements by dragging between connection points.
+              Your work is automatically saved every 30 seconds.
             </p>
           </div>
         </Panel>
@@ -119,6 +132,7 @@ const FlowchartCanvas: React.FC = () => {
               </h3>
               <p className="text-gray-600 max-w-md">
                 Drag your courses from the sidebar to visualize how modules, lessons, units, and quizzes connect together.
+                Your canvas will be auto-saved as you work.
               </p>
             </div>
           </Panel>

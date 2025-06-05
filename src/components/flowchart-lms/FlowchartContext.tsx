@@ -1,5 +1,4 @@
-
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { 
   Node, 
   Edge, 
@@ -11,6 +10,7 @@ import {
   EdgeChange
 } from '@xyflow/react';
 import { supabase } from '@/integrations/supabase/client';
+import { useCanvasPersistence } from '@/hooks/useCanvasPersistence';
 
 export interface FlowchartItem {
   id: string;
@@ -42,6 +42,8 @@ interface FlowchartContextType {
   setSelectedCategory: (category: string) => void;
   loading: boolean;
   refetchData: () => void;
+  loadCanvas: (nodes: Node[], edges: Edge[]) => void;
+  canvasPersistence: ReturnType<typeof useCanvasPersistence>;
 }
 
 const FlowchartContext = createContext<FlowchartContextType | undefined>(undefined);
@@ -61,6 +63,9 @@ export const FlowchartProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [sidebarItems, setSidebarItems] = useState<FlowchartItem[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const canvasPersistence = useCanvasPersistence();
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout>();
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -80,6 +85,28 @@ export const FlowchartProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     
     setNodes((nds) => [...nds, newNode]);
   }, [setNodes]);
+
+  const loadCanvas = useCallback((newNodes: Node[], newEdges: Edge[]) => {
+    setNodes(newNodes);
+    setEdges(newEdges);
+  }, [setNodes, setEdges]);
+
+  // Auto-save functionality
+  useEffect(() => {
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    autoSaveTimeoutRef.current = setTimeout(() => {
+      canvasPersistence.autoSave(nodes, edges);
+    }, 30000); // Auto-save every 30 seconds
+
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [nodes, edges, canvasPersistence]);
 
   // Fetch real data from Supabase
   const fetchData = useCallback(async () => {
@@ -284,6 +311,8 @@ export const FlowchartProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setSelectedCategory,
         loading,
         refetchData: fetchData,
+        loadCanvas,
+        canvasPersistence,
       }}
     >
       {children}
