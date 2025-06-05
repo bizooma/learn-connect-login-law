@@ -12,15 +12,15 @@ export const LessonNode: React.FC<NodeProps> = ({ data, selected }) => {
         <div className="flex items-center space-x-2">
           <FileText className="h-4 w-4 text-green-600" />
           <div className="flex-1">
-            <h5 className="font-medium text-green-900 text-sm">{data.title}</h5>
+            <h5 className="font-medium text-green-900 text-sm">{data?.title as string}</h5>
             <Badge variant="outline" className="mt-1 text-xs">Lesson</Badge>
           </div>
         </div>
       </CardHeader>
       
       <CardContent className="pt-2">
-        {data.description && (
-          <p className="text-xs text-gray-600">{data.description}</p>
+        {data?.description && (
+          <p className="text-xs text-gray-600">{data.description as string}</p>
         )}
       </CardContent>
       

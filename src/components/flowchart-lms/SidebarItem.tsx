@@ -57,7 +57,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ item }) => {
                 {item.title}
               </h4>
               {item.isReusable && (
-                <Link className="h-3 w-3 text-blue-500" title="Reusable content" />
+                <Link className="h-3 w-3 text-blue-500" />
               )}
             </div>
             

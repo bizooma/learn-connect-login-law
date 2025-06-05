@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge';
 
 export const ResourceNode: React.FC<NodeProps> = ({ data, selected }) => {
   const getFileIcon = () => {
-    switch (data.fileType) {
+    switch (data?.fileType) {
       case 'PDF': return <FileText className="h-4 w-4 text-red-500" />;
       case 'DOCX': return <File className="h-4 w-4 text-blue-500" />;
       default: return <Download className="h-4 w-4 text-gray-600" />;
@@ -21,15 +21,15 @@ export const ResourceNode: React.FC<NodeProps> = ({ data, selected }) => {
           {getFileIcon()}
           <div className="flex-1">
             <div className="flex items-center space-x-1">
-              <h6 className="font-medium text-gray-900 text-sm">{data.title}</h6>
-              {data.isReusable && <Link className="h-3 w-3 text-blue-500" />}
+              <h6 className="font-medium text-gray-900 text-sm">{data?.title as string}</h6>
+              {data?.isReusable && <Link className="h-3 w-3 text-blue-500" />}
             </div>
             <div className="flex items-center space-x-2 mt-1">
               <Badge variant="outline" className="text-xs">Resource</Badge>
-              {data.usageCount && data.usageCount > 0 && (
+              {data?.usageCount && (data.usageCount as number) > 0 && (
                 <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">
                   <Users className="h-2 w-2 mr-1" />
-                  {data.usageCount}x
+                  {data.usageCount as number}x
                 </Badge>
               )}
             </div>
@@ -38,19 +38,19 @@ export const ResourceNode: React.FC<NodeProps> = ({ data, selected }) => {
       </CardHeader>
       
       <CardContent className="pt-2">
-        {data.description && (
-          <p className="text-xs text-gray-600 mb-2">{data.description}</p>
+        {data?.description && (
+          <p className="text-xs text-gray-600 mb-2">{data.description as string}</p>
         )}
         
         <div className="flex items-center space-x-2">
-          {data.category && (
+          {data?.category && (
             <Badge variant="secondary" className="text-xs">
-              {data.category}
+              {data.category as string}
             </Badge>
           )}
-          {data.fileType && (
+          {data?.fileType && (
             <Badge variant="outline" className="text-xs">
-              {data.fileType}
+              {data.fileType as string}
             </Badge>
           )}
         </div>

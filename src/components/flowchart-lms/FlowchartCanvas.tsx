@@ -1,6 +1,7 @@
 
 import React, { useCallback } from 'react';
 import { ReactFlow, Background, Controls, MiniMap, Panel } from '@xyflow/react';
+import { Package } from 'lucide-react';
 import { useFlowchart } from './FlowchartContext';
 import { CourseNode } from './nodes/CourseNode';
 import { ModuleNode } from './nodes/ModuleNode';
@@ -8,8 +9,6 @@ import { LessonNode } from './nodes/LessonNode';
 import { UnitNode } from './nodes/UnitNode';
 import { QuizNode } from './nodes/QuizNode';
 import { ResourceNode } from './nodes/ResourceNode';
-import { Button } from '@/components/ui/button';
-import { RotateCcw, ZoomIn, ZoomOut } from 'lucide-react';
 
 const nodeTypes = {
   course: CourseNode,
@@ -108,7 +107,7 @@ const FlowchartCanvas: React.FC = () => {
         </Panel>
 
         {nodes.length === 0 && (
-          <Panel position="center" className="pointer-events-none">
+          <Panel position="top-center" className="pointer-events-none">
             <div className="bg-white/90 rounded-lg p-8 text-center shadow-lg border border-gray-200">
               <div className="text-gray-400 mb-4">
                 <Package className="h-12 w-12 mx-auto" />

@@ -13,15 +13,15 @@ export const UnitNode: React.FC<NodeProps> = ({ data, selected }) => {
           <Video className="h-4 w-4 text-orange-600" />
           <div className="flex-1">
             <div className="flex items-center space-x-1">
-              <h6 className="font-medium text-orange-900 text-sm">{data.title}</h6>
-              {data.isReusable && <Link className="h-3 w-3 text-blue-500" />}
+              <h6 className="font-medium text-orange-900 text-sm">{data?.title as string}</h6>
+              {data?.isReusable && <Link className="h-3 w-3 text-blue-500" />}
             </div>
             <div className="flex items-center space-x-2 mt-1">
               <Badge variant="outline" className="text-xs">Unit</Badge>
-              {data.usageCount && data.usageCount > 0 && (
+              {data?.usageCount && (data.usageCount as number) > 0 && (
                 <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">
                   <Users className="h-2 w-2 mr-1" />
-                  {data.usageCount}x
+                  {data.usageCount as number}x
                 </Badge>
               )}
             </div>
@@ -30,8 +30,8 @@ export const UnitNode: React.FC<NodeProps> = ({ data, selected }) => {
       </CardHeader>
       
       <CardContent className="pt-2">
-        {data.description && (
-          <p className="text-xs text-gray-600">{data.description}</p>
+        {data?.description && (
+          <p className="text-xs text-gray-600">{data.description as string}</p>
         )}
       </CardContent>
       

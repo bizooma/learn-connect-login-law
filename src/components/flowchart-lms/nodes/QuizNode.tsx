@@ -13,15 +13,15 @@ export const QuizNode: React.FC<NodeProps> = ({ data, selected }) => {
           <HelpCircle className="h-4 w-4 text-yellow-600" />
           <div className="flex-1">
             <div className="flex items-center space-x-1">
-              <h6 className="font-medium text-yellow-900 text-sm">{data.title}</h6>
-              {data.isReusable && <Link className="h-3 w-3 text-blue-500" />}
+              <h6 className="font-medium text-yellow-900 text-sm">{data?.title as string}</h6>
+              {data?.isReusable && <Link className="h-3 w-3 text-blue-500" />}
             </div>
             <div className="flex items-center space-x-2 mt-1">
               <Badge variant="outline" className="text-xs">Quiz</Badge>
-              {data.usageCount && data.usageCount > 0 && (
+              {data?.usageCount && (data.usageCount as number) > 0 && (
                 <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">
                   <Users className="h-2 w-2 mr-1" />
-                  {data.usageCount}x
+                  {data.usageCount as number}x
                 </Badge>
               )}
             </div>
@@ -30,21 +30,21 @@ export const QuizNode: React.FC<NodeProps> = ({ data, selected }) => {
       </CardHeader>
       
       <CardContent className="pt-2">
-        {data.description && (
-          <p className="text-xs text-gray-600 mb-2">{data.description}</p>
+        {data?.description && (
+          <p className="text-xs text-gray-600 mb-2">{data.description as string}</p>
         )}
         
         <div className="flex items-center space-x-3 text-xs text-gray-500">
-          {data.passingScore && (
+          {data?.passingScore && (
             <div className="flex items-center space-x-1">
               <Target className="h-3 w-3" />
-              <span>{data.passingScore}%</span>
+              <span>{data.passingScore as number}%</span>
             </div>
           )}
-          {data.timeLimit && (
+          {data?.timeLimit && (
             <div className="flex items-center space-x-1">
               <Clock className="h-3 w-3" />
-              <span>{data.timeLimit}m</span>
+              <span>{data.timeLimit as number}m</span>
             </div>
           )}
         </div>
