@@ -11,6 +11,7 @@ import DashboardStats from "./dashboard/DashboardStats";
 import DashboardContent from "./dashboard/DashboardContent";
 import StudentProfileTab from "./student/StudentProfileTab";
 import StudentCertificatesTab from "./student/StudentCertificatesTab";
+import StudentMainHeader from "./student/StudentMainHeader";
 import StudentDashboardHeader from "./student/StudentDashboardHeader";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 
@@ -99,6 +100,7 @@ const StudentDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 flex flex-col">
+      <StudentMainHeader />
       <StudentDashboardHeader onSignOut={signOut} />
       
       <div className="flex-1">
