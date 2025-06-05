@@ -20,11 +20,21 @@ const DeleteUserDialog = ({ user, onUserDeleted }: DeleteUserDialogProps) => {
     setLoading(true);
 
     try {
-      // Delete user from auth (this will cascade to profiles and user_roles due to foreign keys)
-      const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
+      console.log('Attempting to delete user:', user.id);
+      
+      // Call the edge function to delete the user
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: { userId: user.id }
+      });
 
-      if (authError) {
-        throw new Error(`Failed to delete user: ${authError.message}`);
+      if (error) {
+        console.error('Edge function error:', error);
+        throw new Error(error.message || 'Failed to delete user');
+      }
+
+      if (data?.error) {
+        console.error('Server error:', data.error);
+        throw new Error(data.error);
       }
 
       toast({
