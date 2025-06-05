@@ -14,6 +14,7 @@ const Index = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const hasRedirected = useRef(false);
+  const lastUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     console.log('Index useEffect triggered with:', {
@@ -26,9 +27,24 @@ const Index = () => {
       isFree,
       isAdmin,
       userEmail: user?.email,
+      userId: user?.id,
       currentPath: location.pathname,
-      hasRedirected: hasRedirected.current
+      hasRedirected: hasRedirected.current,
+      lastUserId: lastUserIdRef.current
     });
+
+    // Track user changes to detect fresh logins
+    const currentUserId = user?.id || null;
+    const userChanged = currentUserId !== lastUserIdRef.current;
+    
+    if (userChanged) {
+      console.log('Index: User changed, resetting redirect flag', {
+        oldUserId: lastUserIdRef.current,
+        newUserId: currentUserId
+      });
+      hasRedirected.current = false;
+      lastUserIdRef.current = currentUserId;
+    }
 
     // Wait for both auth and role loading to complete before making decisions
     if (authLoading || roleLoading) {
@@ -43,9 +59,9 @@ const Index = () => {
       return;
     }
 
-    // Prevent multiple redirects
-    if (hasRedirected.current) {
-      console.log('Index: Already redirected, skipping...');
+    // Prevent multiple redirects for the same user session
+    if (hasRedirected.current && !userChanged) {
+      console.log('Index: Already redirected for this user session, skipping...');
       return;
     }
 
@@ -84,17 +100,13 @@ const Index = () => {
         }
         // If no specific role determined, stay on main dashboard
         console.log('Index: No specific role or admin user, staying on main dashboard');
+        hasRedirected.current = true; // Mark as handled to prevent loops
       } catch (error) {
         console.error('Index: Error during navigation:', error);
         hasRedirected.current = false; // Reset on error
       }
     }
   }, [user?.id, isOwner, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate, location.pathname]);
-
-  // Reset redirect flag when user changes
-  useEffect(() => {
-    hasRedirected.current = false;
-  }, [user?.id]);
 
   // Show loading while auth or roles are being determined
   if (authLoading || (user && roleLoading)) {
