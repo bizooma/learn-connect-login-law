@@ -1,5 +1,5 @@
 
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { 
   Node, 
   Edge, 
@@ -10,6 +10,7 @@ import {
   NodeChange,
   EdgeChange
 } from '@xyflow/react';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface FlowchartItem {
   id: string;
@@ -22,6 +23,9 @@ export interface FlowchartItem {
   timeLimit?: number;
   usageCount?: number;
   isReusable?: boolean;
+  instructor?: string;
+  level?: string;
+  duration?: string;
 }
 
 interface FlowchartContextType {
@@ -36,6 +40,7 @@ interface FlowchartContextType {
   setSearchTerm: (term: string) => void;
   selectedCategory: string;
   setSelectedCategory: (category: string) => void;
+  loading: boolean;
 }
 
 const FlowchartContext = createContext<FlowchartContextType | undefined>(undefined);
@@ -48,43 +53,13 @@ export const useFlowchart = () => {
   return context;
 };
 
-// Mock data for demonstration
-const mockSidebarItems: FlowchartItem[] = [
-  // Courses
-  { id: 'course-1', title: 'Business Law Fundamentals', type: 'course', description: 'Introduction to business law' },
-  { id: 'course-2', title: 'Contract Negotiations', type: 'course', description: 'Advanced contract strategies' },
-  
-  // Modules
-  { id: 'module-1', title: 'Legal Ethics', type: 'module', description: 'Professional responsibility' },
-  { id: 'module-2', title: 'Corporate Structures', type: 'module', description: 'Business entity types' },
-  
-  // Lessons
-  { id: 'lesson-1', title: 'Introduction to Contracts', type: 'lesson', description: 'Contract basics' },
-  { id: 'lesson-2', title: 'Liability Issues', type: 'lesson', description: 'Understanding liability' },
-  { id: 'lesson-3', title: 'Intellectual Property', type: 'lesson', description: 'IP fundamentals' },
-  
-  // Units (reusable)
-  { id: 'unit-1', title: 'Case Study: Smith v. Jones', type: 'unit', description: 'Contract dispute analysis', isReusable: true, usageCount: 3 },
-  { id: 'unit-2', title: 'Legal Research Methods', type: 'unit', description: 'Research techniques', isReusable: true, usageCount: 5 },
-  { id: 'unit-3', title: 'Client Interview Techniques', type: 'unit', description: 'Best practices', isReusable: true, usageCount: 2 },
-  
-  // Quizzes (reusable)
-  { id: 'quiz-1', title: 'Contract Law Quiz', type: 'quiz', description: 'Test your knowledge', passingScore: 80, timeLimit: 30, isReusable: true, usageCount: 4 },
-  { id: 'quiz-2', title: 'Ethics Assessment', type: 'quiz', description: 'Professional ethics', passingScore: 90, timeLimit: 45, isReusable: true, usageCount: 6 },
-  { id: 'quiz-3', title: 'Liability Quiz', type: 'quiz', description: 'Understanding liability', passingScore: 75, timeLimit: 20, isReusable: true, usageCount: 2 },
-  
-  // Resources (reusable)
-  { id: 'resource-1', title: 'Contract Template', type: 'resource', category: 'Forms', fileType: 'DOCX', description: 'Standard contract template', isReusable: true, usageCount: 8 },
-  { id: 'resource-2', title: 'Legal Research Guide', type: 'resource', category: 'Guides', fileType: 'PDF', description: 'Comprehensive research guide', isReusable: true, usageCount: 12 },
-  { id: 'resource-3', title: 'Ethics Handbook', type: 'resource', category: 'Legal', fileType: 'PDF', description: 'Professional ethics handbook', isReusable: true, usageCount: 7 },
-  { id: 'resource-4', title: 'Client Intake Form', type: 'resource', category: 'Forms', fileType: 'PDF', description: 'Standard intake form', isReusable: true, usageCount: 15 },
-];
-
 export const FlowchartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [sidebarItems, setSidebarItems] = useState<FlowchartItem[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge(params, eds)),
@@ -105,7 +80,178 @@ export const FlowchartProvider: React.FC<{ children: React.ReactNode }> = ({ chi
     setNodes((nds) => [...nds, newNode]);
   }, [setNodes]);
 
-  const filteredSidebarItems = mockSidebarItems.filter(item => {
+  // Fetch real data from Supabase
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch courses
+        const { data: courses, error: coursesError } = await supabase
+          .from('courses')
+          .select('*')
+          .eq('is_draft', false)
+          .order('created_at', { ascending: false });
+
+        if (coursesError) {
+          console.error('Error fetching courses:', coursesError);
+          return;
+        }
+
+        // Fetch modules with their course info
+        const { data: modules, error: modulesError } = await supabase
+          .from('modules')
+          .select(`
+            *,
+            courses!inner(title, category)
+          `)
+          .eq('is_draft', false)
+          .order('created_at', { ascending: false });
+
+        if (modulesError) {
+          console.error('Error fetching modules:', modulesError);
+        }
+
+        // Fetch lessons with their course and module info
+        const { data: lessons, error: lessonsError } = await supabase
+          .from('lessons')
+          .select(`
+            *,
+            courses!inner(title, category),
+            modules!inner(title)
+          `)
+          .eq('is_draft', false)
+          .order('created_at', { ascending: false });
+
+        if (lessonsError) {
+          console.error('Error fetching lessons:', lessonsError);
+        }
+
+        // Fetch units with their lesson info
+        const { data: units, error: unitsError } = await supabase
+          .from('units')
+          .select(`
+            *,
+            lessons!inner(title, course_id, courses!inner(title))
+          `)
+          .eq('is_draft', false)
+          .order('created_at', { ascending: false });
+
+        if (unitsError) {
+          console.error('Error fetching units:', unitsError);
+        }
+
+        // Fetch quizzes with their unit info
+        const { data: quizzes, error: quizzesError } = await supabase
+          .from('quizzes')
+          .select(`
+            *,
+            units!inner(title, section_id, lessons!inner(title, course_id, courses!inner(title)))
+          `)
+          .eq('is_active', true)
+          .order('created_at', { ascending: false });
+
+        if (quizzesError) {
+          console.error('Error fetching quizzes:', quizzesError);
+        }
+
+        // Transform data into FlowchartItem format
+        const items: FlowchartItem[] = [];
+
+        // Add courses
+        if (courses) {
+          courses.forEach(course => {
+            items.push({
+              id: course.id,
+              title: course.title,
+              type: 'course',
+              description: course.description || undefined,
+              category: course.category,
+              instructor: course.instructor,
+              level: course.level,
+              duration: course.duration
+            });
+          });
+        }
+
+        // Add modules (those not already represented in course structure)
+        if (modules) {
+          modules.forEach(module => {
+            items.push({
+              id: module.id,
+              title: module.title,
+              type: 'module',
+              description: module.description || undefined,
+              category: module.courses?.category
+            });
+          });
+        }
+
+        // Add lessons (those not already represented in module structure)
+        if (lessons) {
+          lessons.forEach(lesson => {
+            items.push({
+              id: lesson.id,
+              title: lesson.title,
+              type: 'lesson',
+              description: lesson.description || undefined,
+              category: lesson.courses?.category
+            });
+          });
+        }
+
+        // Add units as reusable content
+        if (units) {
+          units.forEach(unit => {
+            items.push({
+              id: unit.id,
+              title: unit.title,
+              type: 'unit',
+              description: unit.description || undefined,
+              isReusable: true,
+              usageCount: 1 // Could be calculated from actual usage
+            });
+          });
+        }
+
+        // Add quizzes as reusable content
+        if (quizzes) {
+          quizzes.forEach(quiz => {
+            items.push({
+              id: quiz.id,
+              title: quiz.title,
+              type: 'quiz',
+              description: quiz.description || undefined,
+              passingScore: quiz.passing_score,
+              timeLimit: quiz.time_limit_minutes,
+              isReusable: true,
+              usageCount: 1 // Could be calculated from actual usage
+            });
+          });
+        }
+
+        // Add some mock resources for now (you can extend this later)
+        const mockResources: FlowchartItem[] = [
+          { id: 'resource-1', title: 'Contract Template', type: 'resource', category: 'Forms', fileType: 'DOCX', description: 'Standard contract template', isReusable: true, usageCount: 8 },
+          { id: 'resource-2', title: 'Legal Research Guide', type: 'resource', category: 'Guides', fileType: 'PDF', description: 'Comprehensive research guide', isReusable: true, usageCount: 12 },
+          { id: 'resource-3', title: 'Ethics Handbook', type: 'resource', category: 'Legal', fileType: 'PDF', description: 'Professional ethics handbook', isReusable: true, usageCount: 7 },
+          { id: 'resource-4', title: 'Client Intake Form', type: 'resource', category: 'Forms', fileType: 'PDF', description: 'Standard intake form', isReusable: true, usageCount: 15 },
+        ];
+
+        items.push(...mockResources);
+
+        setSidebarItems(items);
+      } catch (error) {
+        console.error('Error fetching flowchart data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  const filteredSidebarItems = sidebarItems.filter(item => {
     const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          item.description?.toLowerCase().includes(searchTerm.toLowerCase());
     
@@ -130,6 +276,7 @@ export const FlowchartProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         setSearchTerm,
         selectedCategory,
         setSelectedCategory,
+        loading,
       }}
     >
       {children}

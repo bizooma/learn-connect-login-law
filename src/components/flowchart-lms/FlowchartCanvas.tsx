@@ -27,7 +27,8 @@ const FlowchartCanvas: React.FC = () => {
     onEdgesChange, 
     onConnect, 
     addNodeToCanvas,
-    sidebarItems 
+    sidebarItems,
+    loading
   } = useFlowchart();
 
   const onDrop = useCallback(
@@ -99,15 +100,15 @@ const FlowchartCanvas: React.FC = () => {
         
         <Panel position="top-left" className="m-4">
           <div className="bg-white rounded-lg shadow-lg p-4 border border-gray-200">
-            <h3 className="text-sm font-medium text-gray-900 mb-2">Experimental LMS Flowchart</h3>
+            <h3 className="text-sm font-medium text-gray-900 mb-2">LMS Course Structure Builder</h3>
             <p className="text-xs text-gray-600">
-              Drag content from the sidebar to build your course structure. 
+              Drag your courses and content from the sidebar to visualize and plan your course structure. 
               Connect elements by dragging between connection points.
             </p>
           </div>
         </Panel>
 
-        {nodes.length === 0 && sidebarItems.length > 0 && (
+        {nodes.length === 0 && sidebarItems.length > 0 && !loading && (
           <Panel position="top-center" className="pointer-events-none">
             <div className="bg-white/90 rounded-lg p-8 text-center shadow-lg border border-gray-200">
               <div className="text-gray-400 mb-4">
@@ -117,7 +118,7 @@ const FlowchartCanvas: React.FC = () => {
                 Start Building Your Course Structure
               </h3>
               <p className="text-gray-600 max-w-md">
-                Drag courses, modules, lessons, units, quizzes, and resources from the sidebar to create your learning path.
+                Drag your courses from the sidebar to visualize how modules, lessons, units, and quizzes connect together.
               </p>
             </div>
           </Panel>

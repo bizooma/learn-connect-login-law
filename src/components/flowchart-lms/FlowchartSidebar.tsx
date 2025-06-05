@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Search, Filter, BookOpen, Package, FileText, Video, HelpCircle, Download, Users, Star } from 'lucide-react';
+import { Search, Filter, BookOpen, Package, FileText, Video, HelpCircle, Download, Users, Star, Loader2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +14,8 @@ const FlowchartSidebar = () => {
     searchTerm, 
     setSearchTerm, 
     selectedCategory, 
-    setSelectedCategory 
+    setSelectedCategory,
+    loading 
   } = useFlowchart();
 
   const categories = [
@@ -35,6 +36,26 @@ const FlowchartSidebar = () => {
     quizzes: sidebarItems.filter(item => item.type === 'quiz'),
     resources: sidebarItems.filter(item => item.type === 'resource'),
   };
+
+  if (loading) {
+    return (
+      <div className="h-full flex flex-col bg-white">
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center space-x-2 mb-4">
+            <Package className="h-6 w-6 text-blue-600" />
+            <h2 className="text-lg font-semibold text-gray-900">LMS Flowchart Builder</h2>
+          </div>
+        </div>
+        
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-center">
+            <Loader2 className="h-8 w-8 animate-spin mx-auto mb-2 text-blue-600" />
+            <p className="text-sm text-gray-600">Loading your courses and content...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="h-full flex flex-col bg-white">
@@ -107,7 +128,7 @@ const FlowchartSidebar = () => {
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
                   <BookOpen className="h-4 w-4 mr-1" />
-                  Courses ({groupedItems.courses.length})
+                  Your Courses ({groupedItems.courses.length})
                 </h3>
                 <div className="space-y-2">
                   {groupedItems.courses.map((item) => (
@@ -121,7 +142,7 @@ const FlowchartSidebar = () => {
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
                   <Package className="h-4 w-4 mr-1" />
-                  Unassigned Modules ({groupedItems.modules.length})
+                  Available Modules ({groupedItems.modules.length})
                 </h3>
                 <div className="space-y-2">
                   {groupedItems.modules.map((item) => (
@@ -135,7 +156,7 @@ const FlowchartSidebar = () => {
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
                   <FileText className="h-4 w-4 mr-1" />
-                  Unassigned Lessons ({groupedItems.lessons.length})
+                  Available Lessons ({groupedItems.lessons.length})
                 </h3>
                 <div className="space-y-2">
                   {groupedItems.lessons.map((item) => (
@@ -204,7 +225,7 @@ const FlowchartSidebar = () => {
           </div>
         )}
 
-        {sidebarItems.length === 0 && (
+        {sidebarItems.length === 0 && !loading && (
           <div className="text-center py-8 text-gray-500">
             <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
             <p className="text-sm">No items match your search</p>
@@ -216,8 +237,8 @@ const FlowchartSidebar = () => {
       <div className="p-4 border-t border-gray-200 bg-gray-50">
         <div className="text-xs text-gray-600 space-y-1">
           <p className="font-medium">How to use:</p>
-          <p>• Drag items to the canvas to build your course structure</p>
-          <p>• Connect items by dragging between connection points</p>
+          <p>• Drag your courses to the canvas to build course structures</p>
+          <p>• Connect elements by dragging between connection points</p>
           <p>• Units, quizzes, and resources can be reused across courses</p>
         </div>
       </div>
