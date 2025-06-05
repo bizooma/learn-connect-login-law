@@ -21,11 +21,14 @@ const DeleteUserDialog = ({ user, onUserDeleted }: DeleteUserDialogProps) => {
 
     try {
       console.log('Attempting to delete user:', user.id);
+      console.log('Current session:', await supabase.auth.getSession());
       
       // Call the edge function to delete the user
       const { data, error } = await supabase.functions.invoke('delete-user', {
         body: { userId: user.id }
       });
+
+      console.log('Edge function response:', { data, error });
 
       if (error) {
         console.error('Edge function error:', error);
@@ -36,6 +39,8 @@ const DeleteUserDialog = ({ user, onUserDeleted }: DeleteUserDialogProps) => {
         console.error('Server error:', data.error);
         throw new Error(data.error);
       }
+
+      console.log('User deletion successful:', data);
 
       toast({
         title: "Success",
