@@ -18,6 +18,7 @@ const StudentDashboardHeader = ({ onSignOut }: StudentDashboardHeaderProps) => {
     first_name?: string;
     last_name?: string;
     profile_image_url?: string;
+    law_firm_name?: string;
   }>({});
 
   useEffect(() => {
@@ -30,7 +31,7 @@ const StudentDashboardHeader = ({ onSignOut }: StudentDashboardHeaderProps) => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('first_name, last_name, profile_image_url')
+        .select('first_name, last_name, profile_image_url, law_firm_name')
         .eq('id', user?.id)
         .single();
 
@@ -78,7 +79,9 @@ const StudentDashboardHeader = ({ onSignOut }: StudentDashboardHeaderProps) => {
               <p className="text-sm font-medium text-gray-900">
                 {getDisplayName()}
               </p>
-              <p className="text-xs text-gray-500">Student</p>
+              {profile.law_firm_name && (
+                <p className="text-xs text-gray-500">{profile.law_firm_name}</p>
+              )}
             </div>
           </div>
 
