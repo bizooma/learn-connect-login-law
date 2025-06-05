@@ -9,6 +9,7 @@ import OwnerDashboardHeader from "@/components/owner/OwnerDashboardHeader";
 import OwnerDashboardTabs from "@/components/owner/OwnerDashboardTabs";
 import NotificationBanner from "@/components/notifications/NotificationBanner";
 import LMSTreeFooter from "@/components/lms-tree/LMSTreeFooter";
+import { useEffect } from "react";
 
 const OwnerDashboard = () => {
   const navigate = useNavigate();
@@ -16,8 +17,24 @@ const OwnerDashboard = () => {
   const { isOwner, loading: roleLoading } = useUserRole();
   const { lawFirm, loading: lawFirmLoading, updateLawFirm } = useLawFirm();
 
+  useEffect(() => {
+    // If no user, redirect immediately
+    if (!user) {
+      console.log('OwnerDashboard: No user found, redirecting to home');
+      navigate("/", { replace: true });
+      return;
+    }
+
+    // Only redirect if role loading is complete AND user is definitely not an owner
+    if (!roleLoading && user && !isOwner) {
+      console.log('OwnerDashboard: User is not an owner, redirecting to main dashboard');
+      navigate("/", { replace: true });
+      return;
+    }
+  }, [user, isOwner, roleLoading, navigate]);
+
   // Show loading state while checking authentication and role
-  if (authLoading || roleLoading || lawFirmLoading) {
+  if (authLoading || roleLoading || lawFirmLoading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
@@ -28,25 +45,9 @@ const OwnerDashboard = () => {
     );
   }
 
-  // Redirect if not authenticated or not an owner
-  if (!user || !isOwner) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-        <Card className="w-full max-w-md">
-          <CardHeader>
-            <CardTitle className="text-center text-red-600">Access Denied</CardTitle>
-          </CardHeader>
-          <CardContent className="text-center">
-            <p className="text-gray-600 mb-4">
-              You need owner privileges to access this dashboard.
-            </p>
-            <Button onClick={() => navigate("/")} variant="outline">
-              Return to Dashboard
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-    );
+  // Don't render anything if user is not an owner (redirect will happen in useEffect)
+  if (!isOwner) {
+    return null;
   }
 
   return (
