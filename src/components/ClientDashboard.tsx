@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -13,7 +12,7 @@ import DashboardContent from "./dashboard/DashboardContent";
 
 const ClientDashboard = () => {
   const { user, signOut } = useAuth();
-  const { isClient } = useUserRole();
+  const { isClient, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("assigned");
   const [stats, setStats] = useState({
@@ -25,12 +24,16 @@ const ClientDashboard = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isClient) {
+    // Only redirect if role loading is complete and user is not a client
+    if (!roleLoading && !isClient) {
       navigate("/");
       return;
     }
-    fetchStats();
-  }, [isClient, navigate]);
+    // Only fetch stats if user is confirmed to be a client
+    if (!roleLoading && isClient) {
+      fetchStats();
+    }
+  }, [isClient, roleLoading, navigate]);
 
   const fetchStats = async () => {
     try {
@@ -58,7 +61,8 @@ const ClientDashboard = () => {
     }
   };
 
-  if (loading) {
+  // Show loading while checking role or fetching stats
+  if (roleLoading || loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-100">
         <div className="text-center">
