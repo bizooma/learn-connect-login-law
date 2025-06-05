@@ -9,7 +9,7 @@ const AdminKnowledgeBaseTechSupport = () => {
           {/* Logo Section - Left Side */}
           <div className="flex items-center justify-center p-4 bg-gray-50 rounded-l-lg">
             <img 
-              src="/lovable-uploads/2eac2a9a-a3dd-486a-9987-03ab5fe057b5.png" 
+              src="/lovable-uploads/bizooma-logo.png" 
               alt="Bizooma" 
               className="h-20 w-auto object-contain"
             />
