@@ -12,17 +12,37 @@ import { useEffect } from "react";
 
 const AdminKnowledgeBase = () => {
   const [searchTerm, setSearchTerm] = useState("");
-  const { user } = useAuth();
-  const { hasAdminPrivileges } = useUserRole();
+  const { user, loading: authLoading } = useAuth();
+  const { hasAdminPrivileges, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
 
   useEffect(() => {
+    // Don't redirect during loading
+    if (authLoading || roleLoading) return;
+
     if (!user) {
       navigate("/login", { replace: true });
     } else if (!hasAdminPrivileges) {
-      navigate("/", { replace: true });
+      navigate("/dashboard", { replace: true });
     }
-  }, [user, hasAdminPrivileges, navigate]);
+  }, [user, hasAdminPrivileges, authLoading, roleLoading, navigate]);
+
+  // Show loading while auth/role is being determined
+  if (authLoading || roleLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-300">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render content if user doesn't have admin privileges
+  if (!user || !hasAdminPrivileges) {
+    return null;
+  }
 
   const sections = [
     {
@@ -206,10 +226,6 @@ const AdminKnowledgeBase = () => {
       item.content.toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
-
-  if (!user || !hasAdminPrivileges) {
-    return null;
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 to-gray-800">
