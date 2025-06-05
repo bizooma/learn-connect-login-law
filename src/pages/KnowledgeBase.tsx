@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Search, BookOpen, Award, Users, Calendar, HelpCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -250,12 +249,9 @@ const KnowledgeBase = () => {
             <p className="text-blue-700 mb-4">
               Can't find what you're looking for? Contact your administrator or course instructor for personalized assistance.
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-blue-600">
+            <div className="text-sm text-blue-600">
               <div>
                 <strong>Technical Issues:</strong> Contact Erin Walsh <a href="mailto:erin.walsh@newfrontier.us" className="text-blue-600 hover:text-blue-800 underline">erin.walsh@newfrontier.us</a>
-              </div>
-              <div>
-                <strong>Course Content:</strong> Reach out to your course instructor
               </div>
             </div>
           </CardContent>
