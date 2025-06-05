@@ -116,57 +116,62 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signOut = async () => {
     try {
       console.log('Starting sign out process');
-      setLoading(true);
       
-      // Sign out from Supabase with global scope to clear all sessions
+      // Clear local state first to prevent errors during sign out
+      setUser(null);
+      setSession(null);
+      
+      // Sign out from Supabase
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       
       if (error) {
         console.error('Error signing out:', error);
-        throw error;
+        // Don't throw error, just log it and continue with cleanup
       }
       
       console.log('Successfully signed out from Supabase');
       
       // Force clear all Supabase-related localStorage items
-      const keysToRemove = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.startsWith('supabase.') || key.includes('auth-token'))) {
-          keysToRemove.push(key);
+      try {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith('supabase.') || key.includes('auth-token'))) {
+            keysToRemove.push(key);
+          }
         }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+        console.log('Cleared localStorage items:', keysToRemove);
+      } catch (storageError) {
+        console.error('Error clearing localStorage:', storageError);
       }
-      keysToRemove.forEach(key => localStorage.removeItem(key));
-      console.log('Cleared localStorage items:', keysToRemove);
       
-      // Clear local state
-      setUser(null);
-      setSession(null);
-      
-      // Force a full page reload to clear all cached state
-      console.log('Forcing page reload to clear all cached state');
-      window.location.replace('/');
+      // Navigate to home page
+      console.log('Navigating to home page');
+      window.location.href = '/';
       
     } catch (error) {
       console.error('Unexpected error during sign out:', error);
       
-      // Even if there's an error, force clear everything
-      const keysToRemove = [];
-      for (let i = 0; i < localStorage.length; i++) {
-        const key = localStorage.key(i);
-        if (key && (key.startsWith('supabase.') || key.includes('auth-token'))) {
-          keysToRemove.push(key);
+      // Even if there's an error, force clear everything and redirect
+      try {
+        setUser(null);
+        setSession(null);
+        
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && (key.startsWith('supabase.') || key.includes('auth-token'))) {
+            keysToRemove.push(key);
+          }
         }
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+      } catch (cleanupError) {
+        console.error('Error during cleanup:', cleanupError);
       }
-      keysToRemove.forEach(key => localStorage.removeItem(key));
       
-      setUser(null);
-      setSession(null);
-      
-      // Force reload even on error
-      window.location.replace('/');
-    } finally {
-      setLoading(false);
+      // Force redirect even on error
+      window.location.href = '/';
     }
   };
 

@@ -9,6 +9,7 @@ interface Props {
 interface State {
   hasError: boolean;
   error?: Error;
+  errorInfo?: ErrorInfo;
 }
 
 class ErrorBoundary extends Component<Props, State> {
@@ -17,12 +18,37 @@ class ErrorBoundary extends Component<Props, State> {
   };
 
   public static getDerivedStateFromError(error: Error): State {
-    return { hasError: true, error };
+    // Only catch specific auth-related errors, not all errors
+    const isAuthError = error.message?.includes('auth') || 
+                       error.message?.includes('user') ||
+                       error.message?.includes('role') ||
+                       error.message?.includes('Cannot read properties of null');
+    
+    if (isAuthError) {
+      return { hasError: true, error };
+    }
+    
+    // Let other errors bubble up normally
+    throw error;
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Auth Error Boundary caught an error:', error, errorInfo);
+    
+    // Auto-recover after a short delay for auth errors
+    setTimeout(() => {
+      this.setState({ hasError: false, error: undefined, errorInfo: undefined });
+    }, 1000);
   }
+
+  private handleRefresh = () => {
+    window.location.reload();
+  };
+
+  private handleRestart = () => {
+    localStorage.clear();
+    window.location.href = '/';
+  };
 
   public render() {
     if (this.state.hasError) {
@@ -37,17 +63,14 @@ class ErrorBoundary extends Component<Props, State> {
             </p>
             <div className="space-y-4">
               <Button
-                onClick={() => window.location.reload()}
+                onClick={this.handleRefresh}
                 className="w-full"
               >
                 Refresh Page
               </Button>
               <Button
                 variant="outline"
-                onClick={() => {
-                  localStorage.clear();
-                  window.location.href = '/';
-                }}
+                onClick={this.handleRestart}
                 className="w-full"
               >
                 Clear Cache & Restart
