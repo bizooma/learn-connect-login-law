@@ -60,6 +60,10 @@ serve(async (req) => {
       throw new Error('Certificate template not found');
     }
 
+    if (!template.template_image_url) {
+      throw new Error('Template image URL not found');
+    }
+
     // Check if certificate already exists
     const { data: existingCert, error: certCheckError } = await supabaseClient
       .from('user_certificates')
@@ -106,78 +110,90 @@ serve(async (req) => {
       certificateRecord = newCert;
     }
 
-    // Create canvas to generate certificate image
-    const canvas = new OffscreenCanvas(800, 600);
+    // Load the template image
+    console.log('Loading template image from:', template.template_image_url);
+    const templateResponse = await fetch(template.template_image_url);
+    if (!templateResponse.ok) {
+      throw new Error('Failed to load certificate template image');
+    }
+
+    const templateArrayBuffer = await templateResponse.arrayBuffer();
+    const templateImageData = new Uint8Array(templateArrayBuffer);
+
+    // Create a temporary image to get dimensions
+    const tempImage = new Image();
+    const imageLoadPromise = new Promise((resolve, reject) => {
+      tempImage.onload = resolve;
+      tempImage.onerror = reject;
+    });
+
+    // Convert array buffer to data URL for the image
+    const base64Template = btoa(String.fromCharCode(...templateImageData));
+    tempImage.src = `data:image/png;base64,${base64Template}`;
+    
+    await imageLoadPromise;
+
+    // Create canvas with template dimensions
+    const canvas = new OffscreenCanvas(tempImage.width || 800, tempImage.height || 600);
     const ctx = canvas.getContext('2d');
 
-    // Create a simple certificate design
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, 800, 600);
+    // Create image bitmap from the template
+    const templateBlob = new Blob([templateImageData], { type: 'image/png' });
+    const templateBitmap = await createImageBitmap(templateBlob);
 
-    // Add border
-    ctx.strokeStyle = '#2563eb';
-    ctx.lineWidth = 4;
-    ctx.strokeRect(20, 20, 760, 560);
+    // Draw the template as background
+    ctx.drawImage(templateBitmap, 0, 0);
 
-    // Add inner border
-    ctx.strokeStyle = '#1e40af';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(40, 40, 720, 520);
+    // Configure text styling for overlays
+    const canvasWidth = canvas.width;
+    const canvasHeight = canvas.height;
 
-    // Add title
-    ctx.fillStyle = '#1e40af';
-    ctx.font = 'bold 36px serif';
+    // Add recipient name (positioned for typical certificate layout)
+    ctx.fillStyle = '#1e40af'; // Blue color for name
+    ctx.font = `bold ${Math.floor(canvasWidth * 0.04)}px serif`; // Responsive font size
     ctx.textAlign = 'center';
-    ctx.fillText('CERTIFICATE OF COMPLETION', 400, 120);
-
-    // Add subtitle
-    ctx.font = '18px serif';
-    ctx.fillText('This is to certify that', 400, 180);
-
-    // Add recipient name
-    ctx.font = 'bold 32px serif';
-    ctx.fillStyle = '#dc2626';
-    ctx.fillText(certificateRecord.recipient_name, 400, 240);
-
-    // Add course completion text
-    ctx.fillStyle = '#1e40af';
-    ctx.font = '18px serif';
-    ctx.fillText('has successfully completed the course', 400, 300);
+    ctx.fillText(
+      certificateRecord.recipient_name,
+      canvasWidth / 2,
+      canvasHeight * 0.45 // Positioned at 45% height
+    );
 
     // Add course title
-    ctx.font = 'bold 28px serif';
-    ctx.fillStyle = '#dc2626';
-    ctx.fillText(certificateRecord.course_title, 400, 360);
+    ctx.fillStyle = '#dc2626'; // Red color for course title
+    ctx.font = `bold ${Math.floor(canvasWidth * 0.032)}px serif`;
+    ctx.fillText(
+      certificateRecord.course_title,
+      canvasWidth / 2,
+      canvasHeight * 0.6 // Positioned at 60% height
+    );
 
     // Add date
     ctx.fillStyle = '#1e40af';
-    ctx.font = '16px serif';
+    ctx.font = `${Math.floor(canvasWidth * 0.018)}px serif`;
     const issueDate = new Date(certificateRecord.issued_at).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric'
     });
-    ctx.fillText(`Issued on ${issueDate}`, 400, 420);
+    ctx.fillText(
+      `Issued on ${issueDate}`,
+      canvasWidth / 2,
+      canvasHeight * 0.75 // Positioned at 75% height
+    );
 
     // Add certificate number
-    ctx.font = '14px serif';
-    ctx.fillText(`Certificate No: ${certificateRecord.certificate_number}`, 400, 480);
-
-    // Add signature line
-    ctx.strokeStyle = '#000000';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(300, 520);
-    ctx.lineTo(500, 520);
-    ctx.stroke();
-    
-    ctx.fillStyle = '#000000';
-    ctx.font = '14px serif';
-    ctx.fillText('New Frontier University', 400, 540);
+    ctx.font = `${Math.floor(canvasWidth * 0.016)}px serif`;
+    ctx.fillText(
+      `Certificate No: ${certificateRecord.certificate_number}`,
+      canvasWidth / 2,
+      canvasHeight * 0.85 // Positioned at 85% height
+    );
 
     // Convert canvas to blob
     const blob = await canvas.convertToBlob({ type: 'image/png' });
     const arrayBuffer = await blob.arrayBuffer();
+
+    console.log('Certificate generated successfully');
 
     return new Response(arrayBuffer, {
       headers: {
