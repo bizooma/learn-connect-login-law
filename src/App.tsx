@@ -17,6 +17,7 @@ import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 import LMSTree from "./pages/LMSTree";
 import KnowledgeBase from "./pages/KnowledgeBase";
+import AdminKnowledgeBase from "./pages/AdminKnowledgeBase";
 import StudentDashboard from "./components/StudentDashboard";
 import ClientDashboard from "./components/ClientDashboard";
 import FreeDashboard from "./components/FreeDashboard";
@@ -45,6 +46,7 @@ const App = () => (
               <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/lms-tree" element={<LMSTree />} />
               <Route path="/knowledge-base" element={<KnowledgeBase />} />
+              <Route path="/admin-knowledge-base" element={<AdminKnowledgeBase />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
