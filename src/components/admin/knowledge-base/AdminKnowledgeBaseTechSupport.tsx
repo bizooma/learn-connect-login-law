@@ -7,7 +7,7 @@ const AdminKnowledgeBaseTechSupport = () => {
       <CardHeader>
         <CardTitle className="flex items-center text-gray-900">
           <img 
-            src="/lovable-uploads/be7b3bdf-eb48-4d6f-be17-f94d3d2b031a.png" 
+            src="/lovable-uploads/2eac2a9a-a3dd-486a-9987-03ab5fe057b5.png" 
             alt="Bizooma" 
             className="h-6 w-6 mr-2 object-contain"
           />
