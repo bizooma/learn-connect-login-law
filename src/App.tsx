@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/hooks/useAuth";
 import HomepagePage from "./pages/Homepage";
 import Index from "./pages/Index";
+import Login from "./pages/Login";
 import Course from "./pages/Course";
 import Section from "./pages/Section";
 import Courses from "./pages/Courses";
@@ -29,7 +30,7 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/" element={<HomepagePage />} />
-            <Route path="/login" element={<Index />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/dashboard" element={<Index />} />
             <Route path="/course/:id" element={<Course />} />
             <Route path="/section/:id" element={<Section />} />
