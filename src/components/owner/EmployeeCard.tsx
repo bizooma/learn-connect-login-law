@@ -8,8 +8,8 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Tables } from "@/integrations/supabase/types";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import RemoveEmployeeDialog from "./RemoveEmployeeDialog";
+import EmployeeProgressModal from "./EmployeeProgressModal";
 
 type Profile = Tables<'profiles'>;
 type LawFirm = Tables<'law_firms'>;
@@ -27,6 +27,7 @@ interface EmployeeCardProps {
 const EmployeeCard = ({ employee, lawFirm, onEmployeeUpdated }: EmployeeCardProps) => {
   const { toast } = useToast();
   const [showRemoveDialog, setShowRemoveDialog] = useState(false);
+  const [showProgressModal, setShowProgressModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const getUserInitials = () => {
@@ -50,11 +51,7 @@ const EmployeeCard = ({ employee, lawFirm, onEmployeeUpdated }: EmployeeCardProp
   };
 
   const handleViewProgress = () => {
-    // TODO: Implement progress viewing
-    toast({
-      title: "Coming Soon",
-      description: "Employee progress tracking will be available soon.",
-    });
+    setShowProgressModal(true);
   };
 
   const currentRole = employee.roles?.[0]?.role || 'student';
@@ -126,6 +123,12 @@ const EmployeeCard = ({ employee, lawFirm, onEmployeeUpdated }: EmployeeCardProp
         employee={employee}
         lawFirm={lawFirm}
         onEmployeeRemoved={onEmployeeUpdated}
+      />
+
+      <EmployeeProgressModal
+        employee={employee}
+        isOpen={showProgressModal}
+        onClose={() => setShowProgressModal(false)}
       />
     </>
   );
