@@ -1,12 +1,14 @@
 
-import React from 'react';
-import { Search, Filter, BookOpen, Package, FileText, Video, HelpCircle, Download, Users, Star, Loader2 } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Filter, BookOpen, Package, FileText, Video, HelpCircle, Download, Users, Star, Loader2, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useFlowchart } from './FlowchartContext';
 import SidebarItem from './SidebarItem';
+import CreateLessonModal from './modals/CreateLessonModal';
+import CreateUnitModal from './modals/CreateUnitModal';
 
 const FlowchartSidebar = () => {
   const { 
@@ -15,8 +17,12 @@ const FlowchartSidebar = () => {
     setSearchTerm, 
     selectedCategory, 
     setSelectedCategory,
-    loading 
+    loading,
+    refetchData
   } = useFlowchart();
+
+  const [createLessonOpen, setCreateLessonOpen] = useState(false);
+  const [createUnitOpen, setCreateUnitOpen] = useState(false);
 
   const categories = [
     { id: 'all', label: 'All Items', icon: Filter, count: sidebarItems.length },
@@ -35,6 +41,10 @@ const FlowchartSidebar = () => {
     units: sidebarItems.filter(item => item.type === 'unit'),
     quizzes: sidebarItems.filter(item => item.type === 'quiz'),
     resources: sidebarItems.filter(item => item.type === 'resource'),
+  };
+
+  const handleContentCreated = () => {
+    refetchData();
   };
 
   if (loading) {
@@ -64,6 +74,31 @@ const FlowchartSidebar = () => {
         <div className="flex items-center space-x-2 mb-4">
           <Package className="h-6 w-6 text-blue-600" />
           <h2 className="text-lg font-semibold text-gray-900">LMS Flowchart Builder</h2>
+        </div>
+        
+        {/* Create Content Section */}
+        <div className="mb-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+          <h3 className="text-sm font-medium text-blue-900 mb-2">Create Content</h3>
+          <div className="space-y-2">
+            <Button
+              onClick={() => setCreateLessonOpen(true)}
+              size="sm"
+              variant="outline"
+              className="w-full justify-start text-xs h-8"
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              Create Lesson
+            </Button>
+            <Button
+              onClick={() => setCreateUnitOpen(true)}
+              size="sm"
+              variant="outline"
+              className="w-full justify-start text-xs h-8"
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              Create Unit
+            </Button>
+          </div>
         </div>
         
         {/* Search */}
@@ -157,6 +192,9 @@ const FlowchartSidebar = () => {
                 <h3 className="text-sm font-medium text-gray-700 mb-2 flex items-center">
                   <FileText className="h-4 w-4 mr-1" />
                   Available Lessons ({groupedItems.lessons.length})
+                  <Badge variant="outline" className="ml-2 h-4 text-xs">
+                    Reusable
+                  </Badge>
                 </h3>
                 <div className="space-y-2">
                   {groupedItems.lessons.map((item) => (
@@ -237,11 +275,24 @@ const FlowchartSidebar = () => {
       <div className="p-4 border-t border-gray-200 bg-gray-50">
         <div className="text-xs text-gray-600 space-y-1">
           <p className="font-medium">How to use:</p>
+          <p>• Create lessons and units using the buttons above</p>
           <p>• Drag your courses to the canvas to build course structures</p>
           <p>• Connect elements by dragging between connection points</p>
           <p>• Units, quizzes, and resources can be reused across courses</p>
         </div>
       </div>
+
+      {/* Modals */}
+      <CreateLessonModal
+        open={createLessonOpen}
+        onOpenChange={setCreateLessonOpen}
+        onLessonCreated={handleContentCreated}
+      />
+      <CreateUnitModal
+        open={createUnitOpen}
+        onOpenChange={setCreateUnitOpen}
+        onUnitCreated={handleContentCreated}
+      />
     </div>
   );
 };
