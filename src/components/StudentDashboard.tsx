@@ -35,6 +35,13 @@ const StudentDashboard = () => {
       userEmail: user?.email
     });
 
+    // If no user, redirect immediately
+    if (!user) {
+      console.log('StudentDashboard: No user found, redirecting to home');
+      navigate("/", { replace: true });
+      return;
+    }
+
     // Only redirect if role loading is complete AND user is definitely not a student
     if (!roleLoading && user && !isStudent) {
       console.log('StudentDashboard: User is not a student, redirecting to main dashboard');
@@ -50,14 +57,20 @@ const StudentDashboard = () => {
   }, [isStudent, roleLoading, user, navigate]);
 
   const fetchStats = async () => {
+    // Early return if no user
+    if (!user?.id) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     try {
-      console.log('StudentDashboard: Fetching stats for user:', user?.id);
+      console.log('StudentDashboard: Fetching stats for user:', user.id);
       // Fetch user course progress for actual stats
       const { data: progressData } = await supabase
         .from('user_course_progress')
         .select('*')
-        .eq('user_id', user?.id);
+        .eq('user_id', user.id);
 
       const assignedCoursesCount = progressData?.length || 0;
       const completedCoursesCount = progressData?.filter(p => p.status === 'completed').length || 0;
@@ -77,8 +90,8 @@ const StudentDashboard = () => {
   };
 
   // Show loading while checking roles or fetching data
-  if (roleLoading || loading) {
-    console.log('StudentDashboard: Showing loading state, roleLoading:', roleLoading, 'loading:', loading);
+  if (roleLoading || loading || !user) {
+    console.log('StudentDashboard: Showing loading state, roleLoading:', roleLoading, 'loading:', loading, 'hasUser:', !!user);
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
