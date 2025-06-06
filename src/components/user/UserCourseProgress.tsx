@@ -62,13 +62,14 @@ const UserCourseProgress = ({ userId, showOnlyAssigned = false, showOnlyComplete
     navigate(`/courses/${courseId}`);
   };
 
-  // Filter courses based on props
+  // Filter courses based on props - Fixed the logic to match stats calculation
   let coursesToShow: CourseWithProgress[] = [];
   
   if (showOnlyCompleted) {
     coursesToShow = completedCourses;
   } else if (showOnlyAssigned) {
-    // Show all courses that have progress (assigned courses), regardless of status
+    // Show ALL courses that have progress (assigned courses), including not_started ones
+    // This matches how the stats are calculated in useDashboardStats
     coursesToShow = courseProgress.filter(course => course.progress);
   } else {
     coursesToShow = courseProgress;
@@ -78,9 +79,14 @@ const UserCourseProgress = ({ userId, showOnlyAssigned = false, showOnlyComplete
     userId,
     showOnlyAssigned,
     showOnlyCompleted,
-    courseProgress: courseProgress.length,
+    totalCourseProgress: courseProgress.length,
+    coursesWithProgress: courseProgress.filter(course => course.progress).length,
     coursesToShow: coursesToShow.length,
-    totalCourses: courseProgress.length
+    courseProgressDetails: courseProgress.map(c => ({
+      title: c.title,
+      hasProgress: !!c.progress,
+      status: c.progress?.status || 'none'
+    }))
   });
 
   return (
