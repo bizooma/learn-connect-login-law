@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Plus, Trash2 } from 'lucide-react';
 import { ModuleData, LessonData, UnitData } from './types';
 import UnitForm from './UnitForm';
+import ModuleImageUpload from '../ModuleImageUpload';
 
 interface CourseContentFormProps {
   modules: ModuleData[];
@@ -106,6 +108,10 @@ const CourseContentForm = ({ modules, onModulesChange }: CourseContentFormProps)
     onModulesChange(updatedModules);
   };
 
+  const handleModuleImageUpdate = (moduleIndex: number, imageUrl: string | null) => {
+    updateModule(moduleIndex, 'image_url', imageUrl || '');
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -149,6 +155,12 @@ const CourseContentForm = ({ modules, onModulesChange }: CourseContentFormProps)
                 placeholder="Enter module description"
               />
             </div>
+
+            <ModuleImageUpload
+              currentImageUrl={module.image_url}
+              onImageUpdate={(imageUrl) => handleModuleImageUpdate(moduleIndex, imageUrl)}
+              moduleIndex={moduleIndex}
+            />
 
             <div className="space-y-4">
               <div className="flex items-center justify-between">
