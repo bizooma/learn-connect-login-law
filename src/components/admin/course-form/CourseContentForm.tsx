@@ -9,6 +9,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import { ModuleData, LessonData, UnitData } from './types';
 import UnitForm from './UnitForm';
 import ModuleImageUpload from '../ModuleImageUpload';
+import LessonImageUpload from '../LessonImageUpload';
 
 interface CourseContentFormProps {
   modules: ModuleData[];
@@ -112,6 +113,10 @@ const CourseContentForm = ({ modules, onModulesChange }: CourseContentFormProps)
     updateModule(moduleIndex, 'image_url', imageUrl || '');
   };
 
+  const handleLessonImageUpdate = (moduleIndex: number, lessonIndex: number, imageUrl: string | null) => {
+    updateLesson(moduleIndex, lessonIndex, 'image_url', imageUrl || '');
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -209,6 +214,12 @@ const CourseContentForm = ({ modules, onModulesChange }: CourseContentFormProps)
                         placeholder="Enter lesson description"
                       />
                     </div>
+
+                    <LessonImageUpload
+                      currentImageUrl={lesson.image_url}
+                      onImageUpdate={(imageUrl) => handleLessonImageUpdate(moduleIndex, lessonIndex, imageUrl)}
+                      lessonIndex={lessonIndex}
+                    />
 
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
