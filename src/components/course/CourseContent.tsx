@@ -1,6 +1,7 @@
 
 import { Tables } from "@/integrations/supabase/types";
 import CourseVideo from "./CourseVideo";
+import LessonVideo from "./LessonVideo";
 import QuizDisplay from "./QuizDisplay";
 import CertificateDownload from "../certificates/CertificateDownload";
 import UnitCompletionButton from "./UnitCompletionButton";
@@ -12,6 +13,7 @@ import { useEffect } from "react";
 
 type Unit = Tables<'units'>;
 type Quiz = Tables<'quizzes'>;
+type Lesson = Tables<'lessons'>;
 
 interface UnitWithQuiz extends Unit {
   quiz?: Quiz;
@@ -19,11 +21,12 @@ interface UnitWithQuiz extends Unit {
 
 interface CourseContentProps {
   unit: UnitWithQuiz | null;
+  lesson?: Lesson | null;
   courseId: string;
   courseTitle?: string;
 }
 
-const CourseContent = ({ unit, courseId, courseTitle }: CourseContentProps) => {
+const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentProps) => {
   const { user } = useAuth();
   const { isCompleted, loading, refetchCompletion } = useCourseCompletion(courseId);
 
@@ -40,21 +43,56 @@ const CourseContent = ({ unit, courseId, courseTitle }: CourseContentProps) => {
     }
   };
 
+  const handleLessonFileDownload = () => {
+    if (lesson?.file_url) {
+      window.open(lesson.file_url, '_blank');
+    }
+  };
+
   // Check if this unit has a quiz attached to it
   const hasQuiz = unit?.quiz && unit.quiz.is_active;
 
   return (
     <div className="space-y-6">
+      {/* Show lesson video if available */}
+      {lesson && <LessonVideo lesson={lesson} courseId={courseId} />}
+      
+      {/* Show unit video */}
       <CourseVideo unit={unit} courseId={courseId} />
       
-      {unit?.file_url && (
+      {/* Lesson file download section */}
+      {lesson?.file_url && (
         <div className="bg-white rounded-lg shadow-sm border p-6">
-          <h3 className="text-lg font-semibold mb-4">Downloadable Resources</h3>
+          <h3 className="text-lg font-semibold mb-4">Lesson Resources</h3>
           <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
             <div className="flex items-center space-x-2">
               <File className="h-5 w-5 text-gray-600" />
               <span className="font-medium">
-                {unit.file_name || 'Download File'}
+                {lesson.file_name || 'Download Lesson File'}
+              </span>
+            </div>
+            <Button
+              onClick={handleLessonFileDownload}
+              variant="outline"
+              size="sm"
+              className="flex items-center space-x-2"
+            >
+              <Download className="h-4 w-4" />
+              <span>Download</span>
+            </Button>
+          </div>
+        </div>
+      )}
+      
+      {/* Unit file download section */}
+      {unit?.file_url && (
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <h3 className="text-lg font-semibold mb-4">Unit Resources</h3>
+          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+            <div className="flex items-center space-x-2">
+              <File className="h-5 w-5 text-gray-600" />
+              <span className="font-medium">
+                {unit.file_name || 'Download Unit File'}
               </span>
             </div>
             <Button

@@ -4,6 +4,7 @@ import { SectionData } from "../types";
 import { Tables } from "@/integrations/supabase/types";
 
 type Unit = Tables<'units'>;
+type Lesson = Tables<'lessons'>;
 
 // Determine video type based on URL
 const getVideoType = (url: string): 'youtube' | 'upload' => {
@@ -51,7 +52,7 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
     // Convert modules/lessons structure to the flat lessons structure expected by the form
     // For backward compatibility, we'll flatten the first module's lessons
     const firstModule = modulesData?.[0];
-    const formattedLessons: SectionData[] = firstModule?.lessons?.map(lesson => ({
+    const formattedLessons: SectionData[] = firstModule?.lessons?.map((lesson: Lesson) => ({
       id: lesson.id,
       title: lesson.title,
       description: lesson.description || "",
@@ -59,6 +60,9 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
       file_url: lesson.file_url || "",
       file_name: lesson.file_name || "",
       file_size: lesson.file_size || 0,
+      video_url: lesson.video_url || "",
+      video_type: getVideoType(lesson.video_url || "") as 'youtube' | 'upload',
+      duration_minutes: lesson.duration_minutes || 0,
       sort_order: lesson.sort_order,
       units: (lesson.units as Unit[])?.map(unit => ({
         id: unit.id,

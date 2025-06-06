@@ -23,6 +23,7 @@ const SimpleLessonManager = ({ lessons, onLessonsChange }: SimpleLessonManagerPr
     deleteUnit,
     handleVideoFileChange,
     handleLessonImageUpdate,
+    handleLessonVideoFileChange,
     moveLessonToPosition,
     moveUnitWithinLesson,
     moveUnitToLesson,
@@ -140,6 +141,7 @@ const SimpleLessonManager = ({ lessons, onLessonsChange }: SimpleLessonManagerPr
             onDeleteUnit={deleteUnit}
             onVideoFileChange={handleVideoFileChange}
             onLessonImageUpdate={handleLessonImageUpdate}
+            onLessonVideoFileChange={handleLessonVideoFileChange}
             onMoveLessonUp={() => handleMoveLessonUp(lessonIndex)}
             onMoveLessonDown={() => handleMoveLessonDown(lessonIndex)}
             onMoveUnitUp={handleMoveUnitUp}

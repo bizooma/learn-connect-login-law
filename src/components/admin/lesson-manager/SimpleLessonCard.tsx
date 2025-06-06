@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Trash2, Plus, ChevronDown, ChevronUp, ArrowUp, ArrowDown } from "lucide-react";
 import LessonImageUpload from "../LessonImageUpload";
 import SimpleUnitManager from "./SimpleUnitManager";
+import VideoUploadSection from "./VideoUploadSection";
 import { UnitData, SectionData } from "./types";
 import FileUpload from "../FileUpload";
 
@@ -22,6 +23,7 @@ interface SimpleLessonCardProps {
   onDeleteUnit: (lessonIndex: number, unitIndex: number) => void;
   onVideoFileChange: (lessonIndex: number, unitIndex: number, file: File | null) => void;
   onLessonImageUpdate: (lessonIndex: number, imageUrl: string | null) => void;
+  onLessonVideoFileChange: (lessonIndex: number, file: File | null) => void;
   onMoveLessonUp: () => void;
   onMoveLessonDown: () => void;
   onMoveUnitUp: (lessonIndex: number, unitIndex: number) => void;
@@ -44,6 +46,7 @@ const SimpleLessonCard = ({
   onDeleteUnit,
   onVideoFileChange,
   onLessonImageUpdate,
+  onLessonVideoFileChange,
   onMoveLessonUp,
   onMoveLessonDown,
   onMoveUnitUp,
@@ -160,6 +163,26 @@ const SimpleLessonCard = ({
           onImageUpdate={(imageUrl) => onLessonImageUpdate(lessonIndex, imageUrl)}
           lessonIndex={lessonIndex}
         />
+
+        <VideoUploadSection
+          videoUrl={lesson.video_url || ''}
+          videoType={lesson.video_type || 'youtube'}
+          onVideoUrlChange={(url) => onUpdateLesson(lessonIndex, 'video_url', url)}
+          onVideoTypeChange={(type) => onUpdateLesson(lessonIndex, 'video_type', type)}
+          onVideoFileChange={(file) => onLessonVideoFileChange(lessonIndex, file || null)}
+        />
+
+        <div>
+          <Label htmlFor={`lesson-duration-${lessonIndex}`}>Duration (minutes)</Label>
+          <Input
+            id={`lesson-duration-${lessonIndex}`}
+            type="number"
+            value={lesson.duration_minutes || ''}
+            onChange={(e) => onUpdateLesson(lessonIndex, 'duration_minutes', parseInt(e.target.value) || 0)}
+            placeholder="Enter video duration"
+            className="mt-1"
+          />
+        </div>
 
         <FileUpload
           currentFileUrl={lesson.file_url}

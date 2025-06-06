@@ -7,6 +7,10 @@ export interface SectionData {
   file_url?: string;
   file_name?: string;
   file_size?: number;
+  video_url?: string;
+  video_type?: 'youtube' | 'upload';
+  video_file?: File;
+  duration_minutes?: number;
   sort_order: number;
   units: UnitData[];
 }

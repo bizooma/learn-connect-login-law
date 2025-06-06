@@ -18,6 +18,7 @@ export const useLessonManager = ({ lessons, onLessonsChange }: UseLessonManagerP
     updateLesson,
     deleteLesson,
     handleLessonImageUpdate,
+    handleLessonVideoFileChange,
   } = useLessonOperations({ lessons, onLessonsChange });
 
   const {
@@ -44,6 +45,7 @@ export const useLessonManager = ({ lessons, onLessonsChange }: UseLessonManagerP
     toggleLessonExpanded,
     handleVideoFileChange,
     handleLessonImageUpdate,
+    handleLessonVideoFileChange,
     moveLessonToPosition,
     moveUnitWithinLesson,
     moveUnitToLesson,

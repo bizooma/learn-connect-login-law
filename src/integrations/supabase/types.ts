@@ -409,6 +409,7 @@ export type Database = {
           course_id: string
           created_at: string
           description: string | null
+          duration_minutes: number | null
           file_name: string | null
           file_size: number | null
           file_url: string | null
@@ -419,11 +420,14 @@ export type Database = {
           sort_order: number
           title: string
           updated_at: string
+          video_type: string | null
+          video_url: string | null
         }
         Insert: {
           course_id: string
           created_at?: string
           description?: string | null
+          duration_minutes?: number | null
           file_name?: string | null
           file_size?: number | null
           file_url?: string | null
@@ -434,11 +438,14 @@ export type Database = {
           sort_order?: number
           title: string
           updated_at?: string
+          video_type?: string | null
+          video_url?: string | null
         }
         Update: {
           course_id?: string
           created_at?: string
           description?: string | null
+          duration_minutes?: number | null
           file_name?: string | null
           file_size?: number | null
           file_url?: string | null
@@ -449,6 +456,8 @@ export type Database = {
           sort_order?: number
           title?: string
           updated_at?: string
+          video_type?: string | null
+          video_url?: string | null
         }
         Relationships: [
           {

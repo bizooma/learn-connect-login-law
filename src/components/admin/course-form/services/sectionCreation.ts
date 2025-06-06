@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { uploadVideoFile } from "../fileUploadUtils";
 
@@ -26,6 +27,10 @@ interface SectionData {
   file_url?: string;
   file_name?: string;
   file_size?: number;
+  video_url?: string;
+  video_type?: 'youtube' | 'upload';
+  video_file?: File;
+  duration_minutes?: number;
   sort_order: number;
   units: UnitData[];
 }
@@ -38,6 +43,21 @@ export const createLessonsAndUnits = async (courseId: string, sections: SectionD
     
     console.log('Creating lesson:', section.title);
     
+    let finalVideoUrl = section.video_url || '';
+    
+    // Handle lesson video file upload if present
+    if (section.video_file && section.video_type === 'upload') {
+      try {
+        console.log('Uploading video file for lesson:', section.title);
+        finalVideoUrl = await uploadVideoFile(section.video_file);
+        console.log('Lesson video uploaded successfully:', finalVideoUrl);
+      } catch (error) {
+        console.error('Error uploading lesson video:', error);
+        // Continue with empty video URL if upload fails
+        finalVideoUrl = '';
+      }
+    }
+    
     const { data: lesson, error: lessonError } = await supabase
       .from('lessons')
       .insert({
@@ -49,6 +69,9 @@ export const createLessonsAndUnits = async (courseId: string, sections: SectionD
         file_url: section.file_url || null,
         file_name: section.file_name || null,
         file_size: section.file_size || 0,
+        video_url: finalVideoUrl || null,
+        video_type: section.video_type || null,
+        duration_minutes: section.duration_minutes || null,
         sort_order: section.sort_order || sectionIndex,
       })
       .select()
