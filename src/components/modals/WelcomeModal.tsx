@@ -63,7 +63,7 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
           <div className="px-8 py-6">
             <div className="text-center mb-6">
               <img 
-                src="/lovable-uploads/126f6dae-4376-4b57-9955-f40fc6fa19e2.png" 
+                src="/lovable-uploads/6f8c1259-11b1-4be9-a417-70350b17ddad.png" 
                 alt="New Frontier University" 
                 className="h-16 w-auto mx-auto mb-4"
               />
@@ -79,7 +79,7 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
 
             {/* Welcome Video Section */}
             <div className="mb-8 flex justify-center">
-              <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg">
+              <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
                 <h4 className="text-lg font-semibold text-gray-900 mb-4 text-center">
                   Watch This Quick Introduction
                 </h4>
