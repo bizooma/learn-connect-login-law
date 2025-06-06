@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Video, Upload, Youtube } from 'lucide-react';
 import PowerPointVideoIntegration from './PowerPointVideoIntegration';
 import FileUpload from '../FileUpload';
-import EnhancedQuizSelector from './EnhancedQuizSelector';
 
 interface UnitFormProps {
   unit: any;
@@ -21,10 +20,6 @@ const UnitForm = ({ unit, onUnitChange, onRemove, unitIndex }: UnitFormProps) =>
   const handleVideoGenerated = (videoUrl: string) => {
     onUnitChange('video_url', videoUrl);
     onUnitChange('video_type', 'upload');
-  };
-
-  const handleQuizUpdate = (quizId: string | undefined) => {
-    onUnitChange('quiz_id', quizId);
   };
 
   return (
@@ -147,17 +142,6 @@ const UnitForm = ({ unit, onUnitChange, onRemove, unitIndex }: UnitFormProps) =>
             value={unit.duration_minutes || ''}
             onChange={(e) => onUnitChange('duration_minutes', parseInt(e.target.value) || 0)}
             placeholder="Enter duration in minutes"
-          />
-        </div>
-
-        {/* Enhanced Quiz Assignment */}
-        <div className="space-y-2">
-          <Label>Quiz Assignment</Label>
-          <EnhancedQuizSelector
-            quizId={unit.quiz_id}
-            onQuizUpdate={handleQuizUpdate}
-            unitTitle={unit.title}
-            unitId={unit.id}
           />
         </div>
       </CardContent>

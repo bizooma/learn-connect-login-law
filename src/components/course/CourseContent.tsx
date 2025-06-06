@@ -3,11 +3,12 @@ import { Tables } from "@/integrations/supabase/types";
 import CourseVideo from "./CourseVideo";
 import QuizDisplay from "./QuizDisplay";
 import CertificateDownload from "../certificates/CertificateDownload";
-import UnitCompletionButton from "./UnitCompletionButton";
 import { Button } from "@/components/ui/button";
-import { Download, File } from "lucide-react";
+import { Download, File, CheckCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserProgress } from "@/hooks/useUserProgress";
 import { useCourseCompletion } from "@/hooks/useCourseCompletion";
+import { useState } from "react";
 
 type Unit = Tables<'units'>;
 type Quiz = Tables<'quizzes'>;
@@ -24,11 +25,26 @@ interface CourseContentProps {
 
 const CourseContent = ({ unit, courseId, courseTitle }: CourseContentProps) => {
   const { user } = useAuth();
+  const { markUnitComplete } = useUserProgress(user?.id);
   const { isCompleted } = useCourseCompletion(courseId);
+  const [isCompleting, setIsCompleting] = useState(false);
 
   const handleFileDownload = () => {
     if (unit?.file_url) {
       window.open(unit.file_url, '_blank');
+    }
+  };
+
+  const handleMarkComplete = async () => {
+    if (!unit || !user) return;
+    
+    setIsCompleting(true);
+    try {
+      await markUnitComplete(unit.id, courseId);
+    } catch (error) {
+      console.error('Error marking unit complete:', error);
+    } finally {
+      setIsCompleting(false);
     }
   };
 
@@ -76,7 +92,22 @@ const CourseContent = ({ unit, courseId, courseTitle }: CourseContentProps) => {
       )}
       
       {!hasQuiz && unit && (
-        <UnitCompletionButton unit={unit} courseId={courseId} />
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold mb-2">Complete Unit</h3>
+              <p className="text-gray-600">Mark this unit as complete to track your progress.</p>
+            </div>
+            <Button 
+              onClick={handleMarkComplete}
+              disabled={isCompleting}
+              className="flex items-center space-x-2"
+            >
+              <CheckCircle className="h-4 w-4" />
+              <span>{isCompleting ? 'Completing...' : 'Mark Complete'}</span>
+            </Button>
+          </div>
+        </div>
       )}
 
       {/* Certificate Download Section */}

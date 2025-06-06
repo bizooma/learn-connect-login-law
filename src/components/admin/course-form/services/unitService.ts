@@ -39,16 +39,11 @@ export const createUnit = async (lessonId: string, unit: UnitData) => {
     throw new Error(`Failed to create unit: ${unitError.message}`);
   }
 
-  // Link quiz to unit if quiz_id is provided
-  if (unit.quiz_id) {
-    await linkQuizToUnit(unitData.id, unit.quiz_id);
-  }
-
   return unitData;
 };
 
 export const linkQuizToUnit = async (unitId: string, quizId: string) => {
-  console.log('Linking quiz to unit. Quiz ID:', quizId, 'Unit ID:', unitId);
+  console.log('Linking quiz to unit. Quiz ID:', quizId);
   
   const { error: quizUpdateError } = await supabase
     .from('quizzes')
@@ -59,22 +54,4 @@ export const linkQuizToUnit = async (unitId: string, quizId: string) => {
     console.error('Error linking quiz to unit:', quizUpdateError);
     throw new Error(`Failed to link quiz to unit: ${quizUpdateError.message}`);
   }
-  
-  console.log('Quiz successfully linked to unit');
-};
-
-export const unlinkQuizFromUnit = async (unitId: string) => {
-  console.log('Unlinking quizzes from unit:', unitId);
-  
-  const { error: quizUpdateError } = await supabase
-    .from('quizzes')
-    .update({ unit_id: null })
-    .eq('unit_id', unitId);
-
-  if (quizUpdateError) {
-    console.error('Error unlinking quizzes from unit:', quizUpdateError);
-    throw new Error(`Failed to unlink quizzes from unit: ${quizUpdateError.message}`);
-  }
-  
-  console.log('Quizzes successfully unlinked from unit');
 };
