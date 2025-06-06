@@ -49,24 +49,26 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
             <div className="absolute top-0 right-0 p-4">
               <Sparkles className="h-8 w-8 text-yellow-300 animate-pulse" />
             </div>
-            <DialogHeader>
-              <DialogTitle className="text-3xl font-bold text-white mb-2">
-                Welcome to Your New LMS!
-              </DialogTitle>
-              <p className="text-blue-100 text-lg">
-                Hello {userFirstName}! 🎉
-              </p>
-            </DialogHeader>
+            <div className="flex items-center mb-4">
+              <img 
+                src="/lovable-uploads/126f6dae-4376-4b57-9955-f40fc6fa19e2.png" 
+                alt="New Frontier University" 
+                className="h-12 w-auto mr-4"
+              />
+              <div>
+                <DialogTitle className="text-3xl font-bold text-white mb-2">
+                  Welcome to Your New LMS!
+                </DialogTitle>
+                <p className="text-blue-100 text-lg">
+                  Hello {userFirstName}! 🎉
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Content */}
           <div className="px-8 py-6">
             <div className="text-center mb-6">
-              <img 
-                src="/lovable-uploads/6f8c1259-11b1-4be9-a417-70350b17ddad.png" 
-                alt="New Frontier University" 
-                className="h-16 w-auto mx-auto mb-4"
-              />
               <h3 className="text-xl font-semibold text-gray-900 mb-2">
                 Your Learning Journey Starts Here
               </h3>
