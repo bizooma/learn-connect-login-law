@@ -43,7 +43,7 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
               />
               <div>
                 <DialogTitle className="text-3xl font-bold text-white mb-2">
-                  Welcome to Your New LMS!
+                  Welcome to Your New Training Platform!
                 </DialogTitle>
                 <p className="text-blue-100 text-lg">
                   Hello {userFirstName}! 🎉
