@@ -20,9 +20,6 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
   onClose, 
   userFirstName = "Student" 
 }) => {
-  // YouTube video ID - updated with new video
-  const [youtubeVideoId] = useState("O92D1gv2tCg");
-
   const coreValues = [
     { letter: "I", word: "Inspiring", icon: Lightbulb, color: "text-yellow-500" },
     { letter: "L", word: "Learning", icon: BookOpen, color: "text-blue-500" },
@@ -63,7 +60,7 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
 
           {/* Content */}
           <div className="px-6 py-4">
-            <div className="text-center mb-4">
+            <div className="text-center mb-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Your Learning Journey Starts Here
               </h3>
@@ -72,39 +69,6 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
                 We've designed this platform to make your professional development 
                 engaging and effective.
               </p>
-            </div>
-
-            {/* Welcome Video Section */}
-            <div className="mb-6 flex justify-center">
-              <div className="bg-white rounded-lg shadow-lg p-4 w-full max-w-sm">
-                <h4 className="text-base font-semibold text-gray-900 mb-3 text-center">
-                  Watch This Quick Introduction
-                </h4>
-                <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden">
-                  {youtubeVideoId ? (
-                    <iframe
-                      className="w-full h-full"
-                      src={`https://www.youtube.com/embed/${youtubeVideoId}?controls=1&modestbranding=1&rel=0&showinfo=0&cc_load_policy=0&iv_load_policy=3&disablekb=1`}
-                      title="Welcome Video"
-                      frameBorder="0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                      allowFullScreen
-                    />
-                  ) : (
-                    <div className="flex items-center justify-center h-full bg-gray-800 text-white">
-                      <div className="text-center">
-                        <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
-                          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
-                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
-                          </svg>
-                        </div>
-                        <p className="text-base">Welcome Video</p>
-                        <p className="text-xs text-gray-300">Video will appear here when configured</p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              </div>
             </div>
 
             {/* I LEARN Core Values Section */}
