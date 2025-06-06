@@ -55,7 +55,11 @@ export const progressService = {
   },
 
   async markUnitComplete(userId: string, unitId: string, courseId: string) {
-    console.log('Marking unit complete:', { unitId, courseId });
+    console.log('Marking unit complete:', { unitId, courseId, userId });
+    
+    if (!userId || !unitId || !courseId) {
+      throw new Error('Missing required parameters: userId, unitId, or courseId');
+    }
     
     try {
       // Use upsert to handle both insert and update cases
@@ -76,6 +80,8 @@ export const progressService = {
         console.error('Error upserting unit progress:', error);
         throw error;
       }
+      
+      console.log('Unit marked as complete successfully');
     } catch (error) {
       console.error('Error marking unit complete:', error);
       // Only throw non-duplicate errors to prevent spam
