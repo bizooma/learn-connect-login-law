@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CourseWithProgress, CourseProgress } from "./types";
 import { progressService } from "./progressService";
 import { transformProgressData } from "./dataTransformer";
+import { progressCalculator } from "./progressCalculator";
 
 export const useUserProgress = (userId?: string) => {
   const { toast } = useToast();
@@ -99,7 +100,7 @@ export const useUserProgress = (userId?: string) => {
 
     try {
       setPendingOperations(prev => new Set(prev).add(operationKey));
-      const { progressPercentage, status } = await progressService.calculateCourseProgress(userId, courseId);
+      const { progressPercentage, status } = await progressCalculator.calculateCourseProgress(userId, courseId);
       
       // Update progress with calculated values
       await progressService.updateCourseProgress(userId, courseId, {
