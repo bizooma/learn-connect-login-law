@@ -1,6 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { uploadVideoFile } from "./videoUpload";
+import { uploadVideoFile } from "../fileUploadUtils";
 
 interface UnitData {
   id?: string;
@@ -83,7 +82,7 @@ const createUnitsForLesson = async (lessonId: string, units: UnitData[]) => {
     if (unit.video_file && unit.video_type === 'upload') {
       try {
         console.log('Uploading video file for unit:', unit.title);
-        finalVideoUrl = await uploadVideoFile(unit.video_file, `unit-${unitIndex}-${Date.now()}`);
+        finalVideoUrl = await uploadVideoFile(unit.video_file);
         console.log('Video uploaded successfully:', finalVideoUrl);
       } catch (error) {
         console.error('Error uploading video:', error);

@@ -1,7 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { CourseFormData } from "./types";
-import { uploadCourseImage } from "./services/imageUpload";
+import { uploadImageFile } from "./fileUploadUtils";
 import { createDefaultModule } from "./services/moduleCreation";
 import { createLessonsAndUnits } from "./services/sectionCreation";
 import { createWelcomeCalendarEvent } from "./services/calendarService";
@@ -38,7 +38,7 @@ export const handleCourseSubmission = async (
   // Upload course image if provided
   if (data.image_file) {
     try {
-      imageUrl = await uploadCourseImage(data.image_file);
+      imageUrl = await uploadImageFile(data.image_file);
     } catch (error) {
       console.error('Image upload failed:', error);
       // Continue without image
