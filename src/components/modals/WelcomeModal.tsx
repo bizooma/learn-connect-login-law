@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -7,7 +7,10 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Users, Award, Sparkles } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { BookOpen, Users, Award, Sparkles, Upload } from "lucide-react";
+import { uploadVideoFile } from "@/components/admin/course-form/fileUploadUtils";
+import { useToast } from "@/hooks/use-toast";
 
 interface WelcomeModalProps {
   open: boolean;
@@ -20,6 +23,43 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
   onClose, 
   userFirstName = "Student" 
 }) => {
+  const [videoUrl, setVideoUrl] = useState("/lovable-uploads/welcome-video.mp4");
+  const [isUploading, setIsUploading] = useState(false);
+  const { toast } = useToast();
+
+  const handleVideoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('video/')) {
+      toast({
+        title: "Invalid file type",
+        description: "Please select a video file (MP4, MOV, etc.)",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsUploading(true);
+    try {
+      const uploadedUrl = await uploadVideoFile(file);
+      setVideoUrl(uploadedUrl);
+      toast({
+        title: "Video uploaded successfully",
+        description: "The welcome video has been updated.",
+      });
+    } catch (error) {
+      console.error('Error uploading video:', error);
+      toast({
+        title: "Upload failed",
+        description: "There was an error uploading the video. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   return (
     <Dialog open={open} onOpenChange={() => {}}>
       <DialogContent className="max-w-4xl p-0 gap-0 bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -63,18 +103,45 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
             {/* Welcome Video Section */}
             <div className="mb-8">
               <div className="bg-white rounded-lg shadow-lg p-6">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4 text-center">
-                  Watch This Quick Introduction
-                </h4>
+                <div className="flex justify-between items-center mb-4">
+                  <h4 className="text-lg font-semibold text-gray-900">
+                    Watch This Quick Introduction
+                  </h4>
+                  <div className="flex items-center space-x-2">
+                    <Input
+                      type="file"
+                      accept="video/*"
+                      onChange={handleVideoUpload}
+                      className="hidden"
+                      id="video-upload"
+                      disabled={isUploading}
+                    />
+                    <label htmlFor="video-upload">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="cursor-pointer"
+                        disabled={isUploading}
+                        asChild
+                      >
+                        <span>
+                          <Upload className="h-4 w-4 mr-2" />
+                          {isUploading ? "Uploading..." : "Upload Video"}
+                        </span>
+                      </Button>
+                    </label>
+                  </div>
+                </div>
                 <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden">
                   <video
+                    key={videoUrl}
                     className="w-full h-full object-cover"
                     autoPlay
                     muted
                     loop
                     playsInline
                   >
-                    <source src="/lovable-uploads/welcome-video.mp4" type="video/mp4" />
+                    <source src={videoUrl} type="video/mp4" />
                     {/* Fallback content */}
                     <div className="flex items-center justify-center h-full bg-gray-800 text-white">
                       <div className="text-center">
