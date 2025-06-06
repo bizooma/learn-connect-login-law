@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Clock, Loader2 } from "lucide-react";
+import { CheckCircle, Clock, Loader2, Award } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useUnitProgress } from "@/hooks/useUnitProgress";
@@ -48,6 +48,16 @@ const UnitCompletionButton = ({ unit, courseId }: UnitCompletionButtonProps) => 
         title: "Success",
         description: "Unit marked as complete! 🎉",
       });
+
+      // Small delay to let the course progress calculation complete
+      setTimeout(() => {
+        toast({
+          title: "Course Progress Updated",
+          description: "Check if your course is now complete for certificate download!",
+          variant: "default",
+        });
+      }, 2000);
+      
     } catch (error) {
       console.error('Error marking unit complete:', error);
       toast({

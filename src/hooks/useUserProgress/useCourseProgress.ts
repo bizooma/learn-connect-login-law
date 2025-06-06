@@ -86,8 +86,16 @@ export const useCourseProgress = (userId?: string) => {
     }
 
     try {
+      console.log('Calculating course progress and checking for completion...');
       const { progressPercentage, status } = await progressCalculator.calculateCourseProgress(userId, courseId);
+      
+      // Update the course progress with the calculated values
       await updateCourseProgress(courseId, status, progressPercentage);
+      
+      // If course is completed, show success message
+      if (status === 'completed') {
+        console.log('🎉 Course completed! Certificate is now available for download.');
+      }
     } catch (error) {
       console.error('Error calculating course progress:', error);
       throw error;

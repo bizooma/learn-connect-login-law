@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export const progressCalculator = {
@@ -54,12 +53,55 @@ export const progressCalculator = {
 
       console.log('Progress calculation:', { totalUnits, completedCount, progressPercentage });
 
-      const status = progressPercentage === 100 ? 'completed' : 
-                   progressPercentage > 0 ? 'in_progress' : 'not_started';
+      // Determine status based on progress
+      let status: 'not_started' | 'in_progress' | 'completed';
+      if (progressPercentage === 100) {
+        status = 'completed';
+      } else if (progressPercentage > 0) {
+        status = 'in_progress';
+      } else {
+        status = 'not_started';
+      }
+
+      // If course is completed, automatically update the course progress
+      if (status === 'completed') {
+        console.log('Course completed! Updating course progress to completed status');
+        await this.markCourseCompleted(userId, courseId);
+      }
 
       return { progressPercentage, status };
     } catch (error) {
       console.error('Error calculating course progress:', error);
+      throw error;
+    }
+  },
+
+  async markCourseCompleted(userId: string, courseId: string) {
+    try {
+      console.log('Marking course as completed:', { userId, courseId });
+      
+      const { error } = await supabase
+        .from('user_course_progress')
+        .upsert({
+          user_id: userId,
+          course_id: courseId,
+          status: 'completed',
+          progress_percentage: 100,
+          completed_at: new Date().toISOString(),
+          last_accessed_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id,course_id'
+        });
+
+      if (error) {
+        console.error('Error marking course as completed:', error);
+        throw error;
+      }
+
+      console.log('Course marked as completed successfully');
+    } catch (error) {
+      console.error('Error in markCourseCompleted:', error);
       throw error;
     }
   },
