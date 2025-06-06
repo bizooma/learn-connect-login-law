@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Search, BookOpen, Award, Users, Calendar, HelpCircle } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -249,10 +248,7 @@ const KnowledgeBase = () => {
           <CardContent>
             <div className="text-sm text-blue-600 space-y-2">
               <div>
-                <strong>Technical Issues:</strong> Contact Erin Walsh <a href="mailto:erin.walsh@newfrontier.us" className="text-blue-600 hover:text-blue-800 underline">erin.walsh@newfrontier.us</a>
-              </div>
-              <div>
-                <strong>Content or Marketing Assistance:</strong> Contact Carolina Garrido <a href="mailto:carolina@newfrontieruniversity.com" className="text-blue-600 hover:text-blue-800 underline">carolina@newfrontieruniversity.com</a>
+                <strong>Technical Issues:</strong> Contact <a href="mailto:sales@newfrontier.us" className="text-blue-600 hover:text-blue-800 underline">sales@newfrontier.us</a>
               </div>
             </div>
           </CardContent>
