@@ -34,27 +34,27 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl p-0 gap-0" style={{ backgroundColor: '#E3E3E3' }}>
+      <DialogContent className="max-w-3xl p-0 gap-0" style={{ backgroundColor: '#E3E3E3' }}>
         <div className="relative overflow-hidden">
           {/* Header with gradient background */}
           <div 
-            className="px-8 py-6 text-white relative"
+            className="px-6 py-4 text-white relative"
             style={{ background: '#213C82' }}
           >
-            <div className="absolute top-0 right-0 p-4">
-              <Sparkles className="h-8 w-8 text-yellow-300 animate-pulse" />
+            <div className="absolute top-0 right-0 p-3">
+              <Sparkles className="h-6 w-6 text-yellow-300 animate-pulse" />
             </div>
-            <div className="flex items-center mb-4">
+            <div className="flex items-center mb-3">
               <img 
                 src="/lovable-uploads/126f6dae-4376-4b57-9955-f40fc6fa19e2.png" 
                 alt="New Frontier University" 
-                className="h-12 w-auto mr-4"
+                className="h-10 w-auto mr-3"
               />
               <div>
-                <DialogTitle className="text-3xl font-bold text-white mb-2">
+                <DialogTitle className="text-2xl font-bold text-white mb-1">
                   Welcome to Your New Training Platform!
                 </DialogTitle>
-                <p className="text-blue-100 text-lg">
+                <p className="text-blue-100 text-base">
                   Hello {userFirstName}! 🎉
                 </p>
               </div>
@@ -62,12 +62,12 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
           </div>
 
           {/* Content */}
-          <div className="px-8 py-6">
-            <div className="text-center mb-6">
-              <h3 className="text-xl font-semibold text-gray-900 mb-2">
+          <div className="px-6 py-4">
+            <div className="text-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
                 Your Learning Journey Starts Here
               </h3>
-              <p className="text-gray-600 max-w-md mx-auto">
+              <p className="text-gray-600 max-w-md mx-auto text-sm">
                 Welcome to New Frontier University's Learning Management System. 
                 We've designed this platform to make your professional development 
                 engaging and effective.
@@ -75,9 +75,9 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
             </div>
 
             {/* Welcome Video Section */}
-            <div className="mb-8 flex justify-center">
-              <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4 text-center">
+            <div className="mb-6 flex justify-center">
+              <div className="bg-white rounded-lg shadow-lg p-4 w-full max-w-sm">
+                <h4 className="text-base font-semibold text-gray-900 mb-3 text-center">
                   Watch This Quick Introduction
                 </h4>
                 <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden">
@@ -93,13 +93,13 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
                   ) : (
                     <div className="flex items-center justify-center h-full bg-gray-800 text-white">
                       <div className="text-center">
-                        <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                          <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                        <div className="w-12 h-12 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-3">
+                          <svg className="w-6 h-6 text-white" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
                           </svg>
                         </div>
-                        <p className="text-lg">Welcome Video</p>
-                        <p className="text-sm text-gray-300">Video will appear here when configured</p>
+                        <p className="text-base">Welcome Video</p>
+                        <p className="text-xs text-gray-300">Video will appear here when configured</p>
                       </div>
                     </div>
                   )}
@@ -108,31 +108,31 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
             </div>
 
             {/* I LEARN Core Values Section */}
-            <div className="mb-8">
-              <div className="text-center mb-6">
-                <h4 className="text-2xl font-bold text-gray-900 mb-2">Our Core Values</h4>
-                <div className="text-4xl font-bold" style={{ color: '#213C82' }}>
+            <div className="mb-6">
+              <div className="text-center mb-4">
+                <h4 className="text-xl font-bold text-gray-900 mb-2">Our Core Values</h4>
+                <div className="text-3xl font-bold" style={{ color: '#213C82' }}>
                   I LEARN
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
                 {coreValues.map((value, index) => (
                   <div 
                     key={value.letter} 
-                    className="bg-white rounded-lg p-4 shadow-sm border-l-4 hover:shadow-md transition-shadow"
+                    className="bg-white rounded-lg p-3 shadow-sm border-l-4 hover:shadow-md transition-shadow"
                     style={{ borderLeftColor: '#213C82' }}
                   >
                     <div className="flex items-center mb-2">
                       <div 
-                        className="w-10 h-10 rounded-full flex items-center justify-center mr-3 text-white font-bold text-lg"
+                        className="w-8 h-8 rounded-full flex items-center justify-center mr-2 text-white font-bold text-sm"
                         style={{ backgroundColor: '#213C82' }}
                       >
                         {value.letter}
                       </div>
-                      <value.icon className={`h-6 w-6 ${value.color}`} />
+                      <value.icon className={`h-5 w-5 ${value.color}`} />
                     </div>
-                    <p className="font-medium text-gray-900 text-sm leading-relaxed">
+                    <p className="font-medium text-gray-900 text-xs leading-relaxed">
                       {value.word}
                     </p>
                   </div>
@@ -144,7 +144,7 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
             <div className="text-center">
               <Button 
                 onClick={onClose}
-                className="px-8 py-3 text-lg font-medium"
+                className="px-6 py-2 text-base font-medium"
                 style={{ background: '#213C82' }}
               >
                 Let's Get Started! 🚀
