@@ -37,8 +37,8 @@ const AdminCourseCard = ({ course, onDelete, onEdit }: AdminCourseCardProps) => 
             <Image className="h-12 w-12 text-gray-400" />
           </div>
         )}
-        {/* Level Badge Overlay */}
-        <div className="absolute top-2 right-2">
+        {/* Level Badge Overlay - moved to left */}
+        <div className="absolute top-2 left-2">
           <Badge className={getLevelColor(course.level)}>
             {getLevelDisplayName(course.level)}
           </Badge>

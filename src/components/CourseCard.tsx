@@ -35,8 +35,8 @@ const CourseCard = ({ course }: CourseCardProps) => {
             <Image className="h-16 w-16 text-gray-400" />
           </div>
         )}
-        {/* Level Badge Overlay */}
-        <div className="absolute top-3 right-3">
+        {/* Level Badge Overlay - moved to left */}
+        <div className="absolute top-3 left-3">
           <Badge className={getLevelColor(course.level)}>
             {getLevelDisplayName(course.level)}
           </Badge>
