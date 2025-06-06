@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 
 interface ConfettiPiece {
@@ -22,7 +21,7 @@ interface ConfettiProps {
 const Confetti: React.FC<ConfettiProps> = ({ 
   active, 
   onComplete, 
-  duration = 3000 
+  duration 
 }) => {
   const [pieces, setPieces] = useState<ConfettiPiece[]>([]);
 
@@ -56,28 +55,57 @@ const Confetti: React.FC<ConfettiProps> = ({
 
     // Animation loop
     const animationFrame = () => {
-      setPieces(currentPieces => 
-        currentPieces.map(piece => ({
+      setPieces(currentPieces => {
+        const updatedPieces = currentPieces.map(piece => ({
           ...piece,
           x: piece.x + piece.speedX,
           y: piece.y + piece.speedY,
           rotation: piece.rotation + piece.rotationSpeed,
           speedY: piece.speedY + 0.1, // gravity
-        })).filter(piece => piece.y < window.innerHeight + 50)
-      );
+        }));
+
+        // Add new pieces from the top to keep the effect going
+        const visiblePieces = updatedPieces.filter(piece => piece.y < window.innerHeight + 50);
+        
+        // Add new pieces occasionally to maintain the effect
+        if (Math.random() < 0.1 && visiblePieces.length < 150) {
+          const newPieces = [];
+          for (let i = 0; i < 5; i++) {
+            newPieces.push({
+              id: Date.now() + Math.random(),
+              x: Math.random() * window.innerWidth,
+              y: -10,
+              color: colors[Math.floor(Math.random() * colors.length)],
+              size: Math.random() * 8 + 4,
+              speedX: (Math.random() - 0.5) * 6,
+              speedY: Math.random() * 3 + 2,
+              rotation: Math.random() * 360,
+              rotationSpeed: (Math.random() - 0.5) * 10,
+            });
+          }
+          return [...visiblePieces, ...newPieces];
+        }
+
+        return visiblePieces;
+      });
     };
 
     const interval = setInterval(animationFrame, 16);
 
-    // Clean up after duration
-    const timeout = setTimeout(() => {
-      setPieces([]);
-      onComplete?.();
-    }, duration);
+    // Only set timeout if duration is specified
+    let timeout: NodeJS.Timeout | undefined;
+    if (duration) {
+      timeout = setTimeout(() => {
+        setPieces([]);
+        onComplete?.();
+      }, duration);
+    }
 
     return () => {
       clearInterval(interval);
-      clearTimeout(timeout);
+      if (timeout) {
+        clearTimeout(timeout);
+      }
     };
   }, [active, duration, onComplete]);
 
