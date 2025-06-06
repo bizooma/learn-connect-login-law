@@ -3,13 +3,16 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
-import { BookOpen, Users, User, Library, Building2, LogOut } from "lucide-react";
+import { BookOpen, Users, User, Library, Building2, LogOut, Sparkles } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import NotificationBanner from "./notifications/NotificationBanner";
 import LMSTreeFooter from "./lms-tree/LMSTreeFooter";
 import DashboardStats from "./dashboard/DashboardStats";
 import DashboardContent from "./dashboard/DashboardContent";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import Confetti from "./ui/confetti";
+import WelcomeModal from "./modals/WelcomeModal";
+import { useFirstTimeUser } from "@/hooks/useFirstTimeUser";
 
 const Dashboard = () => {
   const { user, signOut } = useAuth();
@@ -17,6 +20,14 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("courses");
   const { stats, loading: statsLoading } = useDashboardStats();
+  
+  // First-time user experience
+  const {
+    showWelcome,
+    showConfetti,
+    markWelcomeAsSeen,
+    triggerDemo,
+  } = useFirstTimeUser();
 
   useEffect(() => {
     // Redirect students to their dedicated dashboard
@@ -80,6 +91,16 @@ const Dashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 flex flex-col">
+      {/* Confetti Animation */}
+      <Confetti active={showConfetti} />
+      
+      {/* Welcome Modal */}
+      <WelcomeModal
+        open={showWelcome}
+        onClose={markWelcomeAsSeen}
+        userFirstName={user?.user_metadata?.first_name}
+      />
+
       <div className="flex-1">
         {/* Header */}
         <div className="bg-white shadow-sm border-b">
@@ -108,6 +129,16 @@ const Dashboard = () => {
                 </div>
               </div>
               <div className="flex items-center space-x-4">
+                {/* Demo Button - Remove this in production */}
+                <Button
+                  variant="outline"
+                  onClick={triggerDemo}
+                  className="flex items-center border-yellow-400 text-yellow-700 hover:bg-yellow-50"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Demo Welcome
+                </Button>
+                
                 <Button
                   variant="outline"
                   onClick={() => navigate("/courses")}
