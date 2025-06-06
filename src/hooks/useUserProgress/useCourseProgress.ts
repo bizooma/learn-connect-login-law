@@ -14,14 +14,21 @@ export const useCourseProgress = (userId?: string) => {
 
   const fetchUserProgress = useCallback(async () => {
     if (!userId) {
+      console.log('useCourseProgress: No userId provided');
       setLoading(false);
       return;
     }
 
     try {
       setLoading(true);
+      console.log('useCourseProgress: Fetching progress for user:', userId);
+      
       const progressData = await progressService.fetchUserProgress(userId);
+      console.log('useCourseProgress: Raw progress data:', progressData);
+      
       const coursesWithProgress = transformProgressData(progressData);
+      console.log('useCourseProgress: Transformed courses:', coursesWithProgress);
+      
       setCourseProgress(coursesWithProgress);
     } catch (error) {
       console.error('Error fetching user progress:', error);
