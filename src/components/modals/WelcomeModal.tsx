@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -25,7 +26,7 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="max-w-4xl p-0 gap-0 bg-gradient-to-br from-blue-50 to-indigo-100">
+      <DialogContent className="max-w-4xl p-0 gap-0" style={{ backgroundColor: '#E3E3E3' }}>
         <div className="relative overflow-hidden">
           {/* Header with gradient background */}
           <div 
@@ -135,3 +136,4 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
 };
 
 export default WelcomeModal;
+
