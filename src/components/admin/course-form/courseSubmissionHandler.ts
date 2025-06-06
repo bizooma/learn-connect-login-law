@@ -1,25 +1,92 @@
 
-import { CourseFormData, SectionData } from "./types";
-import { createCourse } from "./services/courseCreation";
+import { supabase } from "@/integrations/supabase/client";
+import { CourseFormData } from "./types";
+import { uploadCourseImage } from "./services/imageUpload";
+import { createDefaultModule } from "./services/moduleCreation";
 import { createLessonsAndUnits } from "./services/sectionCreation";
-import { createCourseNotification } from "./services/notificationService";
 import { createWelcomeCalendarEvent } from "./services/calendarService";
+import { createCourseWithModules } from "./services/courseSubmissionService";
+
+interface SectionData {
+  title: string;
+  description: string;
+  image_url?: string;
+  sort_order: number;
+  units: any[];
+}
+
+interface ModuleData {
+  title: string;
+  description: string;
+  image_url?: string;
+  file_url?: string;
+  file_name?: string;
+  file_size?: number;
+  sort_order: number;
+  lessons: any[];
+}
 
 export const handleCourseSubmission = async (
-  data: CourseFormData,
-  lessons: SectionData[]
+  data: CourseFormData, 
+  sections: SectionData[], 
+  modules?: ModuleData[]
 ) => {
-  // Create the course first
-  const courseDataResult = await createCourse(data);
+  console.log('Starting course submission with data:', { data, sections, modules });
+  
+  let imageUrl = '';
+  
+  // Upload course image if provided
+  if (data.image_file) {
+    try {
+      imageUrl = await uploadCourseImage(data.image_file);
+    } catch (error) {
+      console.error('Image upload failed:', error);
+      // Continue without image
+    }
+  }
 
-  // Create notification for new course
-  await createCourseNotification(data.title);
+  // Create the course
+  const { data: course, error: courseError } = await supabase
+    .from('courses')
+    .insert({
+      title: data.title,
+      description: data.description,
+      instructor: data.instructor,
+      category: data.category,
+      level: data.level,
+      duration: data.duration,
+      image_url: imageUrl,
+      is_draft: false,
+    })
+    .select()
+    .single();
 
-  // Create a default welcome calendar event for the new course
-  await createWelcomeCalendarEvent(courseDataResult.id, data.title);
+  if (courseError) {
+    console.error('Error creating course:', courseError);
+    throw new Error(`Failed to create course: ${courseError.message}`);
+  }
 
-  // Create lessons and units if any
-  await createLessonsAndUnits(courseDataResult.id, lessons);
+  console.log('Course created:', course);
 
-  console.log('Course creation completed successfully');
+  // Create welcome calendar event
+  try {
+    await createWelcomeCalendarEvent(course.id, course.title);
+  } catch (error) {
+    console.error('Error creating welcome calendar event:', error);
+  }
+
+  // Handle content creation based on whether we have modules or sections
+  if (modules && modules.length > 0) {
+    console.log('Creating course with modules structure');
+    await createCourseWithModules(course.id, data, modules);
+  } else if (sections && sections.length > 0) {
+    console.log('Creating course with legacy sections structure');
+    // Create a default module for backward compatibility
+    const defaultModule = await createDefaultModule(course.id);
+    await createLessonsAndUnits(course.id, sections, defaultModule.id);
+  } else {
+    console.log('No content provided, creating empty course');
+  }
+
+  return course;
 };

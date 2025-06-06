@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
@@ -10,6 +9,7 @@ import { cleanupExistingCourseContent } from "./services/courseContentCleanup";
 import { createLessonsAndUnits } from "./services/sectionCreation";
 import { createWelcomeCalendarEvent } from "./services/calendarService";
 import { supabase } from "@/integrations/supabase/client";
+import { createCourseWithModules } from "./services/courseSubmissionService";
 
 type Course = Tables<'courses'>;
 
@@ -117,16 +117,9 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
       await ensureCalendarExists(course.id);
       await cleanupExistingCourseContent(course.id);
 
-      // Convert modules structure to sections structure for backward compatibility
-      const sections = modules.flatMap(module => 
-        module.lessons.map(lesson => ({
-          ...lesson,
-          units: lesson.units
-        }))
-      );
-
-      if (sections.length > 0) {
-        await createLessonsAndUnits(course.id, sections);
+      // Use the new module-aware submission
+      if (modules.length > 0) {
+        await createCourseWithModules(course.id, data, modules);
       }
 
       toast({
