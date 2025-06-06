@@ -29,7 +29,6 @@ export const progressService = {
     console.log('Updating course progress:', { courseId, updates });
     
     try {
-      // Use upsert to handle both insert and update cases
       const { error } = await supabase
         .from('user_course_progress')
         .upsert({
@@ -47,18 +46,14 @@ export const progressService = {
       }
     } catch (error) {
       console.error('Error updating course progress:', error);
-      // Only throw non-duplicate errors to prevent spam
-      if (error.code !== '23505') {
-        throw error;
-      }
+      throw error;
     }
   },
 
   async markUnitComplete(userId: string, unitId: string, courseId: string) {
-    console.log('Marking unit complete:', { unitId, courseId });
+    console.log('Marking unit complete:', { unitId, courseId, userId });
     
     try {
-      // Use upsert to handle both insert and update cases
       const { error } = await supabase
         .from('user_unit_progress')
         .upsert({
@@ -76,12 +71,11 @@ export const progressService = {
         console.error('Error upserting unit progress:', error);
         throw error;
       }
+
+      console.log('Unit marked complete successfully');
     } catch (error) {
       console.error('Error marking unit complete:', error);
-      // Only throw non-duplicate errors to prevent spam
-      if (error.code !== '23505') {
-        throw error;
-      }
+      throw error;
     }
   },
 

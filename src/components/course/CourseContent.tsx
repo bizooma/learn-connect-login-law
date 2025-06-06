@@ -9,6 +9,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useCourseCompletion } from "@/hooks/useCourseCompletion";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
 
 type Unit = Tables<'units'>;
 type Quiz = Tables<'quizzes'>;
@@ -28,6 +29,7 @@ const CourseContent = ({ unit, courseId, courseTitle }: CourseContentProps) => {
   const { markUnitComplete } = useUserProgress(user?.id);
   const { isCompleted } = useCourseCompletion(courseId);
   const [isCompleting, setIsCompleting] = useState(false);
+  const { toast } = useToast();
 
   const handleFileDownload = () => {
     if (unit?.file_url) {
@@ -36,13 +38,32 @@ const CourseContent = ({ unit, courseId, courseTitle }: CourseContentProps) => {
   };
 
   const handleMarkComplete = async () => {
-    if (!unit || !user) return;
+    if (!unit || !user || !courseId) {
+      console.error('Missing required data for marking unit complete:', { unit: !!unit, user: !!user, courseId });
+      toast({
+        title: "Error",
+        description: "Missing required information to mark unit complete",
+        variant: "destructive",
+      });
+      return;
+    }
     
     setIsCompleting(true);
     try {
+      console.log('Marking unit complete:', { unitId: unit.id, courseId, userId: user.id });
       await markUnitComplete(unit.id, courseId);
+      
+      toast({
+        title: "Success",
+        description: "Unit marked as complete!",
+      });
     } catch (error) {
       console.error('Error marking unit complete:', error);
+      toast({
+        title: "Error",
+        description: "Failed to mark unit as complete. Please try again.",
+        variant: "destructive",
+      });
     } finally {
       setIsCompleting(false);
     }
@@ -100,7 +121,7 @@ const CourseContent = ({ unit, courseId, courseTitle }: CourseContentProps) => {
             </div>
             <Button 
               onClick={handleMarkComplete}
-              disabled={isCompleting}
+              disabled={isCompleting || !user}
               className="flex items-center space-x-2"
             >
               <CheckCircle className="h-4 w-4" />
