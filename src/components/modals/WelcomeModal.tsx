@@ -37,7 +37,7 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
             </div>
             <div className="flex items-center mb-4">
               <img 
-                src="/lovable-uploads/170f8d22-3835-4ef9-824a-3bc318cbb768.png" 
+                src="/lovable-uploads/126f6dae-4376-4b57-9955-f40fc6fa19e2.png" 
                 alt="New Frontier University" 
                 className="h-12 w-auto mr-4"
               />
