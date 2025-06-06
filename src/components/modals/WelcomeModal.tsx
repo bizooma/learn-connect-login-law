@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -21,6 +21,21 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
   userFirstName = "Student" 
 }) => {
   const [videoUrl] = useState("/lovable-uploads/welcome-video.mp4");
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    if (open && videoRef.current) {
+      // Try to play the video when modal opens
+      const playVideo = async () => {
+        try {
+          await videoRef.current?.play();
+        } catch (error) {
+          console.log('Autoplay prevented:', error);
+        }
+      };
+      playVideo();
+    }
+  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
@@ -70,12 +85,15 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
                 </h4>
                 <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden">
                   <video
+                    ref={videoRef}
                     key={videoUrl}
                     className="w-full h-full object-cover"
                     autoPlay
                     muted
                     loop
                     playsInline
+                    controls
+                    preload="auto"
                   >
                     <source src={videoUrl} type="video/mp4" />
                     {/* Fallback content */}
