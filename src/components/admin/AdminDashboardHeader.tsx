@@ -1,8 +1,9 @@
 
-import { BookOpen, Menu, LogOut, TreePine, User, HelpCircle } from "lucide-react";
+import { BookOpen, Menu, LogOut, TreePine, User, HelpCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { useFirstTimeUser } from "@/hooks/useFirstTimeUser";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +15,7 @@ import {
 const AdminDashboardHeader = () => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
+  const { triggerDemo } = useFirstTimeUser();
 
   const handleSignOut = async () => {
     try {
@@ -85,6 +87,11 @@ const AdminDashboardHeader = () => {
                 <DropdownMenuItem onClick={handleLMSTree} className="flex items-center space-x-2">
                   <TreePine className="h-4 w-4" />
                   <span>LMS Tree</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={triggerDemo} className="flex items-center space-x-2 text-yellow-600">
+                  <Sparkles className="h-4 w-4" />
+                  <span>Demo Welcome</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="flex items-center space-x-2 text-red-600">

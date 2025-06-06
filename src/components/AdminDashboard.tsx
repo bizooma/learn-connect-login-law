@@ -7,9 +7,19 @@ import AdminManagementTabs from "./admin/AdminManagementTabs";
 import NotificationBanner from "./notifications/NotificationBanner";
 import RecentActivity from "./admin/RecentActivity";
 import LMSTreeFooter from "./lms-tree/LMSTreeFooter";
+import Confetti from "./ui/confetti";
+import WelcomeModal from "./modals/WelcomeModal";
+import { useFirstTimeUser } from "@/hooks/useFirstTimeUser";
+import { useAuth } from "@/hooks/useAuth";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("courses");
+  const { user } = useAuth();
+  const {
+    showWelcome,
+    showConfetti,
+    markWelcomeAsSeen,
+  } = useFirstTimeUser();
   const [stats, setStats] = useState({
     totalCourses: 0,
     totalUsers: 0,
@@ -67,6 +77,16 @@ const AdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 flex flex-col">
+      {/* Confetti Animation */}
+      <Confetti active={showConfetti} />
+      
+      {/* Welcome Modal */}
+      <WelcomeModal
+        open={showWelcome}
+        onClose={markWelcomeAsSeen}
+        userFirstName={user?.user_metadata?.first_name}
+      />
+
       <div className="flex-1">
         <AdminDashboardHeader />
 
