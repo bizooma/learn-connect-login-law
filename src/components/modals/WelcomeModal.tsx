@@ -1,5 +1,5 @@
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -20,22 +20,8 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
   onClose, 
   userFirstName = "Student" 
 }) => {
-  const [videoUrl] = useState("/lovable-uploads/welcome-video.mp4");
-  const videoRef = useRef<HTMLVideoElement>(null);
-
-  useEffect(() => {
-    if (open && videoRef.current) {
-      // Try to play the video when modal opens
-      const playVideo = async () => {
-        try {
-          await videoRef.current?.play();
-        } catch (error) {
-          console.log('Autoplay prevented:', error);
-        }
-      };
-      playVideo();
-    }
-  }, [open]);
+  // YouTube video ID - can be easily changed to any YouTube video
+  const [youtubeVideoId] = useState("dQw4w9WgXcQ"); // Replace with actual video ID
 
   return (
     <Dialog open={open} onOpenChange={() => {}}>
@@ -86,19 +72,16 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
                   Watch This Quick Introduction
                 </h4>
                 <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden">
-                  <video
-                    ref={videoRef}
-                    key={videoUrl}
-                    className="w-full h-full object-cover"
-                    autoPlay
-                    muted
-                    loop
-                    playsInline
-                    controls
-                    preload="auto"
-                  >
-                    <source src={videoUrl} type="video/mp4" />
-                    {/* Fallback content */}
+                  {youtubeVideoId ? (
+                    <iframe
+                      className="w-full h-full"
+                      src={`https://www.youtube.com/embed/${youtubeVideoId}?autoplay=1&mute=1&loop=1&playlist=${youtubeVideoId}&controls=1&modestbranding=1&rel=0`}
+                      title="Welcome Video"
+                      frameBorder="0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                      allowFullScreen
+                    />
+                  ) : (
                     <div className="flex items-center justify-center h-full bg-gray-800 text-white">
                       <div className="text-center">
                         <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
@@ -107,10 +90,10 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
                           </svg>
                         </div>
                         <p className="text-lg">Welcome Video</p>
-                        <p className="text-sm text-gray-300">Video will appear here when uploaded</p>
+                        <p className="text-sm text-gray-300">Video will appear here when configured</p>
                       </div>
                     </div>
-                  </video>
+                  )}
                 </div>
               </div>
             </div>
