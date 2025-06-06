@@ -1,15 +1,10 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Plus, Trash2 } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { Plus } from 'lucide-react';
 import { ModuleData, LessonData, UnitData } from './types';
-import UnitForm from './UnitForm';
-import ModuleImageUpload from '../ModuleImageUpload';
-import LessonImageUpload from '../LessonImageUpload';
+import ModuleForm from './ModuleForm';
 
 interface CourseContentFormProps {
   modules: ModuleData[];
@@ -58,7 +53,7 @@ const CourseContentForm = ({ modules, onModulesChange }: CourseContentFormProps)
     onModulesChange(updatedModules);
   };
 
-  const updateLesson = (moduleIndex: number, lessonIndex: number, field: keyof LessonData, value: any) => {
+  const updateLesson = (moduleIndex: number, lessonIndex: number, field: string, value: any) => {
     const updatedModules = [...modules];
     updatedModules[moduleIndex].lessons[lessonIndex] = {
       ...updatedModules[moduleIndex].lessons[lessonIndex],
@@ -109,14 +104,6 @@ const CourseContentForm = ({ modules, onModulesChange }: CourseContentFormProps)
     onModulesChange(updatedModules);
   };
 
-  const handleModuleImageUpdate = (moduleIndex: number, imageUrl: string | null) => {
-    updateModule(moduleIndex, 'image_url', imageUrl || '');
-  };
-
-  const handleLessonImageUpdate = (moduleIndex: number, lessonIndex: number, imageUrl: string | null) => {
-    updateLesson(moduleIndex, lessonIndex, 'image_url', imageUrl || '');
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -128,129 +115,19 @@ const CourseContentForm = ({ modules, onModulesChange }: CourseContentFormProps)
       </div>
 
       {modules.map((module, moduleIndex) => (
-        <Card key={moduleIndex} className="border-blue-200">
-          <CardHeader className="bg-blue-50">
-            <CardTitle className="flex items-center justify-between">
-              <span>Module {moduleIndex + 1}</span>
-              <Button
-                type="button"
-                variant="destructive"
-                size="sm"
-                onClick={() => removeModule(moduleIndex)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-4 space-y-4">
-            <div>
-              <Label>Module Title</Label>
-              <Input
-                value={module.title}
-                onChange={(e) => updateModule(moduleIndex, 'title', e.target.value)}
-                placeholder="Enter module title"
-              />
-            </div>
-            
-            <div>
-              <Label>Module Description</Label>
-              <Textarea
-                value={module.description}
-                onChange={(e) => updateModule(moduleIndex, 'description', e.target.value)}
-                placeholder="Enter module description"
-              />
-            </div>
-
-            <ModuleImageUpload
-              currentImageUrl={module.image_url}
-              onImageUpdate={(imageUrl) => handleModuleImageUpdate(moduleIndex, imageUrl)}
-              moduleIndex={moduleIndex}
-            />
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium">Lessons</h4>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => addLesson(moduleIndex)}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Lesson
-                </Button>
-              </div>
-
-              {module.lessons.map((lesson, lessonIndex) => (
-                <Card key={lessonIndex} className="border-green-200 ml-4">
-                  <CardHeader className="bg-green-50 py-2">
-                    <CardTitle className="flex items-center justify-between text-base">
-                      <span>Lesson {lessonIndex + 1}</span>
-                      <Button
-                        type="button"
-                        variant="destructive"
-                        size="sm"
-                        onClick={() => removeLesson(moduleIndex, lessonIndex)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-4 space-y-4">
-                    <div>
-                      <Label>Lesson Title</Label>
-                      <Input
-                        value={lesson.title}
-                        onChange={(e) => updateLesson(moduleIndex, lessonIndex, 'title', e.target.value)}
-                        placeholder="Enter lesson title"
-                      />
-                    </div>
-                    
-                    <div>
-                      <Label>Lesson Description</Label>
-                      <Textarea
-                        value={lesson.description}
-                        onChange={(e) => updateLesson(moduleIndex, lessonIndex, 'description', e.target.value)}
-                        placeholder="Enter lesson description"
-                      />
-                    </div>
-
-                    <LessonImageUpload
-                      currentImageUrl={lesson.image_url}
-                      onImageUpdate={(imageUrl) => handleLessonImageUpdate(moduleIndex, lessonIndex, imageUrl)}
-                      lessonIndex={lessonIndex}
-                    />
-
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between">
-                        <h5 className="font-medium">Units</h5>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          onClick={() => addUnit(moduleIndex, lessonIndex)}
-                        >
-                          <Plus className="h-4 w-4 mr-2" />
-                          Add Unit
-                        </Button>
-                      </div>
-
-                      {lesson.units.map((unit, unitIndex) => (
-                        <UnitForm
-                          key={unitIndex}
-                          unit={unit}
-                          onUnitChange={(field, value) => updateUnit(moduleIndex, lessonIndex, unitIndex, field, value)}
-                          onRemove={() => removeUnit(moduleIndex, lessonIndex, unitIndex)}
-                          unitIndex={unitIndex}
-                        />
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        <ModuleForm
+          key={moduleIndex}
+          module={module}
+          moduleIndex={moduleIndex}
+          onModuleUpdate={(field, value) => updateModule(moduleIndex, field, value)}
+          onModuleRemove={() => removeModule(moduleIndex)}
+          onAddLesson={() => addLesson(moduleIndex)}
+          onLessonUpdate={(lessonIndex, field, value) => updateLesson(moduleIndex, lessonIndex, field, value)}
+          onLessonRemove={(lessonIndex) => removeLesson(moduleIndex, lessonIndex)}
+          onAddUnit={(lessonIndex) => addUnit(moduleIndex, lessonIndex)}
+          onUnitUpdate={(lessonIndex, unitIndex, field, value) => updateUnit(moduleIndex, lessonIndex, unitIndex, field, value)}
+          onUnitRemove={(lessonIndex, unitIndex) => removeUnit(moduleIndex, lessonIndex, unitIndex)}
+        />
       ))}
 
       {modules.length === 0 && (
