@@ -14,6 +14,9 @@ import StudentCertificatesTab from "./student/StudentCertificatesTab";
 import StudentMainHeader from "./student/StudentMainHeader";
 import StudentDashboardHeader from "./student/StudentDashboardHeader";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import Confetti from "./ui/confetti";
+import WelcomeModal from "./modals/WelcomeModal";
+import { useFirstTimeUser } from "@/hooks/useFirstTimeUser";
 
 const StudentDashboard = () => {
   const { user, signOut } = useAuth();
@@ -22,6 +25,13 @@ const StudentDashboard = () => {
   const [activeTab, setActiveTab] = useState("assigned");
   const [mainTab, setMainTab] = useState("dashboard");
   const { stats, loading: statsLoading } = useDashboardStats();
+  
+  // First-time user experience
+  const {
+    showWelcome,
+    showConfetti,
+    markWelcomeAsSeen,
+  } = useFirstTimeUser();
 
   useEffect(() => {
     console.log('StudentDashboard: useEffect triggered with:', {
@@ -100,6 +110,16 @@ const StudentDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 flex flex-col">
+      {/* Confetti Animation */}
+      <Confetti active={showConfetti} />
+      
+      {/* Welcome Modal */}
+      <WelcomeModal
+        open={showWelcome}
+        onClose={markWelcomeAsSeen}
+        userFirstName={user?.user_metadata?.first_name}
+      />
+
       <StudentMainHeader />
       <StudentDashboardHeader onSignOut={signOut} />
       
