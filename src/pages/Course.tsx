@@ -24,10 +24,7 @@ const Course = () => {
     }
 
     if (course && user) {
-      updateCourseProgress(course.id, {
-        status: 'in_progress',
-        last_accessed_at: new Date().toISOString()
-      });
+      updateCourseProgress(course.id, 'in_progress', 0);
     }
   }, [course, user, authLoading, navigate, updateCourseProgress]);
 
