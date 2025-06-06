@@ -1,9 +1,10 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Clock, Users, Play, ChevronDown, ChevronRight, BookOpen } from "lucide-react";
+import { Clock, Users, Play, ChevronDown, ChevronRight, BookOpen, CheckCircle2 } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { useState } from "react";
+import { useUnitProgress } from "@/hooks/useUnitProgress";
 import CourseProgressBar from "./CourseProgressBar";
 
 type Lesson = Tables<'lessons'>;
@@ -27,6 +28,7 @@ interface CourseSidebarProps {
 
 const CourseSidebar = ({ courseId, lessons, selectedUnit, onUnitSelect }: CourseSidebarProps) => {
   const [expandedLessons, setExpandedLessons] = useState<Set<string>>(new Set());
+  const { isUnitCompleted, loading: progressLoading } = useUnitProgress(courseId);
 
   const toggleLesson = (lessonId: string) => {
     const newExpanded = new Set(expandedLessons);
@@ -95,44 +97,58 @@ const CourseSidebar = ({ courseId, lessons, selectedUnit, onUnitSelect }: Course
                   
                   {/* Units List */}
                   <div className="space-y-1">
-                    {lesson.units.map((unit, unitIndex) => (
-                      <button
-                        key={unit.id}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          onUnitSelect(unit);
-                        }}
-                        className={`w-full text-left p-2 rounded hover:bg-gray-100 transition-colors border-l-2 ${
-                          selectedUnit?.id === unit.id
-                            ? 'border-l-blue-500 bg-blue-50'
-                            : 'border-l-transparent'
-                        }`}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-2">
-                            <Play className="h-3 w-3 text-gray-400" />
-                            <span className="text-xs font-medium">
-                              {unitIndex + 1}. {unit.title}
-                            </span>
-                            {unit.quiz && (
-                              <BookOpen className="h-3 w-3 text-blue-600" />
-                            )}
+                    {lesson.units.map((unit, unitIndex) => {
+                      const isCompleted = !progressLoading && isUnitCompleted(unit.id);
+                      const isSelected = selectedUnit?.id === unit.id;
+                      
+                      return (
+                        <button
+                          key={unit.id}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onUnitSelect(unit);
+                          }}
+                          className={`w-full text-left p-2 rounded hover:bg-gray-100 transition-colors border-l-2 ${
+                            isSelected
+                              ? 'border-l-blue-500 bg-blue-50'
+                              : 'border-l-transparent'
+                          }`}
+                        >
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              {isCompleted ? (
+                                <CheckCircle2 className="h-3 w-3 text-green-600" />
+                              ) : (
+                                <Play className="h-3 w-3 text-gray-400" />
+                              )}
+                              <span className={`text-xs font-medium ${isCompleted ? 'text-green-700' : ''}`}>
+                                {unitIndex + 1}. {unit.title}
+                              </span>
+                              {unit.quiz && (
+                                <BookOpen className="h-3 w-3 text-blue-600" />
+                              )}
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              {isCompleted && (
+                                <Badge variant="outline" className="text-xs px-1 py-0 bg-green-50 text-green-700 border-green-200">
+                                  ✓
+                                </Badge>
+                              )}
+                              {unit.duration_minutes && (
+                                <Badge variant="outline" className="text-xs px-1 py-0">
+                                  {unit.duration_minutes}m
+                                </Badge>
+                              )}
+                            </div>
                           </div>
-                          <div className="flex items-center space-x-1">
-                            {unit.duration_minutes && (
-                              <Badge variant="outline" className="text-xs px-1 py-0">
-                                {unit.duration_minutes}m
-                              </Badge>
-                            )}
-                          </div>
-                        </div>
-                        {unit.description && (
-                          <p className="text-xs text-gray-500 mt-1 truncate ml-5">
-                            {unit.description}
-                          </p>
-                        )}
-                      </button>
-                    ))}
+                          {unit.description && (
+                            <p className="text-xs text-gray-500 mt-1 truncate ml-5">
+                              {unit.description}
+                            </p>
+                          )}
+                        </button>
+                      );
+                    })}
                   </div>
                 </CardContent>
               )}

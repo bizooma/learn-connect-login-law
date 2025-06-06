@@ -2,8 +2,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { BookOpen, Clock, Trophy, Play } from "lucide-react";
+import { BookOpen, Clock, Trophy, Play, ArrowRight } from "lucide-react";
 import { useUserProgress } from "@/hooks/useUserProgress";
+import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 import { Tables } from "@/integrations/supabase/types";
 
 type Course = Tables<'courses'>;
@@ -20,7 +22,8 @@ interface UserCourseProgressProps {
 }
 
 const UserCourseProgress = ({ userId, showOnlyAssigned = false, showOnlyCompleted = false }: UserCourseProgressProps) => {
-  const { completedCourses, currentCourse, loading } = useUserProgress(userId);
+  const { courseProgress, completedCourses, inProgressCourses, currentCourse, loading } = useUserProgress(userId);
+  const navigate = useNavigate();
 
   if (loading) {
     return (
@@ -55,78 +58,51 @@ const UserCourseProgress = ({ userId, showOnlyAssigned = false, showOnlyComplete
     }
   };
 
+  const handleCourseClick = (courseId: string) => {
+    navigate(`/courses/${courseId}`);
+  };
+
   // Filter courses based on props
-  let coursesToShow = [];
+  let coursesToShow: CourseWithProgress[] = [];
+  
   if (showOnlyCompleted) {
     coursesToShow = completedCourses;
   } else if (showOnlyAssigned) {
-    coursesToShow = currentCourse ? [currentCourse] : [];
+    // Show all courses that have progress (assigned courses), regardless of status
+    coursesToShow = courseProgress.filter(course => course.progress);
   } else {
-    coursesToShow = currentCourse ? [currentCourse, ...completedCourses] : completedCourses;
+    coursesToShow = courseProgress;
   }
+
+  console.log('UserCourseProgress Debug:', {
+    userId,
+    showOnlyAssigned,
+    showOnlyCompleted,
+    courseProgress: courseProgress.length,
+    coursesToShow: coursesToShow.length,
+    totalCourses: courseProgress.length
+  });
 
   return (
     <div className="space-y-6">
-      {/* Current Course - only show if not filtering for completed only */}
-      {currentCourse && !showOnlyCompleted && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Play className="h-5 w-5 text-blue-500" />
-              Currently Learning
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex items-start justify-between">
-                <div>
-                  <h3 className="font-semibold text-lg">{currentCourse.title}</h3>
-                  <p className="text-gray-600 text-sm">{currentCourse.description}</p>
-                  <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-4 w-4" />
-                      {currentCourse.duration}
-                    </span>
-                    <span className="flex items-center gap-1">
-                      <BookOpen className="h-4 w-4" />
-                      {currentCourse.instructor}
-                    </span>
-                  </div>
-                </div>
-                <Badge className={getStatusColor(currentCourse.progress?.status || 'not_started')}>
-                  {getStatusText(currentCourse.progress?.status || 'not_started')}
-                </Badge>
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span>Progress</span>
-                  <span>{currentCourse.progress?.progress_percentage || 0}%</span>
-                </div>
-                <Progress value={currentCourse.progress?.progress_percentage || 0} className="h-2" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Completed Courses */}
-      {completedCourses.length > 0 && !showOnlyAssigned && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Trophy className="h-5 w-5 text-green-500" />
-              Completed Courses ({completedCourses.length})
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              {completedCourses.map((course) => (
-                <div key={course.id} className="flex items-start justify-between p-4 border rounded-lg">
-                  <div>
-                    <h4 className="font-medium">{course.title}</h4>
-                    <p className="text-sm text-gray-600">{course.description}</p>
-                    <div className="flex items-center gap-4 mt-2 text-sm text-gray-500">
+      {/* Show courses based on filter */}
+      {coursesToShow.length > 0 ? (
+        <div className="space-y-4">
+          {coursesToShow.map((course) => (
+            <Card key={course.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => handleCourseClick(course.id)}>
+              <CardContent className="p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="font-semibold text-lg">{course.title}</h3>
+                      <Badge className={getStatusColor(course.progress?.status || 'not_started')}>
+                        {getStatusText(course.progress?.status || 'not_started')}
+                      </Badge>
+                    </div>
+                    
+                    <p className="text-gray-600 text-sm mb-4">{course.description}</p>
+                    
+                    <div className="flex items-center gap-6 text-sm text-gray-500 mb-4">
                       <span className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
                         {course.duration}
@@ -135,30 +111,61 @@ const UserCourseProgress = ({ userId, showOnlyAssigned = false, showOnlyComplete
                         <BookOpen className="h-4 w-4" />
                         {course.instructor}
                       </span>
-                      {course.progress?.completed_at && (
-                        <span>
-                          Completed: {new Date(course.progress.completed_at).toLocaleDateString()}
-                        </span>
-                      )}
+                      <span className="capitalize">
+                        {course.level}
+                      </span>
                     </div>
+                    
+                    {course.progress && (
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span>Progress</span>
+                          <span>{course.progress.progress_percentage || 0}%</span>
+                        </div>
+                        <Progress value={course.progress.progress_percentage || 0} className="h-2" />
+                        
+                        {course.progress.last_accessed_at && (
+                          <p className="text-xs text-gray-500">
+                            Last accessed: {new Date(course.progress.last_accessed_at).toLocaleDateString()}
+                          </p>
+                        )}
+                      </div>
+                    )}
                   </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <Badge className="bg-green-500">
-                      Completed
-                    </Badge>
-                    <span className="text-sm font-medium text-green-600">100%</span>
+                  
+                  <div className="flex flex-col items-end gap-2 ml-4">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="flex items-center gap-2"
+                    >
+                      {course.progress?.status === 'completed' ? (
+                        <>
+                          <Trophy className="h-4 w-4" />
+                          View Certificate
+                        </>
+                      ) : course.progress?.status === 'in_progress' ? (
+                        <>
+                          <Play className="h-4 w-4" />
+                          Continue
+                        </>
+                      ) : (
+                        <>
+                          <ArrowRight className="h-4 w-4" />
+                          Start Course
+                        </>
+                      )}
+                    </Button>
                   </div>
                 </div>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Empty State */}
-      {coursesToShow.length === 0 && (
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        /* Empty State */
         <Card>
-          <CardContent className="py-8">
+          <CardContent className="py-12">
             <div className="text-center">
               <BookOpen className="h-12 w-12 mx-auto text-gray-400 mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">

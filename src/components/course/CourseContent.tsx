@@ -3,13 +3,11 @@ import { Tables } from "@/integrations/supabase/types";
 import CourseVideo from "./CourseVideo";
 import QuizDisplay from "./QuizDisplay";
 import CertificateDownload from "../certificates/CertificateDownload";
+import UnitCompletionButton from "./UnitCompletionButton";
 import { Button } from "@/components/ui/button";
-import { Download, File, CheckCircle } from "lucide-react";
+import { Download, File } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useUserProgress } from "@/hooks/useUserProgress";
 import { useCourseCompletion } from "@/hooks/useCourseCompletion";
-import { useState } from "react";
-import { useToast } from "@/hooks/use-toast";
 
 type Unit = Tables<'units'>;
 type Quiz = Tables<'quizzes'>;
@@ -26,46 +24,11 @@ interface CourseContentProps {
 
 const CourseContent = ({ unit, courseId, courseTitle }: CourseContentProps) => {
   const { user } = useAuth();
-  const { markUnitComplete } = useUserProgress(user?.id);
   const { isCompleted } = useCourseCompletion(courseId);
-  const [isCompleting, setIsCompleting] = useState(false);
-  const { toast } = useToast();
 
   const handleFileDownload = () => {
     if (unit?.file_url) {
       window.open(unit.file_url, '_blank');
-    }
-  };
-
-  const handleMarkComplete = async () => {
-    if (!unit || !user || !courseId) {
-      console.error('Missing required data for marking unit complete:', { unit: !!unit, user: !!user, courseId });
-      toast({
-        title: "Error",
-        description: "Missing required information to mark unit complete",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    setIsCompleting(true);
-    try {
-      console.log('Marking unit complete:', { unitId: unit.id, courseId, userId: user.id });
-      await markUnitComplete(unit.id, courseId);
-      
-      toast({
-        title: "Success",
-        description: "Unit marked as complete!",
-      });
-    } catch (error) {
-      console.error('Error marking unit complete:', error);
-      toast({
-        title: "Error",
-        description: "Failed to mark unit as complete. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setIsCompleting(false);
     }
   };
 
@@ -113,22 +76,7 @@ const CourseContent = ({ unit, courseId, courseTitle }: CourseContentProps) => {
       )}
       
       {!hasQuiz && unit && (
-        <div className="bg-white rounded-lg shadow-sm border p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Complete Unit</h3>
-              <p className="text-gray-600">Mark this unit as complete to track your progress.</p>
-            </div>
-            <Button 
-              onClick={handleMarkComplete}
-              disabled={isCompleting || !user}
-              className="flex items-center space-x-2"
-            >
-              <CheckCircle className="h-4 w-4" />
-              <span>{isCompleting ? 'Completing...' : 'Mark Complete'}</span>
-            </Button>
-          </div>
-        </div>
+        <UnitCompletionButton unit={unit} courseId={courseId} />
       )}
 
       {/* Certificate Download Section */}
