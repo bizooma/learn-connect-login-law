@@ -3,7 +3,6 @@ import { BookOpen, Menu, LogOut, TreePine, User, HelpCircle, Sparkles } from "lu
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
-import { useFirstTimeUser } from "@/hooks/useFirstTimeUser";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,10 +11,13 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-const AdminDashboardHeader = () => {
+interface AdminDashboardHeaderProps {
+  triggerDemo: () => void;
+}
+
+const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
-  const { triggerDemo } = useFirstTimeUser();
 
   const handleSignOut = async () => {
     try {
@@ -40,6 +42,11 @@ const AdminDashboardHeader = () => {
 
   const handleKnowledgeBase = () => {
     navigate('/admin-knowledge-base');
+  };
+
+  const handleDemoWelcome = () => {
+    console.log('Demo Welcome button clicked');
+    triggerDemo();
   };
 
   return (
@@ -89,7 +96,7 @@ const AdminDashboardHeader = () => {
                   <span>LMS Tree</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={triggerDemo} className="flex items-center space-x-2 text-yellow-600">
+                <DropdownMenuItem onClick={handleDemoWelcome} className="flex items-center space-x-2 text-yellow-600">
                   <Sparkles className="h-4 w-4" />
                   <span>Demo Welcome</span>
                 </DropdownMenuItem>

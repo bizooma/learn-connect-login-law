@@ -19,6 +19,7 @@ const AdminDashboard = () => {
     showWelcome,
     showConfetti,
     markWelcomeAsSeen,
+    triggerDemo,
   } = useFirstTimeUser();
   const [stats, setStats] = useState({
     totalCourses: 0,
@@ -88,7 +89,7 @@ const AdminDashboard = () => {
       />
 
       <div className="flex-1">
-        <AdminDashboardHeader />
+        <AdminDashboardHeader triggerDemo={triggerDemo} />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <NotificationBanner />

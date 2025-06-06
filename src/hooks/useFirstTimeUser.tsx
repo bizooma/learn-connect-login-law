@@ -36,8 +36,10 @@ export const useFirstTimeUser = () => {
   };
 
   const triggerDemo = () => {
+    console.log('triggerDemo called in useFirstTimeUser');
     setShowConfetti(true);
     setShowWelcome(true);
+    setIsFirstTime(true); // Set this to true to ensure proper state
   };
 
   return {
