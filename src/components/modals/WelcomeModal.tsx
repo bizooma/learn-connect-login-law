@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -25,7 +23,7 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
   const [youtubeVideoId] = useState("Z9YJvLigLIg");
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
+    <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="max-w-4xl p-0 gap-0" style={{ backgroundColor: '#E3E3E3' }}>
         <div className="relative overflow-hidden">
           {/* Header with gradient background */}
@@ -136,4 +134,3 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
 };
 
 export default WelcomeModal;
-
