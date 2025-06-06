@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -99,17 +100,17 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
 
             {/* Features grid */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <div className="text-center p-4 bg-white rounded-lg shadow-sm border">
+              <div className="text-center p-4 rounded-lg shadow-sm border" style={{ backgroundColor: '#FFDA00' }}>
                 <BookOpen className="h-8 w-8 text-blue-600 mx-auto mb-2" />
                 <h4 className="font-medium text-gray-900 mb-1">Interactive Courses</h4>
                 <p className="text-sm text-gray-600">Engaging content tailored for legal professionals</p>
               </div>
-              <div className="text-center p-4 bg-white rounded-lg shadow-sm border">
+              <div className="text-center p-4 rounded-lg shadow-sm border" style={{ backgroundColor: '#FFDA00' }}>
                 <Users className="h-8 w-8 text-green-600 mx-auto mb-2" />
                 <h4 className="font-medium text-gray-900 mb-1">Collaborative Learning</h4>
                 <p className="text-sm text-gray-600">Connect with peers and share knowledge</p>
               </div>
-              <div className="text-center p-4 bg-white rounded-lg shadow-sm border">
+              <div className="text-center p-4 rounded-lg shadow-sm border" style={{ backgroundColor: '#FFDA00' }}>
                 <Award className="h-8 w-8 text-purple-600 mx-auto mb-2" />
                 <h4 className="font-medium text-gray-900 mb-1">Track Progress</h4>
                 <p className="text-sm text-gray-600">Monitor your learning journey and achievements</p>
