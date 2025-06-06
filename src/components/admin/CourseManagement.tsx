@@ -9,6 +9,7 @@ import CourseSearch from "./CourseSearch";
 import CourseManagementLoading from "./CourseManagementLoading";
 import CreateCourseForm from "./CreateCourseForm";
 import EditCourseForm from "./EditCourseForm";
+import CourseStructureCopy from "./CourseStructureCopy";
 import { Tables } from "@/integrations/supabase/types";
 
 type Course = Tables<'courses'>;
@@ -104,6 +105,9 @@ const CourseManagement = () => {
           Create Course
         </Button>
       </div>
+
+      {/* Course Structure Copy Tool */}
+      <CourseStructureCopy />
 
       {/* Courses grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
