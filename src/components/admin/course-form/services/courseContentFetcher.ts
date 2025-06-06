@@ -29,9 +29,9 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
 
     if (modulesError) throw modulesError;
 
-    // Fetch quizzes for units
+    // Collect all units from all lessons to fetch quizzes
     const allUnits = modulesData?.flatMap(m => 
-      m.lessons?.flatMap(l => (l.units as Unit[]) || []) || []
+      m.lessons?.flatMap(l => l.units || []) || []
     ) || [];
     
     const { data: quizzesData, error: quizzesError } = await supabase
@@ -52,7 +52,7 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
     // Convert modules/lessons structure to the flat lessons structure expected by the form
     // For backward compatibility, we'll flatten the first module's lessons
     const firstModule = modulesData?.[0];
-    const formattedLessons: SectionData[] = firstModule?.lessons?.map((lesson: Lesson) => ({
+    const formattedLessons: SectionData[] = firstModule?.lessons?.map((lesson: any) => ({
       id: lesson.id,
       title: lesson.title,
       description: lesson.description || "",
@@ -64,7 +64,7 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
       video_type: getVideoType(lesson.video_url || "") as 'youtube' | 'upload',
       duration_minutes: lesson.duration_minutes || 0,
       sort_order: lesson.sort_order,
-      units: (lesson.units as Unit[])?.map(unit => ({
+      units: (lesson.units || []).map((unit: Unit) => ({
         id: unit.id,
         title: unit.title,
         description: unit.description || "",
@@ -78,7 +78,7 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
         file_url: unit.file_url || "",
         file_name: unit.file_name || "",
         file_size: unit.file_size || 0,
-      })).sort((a, b) => a.sort_order - b.sort_order) || []
+      })).sort((a, b) => a.sort_order - b.sort_order)
     })).sort((a, b) => a.sort_order - b.sort_order) || [];
 
     return formattedLessons;
