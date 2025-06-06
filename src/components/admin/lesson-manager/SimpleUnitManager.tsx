@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Trash2, ArrowUp, ArrowDown, FileVideo, Youtube } from "lucide-react";
 import { UnitData } from "./types";
-import QuizSelector from "./QuizSelector";
+import EnhancedQuizSelector from "../course-form/EnhancedQuizSelector";
 import UnitImageUpload from "../UnitImageUpload";
 import FileUpload from "../FileUpload";
 
@@ -66,7 +67,7 @@ const SimpleUnitManager = ({
     <Card className="bg-white">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
             <div className="flex items-center space-x-1">
               <Button
                 variant="ghost"
@@ -97,6 +98,11 @@ const SimpleUnitManager = ({
                 <><FileVideo className="h-3 w-3 mr-1" />Upload</>
               )}
             </Badge>
+            {unit.quiz_id && (
+              <Badge variant="default" className="text-xs bg-blue-600">
+                Quiz
+              </Badge>
+            )}
           </div>
           <div className="flex items-center space-x-2">
             {totalLessons > 1 && (
@@ -235,9 +241,11 @@ const SimpleUnitManager = ({
           parentIndex={lessonIndex}
         />
 
-        <QuizSelector
+        <EnhancedQuizSelector
           quizId={unit.quiz_id}
           onQuizUpdate={handleQuizUpdate}
+          unitTitle={unit.title}
+          unitId={unit.id}
         />
       </CardContent>
     </Card>
