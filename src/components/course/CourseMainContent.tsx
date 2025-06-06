@@ -1,7 +1,9 @@
+
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CourseContent from "./CourseContent";
 import CourseCalendar from "./CourseCalendar";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface CourseMainContentProps {
   course: any;
@@ -11,6 +13,7 @@ interface CourseMainContentProps {
 
 const CourseMainContent = ({ course, selectedUnit, courseTitle }: CourseMainContentProps) => {
   const [activeTab, setActiveTab] = useState("content");
+  const { isAdmin } = useUserRole();
 
   return (
     <div className="bg-white rounded-lg shadow-sm">
@@ -29,7 +32,7 @@ const CourseMainContent = ({ course, selectedUnit, courseTitle }: CourseMainCont
         </TabsContent>
         
         <TabsContent value="calendar" className="p-6">
-          <CourseCalendar courseId={course.id} />
+          <CourseCalendar courseId={course.id} isAdmin={isAdmin} />
         </TabsContent>
       </Tabs>
     </div>

@@ -7,6 +7,7 @@ import CalendarEventList from "./CalendarEventList";
 import CalendarControls from "./CalendarControls";
 import { useCourseCalendarEvents } from "@/hooks/useCourseCalendarEvents";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface CourseCalendarProps {
   courseId: string;
@@ -15,6 +16,7 @@ interface CourseCalendarProps {
 
 const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
   const { user } = useAuth();
+  const { isAdmin: userIsAdmin } = useUserRole();
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   
   const {
@@ -25,8 +27,13 @@ const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
     getSelectedEvents
   } = useCourseCalendarEvents(courseId);
 
+  // Check if user can add events (either passed as prop or user has admin role)
+  const canAddEvents = isAdmin || userIsAdmin;
+
   console.log('CourseCalendar: Component rendered with:', {
     isAdmin,
+    userIsAdmin,
+    canAddEvents,
     courseId,
     user: user,
     userId: user?.id,
@@ -55,13 +62,7 @@ const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
     );
   }
 
-  console.log('CourseCalendar: Rendering calendar. Admin button should be visible:', isAdmin);
-  console.log('CourseCalendar: Final render state:', {
-    isAdmin,
-    user: user,
-    userId: user?.id,
-    isAuthenticated: !!user
-  });
+  console.log('CourseCalendar: Rendering calendar. Add button should be visible:', canAddEvents);
 
   return (
     <Card>
@@ -71,7 +72,7 @@ const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
             <CalendarIcon className="h-5 w-5 mr-2" />
             Course Calendar & Meetings
           </CardTitle>
-          {isAdmin && (
+          {canAddEvents && (
             <EnhancedCalendarEventDialog courseId={courseId} onEventAdded={fetchEvents} />
           )}
         </div>

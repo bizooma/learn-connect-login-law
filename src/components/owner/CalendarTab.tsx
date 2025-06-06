@@ -112,6 +112,8 @@ const CalendarTab = () => {
     );
   }
 
+  console.log('CalendarTab: Rendering with lawFirm:', lawFirm?.id, 'Add button should be visible:', !!lawFirm);
+
   return (
     <Card>
       <CardHeader>
