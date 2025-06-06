@@ -59,7 +59,8 @@ const UserCourseProgress = ({ userId, showOnlyAssigned = false, showOnlyComplete
   };
 
   const handleCourseClick = (courseId: string) => {
-    navigate(`/courses/${courseId}`);
+    // Fix: Use singular 'course' not 'courses' to match the route in App.tsx
+    navigate(`/course/${courseId}`);
   };
 
   // Filter courses based on props - Fixed the logic to match stats calculation
