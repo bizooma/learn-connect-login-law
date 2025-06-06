@@ -7,7 +7,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Users, Award, Sparkles } from "lucide-react";
+import { BookOpen, Users, Award, Sparkles, Lightbulb, GraduationCap, Star } from "lucide-react";
 
 interface WelcomeModalProps {
   open: boolean;
@@ -22,6 +22,15 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
 }) => {
   // YouTube video ID - updated with new video
   const [youtubeVideoId] = useState("O92D1gv2tCg");
+
+  const coreValues = [
+    { letter: "I", word: "Inspiring", icon: Lightbulb, color: "text-yellow-500" },
+    { letter: "L", word: "Learning", icon: BookOpen, color: "text-blue-500" },
+    { letter: "E", word: "Empowerment", icon: Star, color: "text-purple-500" },
+    { letter: "A", word: "Advancement", icon: Award, color: "text-green-500" },
+    { letter: "R", word: "Readiness through", icon: Users, color: "text-orange-500" },
+    { letter: "N", word: "Notable education", icon: GraduationCap, color: "text-indigo-500" },
+  ];
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -98,22 +107,36 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
               </div>
             </div>
 
-            {/* Features grid */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <div className="text-center p-4 rounded-lg shadow-sm border" style={{ backgroundColor: '#FFDA00' }}>
-                <BookOpen className="h-8 w-8 text-blue-600 mx-auto mb-2" />
-                <h4 className="font-medium text-gray-900 mb-1">Interactive Courses</h4>
-                <p className="text-sm text-gray-600">Engaging content tailored for legal professionals</p>
+            {/* I LEARN Core Values Section */}
+            <div className="mb-8">
+              <div className="text-center mb-6">
+                <h4 className="text-2xl font-bold text-gray-900 mb-2">Our Core Values</h4>
+                <div className="text-4xl font-bold" style={{ color: '#213C82' }}>
+                  I LEARN
+                </div>
               </div>
-              <div className="text-center p-4 rounded-lg shadow-sm border" style={{ backgroundColor: '#FFDA00' }}>
-                <Users className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                <h4 className="font-medium text-gray-900 mb-1">Collaborative Learning</h4>
-                <p className="text-sm text-gray-600">Connect with peers and share knowledge</p>
-              </div>
-              <div className="text-center p-4 rounded-lg shadow-sm border" style={{ backgroundColor: '#FFDA00' }}>
-                <Award className="h-8 w-8 text-purple-600 mx-auto mb-2" />
-                <h4 className="font-medium text-gray-900 mb-1">Track Progress</h4>
-                <p className="text-sm text-gray-600">Monitor your learning journey and achievements</p>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {coreValues.map((value, index) => (
+                  <div 
+                    key={value.letter} 
+                    className="bg-white rounded-lg p-4 shadow-sm border-l-4 hover:shadow-md transition-shadow"
+                    style={{ borderLeftColor: '#213C82' }}
+                  >
+                    <div className="flex items-center mb-2">
+                      <div 
+                        className="w-10 h-10 rounded-full flex items-center justify-center mr-3 text-white font-bold text-lg"
+                        style={{ backgroundColor: '#213C82' }}
+                      >
+                        {value.letter}
+                      </div>
+                      <value.icon className={`h-6 w-6 ${value.color}`} />
+                    </div>
+                    <p className="font-medium text-gray-900 text-sm leading-relaxed">
+                      {value.word}
+                    </p>
+                  </div>
+                ))}
               </div>
             </div>
 
