@@ -7,7 +7,7 @@ const AboutSection = () => {
       </h2>
       <div className="max-w-4xl mx-auto">
         <p className="text-xl text-gray-600 leading-relaxed">
-          I created this training platform for immigration law firms to help YOU help more immigrants, without putting anything else on your plate.
+          NF+U mission statement: Empowering learners with the knowledge and skills to master immigration law, excel in their careers, and drive meaningful impact. Through education, training, and support, we prepare professionals for success, advancement, and lasting growth.
         </p>
       </div>
     </div>
