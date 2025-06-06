@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Download, File } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCourseCompletion } from "@/hooks/useCourseCompletion";
+import { useEffect } from "react";
 
 type Unit = Tables<'units'>;
 type Quiz = Tables<'quizzes'>;
@@ -24,7 +25,14 @@ interface CourseContentProps {
 
 const CourseContent = ({ unit, courseId, courseTitle }: CourseContentProps) => {
   const { user } = useAuth();
-  const { isCompleted } = useCourseCompletion(courseId);
+  const { isCompleted, loading, refetchCompletion } = useCourseCompletion(courseId);
+
+  // Refresh completion status when component mounts or courseId changes
+  useEffect(() => {
+    if (courseId) {
+      refetchCompletion();
+    }
+  }, [courseId, refetchCompletion]);
 
   const handleFileDownload = () => {
     if (unit?.file_url) {
@@ -76,7 +84,11 @@ const CourseContent = ({ unit, courseId, courseTitle }: CourseContentProps) => {
       )}
       
       {!hasQuiz && unit && (
-        <UnitCompletionButton unit={unit} courseId={courseId} />
+        <UnitCompletionButton 
+          unit={unit} 
+          courseId={courseId} 
+          onComplete={refetchCompletion}
+        />
       )}
 
       {/* Certificate Download Section */}
@@ -84,6 +96,7 @@ const CourseContent = ({ unit, courseId, courseTitle }: CourseContentProps) => {
         courseId={courseId}
         courseTitle={courseTitle || 'Course'}
         isCompleted={isCompleted}
+        loading={loading}
       />
     </div>
   );

@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,9 +13,10 @@ type Unit = Tables<'units'>;
 interface UnitCompletionButtonProps {
   unit: Unit;
   courseId: string;
+  onComplete?: () => void;
 }
 
-const UnitCompletionButton = ({ unit, courseId }: UnitCompletionButtonProps) => {
+const UnitCompletionButton = ({ unit, courseId, onComplete }: UnitCompletionButtonProps) => {
   const { user } = useAuth();
   const { markUnitComplete } = useUserProgress(user?.id);
   const { isUnitCompleted, getUnitCompletedAt, markUnitComplete: updateLocalState } = useUnitProgress(courseId);
@@ -49,6 +49,11 @@ const UnitCompletionButton = ({ unit, courseId }: UnitCompletionButtonProps) => 
         description: "Unit marked as complete! 🎉",
       });
 
+      // Trigger completion check callback if provided
+      if (onComplete) {
+        onComplete();
+      }
+
       // Small delay to let the course progress calculation complete
       setTimeout(() => {
         toast({
@@ -56,6 +61,11 @@ const UnitCompletionButton = ({ unit, courseId }: UnitCompletionButtonProps) => 
           description: "Check if your course is now complete for certificate download!",
           variant: "default",
         });
+        
+        // Trigger another completion check after delay
+        if (onComplete) {
+          onComplete();
+        }
       }, 2000);
       
     } catch (error) {

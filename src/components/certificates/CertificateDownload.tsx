@@ -11,9 +11,10 @@ interface CertificateDownloadProps {
   courseId: string;
   courseTitle: string;
   isCompleted: boolean;
+  loading?: boolean;
 }
 
-const CertificateDownload = ({ courseId, courseTitle, isCompleted }: CertificateDownloadProps) => {
+const CertificateDownload = ({ courseId, courseTitle, isCompleted, loading = false }: CertificateDownloadProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [isDownloading, setIsDownloading] = useState(false);
@@ -58,6 +59,22 @@ const CertificateDownload = ({ courseId, courseTitle, isCompleted }: Certificate
       setIsDownloading(false);
     }
   };
+
+  if (loading) {
+    return (
+      <Card className="bg-gray-50">
+        <CardHeader>
+          <CardTitle className="flex items-center text-gray-600">
+            <Loader2 className="h-5 w-5 mr-2 animate-spin" />
+            Checking Course Status...
+          </CardTitle>
+          <CardDescription>
+            Please wait while we verify your course completion
+          </CardDescription>
+        </CardHeader>
+      </Card>
+    );
+  }
 
   if (!isCompleted) {
     return (
