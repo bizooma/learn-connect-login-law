@@ -20,8 +20,8 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
   onClose, 
   userFirstName = "Student" 
 }) => {
-  // YouTube video ID - updated with your specific video
-  const [youtubeVideoId] = useState("Z9YJvLigLIg");
+  // YouTube video ID - updated with new video
+  const [youtubeVideoId] = useState("O92D1gv2tCg");
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
