@@ -28,6 +28,13 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
     }
   };
 
+  const handleMarkCompleted = () => {
+    // Refresh the user progress data after marking as completed
+    if (userId) {
+      fetchUserProgress(userId);
+    }
+  };
+
   if (!userProgress && !loading) {
     return (
       <Dialog open={isOpen} onOpenChange={onClose}>
@@ -82,6 +89,8 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
             <UserProgressCourseList
               courses={userProgress.courses}
               onDeleteCourse={handleDeleteCourse}
+              onMarkCompleted={handleMarkCompleted}
+              userId={userId}
             />
           </div>
         )}

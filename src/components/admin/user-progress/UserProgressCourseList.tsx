@@ -1,8 +1,13 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import CourseProgressCard from "./CourseProgressCard";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
+import { BookOpen, Calendar, Trash2, Award } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
-interface Course {
+interface CourseProgressData {
   course_id: string;
   course_title: string;
   status: string;
@@ -15,28 +20,144 @@ interface Course {
 }
 
 interface UserProgressCourseListProps {
-  courses: Course[];
+  courses: CourseProgressData[];
   onDeleteCourse: (courseId: string) => void;
+  onMarkCompleted?: (courseId: string) => void;
+  userId?: string;
 }
 
-const UserProgressCourseList = ({ courses, onDeleteCourse }: UserProgressCourseListProps) => {
+const UserProgressCourseList = ({ 
+  courses, 
+  onDeleteCourse, 
+  onMarkCompleted,
+  userId 
+}: UserProgressCourseListProps) => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'completed':
+        return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
+      case 'in_progress':
+        return <Badge className="bg-yellow-100 text-yellow-800">In Progress</Badge>;
+      case 'not_started':
+        return <Badge className="bg-gray-100 text-gray-800">Not Started</Badge>;
+      default:
+        return <Badge variant="outline">{status}</Badge>;
+    }
+  };
+
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return 'N/A';
+    return new Date(dateString).toLocaleDateString();
+  };
+
+  const handleMarkCompleted = async (courseId: string) => {
+    if (!userId) return;
+
+    try {
+      // Call the Supabase function to mark course as completed
+      const { error } = await supabase.rpc('mark_course_completed', {
+        p_user_id: userId,
+        p_course_id: courseId,
+        p_completion_date: new Date().toISOString()
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Course marked as completed successfully",
+      });
+
+      // Trigger refresh if callback provided
+      if (onMarkCompleted) {
+        onMarkCompleted(courseId);
+      }
+
+    } catch (error) {
+      console.error('Error marking course as completed:', error);
+      toast({
+        title: "Error",
+        description: "Failed to mark course as completed",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Course Progress Details</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {courses.map((course, index) => (
-            <CourseProgressCard
-              key={index}
-              course={course}
-              onDelete={onDeleteCourse}
-            />
-          ))}
+    <div className="space-y-4">
+      {courses.length === 0 ? (
+        <div className="text-center py-8 text-gray-500">
+          No course assignments found for this user.
         </div>
-      </CardContent>
-    </Card>
+      ) : (
+        courses.map((course) => (
+          <div key={course.course_id} className="border rounded-lg p-4">
+            <div className="flex items-start justify-between mb-3">
+              <div className="flex-1">
+                <h4 className="font-medium">{course.course_title}</h4>
+                <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+                  <span className="flex items-center gap-1">
+                    <BookOpen className="h-3 w-3" />
+                    {course.completed_units}/{course.total_units} units
+                  </span>
+                  {course.last_accessed_at && (
+                    <span className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      Last accessed: {formatDate(course.last_accessed_at)}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <div className="text-right flex items-center gap-2">
+                {getStatusBadge(course.status)}
+                <div className="text-sm font-medium">
+                  {course.progress_percentage}%
+                </div>
+              </div>
+            </div>
+            
+            <Progress value={course.progress_percentage} className="mb-3" />
+            
+            <div className="grid grid-cols-2 gap-4 text-xs text-gray-600 mb-3">
+              <div>
+                <span className="font-medium">Started:</span> {formatDate(course.started_at)}
+              </div>
+              <div>
+                <span className="font-medium">Completed:</span> {formatDate(course.completed_at)}
+              </div>
+            </div>
+
+            {/* Admin Actions */}
+            <div className="flex items-center justify-between pt-3 border-t">
+              <div className="flex gap-2">
+                {course.status !== 'completed' && (
+                  <Button
+                    onClick={() => handleMarkCompleted(course.course_id)}
+                    size="sm"
+                    className="flex items-center gap-1 bg-green-600 hover:bg-green-700"
+                  >
+                    <Award className="h-3 w-3" />
+                    Mark as Completed
+                  </Button>
+                )}
+              </div>
+              <Button
+                onClick={() => onDeleteCourse(course.course_id)}
+                variant="outline"
+                size="sm"
+                className="text-red-600 hover:text-red-700 hover:bg-red-50 flex items-center gap-1"
+              >
+                <Trash2 className="h-3 w-3" />
+                Remove Assignment
+              </Button>
+            </div>
+          </div>
+        ))
+      )}
+    </div>
   );
 };
 
