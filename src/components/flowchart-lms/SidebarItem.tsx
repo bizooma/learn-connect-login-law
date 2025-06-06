@@ -35,8 +35,18 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ item }) => {
   };
 
   const onDragStart = (event: React.DragEvent) => {
+    console.log('Starting drag for item:', item);
+    
+    // Set the drag data as a JSON string
     event.dataTransfer.setData('application/json', JSON.stringify(item));
     event.dataTransfer.effectAllowed = item.isReusable ? 'copy' : 'move';
+    
+    // Add visual feedback
+    event.dataTransfer.setDragImage(event.currentTarget as Element, 0, 0);
+  };
+
+  const onDragEnd = (event: React.DragEvent) => {
+    console.log('Drag ended for item:', item);
   };
 
   return (
@@ -44,6 +54,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ item }) => {
       className={`cursor-grab active:cursor-grabbing border-l-4 ${getColorClass()} hover:shadow-md transition-shadow`}
       draggable
       onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
     >
       <CardContent className="p-3">
         <div className="flex items-start space-x-2">

@@ -37,14 +37,28 @@ const FlowchartCanvas: React.FC = () => {
     (event: React.DragEvent) => {
       event.preventDefault();
       
-      const reactFlowBounds = (event.target as Element).getBoundingClientRect();
+      console.log('Drop event triggered');
+      
+      const reactFlowBounds = (event.currentTarget as Element).getBoundingClientRect();
       const position = {
         x: event.clientX - reactFlowBounds.left,
         y: event.clientY - reactFlowBounds.top,
       };
       
+      console.log('Drop position:', position);
+      
       try {
-        const item = JSON.parse(event.dataTransfer.getData('application/json'));
+        const dragData = event.dataTransfer.getData('application/json');
+        console.log('Drag data received:', dragData);
+        
+        if (!dragData) {
+          console.error('No drag data found');
+          return;
+        }
+        
+        const item = JSON.parse(dragData);
+        console.log('Parsed item:', item);
+        
         addNodeToCanvas(item, position);
       } catch (error) {
         console.error('Error parsing dropped item:', error);
