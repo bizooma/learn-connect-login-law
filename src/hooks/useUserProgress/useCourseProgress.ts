@@ -1,16 +1,14 @@
 
 import { useState, useCallback } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { CourseWithProgress, CourseProgress } from "./types";
-import { progressService } from "./progressService";
+import { supabase } from "@/integrations/supabase/client";
+import { CourseWithProgress } from "./types";
 import { transformProgressData } from "./dataTransformer";
 import { progressCalculator } from "./progressCalculator";
 
 export const useCourseProgress = (userId?: string) => {
-  const { toast } = useToast();
   const [courseProgress, setCourseProgress] = useState<CourseWithProgress[]>([]);
   const [loading, setLoading] = useState(true);
-  const [pendingOperations, setPendingOperations] = useState<Set<string>>(new Set());
+  const [pendingOperations, setPendingOperations] = useState(new Set<string>());
 
   const fetchUserProgress = useCallback(async () => {
     if (!userId) {
@@ -22,76 +20,64 @@ export const useCourseProgress = (userId?: string) => {
     try {
       setLoading(true);
       console.log('useCourseProgress: Fetching progress for user:', userId);
-      
-      const progressData = await progressService.fetchUserProgress(userId);
-      console.log('useCourseProgress: Raw progress data:', progressData);
-      
-      const coursesWithProgress = transformProgressData(progressData);
-      console.log('useCourseProgress: Transformed courses:', coursesWithProgress);
-      
-      setCourseProgress(coursesWithProgress);
+
+      // Get user progress with course data
+      const { data: progressData, error: progressError } = await supabase
+        .from('user_course_progress')
+        .select(`
+          *,
+          courses (*)
+        `)
+        .eq('user_id', userId);
+
+      if (progressError) {
+        console.error('Error fetching user progress:', progressError);
+        throw progressError;
+      }
+
+      console.log('useCourseProgress: Raw progress data from DB:', progressData);
+
+      // Transform the data to CourseWithProgress format
+      const transformedData = transformProgressData(progressData || []);
+      console.log('useCourseProgress: Transformed progress data:', transformedData);
+
+      setCourseProgress(transformedData);
     } catch (error) {
-      console.error('Error fetching user progress:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load course progress",
-        variant: "destructive",
-      });
+      console.error('Error in fetchUserProgress:', error);
       setCourseProgress([]);
     } finally {
       setLoading(false);
     }
-  }, [userId, toast]);
+  }, [userId]);
 
-  const updateCourseProgress = useCallback(async (courseId: string, updates: Partial<CourseProgress>) => {
+  const updateCourseProgress = useCallback(async (courseId: string, status: string, progressPercentage: number) => {
     if (!userId) {
       console.warn('Cannot update course progress: no user ID');
       return;
     }
 
-    const operationKey = `update-${courseId}`;
-    if (pendingOperations.has(operationKey)) {
-      console.log('Update operation already pending for course:', courseId);
-      return;
-    }
-
     try {
-      setPendingOperations(prev => new Set(prev).add(operationKey));
-      await progressService.updateCourseProgress(userId, courseId, updates);
-      
-      // Update local state optimistically
-      setCourseProgress(prevProgress => 
-        prevProgress.map(course => {
-          if (course.id === courseId && course.progress) {
-            return {
-              ...course,
-              progress: {
-                ...course.progress,
-                ...updates,
-                updated_at: new Date().toISOString()
-              }
-            };
-          }
-          return course;
-        })
-      );
+      const { error } = await supabase
+        .from('user_course_progress')
+        .upsert({
+          user_id: userId,
+          course_id: courseId,
+          status,
+          progress_percentage: progressPercentage,
+          last_accessed_at: new Date().toISOString(),
+          ...(status === 'completed' && { completed_at: new Date().toISOString() }),
+          ...(status === 'in_progress' && !progressPercentage && { started_at: new Date().toISOString() })
+        });
+
+      if (error) throw error;
+
+      // Refresh the data
+      await fetchUserProgress();
     } catch (error) {
       console.error('Error updating course progress:', error);
-      if (error.code !== '23505') {
-        toast({
-          title: "Error",
-          description: "Failed to update progress",
-          variant: "destructive",
-        });
-      }
-    } finally {
-      setPendingOperations(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(operationKey);
-        return newSet;
-      });
+      throw error;
     }
-  }, [userId, toast, pendingOperations]);
+  }, [userId, fetchUserProgress]);
 
   const calculateCourseProgress = useCallback(async (courseId: string) => {
     if (!userId) {
@@ -99,56 +85,17 @@ export const useCourseProgress = (userId?: string) => {
       return;
     }
 
-    const operationKey = `calculate-${courseId}`;
-    if (pendingOperations.has(operationKey)) {
-      console.log('Calculate operation already pending for course:', courseId);
-      return;
-    }
-
     try {
-      setPendingOperations(prev => new Set(prev).add(operationKey));
       const { progressPercentage, status } = await progressCalculator.calculateCourseProgress(userId, courseId);
-      
-      // Update progress with calculated values
-      await progressService.updateCourseProgress(userId, courseId, {
-        progress_percentage: progressPercentage,
-        status,
-        ...(status === 'completed' && { completed_at: new Date().toISOString() }),
-        ...(status === 'in_progress' && progressPercentage > 0 && { started_at: new Date().toISOString() })
-      });
-
-      // Update local state directly
-      setCourseProgress(prevProgress => 
-        prevProgress.map(course => {
-          if (course.id === courseId && course.progress) {
-            return {
-              ...course,
-              progress: {
-                ...course.progress,
-                progress_percentage: progressPercentage,
-                status,
-                ...(status === 'completed' && { completed_at: new Date().toISOString() }),
-                ...(status === 'in_progress' && progressPercentage > 0 && { started_at: new Date().toISOString() })
-              }
-            };
-          }
-          return course;
-        })
-      );
+      await updateCourseProgress(courseId, status, progressPercentage);
     } catch (error) {
       console.error('Error calculating course progress:', error);
-    } finally {
-      setPendingOperations(prev => {
-        const newSet = new Set(prev);
-        newSet.delete(operationKey);
-        return newSet;
-      });
+      throw error;
     }
-  }, [userId, pendingOperations]);
+  }, [userId, updateCourseProgress]);
 
   return {
     courseProgress,
-    setCourseProgress,
     loading,
     pendingOperations,
     setPendingOperations,

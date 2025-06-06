@@ -75,16 +75,26 @@ const UserCourseProgress = ({ userId, showOnlyAssigned = false, showOnlyComplete
     coursesToShow = courseProgress;
   }
 
-  console.log('UserCourseProgress Debug:', {
+  // Enhanced debugging to understand the data structure
+  console.log('UserCourseProgress Enhanced Debug:', {
     userId,
     showOnlyAssigned,
     showOnlyCompleted,
     totalCourseProgress: courseProgress.length,
     coursesWithProgress: courseProgress.filter(course => course.progress).length,
     coursesToShow: coursesToShow.length,
+    rawCourseProgress: courseProgress,
     courseProgressDetails: courseProgress.map(c => ({
+      id: c.id,
       title: c.title,
       hasProgress: !!c.progress,
+      progressId: c.progress?.id,
+      status: c.progress?.status || 'none',
+      progressPercentage: c.progress?.progress_percentage || 0
+    })),
+    filteredCoursesToShow: coursesToShow.map(c => ({
+      id: c.id,
+      title: c.title,
       status: c.progress?.status || 'none'
     }))
   });
