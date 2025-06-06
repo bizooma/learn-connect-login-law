@@ -9,6 +9,7 @@ export const useUserProgress = (userId?: string) => {
   const { toast } = useToast();
   const [courseProgress, setCourseProgress] = useState<CourseWithProgress[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pendingOperations, setPendingOperations] = useState<Set<string>>(new Set());
 
   const fetchUserProgress = useCallback(async () => {
     if (!userId) {
@@ -40,12 +41,32 @@ export const useUserProgress = (userId?: string) => {
       return;
     }
 
+    const operationKey = `update-${courseId}`;
+    if (pendingOperations.has(operationKey)) {
+      console.log('Update operation already pending for course:', courseId);
+      return;
+    }
+
     try {
+      setPendingOperations(prev => new Set(prev).add(operationKey));
       await progressService.updateCourseProgress(userId, courseId, updates);
-      // Only refetch if this is not being called from calculateCourseProgress
-      const progressData = await progressService.fetchUserProgress(userId);
-      const coursesWithProgress = transformProgressData(progressData);
-      setCourseProgress(coursesWithProgress);
+      
+      // Update local state optimistically
+      setCourseProgress(prevProgress => 
+        prevProgress.map(course => {
+          if (course.id === courseId && course.progress) {
+            return {
+              ...course,
+              progress: {
+                ...course.progress,
+                ...updates,
+                updated_at: new Date().toISOString()
+              }
+            };
+          }
+          return course;
+        })
+      );
     } catch (error) {
       console.error('Error updating course progress:', error);
       if (error.code !== '23505') {
@@ -55,8 +76,14 @@ export const useUserProgress = (userId?: string) => {
           variant: "destructive",
         });
       }
+    } finally {
+      setPendingOperations(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(operationKey);
+        return newSet;
+      });
     }
-  }, [userId, toast]);
+  }, [userId, toast, pendingOperations]);
 
   const calculateCourseProgress = useCallback(async (courseId: string) => {
     if (!userId) {
@@ -64,18 +91,25 @@ export const useUserProgress = (userId?: string) => {
       return;
     }
 
+    const operationKey = `calculate-${courseId}`;
+    if (pendingOperations.has(operationKey)) {
+      console.log('Calculate operation already pending for course:', courseId);
+      return;
+    }
+
     try {
+      setPendingOperations(prev => new Set(prev).add(operationKey));
       const { progressPercentage, status } = await progressService.calculateCourseProgress(userId, courseId);
       
-      // Update progress directly without triggering a full refetch
+      // Update progress with calculated values
       await progressService.updateCourseProgress(userId, courseId, {
         progress_percentage: progressPercentage,
         status,
         ...(status === 'completed' && { completed_at: new Date().toISOString() }),
-        ...(status === 'in_progress' && progressPercentage === 1 && { started_at: new Date().toISOString() })
+        ...(status === 'in_progress' && progressPercentage > 0 && { started_at: new Date().toISOString() })
       });
 
-      // Update local state directly instead of refetching
+      // Update local state directly
       setCourseProgress(prevProgress => 
         prevProgress.map(course => {
           if (course.id === courseId && course.progress) {
@@ -86,7 +120,7 @@ export const useUserProgress = (userId?: string) => {
                 progress_percentage: progressPercentage,
                 status,
                 ...(status === 'completed' && { completed_at: new Date().toISOString() }),
-                ...(status === 'in_progress' && progressPercentage === 1 && { started_at: new Date().toISOString() })
+                ...(status === 'in_progress' && progressPercentage > 0 && { started_at: new Date().toISOString() })
               }
             };
           }
@@ -95,8 +129,14 @@ export const useUserProgress = (userId?: string) => {
       );
     } catch (error) {
       console.error('Error calculating course progress:', error);
+    } finally {
+      setPendingOperations(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(operationKey);
+        return newSet;
+      });
     }
-  }, [userId]);
+  }, [userId, pendingOperations]);
 
   const markUnitComplete = useCallback(async (unitId: string, courseId: string) => {
     if (!userId) {
@@ -104,7 +144,14 @@ export const useUserProgress = (userId?: string) => {
       return;
     }
 
+    const operationKey = `unit-${unitId}`;
+    if (pendingOperations.has(operationKey)) {
+      console.log('Unit complete operation already pending for unit:', unitId);
+      return;
+    }
+
     try {
+      setPendingOperations(prev => new Set(prev).add(operationKey));
       await progressService.markUnitComplete(userId, unitId, courseId);
       await calculateCourseProgress(courseId);
     } catch (error) {
@@ -116,8 +163,14 @@ export const useUserProgress = (userId?: string) => {
           variant: "destructive",
         });
       }
+    } finally {
+      setPendingOperations(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(operationKey);
+        return newSet;
+      });
     }
-  }, [userId, calculateCourseProgress, toast]);
+  }, [userId, calculateCourseProgress, toast, pendingOperations]);
 
   useEffect(() => {
     if (userId) {
