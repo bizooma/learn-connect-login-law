@@ -22,7 +22,7 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
 }) => {
   return (
     <Dialog open={open} onOpenChange={() => {}}>
-      <DialogContent className="max-w-2xl p-0 gap-0 bg-gradient-to-br from-blue-50 to-indigo-100">
+      <DialogContent className="max-w-4xl p-0 gap-0 bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="relative overflow-hidden">
           {/* Header with gradient background */}
           <div 
@@ -58,6 +58,38 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
                 We've designed this platform to make your professional development 
                 engaging and effective.
               </p>
+            </div>
+
+            {/* Welcome Video Section */}
+            <div className="mb-8">
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-4 text-center">
+                  Watch This Quick Introduction
+                </h4>
+                <div className="aspect-video bg-gray-900 rounded-lg overflow-hidden">
+                  <video
+                    className="w-full h-full object-cover"
+                    autoPlay
+                    muted
+                    loop
+                    playsInline
+                  >
+                    <source src="/lovable-uploads/welcome-video.mp4" type="video/mp4" />
+                    {/* Fallback content */}
+                    <div className="flex items-center justify-center h-full bg-gray-800 text-white">
+                      <div className="text-center">
+                        <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                          <svg className="w-8 h-8 text-white" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clipRule="evenodd" />
+                          </svg>
+                        </div>
+                        <p className="text-lg">Welcome Video</p>
+                        <p className="text-sm text-gray-300">Video will appear here when uploaded</p>
+                      </div>
+                    </div>
+                  </video>
+                </div>
+              </div>
             </div>
 
             {/* Features grid */}
