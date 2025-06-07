@@ -15,7 +15,7 @@ const Course = () => {
   const { id: courseId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { hasAdminPrivileges } = useUserRole();
+  const { isAdmin } = useUserRole(); // Changed from hasAdminPrivileges to isAdmin
   const { course, selectedUnit, setSelectedUnit, loading, error } = useCourse(courseId!);
   const { updateCourseProgress } = useUserProgress(user?.id);
 
@@ -25,8 +25,8 @@ const Course = () => {
       return;
     }
 
-    // Check if non-admin user is trying to access a draft course
-    if (course && course.is_draft && !hasAdminPrivileges) {
+    // Check if non-admin user is trying to access a draft course (only admins can access drafts)
+    if (course && course.is_draft && !isAdmin) {
       navigate("/courses");
       return;
     }
@@ -34,7 +34,7 @@ const Course = () => {
     if (course && user) {
       updateCourseProgress(course.id, 'in_progress', 0);
     }
-  }, [course, user, authLoading, hasAdminPrivileges, navigate, updateCourseProgress]);
+  }, [course, user, authLoading, isAdmin, navigate, updateCourseProgress]); // Changed from hasAdminPrivileges to isAdmin
 
   if (authLoading || loading) {
     return <CourseLoading />;
@@ -44,8 +44,8 @@ const Course = () => {
     return <CourseNotFound />;
   }
 
-  // Additional check for draft course access
-  if (course.is_draft && !hasAdminPrivileges) {
+  // Additional check for draft course access (only admins can access drafts)
+  if (course.is_draft && !isAdmin) {
     return <CourseNotFound />;
   }
 

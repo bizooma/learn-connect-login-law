@@ -16,7 +16,7 @@ interface CourseCardProps {
 
 const CourseCard = ({ course }: CourseCardProps) => {
   const navigate = useNavigate();
-  const { hasAdminPrivileges } = useUserRole();
+  const { isAdmin } = useUserRole(); // Changed from hasAdminPrivileges to isAdmin
 
   const handleViewCourse = () => {
     navigate(`/course/${course.id}`);
@@ -43,7 +43,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
             {getLevelDisplayName(course.level)}
           </Badge>
           {/* Show draft status badge only to admins */}
-          {hasAdminPrivileges && course.is_draft && (
+          {isAdmin && course.is_draft && (
             <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
               Draft
             </Badge>
@@ -108,7 +108,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
           <Button 
             onClick={handleViewCourse}
             className="w-full"
-            disabled={course.is_draft && !hasAdminPrivileges}
+            disabled={course.is_draft && !isAdmin}
           >
             View Course
           </Button>

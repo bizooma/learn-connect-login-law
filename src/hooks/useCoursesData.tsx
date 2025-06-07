@@ -9,7 +9,7 @@ type Level = Tables<'levels'>;
 
 export const useCoursesData = () => {
   const { toast } = useToast();
-  const { hasAdminPrivileges } = useUserRole();
+  const { isAdmin } = useUserRole(); // Changed from hasAdminPrivileges to isAdmin
   const [courses, setCourses] = useState<Course[]>([]);
   const [levels, setLevels] = useState<Level[]>([]);
   const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
@@ -21,7 +21,7 @@ export const useCoursesData = () => {
   useEffect(() => {
     fetchCourses();
     fetchLevels();
-  }, [hasAdminPrivileges]);
+  }, [isAdmin]); // Changed from hasAdminPrivileges to isAdmin
 
   const fetchCourses = async () => {
     try {
@@ -29,8 +29,8 @@ export const useCoursesData = () => {
         .from('courses')
         .select('*');
 
-      // Filter out draft courses for non-admin users
-      if (!hasAdminPrivileges) {
+      // Filter out draft courses for non-admin users (only admins can see drafts)
+      if (!isAdmin) {
         query = query.eq('is_draft', false);
       }
 
