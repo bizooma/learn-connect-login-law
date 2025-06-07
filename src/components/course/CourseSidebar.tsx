@@ -62,14 +62,14 @@ const CourseSidebar = ({ lessons, selectedUnit, onUnitSelect }: CourseSidebarPro
                 className="w-full justify-between p-4 h-auto"
                 onClick={() => toggleLesson(lesson.id)}
               >
-                <div className="flex items-center gap-2">
-                  <BookOpen className="h-4 w-4" />
-                  <span className="font-medium text-left">{lesson.title}</span>
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <BookOpen className="h-4 w-4 flex-shrink-0" />
+                  <span className="font-medium text-left break-words overflow-hidden">{lesson.title}</span>
                 </div>
                 {expandedLessons.has(lesson.id) ? (
-                  <ChevronDown className="h-4 w-4" />
+                  <ChevronDown className="h-4 w-4 flex-shrink-0" />
                 ) : (
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-4 w-4 flex-shrink-0" />
                 )}
               </Button>
               
@@ -82,15 +82,15 @@ const CourseSidebar = ({ lessons, selectedUnit, onUnitSelect }: CourseSidebarPro
                       className="w-full justify-start text-sm p-3 h-auto"
                       onClick={() => onUnitSelect(unit)}
                     >
-                      <div className="flex items-center gap-2 flex-1">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
                         {unit.video_url ? (
-                          <PlayCircle className="h-4 w-4" />
+                          <PlayCircle className="h-4 w-4 flex-shrink-0" />
                         ) : (
-                          <FileText className="h-4 w-4" />
+                          <FileText className="h-4 w-4 flex-shrink-0" />
                         )}
-                        <span className="text-left flex-1">{unit.title}</span>
+                        <span className="text-left flex-1 break-words overflow-hidden">{unit.title}</span>
                         {unit.quiz?.is_active && (
-                          <Badge variant="outline" className="text-xs">
+                          <Badge variant="outline" className="text-xs flex-shrink-0">
                             Quiz
                           </Badge>
                         )}

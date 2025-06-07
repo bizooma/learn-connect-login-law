@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
@@ -63,21 +64,46 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
         file_name: lesson.file_name || '',
         file_size: lesson.file_size || 0,
         sort_order: lesson.sort_order,
-        units: lesson.units?.map(unit => ({
-          id: unit.id,
-          title: unit.title,
-          description: unit.description || '',
-          content: unit.content || '',
-          video_url: unit.video_url || '',
-          video_type: (unit.video_url?.includes('youtube.com') || unit.video_url?.includes('youtu.be')) ? 'youtube' as const : 'upload' as const,
-          duration_minutes: unit.duration_minutes || 0,
-          sort_order: unit.sort_order,
-          quiz_id: undefined,
-          image_url: '',
-          file_url: unit.file_url || '',
-          file_name: unit.file_name || '',
-          file_size: unit.file_size || 0,
-        } as UnitData)).sort((a, b) => a.sort_order - b.sort_order) || []
+        units: lesson.units?.map(unit => {
+          // Parse files from the database
+          let files: Array<{ url: string; name: string; size: number }> = [];
+          
+          if (unit.files) {
+            try {
+              const parsedFiles = Array.isArray(unit.files) ? unit.files : JSON.parse(unit.files as string);
+              files = Array.isArray(parsedFiles) ? parsedFiles : [];
+            } catch (e) {
+              console.error('Error parsing unit files:', e);
+              files = [];
+            }
+          }
+          
+          // Fallback to legacy single file format if no files array
+          if (files.length === 0 && unit.file_url) {
+            files = [{
+              url: unit.file_url,
+              name: unit.file_name || 'Download File',
+              size: unit.file_size || 0
+            }];
+          }
+
+          return {
+            id: unit.id,
+            title: unit.title,
+            description: unit.description || '',
+            content: unit.content || '',
+            video_url: unit.video_url || '',
+            video_type: (unit.video_url?.includes('youtube.com') || unit.video_url?.includes('youtu.be')) ? 'youtube' as const : 'upload' as const,
+            duration_minutes: unit.duration_minutes || 0,
+            sort_order: unit.sort_order,
+            quiz_id: undefined,
+            image_url: '',
+            file_url: unit.file_url || '',
+            file_name: unit.file_name || '',
+            file_size: unit.file_size || 0,
+            files: files
+          } as UnitData;
+        }).sort((a, b) => a.sort_order - b.sort_order) || []
       } as LessonData)).sort((a, b) => a.sort_order - b.sort_order) || []
     } as ModuleData)) || [];
 

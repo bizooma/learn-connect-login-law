@@ -24,7 +24,7 @@ const CourseMainContent = ({ course, selectedUnit, courseTitle }: CourseMainCont
         </TabsList>
         
         <TabsContent value="content" className="p-6 overflow-hidden">
-          <div className="max-w-full break-words">
+          <div className="max-w-full break-words overflow-hidden">
             <CourseContent 
               unit={selectedUnit} 
               courseId={course.id} 
