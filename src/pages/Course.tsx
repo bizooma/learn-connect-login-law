@@ -15,7 +15,7 @@ const Course = () => {
   const { id: courseId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { isAdmin } = useUserRole(); // Changed from hasAdminPrivileges to isAdmin
+  const { isAdmin } = useUserRole();
   const { course, selectedUnit, setSelectedUnit, loading, error } = useCourse(courseId!);
   const { updateCourseProgress } = useUserProgress(user?.id);
 
@@ -34,7 +34,7 @@ const Course = () => {
     if (course && user) {
       updateCourseProgress(course.id, 'in_progress', 0);
     }
-  }, [course, user, authLoading, isAdmin, navigate, updateCourseProgress]); // Changed from hasAdminPrivileges to isAdmin
+  }, [course, user, authLoading, isAdmin, navigate, updateCourseProgress]);
 
   if (authLoading || loading) {
     return <CourseLoading />;

@@ -8,7 +8,7 @@ type Module = Tables<'modules'>;
 type Lesson = Tables<'lessons'>;
 type Unit = Tables<'units'>;
 
-interface EnhancedUnit extends Unit {
+interface EnhancedUnit extends Omit<Unit, 'files'> {
   quiz?: {
     id: string;
     title: string;

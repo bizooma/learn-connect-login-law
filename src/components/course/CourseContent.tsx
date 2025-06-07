@@ -15,7 +15,7 @@ type Unit = Tables<'units'>;
 type Quiz = Tables<'quizzes'>;
 type Lesson = Tables<'lessons'>;
 
-interface UnitWithQuiz extends Unit {
+interface UnitWithQuiz extends Omit<Unit, 'files'> {
   quiz?: Quiz;
   files?: Array<{ url: string; name: string; size: number }>;
 }
