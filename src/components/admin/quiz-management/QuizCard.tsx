@@ -2,93 +2,87 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Edit, Clock, Target, BookOpen, HelpCircle } from "lucide-react";
+import { Edit, Trash2, Settings, AlertCircle } from "lucide-react";
 import { QuizWithDetails } from "./types";
 
 interface QuizCardProps {
   quiz: QuizWithDetails;
-  onDelete: (quizId: string) => void;
   onEdit: (quiz: QuizWithDetails) => void;
+  onDelete: (quizId: string) => void;
   onManageQuestions: (quiz: QuizWithDetails) => void;
 }
 
-const QuizCard = ({ quiz, onDelete, onEdit, onManageQuestions }: QuizCardProps) => {
-  const handleDelete = () => {
-    if (confirm("Are you sure you want to delete this quiz?")) {
-      onDelete(quiz.id);
-    }
-  };
-
+const QuizCard = ({ quiz, onEdit, onDelete, onManageQuestions }: QuizCardProps) => {
   return (
-    <Card className="hover:shadow-md transition-shadow">
+    <Card className={quiz.unit_id ? "border-green-200 bg-green-50/30" : "border-orange-200 bg-orange-50/30"}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
-          <CardTitle className="text-lg font-semibold line-clamp-2">
-            {quiz.title}
-          </CardTitle>
-          <div className="flex items-center space-x-1 ml-2">
+          <div className="space-y-1 flex-1">
+            <CardTitle className="text-lg">{quiz.title}</CardTitle>
+            {quiz.description && (
+              <p className="text-sm text-gray-600">{quiz.description}</p>
+            )}
+          </div>
+          <div className="flex items-center space-x-2 ml-4">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onManageQuestions(quiz)}
-              className="h-8 w-8 p-0"
-              title="Manage Questions"
+              title="Manage questions"
             >
-              <HelpCircle className="h-4 w-4" />
+              <Settings className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onEdit(quiz)}
-              className="h-8 w-8 p-0"
+              title="Edit quiz"
             >
               <Edit className="h-4 w-4" />
             </Button>
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleDelete}
-              className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+              onClick={() => onDelete(quiz.id)}
+              className="text-red-600 hover:text-red-700"
+              title="Delete quiz"
             >
               <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         </div>
-        <div className="flex items-center gap-2 flex-wrap">
+      </CardHeader>
+      <CardContent className="space-y-3">
+        <div className="flex flex-wrap items-center gap-3 text-sm">
+          <span>Passing Score: <strong>{quiz.passing_score}%</strong></span>
+          {quiz.time_limit_minutes && (
+            <span>Time Limit: <strong>{quiz.time_limit_minutes} min</strong></span>
+          )}
           <Badge variant={quiz.is_active ? "default" : "secondary"}>
             {quiz.is_active ? "Active" : "Inactive"}
           </Badge>
         </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        {quiz.description && (
-          <p className="text-sm text-gray-600 line-clamp-2">
-            {quiz.description}
-          </p>
-        )}
-        
-        <div className="space-y-2">
-          <div className="flex items-center text-sm text-gray-600">
-            <BookOpen className="h-4 w-4 mr-2" />
-            <span className="truncate">
-              {quiz.unit?.lesson?.course?.title} → {quiz.unit?.title}
+
+        {quiz.unit_id && quiz.unit ? (
+          <div className="flex items-center gap-2 p-2 bg-green-100 rounded-md">
+            <Badge variant="default" className="bg-green-600">
+              Assigned
+            </Badge>
+            <span className="text-sm text-green-800">
+              {quiz.unit.title}
+              {quiz.unit.lesson?.course && (
+                <span className="text-green-600"> • {quiz.unit.lesson.course.title}</span>
+              )}
             </span>
           </div>
-          
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center text-gray-600">
-              <Target className="h-4 w-4 mr-1" />
-              <span>Pass: {quiz.passing_score}%</span>
-            </div>
-            
-            {quiz.time_limit_minutes && (
-              <div className="flex items-center text-gray-600">
-                <Clock className="h-4 w-4 mr-1" />
-                <span>{quiz.time_limit_minutes}m</span>
-              </div>
-            )}
+        ) : (
+          <div className="flex items-center gap-2 p-2 bg-orange-100 rounded-md">
+            <AlertCircle className="h-4 w-4 text-orange-600" />
+            <span className="text-sm text-orange-800">
+              Not assigned to any unit yet
+            </span>
           </div>
-        </div>
+        )}
       </CardContent>
     </Card>
   );

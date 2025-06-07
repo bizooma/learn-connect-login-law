@@ -807,7 +807,7 @@ export type Database = {
           source_type: string | null
           time_limit_minutes: number | null
           title: string
-          unit_id: string
+          unit_id: string | null
           updated_at: string
         }
         Insert: {
@@ -820,7 +820,7 @@ export type Database = {
           source_type?: string | null
           time_limit_minutes?: number | null
           title: string
-          unit_id: string
+          unit_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -833,7 +833,7 @@ export type Database = {
           source_type?: string | null
           time_limit_minutes?: number | null
           title?: string
-          unit_id?: string
+          unit_id?: string | null
           updated_at?: string
         }
         Relationships: [

@@ -1,6 +1,5 @@
 
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -9,12 +8,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Tables } from "@/integrations/supabase/types";
-import { UnitWithCourse, QuizFormData } from "./types";
 
 interface CreateQuizFormProps {
   open: boolean;
@@ -27,9 +23,6 @@ const formSchema = z.object({
     message: "Quiz title must be at least 2 characters.",
   }),
   description: z.string().optional(),
-  unit_id: z.string().uuid({
-    message: "Please select a unit for this quiz.",
-  }),
   passing_score: z.number().min(0).max(100).default(70),
   time_limit_minutes: z.number().optional(),
   is_active: z.boolean().default(true),
@@ -44,30 +37,10 @@ const CreateQuizForm = ({ open, onOpenChange, onQuizCreated }: CreateQuizFormPro
     defaultValues: {
       title: "",
       description: "",
-      unit_id: "",
       passing_score: 70,
       time_limit_minutes: 60,
       is_active: true,
     },
-  });
-
-  const { data: units, isLoading: unitsLoading } = useQuery({
-    queryKey: ['units-for-quiz'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('units')
-        .select(`
-          *,
-          lesson:lessons (
-            *,
-            course:courses (*)
-          )
-        `)
-        .order('title');
-
-      if (error) throw error;
-      return data as UnitWithCourse[];
-    }
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
@@ -78,19 +51,22 @@ const CreateQuizForm = ({ open, onOpenChange, onQuizCreated }: CreateQuizFormPro
         .insert({
           title: values.title,
           description: values.description,
-          unit_id: values.unit_id,
           passing_score: values.passing_score,
           time_limit_minutes: values.time_limit_minutes,
           is_active: values.is_active,
+          // unit_id is now optional and not included
         });
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: "Quiz created successfully",
+        description: "Quiz created successfully. You can now assign it to units through course editing.",
       });
+      
+      form.reset();
       onQuizCreated();
+      onOpenChange(false);
     } catch (error: any) {
       console.error("Error creating quiz:", error);
       toast({
@@ -144,32 +120,6 @@ const CreateQuizForm = ({ open, onOpenChange, onQuizCreated }: CreateQuizFormPro
                 )}
               />
             </div>
-            <div className="space-y-2">
-              <FormField
-                control={form.control}
-                name="unit_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Unit</FormLabel>
-                    <Select onValueChange={field.onChange} defaultValue={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a unit" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {units?.map((unit) => (
-                          <SelectItem key={unit.id} value={unit.id}>
-                            {unit.title} ({unit.lesson?.course?.title})
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <FormField
@@ -183,6 +133,7 @@ const CreateQuizForm = ({ open, onOpenChange, onQuizCreated }: CreateQuizFormPro
                           type="number"
                           placeholder="Enter passing score"
                           {...field}
+                          onChange={(e) => field.onChange(Number(e.target.value))}
                         />
                       </FormControl>
                       <FormMessage />
@@ -202,6 +153,7 @@ const CreateQuizForm = ({ open, onOpenChange, onQuizCreated }: CreateQuizFormPro
                           type="number"
                           placeholder="Enter time limit"
                           {...field}
+                          onChange={(e) => field.onChange(e.target.value ? Number(e.target.value) : undefined)}
                         />
                       </FormControl>
                       <FormMessage />
@@ -232,9 +184,26 @@ const CreateQuizForm = ({ open, onOpenChange, onQuizCreated }: CreateQuizFormPro
                 )}
               />
             </div>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Creating..." : "Create Quiz"}
-            </Button>
+            
+            <div className="bg-blue-50 p-3 rounded-md border border-blue-200">
+              <p className="text-sm text-blue-700">
+                <strong>Note:</strong> After creating this quiz, you can assign it to specific units through the course editing interface.
+              </p>
+            </div>
+
+            <div className="flex space-x-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => onOpenChange(false)}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isSubmitting} className="flex-1">
+                {isSubmitting ? "Creating..." : "Create Quiz"}
+              </Button>
+            </div>
           </form>
         </Form>
       </DialogContent>

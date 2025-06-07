@@ -1,41 +1,44 @@
 
 import { Tables } from "@/integrations/supabase/types";
 
-type Unit = Tables<'units'>;
-type Lesson = Tables<'lessons'>;
-type Course = Tables<'courses'>;
+export type Quiz = Tables<'quizzes'>;
+export type QuizQuestion = Tables<'quiz_questions'>;
+export type QuizQuestionOption = Tables<'quiz_question_options'>;
 
-export interface UnitWithCourse extends Unit {
-  lesson: Lesson & {
-    course: Course;
-  };
-}
-
-export interface QuizWithDetails extends Tables<'quizzes'> {
-  unit: Unit & {
-    lesson: Lesson & {
-      course: Course;
+export interface UnitWithCourse {
+  id: string;
+  title: string;
+  lesson?: {
+    id: string;
+    title: string;
+    course?: {
+      id: string;
+      title: string;
     };
   };
 }
 
+export interface QuizWithDetails extends Quiz {
+  unit?: UnitWithCourse;
+}
+
 export interface QuizFormData {
   title: string;
-  description: string;
-  unit_id: string;
+  description?: string;
   passing_score: number;
   time_limit_minutes?: number;
   is_active: boolean;
+  unit_id?: string; // Now optional
 }
 
-export interface QuestionFormData {
-  question_text: string;
-  question_type: 'multiple_choice';
-  points: number;
-  options: OptionFormData[];
-}
-
-export interface OptionFormData {
-  option_text: string;
-  is_correct: boolean;
+export interface ImportedQuizData {
+  title: string;
+  description?: string;
+  questions: {
+    question_text: string;
+    options: {
+      option_text: string;
+      is_correct: boolean;
+    }[];
+  }[];
 }
