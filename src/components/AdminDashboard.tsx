@@ -99,7 +99,7 @@ const AdminDashboard = () => {
             <RecentActivity />
           </div>
           
-          <AdminManagementTabs activeTab={activeTab} onTabChange={setActiveTab} />
+          <AdminManagementTabs />
         </div>
       </div>
       <LMSTreeFooter />
