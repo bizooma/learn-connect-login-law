@@ -5,6 +5,7 @@ import LessonVideo from "./LessonVideo";
 import QuizDisplay from "./QuizDisplay";
 import CertificateDownload from "../certificates/CertificateDownload";
 import UnitCompletionButton from "./UnitCompletionButton";
+import SmartCompletionIndicator from "./SmartCompletionIndicator";
 import { Button } from "@/components/ui/button";
 import { Download, File } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -67,6 +68,20 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
 
   return (
     <div className="space-y-6">
+      {/* Smart Completion Indicator */}
+      {unitForDatabase && (
+        <div className="bg-white rounded-lg shadow-sm border p-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold">Progress</h3>
+            <SmartCompletionIndicator 
+              unit={unitForDatabase} 
+              courseId={courseId} 
+              hasQuiz={hasQuiz} 
+            />
+          </div>
+        </div>
+      )}
+
       {/* Show lesson video if available */}
       {lesson && <LessonVideo lesson={lesson} courseId={courseId} />}
       

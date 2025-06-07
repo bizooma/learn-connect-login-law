@@ -1,8 +1,8 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useSmartCompletion } from "@/hooks/useSmartCompletion";
 
 interface VideoProgressData {
   watch_percentage: number;
@@ -15,6 +15,7 @@ interface VideoProgressData {
 export const useVideoProgress = (unitId: string, courseId: string) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { triggerSmartCompletion } = useSmartCompletion();
   const [videoProgress, setVideoProgress] = useState<VideoProgressData>({
     watch_percentage: 0,
     is_completed: false,
@@ -141,10 +142,28 @@ export const useVideoProgress = (unitId: string, courseId: string) => {
         description: "You've successfully watched this video to completion.",
       });
 
+      // Get unit data and check for quiz to trigger smart completion
+      const { data: unit } = await supabase
+        .from('units')
+        .select('*')
+        .eq('id', unitId)
+        .single();
+
+      const { data: quiz } = await supabase
+        .from('quizzes')
+        .select('id')
+        .eq('unit_id', unitId)
+        .eq('is_active', true)
+        .maybeSingle();
+
+      if (unit) {
+        await triggerSmartCompletion(unit, courseId, !!quiz, 'video_complete');
+      }
+
     } catch (error) {
       console.error('Error updating unit video completion:', error);
     }
-  }, [user, unitId, courseId, toast]);
+  }, [user, unitId, courseId, toast, triggerSmartCompletion]);
 
   useEffect(() => {
     fetchVideoProgress();
