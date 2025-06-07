@@ -7,10 +7,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Download, User, BookOpen, CheckCircle, Clock } from "lucide-react";
+import { Search, Download, User, BookOpen, CheckCircle, Clock, FileDown } from "lucide-react";
 import { usePagination } from "./user-management/usePagination";
 import UserProgressFilter from "./user-progress/UserProgressFilter";
 import UserProgressModal from "./user-progress/UserProgressModal";
+import { exportToCSV, formatDateForCSV } from "@/lib/csvUtils";
 
 interface UserProgress {
   user_id: string;
@@ -204,6 +205,52 @@ const UserProgressManagement = () => {
     setSelectedUserForModal(userId);
   };
 
+  const handleExportCSV = () => {
+    if (filteredProgress.length === 0) {
+      toast({
+        title: "No Data",
+        description: "No progress data available to export",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const csvData = filteredProgress.map(progress => ({
+      'User Name': progress.user_name,
+      'User Email': progress.user_email,
+      'Course Title': progress.course_title,
+      'Status': progress.status,
+      'Progress Percentage': `${progress.progress_percentage}%`,
+      'Units Completed': progress.completed_units,
+      'Total Units': progress.total_units,
+      'Units Progress': `${progress.completed_units}/${progress.total_units}`,
+      'Started Date': formatDateForCSV(progress.started_at),
+      'Completed Date': formatDateForCSV(progress.completed_at),
+      'Last Accessed': formatDateForCSV(progress.last_accessed_at)
+    }));
+
+    const timestamp = new Date().toISOString().split('T')[0];
+    let filename = `user_progress_report_${timestamp}.csv`;
+    
+    // Add filter info to filename if filters are applied
+    const appliedFilters = [];
+    if (searchTerm) appliedFilters.push('filtered');
+    if (selectedUserId !== 'all') appliedFilters.push('user-specific');
+    if (courseFilter !== 'all') appliedFilters.push('course-specific');
+    if (statusFilter !== 'all') appliedFilters.push(statusFilter);
+    
+    if (appliedFilters.length > 0) {
+      filename = `user_progress_report_${appliedFilters.join('_')}_${timestamp}.csv`;
+    }
+
+    exportToCSV(csvData, filename);
+    
+    toast({
+      title: "Export Successful",
+      description: `Exported ${filteredProgress.length} progress records to CSV`,
+    });
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -222,10 +269,16 @@ const UserProgressManagement = () => {
           <h2 className="text-2xl font-bold text-gray-900">User Progress Tracking</h2>
           <p className="text-gray-600">Monitor user course and unit completion progress</p>
         </div>
-        <Button variant="outline" onClick={() => fetchUserProgress()}>
-          <Download className="h-4 w-4 mr-2" />
-          Refresh Data
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={handleExportCSV} disabled={filteredProgress.length === 0}>
+            <FileDown className="h-4 w-4 mr-2" />
+            Download CSV
+          </Button>
+          <Button variant="outline" onClick={() => fetchUserProgress()}>
+            <Download className="h-4 w-4 mr-2" />
+            Refresh Data
+          </Button>
+        </div>
       </div>
 
       {/* Statistics Cards */}
