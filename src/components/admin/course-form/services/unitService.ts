@@ -17,7 +17,7 @@ export const createUnit = async (lessonId: string, unit: UnitData) => {
     }
   }
 
-  // Ensure files is properly handled
+  // Handle multiple files properly
   let filesData = null;
   if (unit.files && Array.isArray(unit.files) && unit.files.length > 0) {
     filesData = JSON.stringify(unit.files);
@@ -69,7 +69,7 @@ export const updateUnit = async (unitId: string, unit: UnitData) => {
     }
   }
 
-  // Ensure files is properly handled
+  // Handle multiple files properly
   let filesData = null;
   if (unit.files && Array.isArray(unit.files) && unit.files.length > 0) {
     filesData = JSON.stringify(unit.files);

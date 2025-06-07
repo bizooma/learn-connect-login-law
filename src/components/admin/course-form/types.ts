@@ -60,6 +60,8 @@ export interface UnitData {
   file_url?: string;
   file_name?: string;
   file_size?: number;
+  files?: Array<{ url: string; name: string; size: number }>;
+  _lastFilesUpdate?: number;
 }
 
 export interface QuizData {
