@@ -1,16 +1,12 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Search, Download, User, BookOpen, CheckCircle, Clock, FileDown } from "lucide-react";
 import { usePagination } from "./user-management/usePagination";
-import UserProgressFilter from "./user-progress/UserProgressFilter";
 import UserProgressModal from "./user-progress/UserProgressModal";
+import UserProgressManagementHeader from "./user-progress/UserProgressManagementHeader";
+import UserProgressStatsCards from "./user-progress/UserProgressStatsCards";
+import UserProgressFilters from "./user-progress/UserProgressFilters";
+import UserProgressTable from "./user-progress/UserProgressTable";
 import { exportToCSV, formatDateForCSV } from "@/lib/csvUtils";
 
 interface UserProgress {
@@ -188,19 +184,6 @@ const UserProgressManagement = () => {
     fetchUserProgress();
   }, []);
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'completed':
-        return <Badge className="bg-green-100 text-green-800">Completed</Badge>;
-      case 'in_progress':
-        return <Badge className="bg-blue-100 text-blue-800">In Progress</Badge>;
-      case 'not_started':
-        return <Badge className="bg-gray-100 text-gray-800">Not Started</Badge>;
-      default:
-        return <Badge variant="outline">{status}</Badge>;
-    }
-  };
-
   const handleViewUserProgress = (userId: string) => {
     setSelectedUserForModal(userId);
   };
@@ -264,249 +247,44 @@ const UserProgressManagement = () => {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">User Progress Tracking</h2>
-          <p className="text-gray-600">Monitor user course and unit completion progress</p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleExportCSV} disabled={filteredProgress.length === 0}>
-            <FileDown className="h-4 w-4 mr-2" />
-            Download CSV
-          </Button>
-          <Button variant="outline" onClick={() => fetchUserProgress()}>
-            <Download className="h-4 w-4 mr-2" />
-            Refresh Data
-          </Button>
-        </div>
-      </div>
+      <UserProgressManagementHeader
+        onExportCSV={handleExportCSV}
+        onRefreshData={fetchUserProgress}
+        hasData={filteredProgress.length > 0}
+      />
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Users</CardTitle>
-            <User className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{uniqueUserCount}</div>
-          </CardContent>
-        </Card>
+      <UserProgressStatsCards
+        uniqueUserCount={uniqueUserCount}
+        totalEnrollments={userProgress.length}
+        completedCourses={userProgress.filter(p => p.status === 'completed').length}
+        inProgressCourses={userProgress.filter(p => p.status === 'in_progress').length}
+      />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Enrollments</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{userProgress.length}</div>
-          </CardContent>
-        </Card>
+      <UserProgressFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        selectedUserId={selectedUserId}
+        onUserChange={setSelectedUserId}
+        courseFilter={courseFilter}
+        onCourseChange={setCourseFilter}
+        statusFilter={statusFilter}
+        onStatusChange={setStatusFilter}
+        users={users}
+        courses={courses}
+      />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Completed Courses</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {userProgress.filter(p => p.status === 'completed').length}
-            </div>
-          </CardContent>
-        </Card>
+      <UserProgressTable
+        paginatedProgress={paginatedProgress}
+        onViewUserProgress={handleViewUserProgress}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        totalResults={filteredProgress.length}
+        itemsPerPage={ITEMS_PER_PAGE}
+        goToPage={goToPage}
+        hasNextPage={hasNextPage}
+        hasPreviousPage={hasPreviousPage}
+      />
 
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {userProgress.filter(p => p.status === 'in_progress').length}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-col md:flex-row gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  placeholder="Search by user name, email, or course..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            
-            <UserProgressFilter
-              users={users}
-              selectedUserId={selectedUserId}
-              onUserChange={setSelectedUserId}
-            />
-            
-            <Select value={courseFilter} onValueChange={setCourseFilter}>
-              <SelectTrigger className="w-full md:w-[200px]">
-                <SelectValue placeholder="Filter by course" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Courses</SelectItem>
-                {courses.map(course => (
-                  <SelectItem key={course.id} value={course.id}>
-                    {course.title}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            
-            <Select value={statusFilter} onValueChange={setStatusFilter}>
-              <SelectTrigger className="w-full md:w-[150px]">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="not_started">Not Started</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Progress Table */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Course Progress</CardTitle>
-            <div className="text-sm text-gray-600">
-              Showing {((currentPage - 1) * ITEMS_PER_PAGE) + 1} to {Math.min(currentPage * ITEMS_PER_PAGE, filteredProgress.length)} of {filteredProgress.length} results
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>User</TableHead>
-                <TableHead>Course</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Progress</TableHead>
-                <TableHead>Units Completed</TableHead>
-                <TableHead>Last Accessed</TableHead>
-                <TableHead>Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {paginatedProgress.map((progress, index) => (
-                <TableRow key={index}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{progress.user_name}</div>
-                      <div className="text-sm text-gray-500">{progress.user_email}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="font-medium">{progress.course_title}</TableCell>
-                  <TableCell>{getStatusBadge(progress.status)}</TableCell>
-                  <TableCell>
-                    <div className="w-20">
-                      <div className="text-sm font-medium">{progress.progress_percentage}%</div>
-                      <div className="w-full bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full" 
-                          style={{ width: `${progress.progress_percentage}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {progress.completed_units}/{progress.total_units}
-                  </TableCell>
-                  <TableCell>
-                    {progress.last_accessed_at 
-                      ? new Date(progress.last_accessed_at).toLocaleDateString()
-                      : 'Never'
-                    }
-                  </TableCell>
-                  <TableCell>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleViewUserProgress(progress.user_id)}
-                    >
-                      View Details
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-
-          {/* Pagination Controls */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between mt-6">
-              <div className="text-sm text-gray-600">
-                Page {currentPage} of {totalPages}
-              </div>
-              
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => goToPage(currentPage - 1)}
-                  disabled={!hasPreviousPage}
-                >
-                  Previous
-                </Button>
-                
-                {/* Page numbers */}
-                <div className="flex items-center space-x-1">
-                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
-                    let pageNum;
-                    if (totalPages <= 5) {
-                      pageNum = i + 1;
-                    } else if (currentPage <= 3) {
-                      pageNum = i + 1;
-                    } else if (currentPage >= totalPages - 2) {
-                      pageNum = totalPages - 4 + i;
-                    } else {
-                      pageNum = currentPage - 2 + i;
-                    }
-                    
-                    return (
-                      <Button
-                        key={pageNum}
-                        variant={currentPage === pageNum ? "default" : "outline"}
-                        size="sm"
-                        onClick={() => goToPage(pageNum)}
-                        className="w-8 h-8 p-0"
-                      >
-                        {pageNum}
-                      </Button>
-                    );
-                  })}
-                </div>
-                
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => goToPage(currentPage + 1)}
-                  disabled={!hasNextPage}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Enhanced User Progress Modal */}
       <UserProgressModal
         isOpen={!!selectedUserForModal}
         onClose={() => setSelectedUserForModal(null)}
