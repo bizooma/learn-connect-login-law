@@ -45,7 +45,7 @@ export const useCourse = (courseId: string) => {
         setLoading(true);
         setError(null);
 
-        // Fetch course with modules, lessons, and units
+        // Fetch course with modules, lessons, and units with proper ordering
         const { data: courseData, error: courseError } = await supabase
           .from('courses')
           .select(`
@@ -59,6 +59,9 @@ export const useCourse = (courseId: string) => {
             )
           `)
           .eq('id', courseId)
+          .order('sort_order', { referencedTable: 'modules', ascending: true })
+          .order('sort_order', { referencedTable: 'modules.lessons', ascending: true })
+          .order('sort_order', { referencedTable: 'modules.lessons.units', ascending: true })
           .single();
 
         if (courseError) throw courseError;
@@ -83,7 +86,7 @@ export const useCourse = (courseId: string) => {
             }
           });
 
-          // Enhance units with quiz data and parse files
+          // Enhance modules with proper ordering
           const enhancedModules = courseData.modules?.map(module => ({
             ...module,
             lessons: module.lessons?.map(lesson => ({
@@ -116,11 +119,11 @@ export const useCourse = (courseId: string) => {
                   quiz: quizMap.get(unit.id) || undefined,
                   files
                 };
-              }) || []
-            })) || []
-          })) || [];
+              })?.sort((a, b) => a.sort_order - b.sort_order) || []
+            }))?.sort((a, b) => a.sort_order - b.sort_order) || []
+          }))?.sort((a, b) => a.sort_order - b.sort_order) || [];
 
-          // For backward compatibility, also create a flat lessons array
+          // For backward compatibility, also create a flat lessons array with proper ordering
           const flatLessons = enhancedModules.flatMap(m => m.lessons || []);
 
           const enhancedCourse = {
