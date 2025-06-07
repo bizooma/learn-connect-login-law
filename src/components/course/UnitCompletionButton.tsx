@@ -1,10 +1,12 @@
+
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Clock, Loader2, Award } from "lucide-react";
+import { CheckCircle, Clock, Loader2, Award, Video, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useUnitProgress } from "@/hooks/useUnitProgress";
+import { useVideoProgress } from "@/hooks/useVideoProgress";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
 
@@ -20,11 +22,13 @@ const UnitCompletionButton = ({ unit, courseId, onComplete }: UnitCompletionButt
   const { user } = useAuth();
   const { markUnitComplete } = useUserProgress(user?.id);
   const { isUnitCompleted, getUnitCompletedAt, markUnitComplete: updateLocalState } = useUnitProgress(courseId);
+  const { videoProgress } = useVideoProgress(unit.id, courseId);
   const [isCompleting, setIsCompleting] = useState(false);
   const { toast } = useToast();
 
   const isCompleted = isUnitCompleted(unit.id);
   const completedAt = getUnitCompletedAt(unit.id);
+  const hasVideo = !!unit.video_url;
 
   const handleMarkComplete = async () => {
     if (!unit || !user) {
@@ -97,6 +101,22 @@ const UnitCompletionButton = ({ unit, courseId, onComplete }: UnitCompletionButt
                     </span>
                   )}
                 </p>
+                
+                {/* Show completion details */}
+                <div className="flex items-center space-x-4 mt-2">
+                  {hasVideo && (
+                    <div className="flex items-center space-x-1 text-xs">
+                      <Video className="h-3 w-3" />
+                      <span className={videoProgress.is_completed ? "text-green-600" : "text-gray-500"}>
+                        Video: {videoProgress.is_completed ? "Watched" : `${videoProgress.watch_percentage}%`}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-center space-x-1 text-xs">
+                    <BookOpen className="h-3 w-3" />
+                    <span className="text-green-600">Unit: Completed</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -117,6 +137,18 @@ const UnitCompletionButton = ({ unit, courseId, onComplete }: UnitCompletionButt
           <div>
             <h3 className="text-lg font-semibold mb-2">Complete Unit</h3>
             <p className="text-gray-600">Mark this unit as complete to track your progress.</p>
+            
+            {/* Show progress requirements */}
+            {hasVideo && (
+              <div className="flex items-center space-x-4 mt-2">
+                <div className="flex items-center space-x-1 text-sm">
+                  <Video className="h-4 w-4" />
+                  <span className={videoProgress.is_completed ? "text-green-600" : "text-gray-500"}>
+                    Video: {videoProgress.is_completed ? "✓ Watched" : `${videoProgress.watch_percentage}% watched`}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         <Button 
