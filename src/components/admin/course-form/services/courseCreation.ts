@@ -2,40 +2,36 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CourseFormData } from "../types";
 import { uploadImageFile } from "../fileUploadUtils";
+// Removed automatic calendar event import
 
-export const createCourse = async (data: CourseFormData) => {
-  let imageUrl = null;
+export const createCourse = async (courseData: CourseFormData, isDraft: boolean = false) => {
+  console.log('Creating course with data:', courseData);
+
+  let imageUrl = '';
   
-  // Upload image file if provided
-  if (data.image_file) {
+  if (courseData.image_file) {
     try {
-      console.log('Starting image upload...');
-      imageUrl = await uploadImageFile(data.image_file);
-      console.log('Image upload completed:', imageUrl);
+      console.log('Uploading course image...');
+      imageUrl = await uploadImageFile(courseData.image_file);
+      console.log('Course image uploaded:', imageUrl);
     } catch (error) {
-      console.error('Error uploading image:', error);
-      throw new Error(`Failed to upload image: ${error.message}`);
+      console.error('Error uploading course image:', error);
+      throw new Error(`Failed to upload course image: ${error.message}`);
     }
   }
 
-  // Create the course
-  const courseData = {
-    title: data.title,
-    description: data.description,
-    instructor: data.instructor,
-    category: data.category,
-    level: data.level || 'beginner',
-    duration: data.duration,
-    image_url: imageUrl,
-    rating: 0,
-    students_enrolled: 0,
-  };
-
-  console.log('Creating course with data:', courseData);
-
-  const { data: courseDataResult, error: courseError } = await supabase
+  const { data: course, error: courseError } = await supabase
     .from('courses')
-    .insert(courseData)
+    .insert({
+      title: courseData.title,
+      description: courseData.description,
+      instructor: courseData.instructor,
+      category: courseData.category,
+      level: courseData.level,
+      duration: courseData.duration,
+      image_url: imageUrl || null,
+      is_draft: isDraft,
+    })
     .select()
     .single();
 
@@ -44,6 +40,10 @@ export const createCourse = async (data: CourseFormData) => {
     throw new Error(`Failed to create course: ${courseError.message}`);
   }
 
-  console.log('Course created successfully:', courseDataResult);
-  return courseDataResult;
+  console.log('Course created successfully:', course);
+
+  // Removed automatic calendar event creation
+  // No welcome calendar events will be created automatically
+
+  return course;
 };
