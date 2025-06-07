@@ -31,11 +31,14 @@ const MultipleFileUpload = ({
 }: MultipleFileUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
 
+  console.log('MultipleFileUpload render:', { currentFiles, label, contentType, contentIndex });
+
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
     setIsUploading(true);
+    console.log('Starting file upload for', files.length, 'files');
 
     try {
       const uploadPromises = Array.from(files).map(async (file) => {
@@ -45,20 +48,25 @@ const MultipleFileUpload = ({
         }
 
         const fileExt = file.name.split('.').pop();
-        const fileName = `${contentType}-${contentIndex}-${Date.now()}-${Math.random()}.${fileExt}`;
+        const fileName = `${contentType}-${contentIndex}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
         const filePath = `${contentType}-files/${fileName}`;
+
+        console.log('Uploading file:', file.name, 'to path:', filePath);
 
         const { error: uploadError } = await supabase.storage
           .from('course-files')
           .upload(filePath, file);
 
         if (uploadError) {
+          console.error('Upload error:', uploadError);
           throw uploadError;
         }
 
         const { data: { publicUrl } } = supabase.storage
           .from('course-files')
           .getPublicUrl(filePath);
+
+        console.log('File uploaded successfully:', publicUrl);
 
         return {
           url: publicUrl,
@@ -69,6 +77,8 @@ const MultipleFileUpload = ({
 
       const uploadedFiles = await Promise.all(uploadPromises);
       const updatedFiles = [...currentFiles, ...uploadedFiles];
+      
+      console.log('All files uploaded, updating with:', updatedFiles);
       onFilesUpdate(updatedFiles);
       
       toast.success(`${uploadedFiles.length} file(s) uploaded successfully`);
@@ -84,7 +94,9 @@ const MultipleFileUpload = ({
   };
 
   const handleRemoveFile = (indexToRemove: number) => {
+    console.log('Removing file at index:', indexToRemove);
     const updatedFiles = currentFiles.filter((_, index) => index !== indexToRemove);
+    console.log('Updated files after removal:', updatedFiles);
     onFilesUpdate(updatedFiles);
     toast.success('File removed');
   };
@@ -136,19 +148,19 @@ const MultipleFileUpload = ({
           )}
 
           {/* Current Files List */}
-          {currentFiles.length > 0 && (
+          {currentFiles && currentFiles.length > 0 && (
             <div className="space-y-2">
               <Label className="text-sm font-medium">Uploaded Files ({currentFiles.length})</Label>
-              <div className="space-y-2">
+              <div className="space-y-2 max-h-60 overflow-y-auto">
                 {currentFiles.map((file, index) => (
                   <div
-                    key={index}
+                    key={`${file.url}-${index}`}
                     className="flex items-center justify-between p-3 bg-gray-50 rounded-md border"
                   >
                     <div className="flex items-center space-x-2 flex-1 min-w-0">
                       <File className="h-5 w-5 text-gray-600 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">
+                        <p className="text-sm font-medium text-gray-900 truncate" title={file.name}>
                           {file.name}
                         </p>
                         <p className="text-xs text-gray-500">
@@ -162,6 +174,7 @@ const MultipleFileUpload = ({
                         variant="outline"
                         onClick={() => window.open(file.url, '_blank')}
                         className="flex items-center space-x-1"
+                        title="Download file"
                       >
                         <Download className="h-3 w-3" />
                       </Button>
@@ -170,6 +183,7 @@ const MultipleFileUpload = ({
                         variant="outline"
                         onClick={() => handleRemoveFile(index)}
                         className="flex items-center space-x-1 text-red-600 hover:text-red-700"
+                        title="Remove file"
                       >
                         <Trash2 className="h-3 w-3" />
                       </Button>
@@ -177,6 +191,14 @@ const MultipleFileUpload = ({
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Debug info for development */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="text-xs text-gray-400 p-2 bg-gray-100 rounded">
+              <p>Debug: {currentFiles?.length || 0} files loaded</p>
+              <p>Files: {JSON.stringify(currentFiles?.map(f => f.name) || [])}</p>
             </div>
           )}
         </div>

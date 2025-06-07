@@ -18,6 +18,8 @@ interface UnitFormProps {
 }
 
 const UnitForm = ({ unit, onUnitChange, onRemove, unitIndex }: UnitFormProps) => {
+  console.log('UnitForm render:', { unit: unit.title, files: unit.files, unitIndex });
+
   const handleVideoGenerated = (videoUrl: string) => {
     onUnitChange('video_url', videoUrl);
     onUnitChange('video_type', 'upload');
@@ -28,8 +30,13 @@ const UnitForm = ({ unit, onUnitChange, onRemove, unitIndex }: UnitFormProps) =>
   };
 
   const handleMultipleFilesUpdate = (files: Array<{ url: string; name: string; size: number }>) => {
+    console.log('UnitForm: Updating files for unit', unit.title, 'with:', files);
     onUnitChange('files', files);
   };
+
+  // Ensure files is always an array
+  const currentFiles = Array.isArray(unit.files) ? unit.files : [];
+  console.log('UnitForm: Current files:', currentFiles);
 
   return (
     <Card className="mb-4">
@@ -131,7 +138,7 @@ const UnitForm = ({ unit, onUnitChange, onRemove, unitIndex }: UnitFormProps) =>
         </div>
 
         <MultipleFileUpload
-          currentFiles={unit.files || []}
+          currentFiles={currentFiles}
           onFilesUpdate={handleMultipleFilesUpdate}
           label="Unit Download Files"
           contentType="unit"

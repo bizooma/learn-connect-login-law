@@ -48,14 +48,21 @@ const UnitCard = ({
   onMoveUnitUp,
   onMoveUnitDown,
 }: UnitCardProps) => {
+  console.log('UnitCard render:', { unit: unit.title, files: unit.files, unitIndex });
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     onVideoFileChange(moduleIndex, lessonIndex, unitIndex, file);
   };
 
   const handleFilesUpdate = (files: Array<{ url: string; name: string; size: number }>) => {
+    console.log('UnitCard: Updating files for unit', unit.title, 'with:', files);
     onUpdateUnit(moduleIndex, lessonIndex, unitIndex, 'files', files);
   };
+
+  // Ensure files is always an array
+  const currentFiles = Array.isArray(unit.files) ? unit.files : [];
+  console.log('UnitCard: Current files:', currentFiles);
 
   return (
     <Card className="border border-yellow-200 ml-4">
@@ -185,7 +192,7 @@ const UnitCard = ({
         )}
 
         <MultipleFileUpload
-          currentFiles={unit.files || []}
+          currentFiles={currentFiles}
           onFilesUpdate={handleFilesUpdate}
           label="Unit Download Files"
           contentType="unit"
