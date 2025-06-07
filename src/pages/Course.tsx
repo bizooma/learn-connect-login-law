@@ -2,6 +2,7 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { useCourse } from "@/hooks/useCourse";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useEffect } from "react";
 import CourseHeader from "@/components/course/CourseHeader";
@@ -14,6 +15,7 @@ const Course = () => {
   const { id: courseId } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
+  const { hasAdminPrivileges } = useUserRole();
   const { course, selectedUnit, setSelectedUnit, loading, error } = useCourse(courseId!);
   const { updateCourseProgress } = useUserProgress(user?.id);
 
@@ -23,16 +25,27 @@ const Course = () => {
       return;
     }
 
+    // Check if non-admin user is trying to access a draft course
+    if (course && course.is_draft && !hasAdminPrivileges) {
+      navigate("/courses");
+      return;
+    }
+
     if (course && user) {
       updateCourseProgress(course.id, 'in_progress', 0);
     }
-  }, [course, user, authLoading, navigate, updateCourseProgress]);
+  }, [course, user, authLoading, hasAdminPrivileges, navigate, updateCourseProgress]);
 
   if (authLoading || loading) {
     return <CourseLoading />;
   }
 
   if (error || !course) {
+    return <CourseNotFound />;
+  }
+
+  // Additional check for draft course access
+  if (course.is_draft && !hasAdminPrivileges) {
     return <CourseNotFound />;
   }
 

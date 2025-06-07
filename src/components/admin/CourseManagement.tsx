@@ -113,6 +113,7 @@ const CourseManagement = () => {
             course={course}
             onDelete={deleteCourse}
             onEdit={handleEditCourse}
+            onStatusChange={fetchCourses}
           />
         ))}
       </div>

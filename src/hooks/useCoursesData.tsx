@@ -1,7 +1,7 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useUserRole } from "@/hooks/useUserRole";
 import { Tables } from "@/integrations/supabase/types";
 
 type Course = Tables<'courses'>;
@@ -9,6 +9,7 @@ type Level = Tables<'levels'>;
 
 export const useCoursesData = () => {
   const { toast } = useToast();
+  const { hasAdminPrivileges } = useUserRole();
   const [courses, setCourses] = useState<Course[]>([]);
   const [levels, setLevels] = useState<Level[]>([]);
   const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
@@ -20,14 +21,20 @@ export const useCoursesData = () => {
   useEffect(() => {
     fetchCourses();
     fetchLevels();
-  }, []);
+  }, [hasAdminPrivileges]);
 
   const fetchCourses = async () => {
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from('courses')
-        .select('*')
-        .order('created_at', { ascending: false });
+        .select('*');
+
+      // Filter out draft courses for non-admin users
+      if (!hasAdminPrivileges) {
+        query = query.eq('is_draft', false);
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
 
       if (error) {
         throw error;
@@ -65,14 +72,12 @@ export const useCoursesData = () => {
     }
   };
 
-  // Filter out empty/null categories and ensure unique valid values
   const validCourseCategories = courses
     .map(course => course.category)
     .filter(category => category && category.trim() !== "");
   
   const categories = ["All", ...Array.from(new Set(validCourseCategories))];
   
-  // Create level options from the levels table, filtering out empty codes
   const validLevelCodes = levels
     .map(level => level.code)
     .filter(code => code && code.trim() !== "");
