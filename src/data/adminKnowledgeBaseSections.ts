@@ -1,5 +1,5 @@
 
-import { BookOpen, Users, ClipboardList, Shield, BarChart3, Settings } from "lucide-react";
+import { BookOpen, Users, ClipboardList, Shield, BarChart3, Settings, Brain } from "lucide-react";
 
 export interface AdminKnowledgeBaseItem {
   title: string;
@@ -36,6 +36,38 @@ export const adminKnowledgeBaseSections: AdminKnowledgeBaseSection[] = [
     ]
   },
   {
+    id: "smart-completion-system",
+    title: "Smart Completion System",
+    icon: Brain,
+    color: "text-purple-600",
+    items: [
+      {
+        title: "Understanding Smart Completion Logic",
+        content: "The platform now features an intelligent completion system that automatically determines how units should be completed based on their content. Units with videos are completed when watched to 95%, units with quizzes complete when passed, and units with both require completion of all components. Manual completion is available for content-only units."
+      },
+      {
+        title: "Video Progress Tracking",
+        content: "Video progress is automatically tracked for all users. The system monitors watch time, completion percentage, and marks videos as complete at 95% watched. Progress is saved every 5-10 seconds and persists across sessions. Users can see their progress with visual indicators and completion badges."
+      },
+      {
+        title: "Automated Quiz Completion",
+        content: "When users pass quizzes (achieve the passing score), the system automatically marks the unit as complete. For units with both video and quiz content, both requirements must be met. The smart completion system evaluates all requirements and triggers completion when criteria are satisfied."
+      },
+      {
+        title: "Completion Strategy Types",
+        content: "The system recognizes four completion strategies: 'video_only' (auto-complete on video finish), 'quiz_only' (auto-complete on quiz pass), 'video_and_quiz' (require both), and 'manual_only' (for text/file content). These strategies are automatically determined based on unit content and displayed to users via completion indicators."
+      },
+      {
+        title: "Smart Completion Indicators",
+        content: "Visual indicators show users exactly what's required to complete each unit. Green badges indicate completed components, gray badges show pending requirements. Progress bars display video watching progress, and completion status updates in real-time as users engage with content."
+      },
+      {
+        title: "Backwards Compatibility",
+        content: "The smart completion system is fully backwards compatible with existing course data. Previously completed units remain completed, and the system gracefully handles units created before the smart completion features were implemented. No data migration is required."
+      }
+    ]
+  },
+  {
     id: "course-management",
     title: "Course Management",
     icon: BookOpen,
@@ -50,8 +82,16 @@ export const adminKnowledgeBaseSections: AdminKnowledgeBaseSection[] = [
         content: "Courses are organized hierarchically: Courses contain Modules, Modules contain Lessons, and Lessons contain Units. This structure helps organize content logically and allows students to progress through material systematically. Each level can have its own description, images, and metadata."
       },
       {
-        title: "Managing Course Content",
-        content: "Use the Module Manager to add and organize content within courses. Upload videos, create text content, and add quizzes to units. You can reorder content by dragging and dropping. Use the LMS Tree view for a comprehensive overview of all course content and to make bulk organizational changes."
+        title: "Managing Course Content with Smart Completion",
+        content: "When creating units, consider how the smart completion system will handle them. Units with videos will auto-complete when watched, units with quizzes complete when passed. For comprehensive learning, combine videos with quizzes to require both components. Use the Module Manager to organize content and preview how completion requirements will appear to students."
+      },
+      {
+        title: "Video Content Management",
+        content: "Upload videos directly or link to YouTube content. The system automatically tracks video progress for all users, marking completion at 95% watched. Consider video length and engagement when designing courses - shorter, focused videos often have better completion rates. Video progress is saved and restored across sessions."
+      },
+      {
+        title: "Quiz Integration and Auto-Completion",
+        content: "Attach quizzes to units for automatic completion when passed. Set appropriate passing scores based on learning objectives. The smart completion system will automatically mark units complete when quiz requirements are met. For units with both video and quiz content, both must be completed."
       },
       {
         title: "Course Editing and Updates",
@@ -106,8 +146,8 @@ export const adminKnowledgeBaseSections: AdminKnowledgeBaseSection[] = [
         content: "Select multiple users and assign courses in bulk for efficient management. This is especially useful for onboarding new employees or rolling out mandatory training. Use filters to select specific user groups (by role, law firm, etc.) for targeted assignments."
       },
       {
-        title: "Managing Assignment Status",
-        content: "Track assignment status from 'assigned' to 'in progress' to 'completed'. Monitor which users haven't started their assigned courses and send reminders as needed. Use the assignment management tab to view all current assignments and their completion status."
+        title: "Managing Assignment Status with Smart Completion",
+        content: "Track assignment status from 'assigned' to 'in progress' to 'completed'. The smart completion system automatically updates progress as users watch videos and complete quizzes. Monitor which users haven't started their assigned courses and send reminders as needed."
       },
       {
         title: "Assignment Deadlines and Notifications",
@@ -122,8 +162,8 @@ export const adminKnowledgeBaseSections: AdminKnowledgeBaseSection[] = [
     color: "text-red-600",
     items: [
       {
-        title: "Creating Quizzes Manually",
-        content: "Use the Quiz Management section to create new quizzes. Add questions one by one, set correct answers, and configure scoring. Link quizzes to specific course units where they should appear. Set passing scores and determine whether students can retake failed quizzes."
+        title: "Creating Quizzes with Auto-Completion",
+        content: "Use the Quiz Management section to create new quizzes that integrate with the smart completion system. Add questions one by one, set correct answers, and configure scoring. Link quizzes to specific course units where they should appear. Set passing scores - when users achieve this score, the unit will automatically be marked complete."
       },
       {
         title: "PowerPoint Quiz Import",
@@ -134,8 +174,8 @@ export const adminKnowledgeBaseSections: AdminKnowledgeBaseSection[] = [
         content: "Support multiple choice questions with single or multiple correct answers. Ensure questions are clear and unambiguous. Write distractors (incorrect answers) that are plausible but clearly wrong. Include explanations for correct answers to enhance learning."
       },
       {
-        title: "Quiz Scoring and Analytics",
-        content: "Set minimum passing scores based on learning objectives and compliance requirements. Monitor quiz performance across all users to identify questions that may be unclear or content that needs reinforcement. Use analytics to improve question quality and course effectiveness."
+        title: "Quiz Scoring and Auto-Completion Analytics",
+        content: "Set minimum passing scores based on learning objectives and compliance requirements. The smart completion system uses these scores to automatically mark units complete. Monitor quiz performance across all users to identify questions that may be unclear or content that needs reinforcement. Use analytics to improve question quality and course effectiveness."
       }
     ]
   },
@@ -146,20 +186,28 @@ export const adminKnowledgeBaseSections: AdminKnowledgeBaseSection[] = [
     color: "text-indigo-600",
     items: [
       {
-        title: "Monitoring Individual Progress",
-        content: "View detailed progress for each user including courses assigned, in progress, and completed. Track completion percentages for ongoing courses and identify users who may need additional support. Use this data to provide personalized assistance and ensure training goals are met."
+        title: "Monitoring Individual Progress with Smart Completion",
+        content: "View detailed progress for each user including courses assigned, in progress, and completed. The smart completion system provides granular tracking of video watch progress, quiz attempts, and completion methods. Track completion percentages for ongoing courses and identify users who may need additional support."
       },
       {
-        title: "Understanding Progress Metrics",
-        content: "Progress is calculated based on completed units within courses. 100% completion means all units and any required quizzes have been finished. Monitor last access times to identify inactive users and engagement patterns to optimize content delivery."
+        title: "Understanding Enhanced Progress Metrics",
+        content: "Progress is now calculated based on multiple factors: video completion (95% threshold), quiz results (passing score achievement), and manual completions. The system tracks completion methods (auto_video_complete, auto_quiz_complete, manual) to provide insights into how users engage with different content types."
+      },
+      {
+        title: "Video Progress Analytics",
+        content: "Monitor detailed video watching statistics including watch time, completion rates, and session behavior. Identify videos with low completion rates that may need revision. Track user engagement patterns to optimize content delivery and identify when users may be struggling with material."
+      },
+      {
+        title: "Smart Completion Reporting",
+        content: "Generate comprehensive reports showing how users complete units across different content types. Analyze which completion strategies are most effective for your content. Use this data to optimize course design and identify successful learning patterns."
       },
       {
         title: "Generating Progress Reports",
-        content: "Export progress data for compliance reporting and training records. Generate reports by user, course, or time period as needed. Use these reports for audits, performance reviews, and demonstrating training compliance to regulatory bodies."
+        content: "Export enhanced progress data for compliance reporting and training records. Reports now include completion methods, video watch statistics, and quiz performance analytics. Generate reports by user, course, or time period as needed for audits, performance reviews, and regulatory compliance."
       },
       {
-        title: "Certificate Management",
-        content: "Certificates are automatically generated when users complete courses with all requirements met. Monitor certificate issuance and maintain records for compliance purposes. Certificates include unique verification numbers and completion dates for authenticity."
+        title: "Certificate Management with Smart Completion",
+        content: "Certificates are automatically generated when users complete courses with all smart completion requirements met. The system ensures all videos are watched and quizzes passed before issuing certificates. Monitor certificate issuance and maintain records for compliance purposes with unique verification numbers and completion dates."
       }
     ]
   },
@@ -174,16 +222,20 @@ export const adminKnowledgeBaseSections: AdminKnowledgeBaseSection[] = [
         content: "Create and manage system-wide notifications to communicate important information to users. Set notification types (info, warning, success) and target specific user groups. Schedule notifications for future display and set expiration dates to keep messaging relevant."
       },
       {
+        title: "Smart Completion System Monitoring",
+        content: "Monitor the smart completion system performance including video progress tracking, automatic completions, and system triggers. Review completion analytics to ensure the system is working correctly and users are progressing as expected. Address any issues with automatic completion logic promptly."
+      },
+      {
         title: "Data Security and Privacy",
-        content: "Ensure user data is protected according to privacy regulations. Regularly review user access permissions and remove accounts for users who no longer need access. Monitor system activity for unusual patterns and maintain audit trails for compliance."
+        content: "Ensure user data is protected according to privacy regulations. The smart completion system stores additional user interaction data including video progress and completion methods. Regularly review user access permissions and remove accounts for users who no longer need access. Maintain audit trails for compliance."
       },
       {
         title: "System Performance Monitoring",
-        content: "Monitor platform performance including load times, user engagement, and system resource usage. Address performance issues promptly to maintain optimal user experience. Regular maintenance and updates help ensure system stability and security."
+        content: "Monitor platform performance including load times, user engagement, and system resource usage. The smart completion system adds minimal overhead but should be monitored for optimal performance. Address performance issues promptly to maintain optimal user experience, especially for video progress tracking."
       },
       {
         title: "Backup and Data Management",
-        content: "Ensure regular backups of user data, course content, and progress records. Maintain data retention policies in accordance with organizational requirements and regulations. Plan for disaster recovery and data restoration procedures."
+        content: "Ensure regular backups of user data, course content, progress records, and smart completion data. Maintain data retention policies in accordance with organizational requirements and regulations. The enhanced tracking system generates more data points, so ensure backup strategies account for increased data volume."
       }
     ]
   }
