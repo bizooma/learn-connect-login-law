@@ -59,17 +59,17 @@ const CourseSidebar = ({ lessons, selectedUnit, onUnitSelect }: CourseSidebarPro
             <div key={lesson.id} className="border-b last:border-b-0">
               <Button
                 variant="ghost"
-                className="w-full justify-between p-4 h-auto"
+                className="w-full justify-between p-4 h-auto whitespace-normal text-left"
                 onClick={() => toggleLesson(lesson.id)}
               >
-                <div className="flex items-center gap-2 min-w-0 flex-1">
-                  <BookOpen className="h-4 w-4 flex-shrink-0" />
-                  <span className="font-medium text-left break-words overflow-hidden">{lesson.title}</span>
+                <div className="flex items-start gap-2 min-w-0 flex-1">
+                  <BookOpen className="h-4 w-4 flex-shrink-0 mt-1" />
+                  <span className="font-medium text-left break-words whitespace-normal leading-tight">{lesson.title}</span>
                 </div>
                 {expandedLessons.has(lesson.id) ? (
-                  <ChevronDown className="h-4 w-4 flex-shrink-0" />
+                  <ChevronDown className="h-4 w-4 flex-shrink-0 mt-1" />
                 ) : (
-                  <ChevronRight className="h-4 w-4 flex-shrink-0" />
+                  <ChevronRight className="h-4 w-4 flex-shrink-0 mt-1" />
                 )}
               </Button>
               
@@ -79,18 +79,18 @@ const CourseSidebar = ({ lessons, selectedUnit, onUnitSelect }: CourseSidebarPro
                     <Button
                       key={unit.id}
                       variant={selectedUnit?.id === unit.id ? "secondary" : "ghost"}
-                      className="w-full justify-start text-sm p-3 h-auto"
+                      className="w-full justify-start text-sm p-3 h-auto whitespace-normal text-left"
                       onClick={() => onUnitSelect(unit)}
                     >
-                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <div className="flex items-start gap-2 flex-1 min-w-0">
                         {unit.video_url ? (
-                          <PlayCircle className="h-4 w-4 flex-shrink-0" />
+                          <PlayCircle className="h-4 w-4 flex-shrink-0 mt-1" />
                         ) : (
-                          <FileText className="h-4 w-4 flex-shrink-0" />
+                          <FileText className="h-4 w-4 flex-shrink-0 mt-1" />
                         )}
-                        <span className="text-left flex-1 break-words overflow-hidden">{unit.title}</span>
+                        <span className="text-left flex-1 break-words whitespace-normal leading-tight">{unit.title}</span>
                         {unit.quiz?.is_active && (
-                          <Badge variant="outline" className="text-xs flex-shrink-0">
+                          <Badge variant="outline" className="text-xs flex-shrink-0 mt-1">
                             Quiz
                           </Badge>
                         )}

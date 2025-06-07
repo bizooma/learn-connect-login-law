@@ -12,8 +12,33 @@ const getVideoType = (url: string): 'youtube' | 'upload' => {
   return url.includes('youtube.com') || url.includes('youtu.be') ? 'youtube' : 'upload';
 };
 
+// Parse files from database format
+const parseFilesFromDatabase = (filesData: any): Array<{ url: string; name: string; size: number }> => {
+  if (!filesData) return [];
+  
+  try {
+    // Handle if it's already an array
+    if (Array.isArray(filesData)) {
+      return filesData.filter(file => file && file.url && file.name);
+    }
+    
+    // Handle if it's a JSON string
+    if (typeof filesData === 'string') {
+      const parsed = JSON.parse(filesData);
+      return Array.isArray(parsed) ? parsed.filter(file => file && file.url && file.name) : [];
+    }
+    
+    return [];
+  } catch (error) {
+    console.error('Error parsing files data:', error, filesData);
+    return [];
+  }
+};
+
 export const fetchCourseContent = async (courseId: string): Promise<SectionData[]> => {
   try {
+    console.log('Fetching course content for course:', courseId);
+    
     // Fetch modules with their lessons and units
     const { data: modulesData, error: modulesError } = await supabase
       .from('modules')
@@ -27,7 +52,12 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
       .eq('course_id', courseId)
       .order('sort_order', { ascending: true });
 
-    if (modulesError) throw modulesError;
+    if (modulesError) {
+      console.error('Error fetching modules:', modulesError);
+      throw modulesError;
+    }
+
+    console.log('Modules data fetched:', modulesData);
 
     // Collect all units from all lessons to fetch quizzes
     const allUnits = modulesData?.flatMap(m => 
@@ -39,7 +69,10 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
       .select('id, unit_id')
       .in('unit_id', allUnits.map(u => u.id));
 
-    if (quizzesError) throw quizzesError;
+    if (quizzesError) {
+      console.error('Error fetching quizzes:', quizzesError);
+      throw quizzesError;
+    }
 
     // Create a map of unit_id to quiz_id
     const unitQuizMap = new Map();
@@ -66,26 +99,16 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
       sort_order: lesson.sort_order,
       units: (lesson.units || []).map((unit: Unit) => {
         // Parse files from the database
-        let files: Array<{ url: string; name: string; size: number }> = [];
+        const files = parseFilesFromDatabase(unit.files);
         
-        if (unit.files) {
-          try {
-            const parsedFiles = Array.isArray(unit.files) ? unit.files : JSON.parse(unit.files as string);
-            files = Array.isArray(parsedFiles) ? parsedFiles : [];
-          } catch (e) {
-            console.error('Error parsing unit files:', e);
-            files = [];
-          }
-        }
+        console.log('Unit files parsed:', unit.title, 'Files:', files);
         
         // Fallback to legacy single file format if no files array
-        if (files.length === 0 && unit.file_url) {
-          files = [{
-            url: unit.file_url,
-            name: unit.file_name || 'Download File',
-            size: unit.file_size || 0
-          }];
-        }
+        const finalFiles = files.length === 0 && unit.file_url ? [{
+          url: unit.file_url,
+          name: unit.file_name || 'Download File',
+          size: unit.file_size || 0
+        }] : files;
 
         return {
           id: unit.id,
@@ -101,11 +124,12 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
           file_url: unit.file_url || "",
           file_name: unit.file_name || "",
           file_size: unit.file_size || 0,
-          files: files
+          files: finalFiles
         };
       }).sort((a, b) => a.sort_order - b.sort_order)
     })).sort((a, b) => a.sort_order - b.sort_order) || [];
 
+    console.log('Formatted lessons with files:', formattedLessons);
     return formattedLessons;
   } catch (error) {
     console.error('Error fetching course content:', error);

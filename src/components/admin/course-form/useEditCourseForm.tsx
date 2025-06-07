@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
@@ -45,6 +44,29 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
 
     console.log('Modules data fetched:', modulesData);
 
+    // Parse files from database format
+    const parseFilesFromDatabase = (filesData: any): Array<{ url: string; name: string; size: number }> => {
+      if (!filesData) return [];
+      
+      try {
+        // Handle if it's already an array
+        if (Array.isArray(filesData)) {
+          return filesData.filter(file => file && file.url && file.name);
+        }
+        
+        // Handle if it's a JSON string
+        if (typeof filesData === 'string') {
+          const parsed = JSON.parse(filesData);
+          return Array.isArray(parsed) ? parsed.filter(file => file && file.url && file.name) : [];
+        }
+        
+        return [];
+      } catch (error) {
+        console.error('Error parsing files data:', error, filesData);
+        return [];
+      }
+    };
+
     // Transform the data to match our ModuleData interface
     const modules: ModuleData[] = modulesData?.map(module => ({
       id: module.id,
@@ -66,26 +88,16 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
         sort_order: lesson.sort_order,
         units: lesson.units?.map(unit => {
           // Parse files from the database
-          let files: Array<{ url: string; name: string; size: number }> = [];
+          const files = parseFilesFromDatabase(unit.files);
           
-          if (unit.files) {
-            try {
-              const parsedFiles = Array.isArray(unit.files) ? unit.files : JSON.parse(unit.files as string);
-              files = Array.isArray(parsedFiles) ? parsedFiles : [];
-            } catch (e) {
-              console.error('Error parsing unit files:', e);
-              files = [];
-            }
-          }
+          console.log('Unit files parsed in edit form:', unit.title, 'Files:', files);
           
           // Fallback to legacy single file format if no files array
-          if (files.length === 0 && unit.file_url) {
-            files = [{
-              url: unit.file_url,
-              name: unit.file_name || 'Download File',
-              size: unit.file_size || 0
-            }];
-          }
+          const finalFiles = files.length === 0 && unit.file_url ? [{
+            url: unit.file_url,
+            name: unit.file_name || 'Download File',
+            size: unit.file_size || 0
+          }] : files;
 
           return {
             id: unit.id,
@@ -101,12 +113,13 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
             file_url: unit.file_url || '',
             file_name: unit.file_name || '',
             file_size: unit.file_size || 0,
-            files: files
+            files: finalFiles
           } as UnitData;
         }).sort((a, b) => a.sort_order - b.sort_order) || []
       } as LessonData)).sort((a, b) => a.sort_order - b.sort_order) || []
     } as ModuleData)) || [];
 
+    console.log('Modules with parsed files:', modules);
     return modules;
   } catch (error) {
     console.error('Error fetching existing modules:', error);
