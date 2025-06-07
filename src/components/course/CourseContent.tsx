@@ -160,7 +160,12 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
       )}
       
       {hasQuiz && (
-        <QuizDisplay quiz={unit.quiz!} unitTitle={unit.title} courseId={courseId} />
+        <QuizDisplay 
+          quiz={unit.quiz!} 
+          unitTitle={unit.title} 
+          courseId={courseId} 
+          onUnitComplete={refetchCompletion}
+        />
       )}
       
       {!hasQuiz && unitForDatabase && (

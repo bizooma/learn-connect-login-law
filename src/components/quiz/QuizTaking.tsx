@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -27,7 +26,7 @@ interface QuizTakingProps {
   quiz: QuizWithQuestions;
   unitTitle: string;
   courseId: string;
-  onComplete: () => void;
+  onComplete: (quizPassed: boolean, score: number) => void;
   onCancel: () => void;
 }
 
@@ -144,7 +143,6 @@ const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTak
       const endTime = new Date();
       const durationMinutes = Math.round((endTime.getTime() - quizStartTime.getTime()) / (1000 * 60));
 
-      // Save quiz attempt (you might want to create a quiz_attempts table)
       console.log('Quiz completed:', {
         userId: user.id,
         quizId: quiz.id,
@@ -155,29 +153,75 @@ const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTak
         duration: durationMinutes
       });
 
-      toast({
-        title: passed ? "Quiz Passed!" : "Quiz Completed",
-        description: `You scored ${score.percentage}% (${score.correctAnswers}/${score.totalQuestions} correct)`,
-        variant: passed ? "default" : "destructive",
-      });
-
-      // If quiz passed, mark unit as complete
+      // If quiz passed and has a unit_id, automatically mark unit as quiz completed
       if (passed && quiz.unit_id) {
+        console.log('Quiz passed, marking unit quiz completion:', quiz.unit_id);
+        
         await supabase
           .from('user_unit_progress')
           .upsert({
             user_id: user.id,
             unit_id: quiz.unit_id,
             course_id: courseId,
-            completed: true,
-            completed_at: new Date().toISOString(),
+            quiz_completed: true,
+            quiz_completed_at: new Date().toISOString(),
             updated_at: new Date().toISOString()
           }, {
             onConflict: 'user_id,unit_id,course_id'
           });
+
+        // Check if unit should be automatically completed
+        // (this will be enhanced in Phase 4 with hybrid completion logic)
+        const { data: unitProgress } = await supabase
+          .from('user_unit_progress')
+          .select('video_completed, quiz_completed')
+          .eq('user_id', user.id)
+          .eq('unit_id', quiz.unit_id)
+          .eq('course_id', courseId)
+          .single();
+
+        // Get unit info to check if it has video
+        const { data: unit } = await supabase
+          .from('units')
+          .select('video_url')
+          .eq('id', quiz.unit_id)
+          .single();
+
+        const hasVideo = !!unit?.video_url;
+        const shouldAutoComplete = hasVideo ? 
+          (unitProgress?.video_completed && unitProgress?.quiz_completed) : 
+          unitProgress?.quiz_completed;
+
+        if (shouldAutoComplete) {
+          console.log('Auto-completing unit based on quiz pass');
+          await supabase
+            .from('user_unit_progress')
+            .upsert({
+              user_id: user.id,
+              unit_id: quiz.unit_id,
+              course_id: courseId,
+              completed: true,
+              completed_at: new Date().toISOString(),
+              completion_method: 'auto_quiz',
+              updated_at: new Date().toISOString()
+            }, {
+              onConflict: 'user_id,unit_id,course_id'
+            });
+
+          toast({
+            title: "Unit Completed! 🎉",
+            description: `Great job! You've completed this unit by passing the quiz.`,
+          });
+        }
       }
 
-      onComplete();
+      toast({
+        title: passed ? "Quiz Passed!" : "Quiz Completed",
+        description: `You scored ${score.percentage}% (${score.correctAnswers}/${score.totalQuestions} correct)`,
+        variant: passed ? "default" : "destructive",
+      });
+
+      onComplete(passed, score.percentage);
     } catch (error) {
       console.error('Error submitting quiz:', error);
       toast({

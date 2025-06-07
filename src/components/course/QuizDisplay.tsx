@@ -26,16 +26,18 @@ interface QuizDisplayProps {
   quiz: Quiz;
   unitTitle: string;
   courseId: string;
+  onUnitComplete?: () => void;
 }
 
 interface QuizState {
   mode: 'preview' | 'taking' | 'results';
   score?: number;
+  passed?: boolean;
   correctAnswers?: number;
   totalQuestions?: number;
 }
 
-const QuizDisplay = ({ quiz, unitTitle, courseId }: QuizDisplayProps) => {
+const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayProps) => {
   const [quizState, setQuizState] = useState<QuizState>({ mode: 'preview' });
   const [quizWithQuestions, setQuizWithQuestions] = useState<QuizWithQuestions | null>(null);
   const [loading, setLoading] = useState(false);
@@ -82,15 +84,22 @@ const QuizDisplay = ({ quiz, unitTitle, courseId }: QuizDisplayProps) => {
     setQuizState({ mode: 'taking' });
   };
 
-  const handleQuizComplete = () => {
-    // This would normally get the actual results from the quiz taking component
-    // For now, we'll show a placeholder
+  const handleQuizComplete = (passed: boolean, score: number) => {
+    const totalQuestions = quizWithQuestions?.quiz_questions?.length || 0;
+    const correctAnswers = Math.round((score / 100) * totalQuestions);
+    
     setQuizState({ 
       mode: 'results',
-      score: 85,
-      correctAnswers: 8,
-      totalQuestions: 10
+      score,
+      passed,
+      correctAnswers,
+      totalQuestions
     });
+
+    // Trigger unit completion check if provided
+    if (onUnitComplete) {
+      onUnitComplete();
+    }
   };
 
   const handleRetryQuiz = () => {
