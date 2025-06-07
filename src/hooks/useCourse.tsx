@@ -1,157 +1,160 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
 import { Tables } from "@/integrations/supabase/types";
 
 type Course = Tables<'courses'>;
+type Module = Tables<'modules'>;
 type Lesson = Tables<'lessons'>;
 type Unit = Tables<'units'>;
-type Quiz = Tables<'quizzes'>;
 
-interface UnitWithQuiz extends Unit {
-  quiz?: Quiz;
+interface EnhancedUnit extends Unit {
+  quiz?: {
+    id: string;
+    title: string;
+    description: string;
+    is_active: boolean;
+  };
+  files?: Array<{ url: string; name: string; size: number }>;
 }
 
-interface LessonWithUnits extends Lesson {
-  units: UnitWithQuiz[];
+interface EnhancedLesson extends Lesson {
+  units: EnhancedUnit[];
 }
 
-interface CourseWithLessons extends Course {
-  lessons: LessonWithUnits[];
+interface EnhancedModule extends Module {
+  lessons: EnhancedLesson[];
 }
 
-export const useCourse = (id: string | undefined) => {
-  const { toast } = useToast();
-  const { user } = useAuth();
-  const [course, setCourse] = useState<CourseWithLessons | null>(null);
-  const [selectedUnit, setSelectedUnit] = useState<UnitWithQuiz | null>(null);
+interface EnhancedCourse extends Course {
+  modules: EnhancedModule[];
+  lessons: EnhancedLesson[];
+}
+
+export const useCourse = (courseId: string) => {
+  const [course, setCourse] = useState<EnhancedCourse | null>(null);
+  const [selectedUnit, setSelectedUnit] = useState<EnhancedUnit | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
-    const checkAdminStatus = async () => {
-      if (!user) return;
-      
+    if (!courseId) return;
+
+    const fetchCourse = async () => {
       try {
-        console.log('Checking admin status for user:', user.id);
-        const isAdminResult = await supabase.rpc('is_admin_user');
-        console.log('Admin check result:', isAdminResult);
-        setIsAdmin(isAdminResult.data || false);
-      } catch (error) {
-        console.error('Error checking admin status:', error);
-        setIsAdmin(false);
+        setLoading(true);
+        setError(null);
+
+        // Fetch course with modules, lessons, and units
+        const { data: courseData, error: courseError } = await supabase
+          .from('courses')
+          .select(`
+            *,
+            modules:modules(
+              *,
+              lessons:lessons(
+                *,
+                units:units(*)
+              )
+            )
+          `)
+          .eq('id', courseId)
+          .single();
+
+        if (courseError) throw courseError;
+
+        if (courseData) {
+          // Get all unit IDs for quiz lookup
+          const allUnits = courseData.modules?.flatMap(m => 
+            m.lessons?.flatMap(l => l.units || []) || []
+          ) || [];
+
+          // Fetch quizzes for all units
+          const { data: quizzesData } = await supabase
+            .from('quizzes')
+            .select('id, title, description, is_active, unit_id')
+            .in('unit_id', allUnits.map(u => u.id));
+
+          // Create quiz map
+          const quizMap = new Map();
+          quizzesData?.forEach(quiz => {
+            if (quiz.unit_id) {
+              quizMap.set(quiz.unit_id, quiz);
+            }
+          });
+
+          // Enhance units with quiz data and parse files
+          const enhancedModules = courseData.modules?.map(module => ({
+            ...module,
+            lessons: module.lessons?.map(lesson => ({
+              ...lesson,
+              units: lesson.units?.map(unit => {
+                let files: Array<{ url: string; name: string; size: number }> = [];
+                
+                // Handle the new files format (jsonb array)
+                if (unit.files) {
+                  try {
+                    const parsedFiles = Array.isArray(unit.files) ? unit.files : JSON.parse(unit.files as string);
+                    files = Array.isArray(parsedFiles) ? parsedFiles : [];
+                  } catch (e) {
+                    console.error('Error parsing unit files:', e);
+                    files = [];
+                  }
+                }
+                
+                // Fallback to legacy single file format if no files array
+                if (files.length === 0 && unit.file_url) {
+                  files = [{
+                    url: unit.file_url,
+                    name: unit.file_name || 'Download File',
+                    size: unit.file_size || 0
+                  }];
+                }
+
+                return {
+                  ...unit,
+                  quiz: quizMap.get(unit.id) || undefined,
+                  files
+                };
+              }) || []
+            })) || []
+          })) || [];
+
+          // For backward compatibility, also create a flat lessons array
+          const flatLessons = enhancedModules.flatMap(m => m.lessons || []);
+
+          const enhancedCourse = {
+            ...courseData,
+            modules: enhancedModules,
+            lessons: flatLessons
+          };
+
+          setCourse(enhancedCourse);
+
+          // Auto-select first unit if none selected
+          if (!selectedUnit && flatLessons.length > 0) {
+            const firstUnit = flatLessons[0]?.units?.[0];
+            if (firstUnit) {
+              setSelectedUnit(firstUnit);
+            }
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching course:', err);
+        setError(err instanceof Error ? err.message : 'Failed to fetch course');
+      } finally {
+        setLoading(false);
       }
     };
 
-    if (user) {
-      checkAdminStatus();
-    }
-  }, [user]);
-
-  const fetchCourse = async () => {
-    if (!id) {
-      setLoading(false);
-      return;
-    }
-
-    try {
-      console.log('Fetching course:', id);
-      
-      // First fetch the course
-      const { data: courseData, error: courseError } = await supabase
-        .from('courses')
-        .select('*')
-        .eq('id', id)
-        .single();
-
-      if (courseError) {
-        console.error('Error fetching course:', courseError);
-        throw courseError;
-      }
-
-      console.log('Course data fetched:', courseData);
-
-      // Then fetch lessons directly from the course
-      const { data: lessonsData, error: lessonsError } = await supabase
-        .from('lessons')
-        .select(`
-          *,
-          units:units(
-            *,
-            quiz:quizzes(*)
-          )
-        `)
-        .eq('course_id', id)
-        .order('sort_order', { ascending: true });
-
-      if (lessonsError) {
-        console.error('Error fetching lessons:', lessonsError);
-        throw lessonsError;
-      }
-
-      console.log('Lessons data fetched:', lessonsData);
-
-      // Process the lessons data and handle units properly
-      const lessons = lessonsData?.map(lesson => ({
-        ...lesson,
-        units: (lesson.units || []).map(unit => {
-          // Handle quiz data - it comes as an array but we want a single quiz
-          const quizArray = unit.quiz;
-          const quiz = Array.isArray(quizArray) && quizArray.length > 0 ? quizArray[0] : undefined;
-          
-          return {
-            ...unit,
-            quiz: quiz
-          };
-        }).sort((a, b) => a.sort_order - b.sort_order)
-      })).sort((a, b) => a.sort_order - b.sort_order) || [];
-
-      const courseWithLessons: CourseWithLessons = {
-        ...courseData,
-        lessons
-      };
-
-      setCourse(courseWithLessons);
-      setError(null);
-
-      // Set first unit of first lesson as selected by default
-      const firstLesson = lessons[0];
-      if (firstLesson && firstLesson.units.length > 0) {
-        setSelectedUnit(firstLesson.units[0]);
-      }
-    } catch (error) {
-      console.error('Error fetching course:', error);
-      setError('Failed to load course');
-      toast({
-        title: "Error",
-        description: "Failed to load course",
-        variant: "destructive",
-      });
-      setCourse(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (id) {
-      console.log('useCourse: Starting to fetch course:', id);
-      fetchCourse();
-    } else {
-      console.log('useCourse: No course ID provided');
-      setLoading(false);
-    }
-  }, [id]);
+    fetchCourse();
+  }, [courseId]);
 
   return {
     course,
     selectedUnit,
     setSelectedUnit,
     loading,
-    error,
-    isAdmin
+    error
   };
 };

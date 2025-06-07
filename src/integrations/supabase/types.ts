@@ -862,6 +862,7 @@ export type Database = {
           file_name: string | null
           file_size: number | null
           file_url: string | null
+          files: Json | null
           id: string
           is_draft: boolean
           section_id: string
@@ -878,6 +879,7 @@ export type Database = {
           file_name?: string | null
           file_size?: number | null
           file_url?: string | null
+          files?: Json | null
           id?: string
           is_draft?: boolean
           section_id: string
@@ -894,6 +896,7 @@ export type Database = {
           file_name?: string | null
           file_size?: number | null
           file_url?: string | null
+          files?: Json | null
           id?: string
           is_draft?: boolean
           section_id?: string

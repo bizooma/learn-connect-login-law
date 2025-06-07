@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trash2, ArrowUp, ArrowDown, Upload } from "lucide-react";
+import MultipleFileUpload from "@/components/admin/MultipleFileUpload";
 
 interface UnitData {
   id?: string;
@@ -17,6 +18,7 @@ interface UnitData {
   duration_minutes: number;
   sort_order: number;
   quiz_id?: string;
+  files?: Array<{ url: string; name: string; size: number }>;
 }
 
 interface UnitCardProps {
@@ -49,6 +51,10 @@ const UnitCard = ({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     onVideoFileChange(moduleIndex, lessonIndex, unitIndex, file);
+  };
+
+  const handleFilesUpdate = (files: Array<{ url: string; name: string; size: number }>) => {
+    onUpdateUnit(moduleIndex, lessonIndex, unitIndex, 'files', files);
   };
 
   return (
@@ -177,6 +183,14 @@ const UnitCard = ({
             </div>
           </div>
         )}
+
+        <MultipleFileUpload
+          currentFiles={unit.files || []}
+          onFilesUpdate={handleFilesUpdate}
+          label="Unit Download Files"
+          contentType="unit"
+          contentIndex={unitIndex}
+        />
       </CardContent>
     </Card>
   );

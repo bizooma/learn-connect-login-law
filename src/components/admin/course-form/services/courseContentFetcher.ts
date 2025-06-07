@@ -78,6 +78,7 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
         file_url: unit.file_url || "",
         file_name: unit.file_name || "",
         file_size: unit.file_size || 0,
+        files: unit.files ? (Array.isArray(unit.files) ? unit.files : [unit.files]) : []
       })).sort((a, b) => a.sort_order - b.sort_order)
     })).sort((a, b) => a.sort_order - b.sort_order) || [];
 
