@@ -59,13 +59,19 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
   // Check if this unit has a quiz attached to it
   const hasQuiz = unit?.quiz && unit.quiz.is_active;
 
+  // Convert UnitWithQuiz to Unit for components that expect the database type
+  const unitForDatabase: Unit | null = unit ? {
+    ...unit,
+    files: unit.files ? JSON.stringify(unit.files) : null
+  } : null;
+
   return (
     <div className="space-y-6">
       {/* Show lesson video if available */}
       {lesson && <LessonVideo lesson={lesson} courseId={courseId} />}
       
       {/* Show unit video */}
-      <CourseVideo unit={unit} courseId={courseId} />
+      <CourseVideo unit={unitForDatabase} courseId={courseId} />
       
       {/* Lesson file download section */}
       {lesson?.file_url && (
@@ -157,9 +163,9 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
         <QuizDisplay quiz={unit.quiz!} unitTitle={unit.title} courseId={courseId} />
       )}
       
-      {!hasQuiz && unit && (
+      {!hasQuiz && unitForDatabase && (
         <UnitCompletionButton 
-          unit={unit} 
+          unit={unitForDatabase} 
           courseId={courseId} 
           onComplete={refetchCompletion}
         />
