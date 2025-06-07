@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Video, Upload, Youtube } from 'lucide-react';
 import PowerPointVideoIntegration from './PowerPointVideoIntegration';
-import FileUpload from '../FileUpload';
+import MultipleFileUpload from '../MultipleFileUpload';
 import EnhancedQuizSelector from './EnhancedQuizSelector';
 
 interface UnitFormProps {
@@ -25,6 +25,10 @@ const UnitForm = ({ unit, onUnitChange, onRemove, unitIndex }: UnitFormProps) =>
 
   const handleQuizUpdate = (quizId: string | undefined) => {
     onUnitChange('quiz_id', quizId);
+  };
+
+  const handleMultipleFilesUpdate = (files: Array<{ url: string; name: string; size: number }>) => {
+    onUnitChange('files', files);
   };
 
   return (
@@ -126,15 +130,10 @@ const UnitForm = ({ unit, onUnitChange, onRemove, unitIndex }: UnitFormProps) =>
           )}
         </div>
 
-        <FileUpload
-          currentFileUrl={unit.file_url}
-          currentFileName={unit.file_name}
-          onFileUpdate={(fileUrl, fileName, fileSize) => {
-            onUnitChange('file_url', fileUrl);
-            onUnitChange('file_name', fileName);
-            onUnitChange('file_size', fileSize);
-          }}
-          label="Unit Download File"
+        <MultipleFileUpload
+          currentFiles={unit.files || []}
+          onFilesUpdate={handleMultipleFilesUpdate}
+          label="Unit Download Files"
           contentType="unit"
           contentIndex={unitIndex}
         />

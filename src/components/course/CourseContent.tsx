@@ -17,6 +17,7 @@ type Lesson = Tables<'lessons'>;
 
 interface UnitWithQuiz extends Unit {
   quiz?: Quiz;
+  files?: Array<{ url: string; name: string; size: number }>;
 }
 
 interface CourseContentProps {
@@ -37,16 +38,22 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
     }
   }, [courseId, refetchCompletion]);
 
-  const handleFileDownload = () => {
-    if (unit?.file_url) {
-      window.open(unit.file_url, '_blank');
-    }
+  const handleFileDownload = (fileUrl: string) => {
+    window.open(fileUrl, '_blank');
   };
 
   const handleLessonFileDownload = () => {
     if (lesson?.file_url) {
       window.open(lesson.file_url, '_blank');
     }
+  };
+
+  const formatFileSize = (bytes: number) => {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
   // Check if this unit has a quiz attached to it
@@ -84,8 +91,37 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
         </div>
       )}
       
-      {/* Unit file download section */}
-      {unit?.file_url && (
+      {/* Unit multiple files download section */}
+      {unit?.files && unit.files.length > 0 && (
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <h3 className="text-lg font-semibold mb-4">Unit Resources ({unit.files.length} files)</h3>
+          <div className="space-y-3">
+            {unit.files.map((file, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
+                <div className="flex items-center space-x-2 flex-1 min-w-0">
+                  <File className="h-5 w-5 text-gray-600" />
+                  <div className="flex-1 min-w-0">
+                    <span className="font-medium block truncate">{file.name}</span>
+                    <span className="text-sm text-gray-500">{formatFileSize(file.size)}</span>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => handleFileDownload(file.url)}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center space-x-2"
+                >
+                  <Download className="h-4 w-4" />
+                  <span>Download</span>
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Legacy single file support (for backward compatibility) */}
+      {unit?.file_url && !unit?.files && (
         <div className="bg-white rounded-lg shadow-sm border p-6">
           <h3 className="text-lg font-semibold mb-4">Unit Resources</h3>
           <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
@@ -96,7 +132,7 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
               </span>
             </div>
             <Button
-              onClick={handleFileDownload}
+              onClick={() => handleFileDownload(unit.file_url!)}
               variant="outline"
               size="sm"
               className="flex items-center space-x-2"
