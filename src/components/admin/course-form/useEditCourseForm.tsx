@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
@@ -10,6 +11,7 @@ import { createLessonsAndUnits } from "./services/sectionCreation";
 import { createWelcomeCalendarEvent } from "./services/calendarService";
 import { supabase } from "@/integrations/supabase/client";
 import { createCourseWithModules } from "./services/courseSubmissionService";
+import { performSelectiveUpdate, shouldUseSelectiveUpdate } from "./services/selectiveUpdateService";
 
 type Course = Tables<'courses'>;
 
@@ -154,11 +156,20 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
     try {
       await updateCourseBasicInfo(course, data);
       await ensureCalendarExists(course.id);
-      await cleanupExistingCourseContent(course.id);
 
-      // Use the new module-aware submission
-      if (modules.length > 0) {
-        await createCourseWithModules(course.id, data, modules);
+      // Determine update strategy based on content structure
+      const useSelective = shouldUseSelectiveUpdate(modules);
+      
+      if (useSelective) {
+        console.log('Using selective update to preserve lesson order');
+        await performSelectiveUpdate(course.id, modules);
+      } else {
+        console.log('Using full cleanup and recreation');
+        await cleanupExistingCourseContent(course.id);
+        
+        if (modules.length > 0) {
+          await createCourseWithModules(course.id, data, modules);
+        }
       }
 
       toast({

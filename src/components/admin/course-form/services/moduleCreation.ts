@@ -2,47 +2,26 @@
 import { supabase } from "@/integrations/supabase/client";
 import { ModuleData } from "../types";
 
-export const createDefaultModule = async (courseId: string) => {
-  const { data: moduleData, error: moduleError } = await supabase
-    .from('modules')
-    .insert({
-      course_id: courseId,
-      title: 'Main Module',
-      description: 'Primary course content',
-      sort_order: 0,
-    })
-    .select()
-    .single();
-
-  if (moduleError) {
-    console.error('Error creating default module:', moduleError);
-    throw new Error(`Failed to create default module: ${moduleError.message}`);
-  }
-
-  return moduleData;
-};
-
 export const createModulesFromData = async (courseId: string, modules: ModuleData[]) => {
-  console.log('Creating modules from data:', modules);
+  console.log('Creating modules for course:', courseId, 'Modules:', modules);
   
   const createdModules = [];
   
   for (let i = 0; i < modules.length; i++) {
-    const moduleData = modules[i];
+    const module = modules[i];
+    console.log('Creating module:', module.title, 'with sort_order:', i);
     
-    console.log('Creating module:', moduleData.title);
-    
-    const { data: module, error: moduleError } = await supabase
+    const { data: moduleData, error: moduleError } = await supabase
       .from('modules')
       .insert({
         course_id: courseId,
-        title: moduleData.title || `Module ${i + 1}`,
-        description: moduleData.description || '',
-        image_url: moduleData.image_url || null,
-        file_url: moduleData.file_url || null,
-        file_name: moduleData.file_name || null,
-        file_size: moduleData.file_size || 0,
-        sort_order: i,
+        title: module.title,
+        description: module.description,
+        image_url: module.image_url || null,
+        file_url: module.file_url || null,
+        file_name: module.file_name || null,
+        file_size: module.file_size || null,
+        sort_order: i // Use index to ensure proper order
       })
       .select()
       .single();
@@ -52,9 +31,37 @@ export const createModulesFromData = async (courseId: string, modules: ModuleDat
       throw new Error(`Failed to create module: ${moduleError.message}`);
     }
 
-    console.log('Module created:', module);
-    createdModules.push({ ...module, lessons: moduleData.lessons });
+    console.log('Module created:', moduleData);
+    
+    // Attach the lessons data for later processing
+    createdModules.push({
+      ...moduleData,
+      lessons: module.lessons || []
+    });
   }
   
   return createdModules;
+};
+
+export const createDefaultModule = async (courseId: string) => {
+  console.log('Creating default module for course:', courseId);
+  
+  const { data: moduleData, error: moduleError } = await supabase
+    .from('modules')
+    .insert({
+      course_id: courseId,
+      title: 'Main Module',
+      description: 'Default module for course content',
+      sort_order: 0
+    })
+    .select()
+    .single();
+
+  if (moduleError) {
+    console.error('Error creating default module:', moduleError);
+    throw new Error(`Failed to create default module: ${moduleError.message}`);
+  }
+
+  console.log('Default module created:', moduleData);
+  return moduleData;
 };

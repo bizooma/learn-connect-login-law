@@ -11,8 +11,22 @@ export const createCourseWithModules = async (courseId: string, data: CourseForm
     return;
   }
   
+  // Ensure modules have proper sort_order before creation
+  const modulesWithSortOrder = modules.map((module, index) => ({
+    ...module,
+    sort_order: index,
+    lessons: module.lessons.map((lesson, lessonIndex) => ({
+      ...lesson,
+      sort_order: lessonIndex,
+      units: lesson.units.map((unit, unitIndex) => ({
+        ...unit,
+        sort_order: unitIndex
+      }))
+    }))
+  }));
+  
   // Create modules first
-  const createdModules = await createModulesFromData(courseId, modules);
+  const createdModules = await createModulesFromData(courseId, modulesWithSortOrder);
   
   // Then create lessons and units for each module
   for (const module of createdModules) {
