@@ -16,19 +16,21 @@ const CourseMainContent = ({ course, selectedUnit, courseTitle }: CourseMainCont
   const { isAdmin } = useUserRole();
 
   return (
-    <div className="bg-white rounded-lg shadow-sm">
+    <div className="bg-white rounded-lg shadow-sm overflow-hidden">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList className="w-full border-b rounded-none h-12">
           <TabsTrigger value="content" className="flex-1">Course Content</TabsTrigger>
           <TabsTrigger value="calendar" className="flex-1">Calendar</TabsTrigger>
         </TabsList>
         
-        <TabsContent value="content" className="p-6">
-          <CourseContent 
-            unit={selectedUnit} 
-            courseId={course.id} 
-            courseTitle={courseTitle}
-          />
+        <TabsContent value="content" className="p-6 overflow-hidden">
+          <div className="max-w-full break-words">
+            <CourseContent 
+              unit={selectedUnit} 
+              courseId={course.id} 
+              courseTitle={courseTitle}
+            />
+          </div>
         </TabsContent>
         
         <TabsContent value="calendar" className="p-6">

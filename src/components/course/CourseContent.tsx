@@ -76,11 +76,11 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
       {/* Lesson file download section */}
       {lesson?.file_url && (
         <div className="bg-white rounded-lg shadow-sm border p-6">
-          <h3 className="text-lg font-semibold mb-4">Lesson Resources</h3>
+          <h3 className="text-lg font-semibold mb-4 break-words">Lesson Resources</h3>
           <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-            <div className="flex items-center space-x-2">
-              <File className="h-5 w-5 text-gray-600" />
-              <span className="font-medium">
+            <div className="flex items-center space-x-2 min-w-0 flex-1">
+              <File className="h-5 w-5 text-gray-600 flex-shrink-0" />
+              <span className="font-medium break-words">
                 {lesson.file_name || 'Download Lesson File'}
               </span>
             </div>
@@ -88,7 +88,7 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
               onClick={handleLessonFileDownload}
               variant="outline"
               size="sm"
-              className="flex items-center space-x-2"
+              className="flex items-center space-x-2 flex-shrink-0 ml-2"
             >
               <Download className="h-4 w-4" />
               <span>Download</span>
@@ -100,14 +100,14 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
       {/* Unit multiple files download section */}
       {unit?.files && unit.files.length > 0 && (
         <div className="bg-white rounded-lg shadow-sm border p-6">
-          <h3 className="text-lg font-semibold mb-4">Unit Resources ({unit.files.length} files)</h3>
+          <h3 className="text-lg font-semibold mb-4 break-words">Unit Resources ({unit.files.length} files)</h3>
           <div className="space-y-3">
             {unit.files.map((file, index) => (
               <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
                 <div className="flex items-center space-x-2 flex-1 min-w-0">
-                  <File className="h-5 w-5 text-gray-600" />
+                  <File className="h-5 w-5 text-gray-600 flex-shrink-0" />
                   <div className="flex-1 min-w-0">
-                    <span className="font-medium block truncate">{file.name}</span>
+                    <span className="font-medium block break-words">{file.name}</span>
                     <span className="text-sm text-gray-500">{formatFileSize(file.size)}</span>
                   </div>
                 </div>
@@ -115,7 +115,7 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
                   onClick={() => handleFileDownload(file.url)}
                   variant="outline"
                   size="sm"
-                  className="flex items-center space-x-2"
+                  className="flex items-center space-x-2 flex-shrink-0 ml-2"
                 >
                   <Download className="h-4 w-4" />
                   <span>Download</span>
@@ -129,11 +129,11 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
       {/* Legacy single file support (for backward compatibility) */}
       {unit?.file_url && !unit?.files && (
         <div className="bg-white rounded-lg shadow-sm border p-6">
-          <h3 className="text-lg font-semibold mb-4">Unit Resources</h3>
+          <h3 className="text-lg font-semibold mb-4 break-words">Unit Resources</h3>
           <div className="flex items-center justify-between p-3 bg-gray-50 rounded-md">
-            <div className="flex items-center space-x-2">
-              <File className="h-5 w-5 text-gray-600" />
-              <span className="font-medium">
+            <div className="flex items-center space-x-2 min-w-0 flex-1">
+              <File className="h-5 w-5 text-gray-600 flex-shrink-0" />
+              <span className="font-medium break-words">
                 {unit.file_name || 'Download Unit File'}
               </span>
             </div>
@@ -141,7 +141,7 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
               onClick={() => handleFileDownload(unit.file_url!)}
               variant="outline"
               size="sm"
-              className="flex items-center space-x-2"
+              className="flex items-center space-x-2 flex-shrink-0 ml-2"
             >
               <Download className="h-4 w-4" />
               <span>Download</span>
@@ -152,9 +152,9 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
       
       {unit?.content && (
         <div className="bg-white rounded-lg shadow-sm border p-6">
-          <h3 className="text-lg font-semibold mb-4">Unit Content</h3>
+          <h3 className="text-lg font-semibold mb-4 break-words">Unit Content</h3>
           <div className="prose max-w-none">
-            <p className="text-gray-700 leading-relaxed">{unit.content}</p>
+            <p className="text-gray-700 leading-relaxed break-words">{unit.content}</p>
           </div>
         </div>
       )}
