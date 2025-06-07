@@ -71,6 +71,17 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
               </p>
             </div>
 
+            {/* Call to action - moved above core values */}
+            <div className="text-center mb-6">
+              <Button 
+                onClick={onClose}
+                className="px-6 py-2 text-base font-medium"
+                style={{ background: '#213C82' }}
+              >
+                Let's Get Started! 🚀
+              </Button>
+            </div>
+
             {/* I LEARN Core Values Section */}
             <div className="mb-6">
               <div className="text-center mb-4">
@@ -102,17 +113,6 @@ const WelcomeModal: React.FC<WelcomeModalProps> = ({
                   </div>
                 ))}
               </div>
-            </div>
-
-            {/* Call to action */}
-            <div className="text-center">
-              <Button 
-                onClick={onClose}
-                className="px-6 py-2 text-base font-medium"
-                style={{ background: '#213C82' }}
-              >
-                Let's Get Started! 🚀
-              </Button>
             </div>
           </div>
         </div>
