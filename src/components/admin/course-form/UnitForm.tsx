@@ -32,11 +32,14 @@ const UnitForm = ({ unit, onUnitChange, onRemove, unitIndex }: UnitFormProps) =>
   const handleMultipleFilesUpdate = (files: Array<{ url: string; name: string; size: number }>) => {
     console.log('UnitForm: Updating files for unit', unit.title, 'with:', files);
     onUnitChange('files', files);
+    
+    // Force a re-render by updating a timestamp
+    onUnitChange('_lastFilesUpdate', Date.now());
   };
 
-  // Ensure files is always an array
+  // Ensure files is always an array and force refresh display
   const currentFiles = Array.isArray(unit.files) ? unit.files : [];
-  console.log('UnitForm: Current files:', currentFiles);
+  console.log('UnitForm: Current files for display:', currentFiles);
 
   return (
     <Card className="mb-4">
@@ -138,12 +141,20 @@ const UnitForm = ({ unit, onUnitChange, onRemove, unitIndex }: UnitFormProps) =>
         </div>
 
         <MultipleFileUpload
+          key={`unit-${unitIndex}-files-${unit._lastFilesUpdate || 0}`}
           currentFiles={currentFiles}
           onFilesUpdate={handleMultipleFilesUpdate}
           label="Unit Download Files"
           contentType="unit"
           contentIndex={unitIndex}
         />
+
+        {/* Debug info to verify files are being tracked */}
+        {currentFiles.length > 0 && (
+          <div className="text-xs text-gray-500 bg-gray-100 p-2 rounded">
+            Debug: {currentFiles.length} files tracked: {currentFiles.map(f => f.name).join(', ')}
+          </div>
+        )}
 
         <div>
           <Label htmlFor="duration">Duration (minutes)</Label>

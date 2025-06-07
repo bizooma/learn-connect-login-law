@@ -17,6 +17,7 @@ interface UnitData {
   file_url?: string;
   file_name?: string;
   file_size?: number;
+  files?: Array<{ url: string; name: string; size: number }>;
 }
 
 interface SectionData {
@@ -114,6 +115,13 @@ const createUnitsForLesson = async (lessonId: string, units: UnitData[]) => {
       }
     }
 
+    // Handle multiple files
+    let filesData = null;
+    if (unit.files && Array.isArray(unit.files) && unit.files.length > 0) {
+      filesData = JSON.stringify(unit.files);
+      console.log('Unit files to save:', unit.title, 'Files:', filesData);
+    }
+
     const { data: createdUnit, error: unitError } = await supabase
       .from('units')
       .insert({
@@ -127,6 +135,7 @@ const createUnitsForLesson = async (lessonId: string, units: UnitData[]) => {
         file_url: unit.file_url || null,
         file_name: unit.file_name || null,
         file_size: unit.file_size || 0,
+        files: filesData,
       })
       .select()
       .single();
@@ -136,6 +145,18 @@ const createUnitsForLesson = async (lessonId: string, units: UnitData[]) => {
       throw new Error(`Failed to create unit: ${unitError.message}`);
     }
 
-    console.log('Unit created:', createdUnit);
+    console.log('Unit created with files:', createdUnit);
+
+    // Link quiz if provided
+    if (unit.quiz_id) {
+      const { error: quizLinkError } = await supabase
+        .from('quizzes')
+        .update({ unit_id: createdUnit.id })
+        .eq('id', unit.quiz_id);
+
+      if (quizLinkError) {
+        console.error('Error linking quiz to unit:', quizLinkError);
+      }
+    }
   }
 };

@@ -78,7 +78,7 @@ const MultipleFileUpload = ({
       const uploadedFiles = await Promise.all(uploadPromises);
       const updatedFiles = [...currentFiles, ...uploadedFiles];
       
-      console.log('All files uploaded, updating with:', updatedFiles);
+      console.log('All files uploaded, calling onFilesUpdate with:', updatedFiles);
       onFilesUpdate(updatedFiles);
       
       toast.success(`${uploadedFiles.length} file(s) uploaded successfully`);
@@ -94,7 +94,7 @@ const MultipleFileUpload = ({
   };
 
   const handleRemoveFile = (indexToRemove: number) => {
-    console.log('Removing file at index:', indexToRemove);
+    console.log('Removing file at index:', indexToRemove, 'from:', currentFiles);
     const updatedFiles = currentFiles.filter((_, index) => index !== indexToRemove);
     console.log('Updated files after removal:', updatedFiles);
     onFilesUpdate(updatedFiles);
@@ -113,7 +113,14 @@ const MultipleFileUpload = ({
     <Card className="w-full">
       <CardContent className="p-4">
         <div className="space-y-4">
-          <Label className="text-sm font-medium">{label}</Label>
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium">{label}</Label>
+            {currentFiles.length > 0 && (
+              <span className="text-xs text-gray-500 bg-blue-100 px-2 py-1 rounded">
+                {currentFiles.length} file(s) attached
+              </span>
+            )}
+          </div>
           
           {/* File Upload Section */}
           <div className="border-2 border-dashed border-gray-300 rounded-md p-4">
@@ -150,20 +157,20 @@ const MultipleFileUpload = ({
           {/* Current Files List */}
           {currentFiles && currentFiles.length > 0 && (
             <div className="space-y-2">
-              <Label className="text-sm font-medium">Uploaded Files ({currentFiles.length})</Label>
+              <Label className="text-sm font-medium text-green-700">Uploaded Files ({currentFiles.length})</Label>
               <div className="space-y-2 max-h-60 overflow-y-auto">
                 {currentFiles.map((file, index) => (
                   <div
-                    key={`${file.url}-${index}`}
-                    className="flex items-center justify-between p-3 bg-gray-50 rounded-md border"
+                    key={`${file.url}-${index}-${file.name}`}
+                    className="flex items-center justify-between p-3 bg-green-50 rounded-md border border-green-200"
                   >
                     <div className="flex items-center space-x-2 flex-1 min-w-0">
-                      <File className="h-5 w-5 text-gray-600 flex-shrink-0" />
+                      <File className="h-5 w-5 text-green-600 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate" title={file.name}>
+                        <p className="text-sm font-medium text-green-900 truncate" title={file.name}>
                           {file.name}
                         </p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-green-600">
                           {formatFileSize(file.size)}
                         </p>
                       </div>
@@ -191,14 +198,6 @@ const MultipleFileUpload = ({
                   </div>
                 ))}
               </div>
-            </div>
-          )}
-
-          {/* Debug info for development */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="text-xs text-gray-400 p-2 bg-gray-100 rounded">
-              <p>Debug: {currentFiles?.length || 0} files loaded</p>
-              <p>Files: {JSON.stringify(currentFiles?.map(f => f.name) || [])}</p>
             </div>
           )}
         </div>

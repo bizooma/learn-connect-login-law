@@ -19,6 +19,7 @@ interface UnitData {
   sort_order: number;
   quiz_id?: string;
   files?: Array<{ url: string; name: string; size: number }>;
+  _lastFilesUpdate?: number;
 }
 
 interface UnitCardProps {
@@ -58,11 +59,14 @@ const UnitCard = ({
   const handleFilesUpdate = (files: Array<{ url: string; name: string; size: number }>) => {
     console.log('UnitCard: Updating files for unit', unit.title, 'with:', files);
     onUpdateUnit(moduleIndex, lessonIndex, unitIndex, 'files', files);
+    
+    // Force re-render by updating timestamp
+    onUpdateUnit(moduleIndex, lessonIndex, unitIndex, '_lastFilesUpdate', Date.now());
   };
 
   // Ensure files is always an array
   const currentFiles = Array.isArray(unit.files) ? unit.files : [];
-  console.log('UnitCard: Current files:', currentFiles);
+  console.log('UnitCard: Current files for display:', currentFiles);
 
   return (
     <Card className="border border-yellow-200 ml-4">
@@ -192,12 +196,20 @@ const UnitCard = ({
         )}
 
         <MultipleFileUpload
+          key={`unit-${moduleIndex}-${lessonIndex}-${unitIndex}-files-${unit._lastFilesUpdate || 0}`}
           currentFiles={currentFiles}
           onFilesUpdate={handleFilesUpdate}
           label="Unit Download Files"
           contentType="unit"
           contentIndex={unitIndex}
         />
+
+        {/* Debug info to verify files are being tracked */}
+        {currentFiles.length > 0 && (
+          <div className="text-xs text-gray-500 bg-gray-100 p-2 rounded">
+            Debug: {currentFiles.length} files tracked: {currentFiles.map(f => f.name).join(', ')}
+          </div>
+        )}
       </CardContent>
     </Card>
   );

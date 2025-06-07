@@ -17,6 +17,13 @@ export const createUnit = async (lessonId: string, unit: UnitData) => {
     }
   }
 
+  // Ensure files is properly handled
+  let filesData = null;
+  if (unit.files && Array.isArray(unit.files) && unit.files.length > 0) {
+    filesData = JSON.stringify(unit.files);
+    console.log('Saving files data for unit:', unit.title, 'Files:', filesData);
+  }
+
   const { data: unitData, error: unitError } = await supabase
     .from('units')
     .insert({
@@ -30,6 +37,7 @@ export const createUnit = async (lessonId: string, unit: UnitData) => {
       file_url: unit.file_url || null,
       file_name: unit.file_name || null,
       file_size: unit.file_size || null,
+      files: filesData,
     })
     .select()
     .single();
@@ -42,6 +50,63 @@ export const createUnit = async (lessonId: string, unit: UnitData) => {
   // Link quiz to unit if quiz_id is provided
   if (unit.quiz_id) {
     await linkQuizToUnit(unitData.id, unit.quiz_id);
+  }
+
+  return unitData;
+};
+
+export const updateUnit = async (unitId: string, unit: UnitData) => {
+  let videoUrl = unit.video_url;
+  
+  // Upload video file if it's an upload type and has a file
+  if (unit.video_type === 'upload' && unit.video_file) {
+    try {
+      console.log('Uploading video for unit:', unit.title);
+      videoUrl = await uploadVideoFile(unit.video_file);
+    } catch (error) {
+      console.error('Error uploading video:', error);
+      throw new Error(`Failed to upload video for unit "${unit.title}": ${error.message}`);
+    }
+  }
+
+  // Ensure files is properly handled
+  let filesData = null;
+  if (unit.files && Array.isArray(unit.files) && unit.files.length > 0) {
+    filesData = JSON.stringify(unit.files);
+    console.log('Updating files data for unit:', unit.title, 'Files:', filesData);
+  } else {
+    // If no files, explicitly set to null
+    filesData = null;
+  }
+
+  const { data: unitData, error: unitError } = await supabase
+    .from('units')
+    .update({
+      title: unit.title,
+      description: unit.description,
+      content: unit.content,
+      video_url: videoUrl || null,
+      duration_minutes: unit.duration_minutes,
+      sort_order: unit.sort_order,
+      file_url: unit.file_url || null,
+      file_name: unit.file_name || null,
+      file_size: unit.file_size || null,
+      files: filesData,
+    })
+    .eq('id', unitId)
+    .select()
+    .single();
+
+  if (unitError) {
+    console.error('Error updating unit:', unitError);
+    throw new Error(`Failed to update unit: ${unitError.message}`);
+  }
+
+  // Handle quiz linking/unlinking
+  if (unit.quiz_id) {
+    await linkQuizToUnit(unitData.id, unit.quiz_id);
+  } else {
+    await unlinkQuizFromUnit(unitData.id);
   }
 
   return unitData;
