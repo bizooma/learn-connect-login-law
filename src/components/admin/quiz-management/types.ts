@@ -20,6 +20,7 @@ export interface UnitWithCourse {
 
 export interface QuizWithDetails extends Quiz {
   unit?: UnitWithCourse;
+  quiz_questions?: Array<{ id: string }>;
 }
 
 export interface QuizFormData {
