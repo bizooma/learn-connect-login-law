@@ -8,6 +8,7 @@ export interface UserProfile {
   created_at: string;
   profile_image_url?: string;
   roles?: string[];
+  deleted_at?: string; // Added for soft delete functionality
   // Add flag to indicate if this user has a complete profile record
   hasCompleteProfile?: boolean;
 }
