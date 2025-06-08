@@ -1,5 +1,7 @@
 
 import { Tables } from "@/integrations/supabase/types";
+import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useState } from "react";
 import CourseVideo from "./CourseVideo";
 import LessonVideo from "./LessonVideo";
 import LessonCard from "./LessonCard";
@@ -11,7 +13,6 @@ import { Button } from "@/components/ui/button";
 import { Download, File } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCourseCompletion } from "@/hooks/useCourseCompletion";
-import { useEffect } from "react";
 
 type Unit = Tables<'units'>;
 type Quiz = Tables<'quizzes'>;
@@ -32,6 +33,46 @@ interface CourseContentProps {
 const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentProps) => {
   const { user } = useAuth();
   const { isCompleted, loading, refetchCompletion } = useCourseCompletion(courseId);
+  const [unitQuiz, setUnitQuiz] = useState<Quiz | null>(null);
+  const [quizLoading, setQuizLoading] = useState(false);
+
+  // Fetch quiz for the current unit
+  useEffect(() => {
+    const fetchUnitQuiz = async () => {
+      if (!unit?.id) {
+        setUnitQuiz(null);
+        return;
+      }
+
+      console.log('COURSE CONTENT: Fetching quiz for unit:', unit.id);
+      setQuizLoading(true);
+      
+      try {
+        const { data: quizData, error } = await supabase
+          .from('quizzes')
+          .select('*')
+          .eq('unit_id', unit.id)
+          .eq('is_active', true)
+          .eq('is_deleted', false)
+          .maybeSingle();
+
+        if (error) {
+          console.error('COURSE CONTENT: Error fetching quiz:', error);
+          setUnitQuiz(null);
+        } else {
+          console.log('COURSE CONTENT: Quiz found:', quizData);
+          setUnitQuiz(quizData);
+        }
+      } catch (error) {
+        console.error('COURSE CONTENT: Error in fetchUnitQuiz:', error);
+        setUnitQuiz(null);
+      } finally {
+        setQuizLoading(false);
+      }
+    };
+
+    fetchUnitQuiz();
+  }, [unit?.id]);
 
   // Refresh completion status when component mounts or courseId changes
   useEffect(() => {
@@ -59,7 +100,7 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
   };
 
   // Check if this unit has a quiz attached to it
-  const hasQuiz = unit?.quiz && unit.quiz.is_active;
+  const hasQuiz = unitQuiz && unitQuiz.is_active;
 
   // Convert UnitWithQuiz to Unit for components that expect the database type
   const unitForDatabase: Unit | null = unit ? {
@@ -82,7 +123,7 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
             <SmartCompletionIndicator 
               unit={unitForDatabase} 
               courseId={courseId} 
-              hasQuiz={hasQuiz} 
+              hasQuiz={!!hasQuiz} 
             />
           </div>
         </div>
@@ -180,21 +221,38 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
         </div>
       )}
       
-      {hasQuiz && (
+      {/* Quiz Display Section */}
+      {quizLoading && (
+        <div className="bg-white rounded-lg shadow-sm border p-6">
+          <div className="flex items-center justify-center">
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mr-2"></div>
+            <span>Loading quiz...</span>
+          </div>
+        </div>
+      )}
+      
+      {hasQuiz && !quizLoading && (
         <QuizDisplay 
-          quiz={unit.quiz!} 
-          unitTitle={unit.title} 
+          quiz={unitQuiz!} 
+          unitTitle={unit?.title || 'Unit'} 
           courseId={courseId} 
           onUnitComplete={refetchCompletion}
         />
       )}
       
-      {!hasQuiz && unitForDatabase && (
+      {!hasQuiz && !quizLoading && unitForDatabase && (
         <UnitCompletionButton 
           unit={unitForDatabase} 
           courseId={courseId} 
           onComplete={refetchCompletion}
         />
+      )}
+
+      {/* Debug info for quiz status */}
+      {unit && (
+        <div className="text-xs text-gray-500 bg-gray-100 p-2 rounded">
+          Debug: Unit ID: {unit.id} | Quiz Loading: {quizLoading.toString()} | Has Quiz: {hasQuiz ? 'Yes' : 'No'} | Quiz ID: {unitQuiz?.id || 'None'}
+        </div>
       )}
 
       {/* Certificate Download Section */}
