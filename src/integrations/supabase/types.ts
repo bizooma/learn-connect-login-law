@@ -676,9 +676,11 @@ export type Database = {
       profiles: {
         Row: {
           created_at: string | null
+          deleted_at: string | null
           email: string
           first_name: string | null
           id: string
+          is_deleted: boolean | null
           last_name: string | null
           law_firm_id: string | null
           law_firm_name: string | null
@@ -687,9 +689,11 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          deleted_at?: string | null
           email: string
           first_name?: string | null
           id: string
+          is_deleted?: boolean | null
           last_name?: string | null
           law_firm_id?: string | null
           law_firm_name?: string | null
@@ -698,9 +702,11 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          deleted_at?: string | null
           email?: string
           first_name?: string | null
           id?: string
+          is_deleted?: boolean | null
           last_name?: string | null
           law_firm_id?: string | null
           law_firm_name?: string | null
@@ -1194,6 +1200,90 @@ export type Database = {
         }
         Relationships: []
       }
+      user_management_audit: {
+        Row: {
+          action_type: string
+          id: string
+          ip_address: unknown | null
+          is_reversible: boolean | null
+          new_data: Json | null
+          old_data: Json | null
+          performed_at: string | null
+          performed_by: string | null
+          reason: string | null
+          session_id: string | null
+          target_user_id: string
+          user_agent: string | null
+        }
+        Insert: {
+          action_type: string
+          id?: string
+          ip_address?: unknown | null
+          is_reversible?: boolean | null
+          new_data?: Json | null
+          old_data?: Json | null
+          performed_at?: string | null
+          performed_by?: string | null
+          reason?: string | null
+          session_id?: string | null
+          target_user_id: string
+          user_agent?: string | null
+        }
+        Update: {
+          action_type?: string
+          id?: string
+          ip_address?: unknown | null
+          is_reversible?: boolean | null
+          new_data?: Json | null
+          old_data?: Json | null
+          performed_at?: string | null
+          performed_by?: string | null
+          reason?: string | null
+          session_id?: string | null
+          target_user_id?: string
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      user_role_audit: {
+        Row: {
+          changed_at: string | null
+          changed_by: string | null
+          id: string
+          ip_address: unknown | null
+          new_role: string
+          old_role: string | null
+          reason: string | null
+          session_id: string | null
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          changed_at?: string | null
+          changed_by?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_role: string
+          old_role?: string | null
+          reason?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          changed_at?: string | null
+          changed_by?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_role?: string
+          old_role?: string | null
+          reason?: string | null
+          session_id?: string | null
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string | null
@@ -1213,7 +1303,15 @@ export type Database = {
           role?: Database["public"]["Enums"]["app_role"]
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_roles_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_unit_progress: {
         Row: {
@@ -1347,6 +1445,22 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
+      get_user_management_history: {
+        Args: { p_user_id?: string; p_limit?: number }
+        Returns: {
+          id: string
+          target_user_id: string
+          target_email: string
+          action_type: string
+          performed_by: string
+          performer_email: string
+          performed_at: string
+          reason: string
+          old_data: Json
+          new_data: Json
+          is_reversible: boolean
+        }[]
+      }
       has_role: {
         Args: {
           _user_id: string
@@ -1411,9 +1525,26 @@ export type Database = {
         Args: { quiz_id: string }
         Returns: boolean
       }
+      restore_user: {
+        Args: { p_user_id: string; p_reason?: string; p_performed_by?: string }
+        Returns: Json
+      }
       soft_delete_quiz: {
         Args: { quiz_id: string }
         Returns: boolean
+      }
+      soft_delete_user: {
+        Args: { p_user_id: string; p_reason?: string; p_performed_by?: string }
+        Returns: Json
+      }
+      update_user_role_safe: {
+        Args: {
+          p_user_id: string
+          p_new_role: string
+          p_reason?: string
+          p_performed_by?: string
+        }
+        Returns: Json
       }
     }
     Enums: {

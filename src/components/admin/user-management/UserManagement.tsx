@@ -10,8 +10,7 @@ import LoadingState from "./LoadingState";
 import UserProgressModal from "../user-progress/UserProgressModal";
 import { filterUsers } from "./userRoleUtils";
 import { UserProfile } from "./types";
-import { fetchUsersWithStats, SimplifiedUserStats } from "./simplifiedDataService";
-import { updateUserRole as updateUserRoleService } from "./roleOperations";
+import { fetchUsersWithStatsSafe, updateUserRoleSafe } from "./updatedUserManagementService";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -19,7 +18,7 @@ const UserManagement = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<SimplifiedUserStats>({ totalUsers: 0, roleCounts: {} });
+  const [stats, setStats] = useState<any>({ totalUsers: 0, roleCounts: {} });
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedUserForProgress, setSelectedUserForProgress] = useState<string | null>(null);
   const { toast } = useToast();
@@ -27,10 +26,10 @@ const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      console.log('Fetching users data...');
+      console.log('Fetching users data with safe filtering...');
       setLoading(true);
-      const { users: fetchedUsers, stats: fetchedStats } = await fetchUsersWithStats();
-      console.log('Fetched users:', fetchedUsers.length);
+      const { users: fetchedUsers, stats: fetchedStats } = await fetchUsersWithStatsSafe();
+      console.log('Fetched users safely:', fetchedUsers.length);
       setUsers(fetchedUsers);
       setStats(fetchedStats);
       
@@ -61,20 +60,21 @@ const UserManagement = () => {
         return;
       }
 
-      await updateUserRoleService(userId, newRole);
+      // Use the new safe role update function
+      await updateUserRoleSafe(userId, newRole, 'Administrative role change via user management interface');
 
       // Refresh users list
       await fetchUsers();
       
       toast({
         title: "Success",
-        description: "User role updated successfully",
+        description: "User role updated successfully with full audit trail",
       });
     } catch (error: any) {
       console.error('Error updating user role:', error);
       toast({
         title: "Error",
-        description: "Failed to update user role",
+        description: error.message || "Failed to update user role",
         variant: "destructive",
       });
     }

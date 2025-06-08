@@ -4,15 +4,15 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import UserRoleSelect from "./UserRoleSelect";
-import DeleteUserDialog from "./DeleteUserDialog";
+import SafeDeleteUserDialog from "./SafeDeleteUserDialog";
+import SafeRoleUpdateDialog from "./SafeRoleUpdateDialog";
 import UserCourseAssignment from "./UserCourseAssignment";
 import UserEmailEditDialog from "./UserEmailEditDialog";
 import UserPasswordResetDialog from "./UserPasswordResetDialog";
 import { UserProfile } from "./types";
 import { getUserRole, getRoleBadgeColor } from "./userRoleUtils";
 import { useUserRole } from "@/hooks/useUserRole";
-import { Trash2, BookOpen, BarChart3, Mail, Lock } from "lucide-react";
+import { BookOpen, BarChart3, Mail, Lock, AlertTriangle } from "lucide-react";
 
 interface UserCardProps {
   user: UserProfile;
@@ -43,19 +43,19 @@ export const UserCard = ({
     return (first + last).toUpperCase() || user.email.charAt(0).toUpperCase();
   };
 
-  const handleRoleChange = async (newRole: 'admin' | 'owner' | 'student' | 'client' | 'free') => {
-    await onRoleUpdate(user.id, newRole);
+  const handleRoleUpdated = () => {
+    if (onCourseAssigned) {
+      onCourseAssigned();
+    }
   };
 
   const handleEmailUpdated = () => {
-    // Refresh the user data by calling the parent's refresh function
     if (onCourseAssigned) {
       onCourseAssigned();
     }
   };
 
   const handlePasswordReset = () => {
-    // Refresh the user data by calling the parent's refresh function
     if (onCourseAssigned) {
       onCourseAssigned();
     }
@@ -97,12 +97,18 @@ export const UserCard = ({
               )}
               
               <div className="space-y-3">
-                <UserRoleSelect
+                <div className="flex items-center gap-2 mb-3">
+                  <AlertTriangle className="h-4 w-4 text-orange-500" />
+                  <span className="text-sm text-orange-600 font-medium">Protected User Management</span>
+                </div>
+                
+                <SafeRoleUpdateDialog
+                  user={user}
                   currentRole={userRole}
-                  onRoleChange={handleRoleChange}
+                  onRoleUpdated={handleRoleUpdated}
                 />
                 
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 mt-3">
                   <Button
                     variant="outline"
                     size="sm"
@@ -150,7 +156,7 @@ export const UserCard = ({
                   )}
                   
                   {isAdmin && (
-                    <DeleteUserDialog
+                    <SafeDeleteUserDialog
                       user={user}
                       onUserDeleted={onUserDeleted}
                     />
