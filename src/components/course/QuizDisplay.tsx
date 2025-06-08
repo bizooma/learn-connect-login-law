@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -40,45 +41,112 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
   const [quizState, setQuizState] = useState<QuizState>({ mode: 'preview' });
   const [quizWithQuestions, setQuizWithQuestions] = useState<QuizWithQuestions | null>(null);
   const [loading, setLoading] = useState(false);
+  const [questionCount, setQuestionCount] = useState<number>(0);
 
   const fetchQuizQuestions = async () => {
     if (!quiz.id) return;
     
+    console.log('QUIZ DISPLAY: Fetching questions for quiz:', quiz.id);
     setLoading(true);
     try {
-      const { data: questions, error } = await supabase
+      // First fetch questions without deleted ones
+      const { data: questionsData, error: questionsError } = await supabase
         .from('quiz_questions')
-        .select(`
-          *,
-          quiz_question_options (*)
-        `)
+        .select('*')
         .eq('quiz_id', quiz.id)
-        .eq('is_deleted', false) // Only fetch non-deleted questions
+        .eq('is_deleted', false)
         .order('sort_order', { ascending: true });
 
-      if (error) throw error;
+      if (questionsError) {
+        console.error('QUIZ DISPLAY: Error fetching questions:', questionsError);
+        throw questionsError;
+      }
+
+      console.log('QUIZ DISPLAY: Raw questions fetched:', questionsData?.length || 0);
+
+      if (!questionsData || questionsData.length === 0) {
+        console.log('QUIZ DISPLAY: No questions found for quiz');
+        setQuizWithQuestions({
+          ...quiz,
+          quiz_questions: []
+        });
+        return;
+      }
+
+      // Then fetch options for each question
+      const questionsWithOptions = await Promise.all(
+        questionsData.map(async (question) => {
+          const { data: optionsData, error: optionsError } = await supabase
+            .from('quiz_question_options')
+            .select('*')
+            .eq('question_id', question.id)
+            .eq('is_deleted', false)
+            .order('sort_order', { ascending: true });
+
+          if (optionsError) {
+            console.warn(`QUIZ DISPLAY: Error fetching options for question ${question.id}:`, optionsError);
+            return {
+              ...question,
+              quiz_question_options: []
+            };
+          }
+
+          console.log(`QUIZ DISPLAY: Found ${optionsData?.length || 0} options for question ${question.id}`);
+
+          return {
+            ...question,
+            quiz_question_options: optionsData || []
+          };
+        })
+      );
 
       const quizData: QuizWithQuestions = {
         ...quiz,
-        quiz_questions: questions.map(q => ({
-          ...q,
-          quiz_question_options: q.quiz_question_options
-            .filter(opt => !opt.is_deleted) // Only show non-deleted options
-            .sort((a, b) => a.sort_order - b.sort_order)
-        }))
+        quiz_questions: questionsWithOptions
       };
 
+      console.log('QUIZ DISPLAY: Final questions with options:', questionsWithOptions.length);
       setQuizWithQuestions(quizData);
     } catch (error) {
-      console.error('Error fetching quiz questions:', error);
+      console.error('QUIZ DISPLAY: Error in fetchQuizQuestions:', error);
+      setQuizWithQuestions(null);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // Fetch question count for preview display
+  const fetchQuestionCount = async () => {
+    if (!quiz.id) return;
+    
+    try {
+      const { count, error } = await supabase
+        .from('quiz_questions')
+        .select('*', { count: 'exact', head: true })
+        .eq('quiz_id', quiz.id)
+        .eq('is_deleted', false);
+
+      if (error) {
+        console.warn('QUIZ DISPLAY: Error counting questions:', error);
+        setQuestionCount(0);
+      } else {
+        setQuestionCount(count || 0);
+      }
+    } catch (error) {
+      console.warn('QUIZ DISPLAY: Error in fetchQuestionCount:', error);
+      setQuestionCount(0);
     }
   };
 
   useEffect(() => {
     if (quiz.id && quizState.mode === 'taking') {
       fetchQuizQuestions();
+    }
+  }, [quiz.id, quizState.mode]);
+
+  useEffect(() => {
+    if (quiz.id && quizState.mode === 'preview') {
+      fetchQuestionCount();
     }
   }, [quiz.id, quizState.mode]);
 
@@ -124,11 +192,11 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
       );
     }
 
-    if (!quizWithQuestions) {
+    if (!quizWithQuestions || quizWithQuestions.quiz_questions.length === 0) {
       return (
         <Card className="bg-yellow-50 border-yellow-200">
           <CardContent className="p-6 text-center">
-            <p className="text-yellow-800">Unable to load quiz questions.</p>
+            <p className="text-yellow-800">This quiz has no questions available.</p>
             <Button onClick={() => setQuizState({ mode: 'preview' })} className="mt-4">
               Back to Quiz Info
             </Button>
@@ -191,7 +259,7 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
           )}
           <div className="flex items-center space-x-2">
             <Users className="h-4 w-4 text-blue-600" />
-            <span>Questions: Loading...</span>
+            <span>Questions: {questionCount}</span>
           </div>
         </div>
         
@@ -199,15 +267,21 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
           <Button 
             onClick={handleStartQuiz}
             className="w-full bg-blue-600 hover:bg-blue-700"
-            disabled={!quiz.is_active}
+            disabled={!quiz.is_active || questionCount === 0}
           >
-            {quiz.is_active ? 'Start Quiz' : 'Quiz Not Available'}
+            {!quiz.is_active ? 'Quiz Not Available' : questionCount === 0 ? 'No Questions Available' : 'Start Quiz'}
           </Button>
         </div>
         
         {!quiz.is_active && (
           <div className="text-center text-sm text-gray-600 mt-2">
             This quiz is currently disabled.
+          </div>
+        )}
+        
+        {quiz.is_active && questionCount === 0 && (
+          <div className="text-center text-sm text-gray-600 mt-2">
+            This quiz has no questions yet.
           </div>
         )}
       </CardContent>
