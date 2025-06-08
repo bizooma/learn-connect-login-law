@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -54,6 +53,7 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
           quiz_question_options (*)
         `)
         .eq('quiz_id', quiz.id)
+        .eq('is_deleted', false) // Only fetch non-deleted questions
         .order('sort_order', { ascending: true });
 
       if (error) throw error;
@@ -62,7 +62,9 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
         ...quiz,
         quiz_questions: questions.map(q => ({
           ...q,
-          quiz_question_options: q.quiz_question_options.sort((a, b) => a.sort_order - b.sort_order)
+          quiz_question_options: q.quiz_question_options
+            .filter(opt => !opt.is_deleted) // Only show non-deleted options
+            .sort((a, b) => a.sort_order - b.sort_order)
         }))
       };
 

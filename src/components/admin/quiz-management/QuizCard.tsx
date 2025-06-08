@@ -1,90 +1,148 @@
 
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit, Trash2, Settings, AlertCircle } from "lucide-react";
-import { QuizWithDetails } from "./types";
+import { 
+  Edit, 
+  Trash2, 
+  Settings, 
+  Clock, 
+  CheckCircle, 
+  Users,
+  AlertTriangle
+} from "lucide-react";
+import { format } from "date-fns";
+import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
+
+interface Quiz {
+  id: string;
+  title: string;
+  description?: string;
+  passing_score: number;
+  time_limit_minutes?: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  quiz_questions?: Array<{ id: string }>;
+}
 
 interface QuizCardProps {
-  quiz: QuizWithDetails;
-  onEdit: (quiz: QuizWithDetails) => void;
-  onDelete: (quizId: string) => void;
-  onManageQuestions: (quiz: QuizWithDetails) => void;
+  quiz: Quiz;
+  onEdit: (quiz: Quiz) => void;
+  onDelete: (quizId: string, title: string) => void;
+  onManageQuestions: (quizId: string) => void;
 }
 
 const QuizCard = ({ quiz, onEdit, onDelete, onManageQuestions }: QuizCardProps) => {
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const questionsCount = quiz.quiz_questions?.length || 0;
+
+  const handleDeleteClick = () => {
+    setShowDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = () => {
+    onDelete(quiz.id, quiz.title);
+  };
+
   return (
-    <Card className={quiz.unit_id ? "border-green-200 bg-green-50/30" : "border-orange-200 bg-orange-50/30"}>
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="space-y-1 flex-1">
-            <CardTitle className="text-lg">{quiz.title}</CardTitle>
-            {quiz.description && (
-              <p className="text-sm text-gray-600">{quiz.description}</p>
+    <>
+      <Card className="hover:shadow-md transition-shadow">
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <CardTitle className="text-lg mb-2">{quiz.title}</CardTitle>
+              {quiz.description && (
+                <p className="text-sm text-gray-600 mb-3">{quiz.description}</p>
+              )}
+            </div>
+            <div className="flex items-center space-x-1 ml-4">
+              {!quiz.is_active && (
+                <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
+                  <AlertTriangle className="h-3 w-3 mr-1" />
+                  Inactive
+                </Badge>
+              )}
+              {quiz.is_active && (
+                <Badge variant="secondary" className="bg-green-100 text-green-800">
+                  Active
+                </Badge>
+              )}
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+            <div className="flex items-center space-x-2">
+              <Users className="h-4 w-4 text-blue-600" />
+              <span>{questionsCount} questions</span>
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <CheckCircle className="h-4 w-4 text-green-600" />
+              <span>Pass: {quiz.passing_score}%</span>
+            </div>
+            
+            {quiz.time_limit_minutes && (
+              <div className="flex items-center space-x-2">
+                <Clock className="h-4 w-4 text-orange-600" />
+                <span>{quiz.time_limit_minutes} min</span>
+              </div>
             )}
           </div>
-          <div className="flex items-center space-x-2 ml-4">
+          
+          <div className="text-xs text-gray-500">
+            Created: {format(new Date(quiz.created_at), 'MMM dd, yyyy')}
+            {quiz.updated_at !== quiz.created_at && (
+              <span className="ml-2">
+                • Updated: {format(new Date(quiz.updated_at), 'MMM dd, yyyy')}
+              </span>
+            )}
+          </div>
+          
+          <div className="flex flex-wrap gap-2 pt-2 border-t">
             <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onManageQuestions(quiz)}
-              title="Manage questions"
-            >
-              <Settings className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={() => onEdit(quiz)}
-              title="Edit quiz"
+              className="flex-1 min-w-0"
             >
-              <Edit className="h-4 w-4" />
+              <Edit className="h-4 w-4 mr-1" />
+              Edit Quiz
             </Button>
+            
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
-              onClick={() => onDelete(quiz.id)}
-              className="text-red-600 hover:text-red-700"
-              title="Delete quiz"
+              onClick={() => onManageQuestions(quiz.id)}
+              className="flex-1 min-w-0"
             >
-              <Trash2 className="h-4 w-4" />
+              <Settings className="h-4 w-4 mr-1" />
+              Questions
+            </Button>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleDeleteClick}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <Trash2 className="h-4 w-4 mr-1" />
+              Delete
             </Button>
           </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-3">
-        <div className="flex flex-wrap items-center gap-3 text-sm">
-          <span>Passing Score: <strong>{quiz.passing_score}%</strong></span>
-          {quiz.time_limit_minutes && (
-            <span>Time Limit: <strong>{quiz.time_limit_minutes} min</strong></span>
-          )}
-          <Badge variant={quiz.is_active ? "default" : "secondary"}>
-            {quiz.is_active ? "Active" : "Inactive"}
-          </Badge>
-        </div>
+        </CardContent>
+      </Card>
 
-        {quiz.unit_id && quiz.unit ? (
-          <div className="flex items-center gap-2 p-2 bg-green-100 rounded-md">
-            <Badge variant="default" className="bg-green-600">
-              Assigned
-            </Badge>
-            <span className="text-sm text-green-800">
-              {quiz.unit.title}
-              {quiz.unit.lesson?.course && (
-                <span className="text-green-600"> • {quiz.unit.lesson.course.title}</span>
-              )}
-            </span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2 p-2 bg-orange-100 rounded-md">
-            <AlertCircle className="h-4 w-4 text-orange-600" />
-            <span className="text-sm text-orange-800">
-              Not assigned to any unit yet
-            </span>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+      <DeleteConfirmationDialog
+        open={showDeleteDialog}
+        onOpenChange={setShowDeleteDialog}
+        onConfirm={handleConfirmDelete}
+        quizTitle={quiz.title}
+        questionsCount={questionsCount}
+      />
+    </>
   );
 };
 

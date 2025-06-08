@@ -29,6 +29,7 @@ const QuizSelector = ({ quizId, onQuizUpdate }: QuizSelectorProps) => {
         .from('quizzes')
         .select('id, title')
         .eq('is_active', true)
+        .eq('is_deleted', false) // Only fetch non-deleted quizzes
         .order('title');
 
       if (error) throw error;

@@ -7,6 +7,7 @@ import ImportedQuizPreview from "./quiz-management/ImportedQuizPreview";
 import QuizManagementHeader from "./quiz-management/QuizManagementHeader";
 import QuizBrowseTab from "./quiz-management/QuizBrowseTab";
 import QuizManagementLoading from "./quiz-management/QuizManagementLoading";
+import DeletedQuizzesTab from "./quiz-management/DeletedQuizzesTab";
 import { useQuizManagement } from "./quiz-management/useQuizManagement";
 import { useQuizImportManager } from "./quiz-management/QuizImportManager";
 
@@ -55,6 +56,7 @@ const QuizManagement = () => {
         <TabsList>
           <TabsTrigger value="browse">Browse Quizzes</TabsTrigger>
           <TabsTrigger value="import">Import from PowerPoint</TabsTrigger>
+          <TabsTrigger value="deleted">Deleted Quizzes</TabsTrigger>
           {importedQuizData && (
             <TabsTrigger value="review">Review Import</TabsTrigger>
           )}
@@ -77,6 +79,10 @@ const QuizManagement = () => {
 
         <TabsContent value="import">
           <PowerPointImport onImportComplete={handleImportComplete} />
+        </TabsContent>
+
+        <TabsContent value="deleted">
+          <DeletedQuizzesTab onQuizRestored={refetch} />
         </TabsContent>
 
         {importedQuizData && (

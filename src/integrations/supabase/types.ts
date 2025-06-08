@@ -717,32 +717,84 @@ export type Database = {
           },
         ]
       }
+      quiz_audit_log: {
+        Row: {
+          created_at: string | null
+          id: string
+          ip_address: unknown | null
+          new_data: Json | null
+          old_data: Json | null
+          operation: string
+          record_id: string
+          table_name: string
+          user_agent: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_data?: Json | null
+          old_data?: Json | null
+          operation: string
+          record_id: string
+          table_name: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          ip_address?: unknown | null
+          new_data?: Json | null
+          old_data?: Json | null
+          operation?: string
+          record_id?: string
+          table_name?: string
+          user_agent?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       quiz_question_options: {
         Row: {
           created_at: string
+          deleted_at: string | null
           id: string
           is_correct: boolean
+          is_deleted: boolean | null
           option_text: string
           question_id: string
           sort_order: number
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           id?: string
           is_correct?: boolean
+          is_deleted?: boolean | null
           option_text: string
           question_id: string
           sort_order?: number
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           id?: string
           is_correct?: boolean
+          is_deleted?: boolean | null
           option_text?: string
           question_id?: string
           sort_order?: number
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_quiz_question_options_question_id"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_questions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "quiz_question_options_question_id_fkey"
             columns: ["question_id"]
@@ -755,7 +807,9 @@ export type Database = {
       quiz_questions: {
         Row: {
           created_at: string
+          deleted_at: string | null
           id: string
+          is_deleted: boolean | null
           points: number
           question_text: string
           question_type: string
@@ -766,7 +820,9 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           id?: string
+          is_deleted?: boolean | null
           points?: number
           question_text: string
           question_type?: string
@@ -777,7 +833,9 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           id?: string
+          is_deleted?: boolean | null
           points?: number
           question_text?: string
           question_type?: string
@@ -787,6 +845,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_quiz_questions_quiz_id"
+            columns: ["quiz_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "quiz_questions_quiz_id_fkey"
             columns: ["quiz_id"]
@@ -799,10 +864,12 @@ export type Database = {
       quizzes: {
         Row: {
           created_at: string
+          deleted_at: string | null
           description: string | null
           id: string
           import_id: string | null
           is_active: boolean
+          is_deleted: boolean | null
           passing_score: number
           source_type: string | null
           time_limit_minutes: number | null
@@ -812,10 +879,12 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          deleted_at?: string | null
           description?: string | null
           id?: string
           import_id?: string | null
           is_active?: boolean
+          is_deleted?: boolean | null
           passing_score?: number
           source_type?: string | null
           time_limit_minutes?: number | null
@@ -825,10 +894,12 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          deleted_at?: string | null
           description?: string | null
           id?: string
           import_id?: string | null
           is_active?: boolean
+          is_deleted?: boolean | null
           passing_score?: number
           source_type?: string | null
           time_limit_minutes?: number | null
@@ -1335,6 +1406,14 @@ export type Database = {
       reclassify_unit_to_section: {
         Args: { p_unit_id: string; p_module_id: string }
         Returns: string
+      }
+      restore_quiz: {
+        Args: { quiz_id: string }
+        Returns: boolean
+      }
+      soft_delete_quiz: {
+        Args: { quiz_id: string }
+        Returns: boolean
       }
     }
     Enums: {

@@ -1,80 +1,92 @@
 
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { QuizWithDetails } from "./types";
+import { useNavigate } from "react-router-dom";
+import { useQuery } from "@tanstack/react-query";
+
+interface Quiz {
+  id: string;
+  title: string;
+  description?: string;
+  passing_score: number;
+  time_limit_minutes?: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  unit_id?: string;
+  quiz_questions?: Array<{ id: string }>;
+}
+
+interface Unit {
+  id: string;
+  title: string;
+  section: {
+    title: string;
+    module: {
+      title: string;
+      course: {
+        title: string;
+      };
+    };
+  };
+}
 
 export const useQuizManagement = () => {
-  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [editingQuiz, setEditingQuiz] = useState<QuizWithDetails | null>(null);
+  const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null);
   const [importedQuizData, setImportedQuizData] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("browse");
+  const { toast } = useToast();
+  const navigate = useNavigate();
 
-  const { data: quizzes, isLoading, error, refetch } = useQuery({
-    queryKey: ['quizzes-with-details'],
+  // Fetch quizzes with proper filtering for non-deleted items
+  const { data: quizzes, isLoading, refetch } = useQuery({
+    queryKey: ['quizzes'],
     queryFn: async () => {
-      console.log('Fetching quizzes with details...');
-      
       const { data, error } = await supabase
         .from('quizzes')
         .select(`
           *,
-          unit:units (
-            *,
-            lesson:lessons (
-              *,
-              course:courses (*)
-            )
-          )
+          quiz_questions (id)
         `)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching quizzes:', error);
-        throw error;
-      }
-
-      console.log('Quizzes fetched:', data);
-      return data as QuizWithDetails[];
-    }
-  });
-
-  const { data: units } = useQuery({
-    queryKey: ['units-for-quiz-import'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('units')
-        .select(`
-          id,
-          title,
-          lesson:lessons (
-            title,
-            course:courses (
-              title
-            )
-          )
-        `)
-        .order('title');
+        .eq('is_deleted', false) // Only fetch non-deleted quizzes
+        .order('updated_at', { ascending: false });
 
       if (error) throw error;
       return data;
     }
   });
 
-  if (error) {
-    toast({
-      title: "Error",
-      description: "Failed to load quizzes",
-      variant: "destructive",
-    });
-  }
+  // Fetch units
+  const { data: units } = useQuery({
+    queryKey: ['units'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('units')
+        .select(`
+          id,
+          title,
+          section:lessons!inner (
+            title,
+            module:modules!inner (
+              title,
+              course:courses!inner (
+                title
+              )
+            )
+          )
+        `);
+
+      if (error) throw error;
+      return data;
+    }
+  });
 
   const filteredQuizzes = quizzes?.filter(quiz =>
     quiz.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    quiz.unit?.lesson?.course?.title?.toLowerCase().includes(searchTerm.toLowerCase())
+    quiz.description?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
   const handleQuizCreated = () => {
@@ -95,22 +107,20 @@ export const useQuizManagement = () => {
     });
   };
 
-  const handleQuizDeleted = async (quizId: string) => {
+  // Updated to use soft delete instead of hard delete
+  const handleQuizDeleted = async (quizId: string, title: string) => {
     try {
-      const { error } = await supabase
-        .from('quizzes')
-        .delete()
-        .eq('id', quizId);
+      const { error } = await supabase.rpc('soft_delete_quiz', { quiz_id: quizId });
 
       if (error) throw error;
 
       refetch();
       toast({
-        title: "Success",
-        description: "Quiz deleted successfully",
+        title: "Quiz Moved to Trash",
+        description: `"${title}" has been moved to trash. You can restore it from the Deleted Quizzes tab.`,
       });
     } catch (error) {
-      console.error('Error deleting quiz:', error);
+      console.error('Error soft deleting quiz:', error);
       toast({
         title: "Error",
         description: "Failed to delete quiz",
@@ -119,8 +129,8 @@ export const useQuizManagement = () => {
     }
   };
 
-  const handleManageQuestions = (quiz: QuizWithDetails) => {
-    setEditingQuiz(quiz);
+  const handleManageQuestions = (quizId: string) => {
+    navigate(`/admin?tab=quiz-questions&quizId=${quizId}`);
   };
 
   return {
