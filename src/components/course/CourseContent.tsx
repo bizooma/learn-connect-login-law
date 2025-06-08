@@ -2,6 +2,7 @@
 import { Tables } from "@/integrations/supabase/types";
 import CourseVideo from "./CourseVideo";
 import LessonVideo from "./LessonVideo";
+import LessonCard from "./LessonCard";
 import QuizDisplay from "./QuizDisplay";
 import CertificateDownload from "../certificates/CertificateDownload";
 import UnitCompletionButton from "./UnitCompletionButton";
@@ -68,6 +69,11 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
 
   return (
     <div className="space-y-6">
+      {/* Lesson Card - Display when lesson is available */}
+      {lesson && (
+        <LessonCard lesson={lesson} />
+      )}
+
       {/* Smart Completion Indicator */}
       {unitForDatabase && (
         <div className="bg-white rounded-lg shadow-sm border p-4">

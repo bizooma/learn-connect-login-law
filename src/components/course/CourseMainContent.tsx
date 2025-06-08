@@ -15,6 +15,11 @@ const CourseMainContent = ({ course, selectedUnit, courseTitle }: CourseMainCont
   const [activeTab, setActiveTab] = useState("content");
   const { isAdmin } = useUserRole();
 
+  // Find the lesson that contains the selected unit
+  const currentLesson = course?.lessons?.find((lesson: any) => 
+    lesson.units?.some((unit: any) => unit.id === selectedUnit?.id)
+  );
+
   return (
     <div className="bg-white rounded-lg shadow-sm">
       <Tabs value={activeTab} onValueChange={setActiveTab}>
@@ -27,6 +32,7 @@ const CourseMainContent = ({ course, selectedUnit, courseTitle }: CourseMainCont
           <div className="max-w-full break-words">
             <CourseContent 
               unit={selectedUnit} 
+              lesson={currentLesson}
               courseId={course.id} 
               courseTitle={courseTitle}
             />
