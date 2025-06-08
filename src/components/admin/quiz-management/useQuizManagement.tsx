@@ -29,21 +29,48 @@ export const useQuizManagement = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Fetch quizzes with proper filtering for non-deleted items
+  // Fetch quizzes with simplified query to avoid join issues
   const { data: quizzes, isLoading, refetch } = useQuery({
     queryKey: ['quizzes'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      console.log('Fetching quizzes with simplified query...');
+      
+      // First, fetch all non-deleted quizzes
+      const { data: quizzesData, error: quizzesError } = await supabase
         .from('quizzes')
-        .select(`
-          *,
-          quiz_questions (id)
-        `)
-        .eq('is_deleted', false) // Only fetch non-deleted quizzes
+        .select('*')
+        .eq('is_deleted', false)
         .order('updated_at', { ascending: false });
 
-      if (error) throw error;
-      return data as QuizWithDetails[];
+      if (quizzesError) {
+        console.error('Error fetching quizzes:', quizzesError);
+        throw quizzesError;
+      }
+
+      console.log('Fetched quizzes:', quizzesData?.length || 0);
+
+      // Then, fetch question counts for each quiz separately
+      const quizzesWithQuestions = await Promise.all(
+        (quizzesData || []).map(async (quiz) => {
+          const { count, error: countError } = await supabase
+            .from('quiz_questions')
+            .select('*', { count: 'exact', head: true })
+            .eq('quiz_id', quiz.id)
+            .eq('is_deleted', false);
+
+          if (countError) {
+            console.warn(`Error counting questions for quiz ${quiz.id}:`, countError);
+          }
+
+          return {
+            ...quiz,
+            quiz_questions: Array(count || 0).fill({ id: 'placeholder' }) // Create array for compatibility
+          };
+        })
+      );
+
+      console.log('Quizzes with question counts:', quizzesWithQuestions.length);
+      return quizzesWithQuestions as QuizWithDetails[];
     }
   });
 
