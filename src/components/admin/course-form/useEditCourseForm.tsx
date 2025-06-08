@@ -46,6 +46,31 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
 
     console.log('Modules data fetched:', modulesData);
 
+    // Collect all units to fetch quiz assignments
+    const allUnits = modulesData?.flatMap(m => 
+      m.lessons?.flatMap(l => l.units || []) || []
+    ) || [];
+
+    // CRITICAL: Fetch quiz assignments to preserve them
+    const { data: quizzesData, error: quizzesError } = await supabase
+      .from('quizzes')
+      .select('id, unit_id, title')
+      .in('unit_id', allUnits.map(u => u.id))
+      .eq('is_deleted', false);
+
+    if (quizzesError) {
+      console.error('Error fetching quiz assignments:', quizzesError);
+    }
+
+    // Create a map of unit_id to quiz_id
+    const unitQuizMap = new Map();
+    quizzesData?.forEach(quiz => {
+      if (quiz.unit_id) {
+        unitQuizMap.set(quiz.unit_id, quiz.id);
+        console.log(`Preserving quiz assignment in edit form: Unit ${quiz.unit_id} -> Quiz ${quiz.id} (${quiz.title})`);
+      }
+    });
+
     // Parse files from database format
     const parseFilesFromDatabase = (filesData: any): Array<{ url: string; name: string; size: number }> => {
       if (!filesData) return [];
@@ -101,6 +126,12 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
             size: unit.file_size || 0
           }] : files;
 
+          // PRESERVE quiz assignment
+          const preservedQuizId = unitQuizMap.get(unit.id);
+          if (preservedQuizId) {
+            console.log(`Preserving quiz assignment for unit "${unit.title}": Quiz ID ${preservedQuizId}`);
+          }
+
           return {
             id: unit.id,
             title: unit.title,
@@ -110,7 +141,7 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
             video_type: (unit.video_url?.includes('youtube.com') || unit.video_url?.includes('youtu.be')) ? 'youtube' as const : 'upload' as const,
             duration_minutes: unit.duration_minutes || 0,
             sort_order: unit.sort_order,
-            quiz_id: undefined,
+            quiz_id: preservedQuizId, // CRITICAL: Preserve quiz assignment
             image_url: '',
             file_url: unit.file_url || '',
             file_name: unit.file_name || '',
@@ -121,7 +152,7 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
       } as LessonData)).sort((a, b) => a.sort_order - b.sort_order) || []
     } as ModuleData)) || [];
 
-    console.log('Modules with parsed files:', modules);
+    console.log('Modules with preserved quiz assignments:', modules);
     return modules;
   } catch (error) {
     console.error('Error fetching existing modules:', error);
@@ -141,7 +172,7 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
     if (course && open) {
       console.log('Loading existing modules for course:', course.id);
       fetchExistingModules(course.id).then(existingModules => {
-        console.log('Setting modules:', existingModules);
+        console.log('Setting modules with preserved quiz assignments:', existingModules);
         setModules(existingModules);
       });
     } else {
@@ -161,10 +192,10 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
       const useSelective = shouldUseSelectiveUpdate(modules);
       
       if (useSelective) {
-        console.log('Using selective update to preserve lesson order');
+        console.log('Using selective update to preserve lesson order and quiz assignments');
         await performSelectiveUpdate(course.id, modules);
       } else {
-        console.log('Using full cleanup and recreation');
+        console.log('Using full cleanup and recreation with quiz assignment preservation');
         await cleanupExistingCourseContent(course.id);
         
         if (modules.length > 0) {

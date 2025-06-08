@@ -64,21 +64,26 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
       m.lessons?.flatMap(l => l.units || []) || []
     ) || [];
     
+    // Fetch quiz assignments for all units - this is crucial for preserving assignments
     const { data: quizzesData, error: quizzesError } = await supabase
       .from('quizzes')
-      .select('id, unit_id')
-      .in('unit_id', allUnits.map(u => u.id));
+      .select('id, unit_id, title, description, passing_score, time_limit_minutes, is_active')
+      .in('unit_id', allUnits.map(u => u.id))
+      .eq('is_deleted', false);
 
     if (quizzesError) {
-      console.error('Error fetching quizzes:', quizzesError);
+      console.error('Error fetching quiz assignments:', quizzesError);
       throw quizzesError;
     }
 
-    // Create a map of unit_id to quiz_id
+    console.log('Quiz assignments fetched:', quizzesData?.length || 0);
+
+    // Create a map of unit_id to quiz_id for preserving assignments
     const unitQuizMap = new Map();
     quizzesData?.forEach(quiz => {
       if (quiz.unit_id) {
         unitQuizMap.set(quiz.unit_id, quiz.id);
+        console.log(`Preserving quiz assignment: Unit ${quiz.unit_id} -> Quiz ${quiz.id} (${quiz.title})`);
       }
     });
 
@@ -110,6 +115,12 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
           size: unit.file_size || 0
         }] : files;
 
+        // PRESERVE quiz assignment from the database
+        const preservedQuizId = unitQuizMap.get(unit.id);
+        if (preservedQuizId) {
+          console.log(`Preserving quiz assignment for unit "${unit.title}": Quiz ID ${preservedQuizId}`);
+        }
+
         return {
           id: unit.id,
           title: unit.title,
@@ -119,7 +130,7 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
           video_type: getVideoType(unit.video_url || ""),
           duration_minutes: unit.duration_minutes || 0,
           sort_order: unit.sort_order,
-          quiz_id: unitQuizMap.get(unit.id) || undefined,
+          quiz_id: preservedQuizId, // CRITICAL: Preserve the quiz assignment
           image_url: "", // Units don't have image_url in the database yet
           file_url: unit.file_url || "",
           file_name: unit.file_name || "",
@@ -129,7 +140,7 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
       }).sort((a, b) => a.sort_order - b.sort_order)
     })).sort((a, b) => a.sort_order - b.sort_order) || [];
 
-    console.log('Formatted lessons with files:', formattedLessons);
+    console.log('Formatted lessons with preserved quiz assignments:', formattedLessons);
     return formattedLessons;
   } catch (error) {
     console.error('Error fetching course content:', error);
