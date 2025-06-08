@@ -1,8 +1,7 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { CourseFormData, ModuleData } from "../types";
 import { uploadImageFile, uploadVideoFile } from "../fileUploadUtils";
-import { createMultipleFileUpload } from "../../MultipleFileUpload";
+import { createMultipleFileUpload } from "./fileUploadService";
 
 export const createCourseWithModules = async (
   courseId: string,

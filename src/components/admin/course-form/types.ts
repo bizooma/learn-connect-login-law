@@ -14,7 +14,9 @@ export interface ModuleData {
   title: string;
   description: string;
   image_url?: string;
+  image_file?: File;
   file_url?: string;
+  file?: File;
   file_name?: string;
   file_size?: number;
   sort_order: number;
@@ -26,7 +28,9 @@ export interface LessonData {
   title: string;
   description: string;
   image_url?: string;
+  image_file?: File;
   file_url?: string;
+  file?: File;
   file_name?: string;
   file_size?: number;
   sort_order: number;
@@ -61,6 +65,7 @@ export interface UnitData {
   file_name?: string;
   file_size?: number;
   files?: Array<{ url: string; name: string; size: number }>;
+  newFiles?: File[];
   _lastFilesUpdate?: number;
 }
 

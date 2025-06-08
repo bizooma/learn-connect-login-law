@@ -1,8 +1,7 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { ModuleData } from "../types";
 import { uploadImageFile, uploadVideoFile } from "../fileUploadUtils";
-import { createMultipleFileUpload } from "../../MultipleFileUpload";
+import { createMultipleFileUpload } from "./fileUploadService";
 
 export const shouldUseSelectiveUpdate = (modules: ModuleData[]): boolean => {
   // Use selective update if we have existing IDs (indicating this is an edit)
