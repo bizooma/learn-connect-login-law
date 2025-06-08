@@ -36,26 +36,63 @@ const QuestionManagement = ({ quizId, quizTitle }: QuestionManagementProps) => {
   const fetchQuestions = async () => {
     console.log('QUESTION MANAGEMENT: Fetching questions for quiz:', quizId);
     try {
-      const { data, error } = await supabase
+      setLoading(true);
+      
+      // First fetch questions without deleted ones
+      const { data: questionsData, error: questionsError } = await supabase
         .from('quiz_questions')
-        .select(`
-          *,
-          quiz_question_options(*)
-        `)
+        .select('*')
         .eq('quiz_id', quizId)
+        .eq('is_deleted', false)
         .order('sort_order', { ascending: true });
 
-      if (error) {
-        throw error;
+      if (questionsError) {
+        console.error('QUESTION MANAGEMENT: Error fetching questions:', questionsError);
+        throw questionsError;
       }
 
-      console.log('QUESTION MANAGEMENT: Questions fetched:', data?.length || 0);
-      setQuestions(data || []);
+      console.log('QUESTION MANAGEMENT: Raw questions fetched:', questionsData?.length || 0);
+
+      if (!questionsData || questionsData.length === 0) {
+        console.log('QUESTION MANAGEMENT: No questions found for quiz');
+        setQuestions([]);
+        return;
+      }
+
+      // Then fetch options for each question
+      const questionsWithOptions = await Promise.all(
+        questionsData.map(async (question) => {
+          const { data: optionsData, error: optionsError } = await supabase
+            .from('quiz_question_options')
+            .select('*')
+            .eq('question_id', question.id)
+            .eq('is_deleted', false)
+            .order('sort_order', { ascending: true });
+
+          if (optionsError) {
+            console.warn(`QUESTION MANAGEMENT: Error fetching options for question ${question.id}:`, optionsError);
+            return {
+              ...question,
+              quiz_question_options: []
+            };
+          }
+
+          console.log(`QUESTION MANAGEMENT: Found ${optionsData?.length || 0} options for question ${question.id}`);
+
+          return {
+            ...question,
+            quiz_question_options: optionsData || []
+          };
+        })
+      );
+
+      console.log('QUESTION MANAGEMENT: Final questions with options:', questionsWithOptions.length);
+      setQuestions(questionsWithOptions);
     } catch (error) {
-      console.error('QUESTION MANAGEMENT: Error fetching questions:', error);
+      console.error('QUESTION MANAGEMENT: Error in fetchQuestions:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch questions",
+        description: "Failed to fetch questions. Please check the console for details.",
         variant: "destructive",
       });
     } finally {
@@ -105,6 +142,16 @@ const QuestionManagement = ({ quizId, quizTitle }: QuestionManagementProps) => {
   const handleCreateFormOpen = () => {
     console.log('QUESTION MANAGEMENT: Opening create form');
     setCreateFormOpen(true);
+  };
+
+  const handleQuestionCreated = () => {
+    console.log('QUESTION MANAGEMENT: Question created, refreshing list');
+    fetchQuestions();
+  };
+
+  const handleQuestionUpdated = () => {
+    console.log('QUESTION MANAGEMENT: Question updated, refreshing list');
+    fetchQuestions();
   };
 
   if (loading) {
@@ -204,14 +251,14 @@ const QuestionManagement = ({ quizId, quizTitle }: QuestionManagementProps) => {
         open={createFormOpen}
         onOpenChange={setCreateFormOpen}
         quizId={quizId}
-        onQuestionCreated={fetchQuestions}
+        onQuestionCreated={handleQuestionCreated}
       />
 
       <EditQuestionForm
         open={editFormOpen}
         onOpenChange={setEditFormOpen}
         question={selectedQuestion}
-        onQuestionUpdated={fetchQuestions}
+        onQuestionUpdated={handleQuestionUpdated}
       />
     </div>
   );
