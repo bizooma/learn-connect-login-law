@@ -64,6 +64,7 @@ export interface UnitData {
   file_url?: string;
   file_name?: string;
   file_size?: number;
+  file?: File;
   files?: Array<{ url: string; name: string; size: number }>;
   newFiles?: File[];
   _lastFilesUpdate?: number;
