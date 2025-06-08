@@ -14,24 +14,13 @@ import {
 } from "lucide-react";
 import { format } from "date-fns";
 import DeleteConfirmationDialog from "./DeleteConfirmationDialog";
-
-interface Quiz {
-  id: string;
-  title: string;
-  description?: string;
-  passing_score: number;
-  time_limit_minutes?: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-  quiz_questions?: Array<{ id: string }>;
-}
+import { QuizWithDetails } from "./types";
 
 interface QuizCardProps {
-  quiz: Quiz;
-  onEdit: (quiz: Quiz) => void;
+  quiz: QuizWithDetails;
+  onEdit: (quiz: QuizWithDetails) => void;
   onDelete: (quizId: string, title: string) => void;
-  onManageQuestions: (quizId: string) => void;
+  onManageQuestions: (quiz: QuizWithDetails) => void;
 }
 
 const QuizCard = ({ quiz, onEdit, onDelete, onManageQuestions }: QuizCardProps) => {
@@ -115,7 +104,7 @@ const QuizCard = ({ quiz, onEdit, onDelete, onManageQuestions }: QuizCardProps) 
             <Button
               variant="outline"
               size="sm"
-              onClick={() => onManageQuestions(quiz.id)}
+              onClick={() => onManageQuestions(quiz)}
               className="flex-1 min-w-0"
             >
               <Settings className="h-4 w-4 mr-1" />

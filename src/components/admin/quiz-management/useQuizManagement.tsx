@@ -4,19 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-
-interface Quiz {
-  id: string;
-  title: string;
-  description?: string;
-  passing_score: number;
-  time_limit_minutes?: number;
-  is_active: boolean;
-  created_at: string;
-  updated_at: string;
-  unit_id?: string;
-  quiz_questions?: Array<{ id: string }>;
-}
+import { QuizWithDetails } from "./types";
 
 interface Unit {
   id: string;
@@ -35,7 +23,7 @@ interface Unit {
 export const useQuizManagement = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [showCreateForm, setShowCreateForm] = useState(false);
-  const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null);
+  const [editingQuiz, setEditingQuiz] = useState<QuizWithDetails | null>(null);
   const [importedQuizData, setImportedQuizData] = useState<any>(null);
   const [activeTab, setActiveTab] = useState("browse");
   const { toast } = useToast();
@@ -55,7 +43,7 @@ export const useQuizManagement = () => {
         .order('updated_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      return data as QuizWithDetails[];
     }
   });
 
@@ -129,8 +117,8 @@ export const useQuizManagement = () => {
     }
   };
 
-  const handleManageQuestions = (quizId: string) => {
-    navigate(`/admin?tab=quiz-questions&quizId=${quizId}`);
+  const handleManageQuestions = (quiz: QuizWithDetails) => {
+    navigate(`/admin?tab=quiz-questions&quizId=${quiz.id}`);
   };
 
   return {

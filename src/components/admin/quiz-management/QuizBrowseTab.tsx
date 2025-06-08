@@ -14,7 +14,7 @@ interface QuizBrowseTabProps {
   totalQuizzes: number;
   isLoading: boolean;
   onEdit: (quiz: QuizWithDetails) => void;
-  onDelete: (quizId: string) => void;
+  onDelete: (quizId: string, title: string) => void;
   onManageQuestions: (quiz: QuizWithDetails) => void;
   onCreateQuiz: () => void;
   onSwitchToImport: () => void;
