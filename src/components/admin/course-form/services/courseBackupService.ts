@@ -2,14 +2,13 @@
 import { supabase } from "@/integrations/supabase/client";
 
 export interface CourseBackupData {
+  backupId: string;
   courseId: string;
-  courseData: any;
+  timestamp: string;
   modules: any[];
   lessons: any[];
   units: any[];
-  quizAssignments: any[];
-  backupId: string;
-  createdAt: string;
+  quizzes: any[];
 }
 
 export interface BackupResult {
@@ -21,182 +20,128 @@ export interface BackupResult {
 export const createCourseBackup = async (courseId: string): Promise<BackupResult> => {
   try {
     console.log('Creating course backup for:', courseId);
-
-    // Fetch complete course data
-    const { data: courseData, error: courseError } = await supabase
-      .from('courses')
-      .select('*')
-      .eq('id', courseId)
-      .single();
-
-    if (courseError) {
-      return { success: false, error: `Failed to fetch course: ${courseError.message}` };
-    }
-
-    // Fetch modules with full structure
-    const { data: modulesData, error: modulesError } = await supabase
+    
+    // Fetch complete course structure
+    const { data: modules, error: modulesError } = await supabase
       .from('modules')
       .select(`
         *,
         lessons:lessons(
           *,
-          units:units(
-            *,
-            quizzes:quizzes(id, title, description, unit_id, is_active, is_deleted)
-          )
+          units:units(*)
         )
       `)
-      .eq('course_id', courseId)
-      .order('sort_order', { ascending: true });
+      .eq('course_id', courseId);
 
     if (modulesError) {
-      return { success: false, error: `Failed to fetch modules: ${modulesError.message}` };
+      return { success: false, error: `Failed to backup modules: ${modulesError.message}` };
     }
 
-    // Extract flattened data for backup
-    const modules = modulesData || [];
-    const lessons = modules.flatMap(m => m.lessons || []);
-    const units = lessons.flatMap(l => l.units || []);
-    const quizAssignments = units.flatMap(u => 
-      (u.quizzes || []).map(q => ({
-        quiz_id: q.id,
-        unit_id: u.id,
-        quiz_title: q.title,
-        unit_title: u.title
-      }))
-    );
+    // Fetch quiz assignments
+    const allUnits = modules?.flatMap(m => 
+      m.lessons?.flatMap(l => l.units || []) || []
+    ) || [];
+
+    const { data: quizzes, error: quizzesError } = await supabase
+      .from('quizzes')
+      .select('*')
+      .in('unit_id', allUnits.map(u => u.id))
+      .eq('is_deleted', false);
+
+    if (quizzesError) {
+      console.warn('Failed to backup quizzes:', quizzesError);
+    }
 
     const backupData: CourseBackupData = {
-      courseId,
-      courseData,
-      modules: modules.map(({ lessons, ...module }) => module),
-      lessons: lessons.map(({ units, ...lesson }) => lesson),
-      units: units.map(({ quizzes, ...unit }) => unit),
-      quizAssignments,
       backupId: `backup_${courseId}_${Date.now()}`,
-      createdAt: new Date().toISOString()
+      courseId,
+      timestamp: new Date().toISOString(),
+      modules: modules || [],
+      lessons: modules?.flatMap(m => m.lessons || []) || [],
+      units: allUnits,
+      quizzes: quizzes || []
     };
 
-    console.log('Course backup created successfully:', {
+    console.log('Course backup created:', {
+      backupId: backupData.backupId,
       modules: backupData.modules.length,
       lessons: backupData.lessons.length,
       units: backupData.units.length,
-      quizAssignments: backupData.quizAssignments.length
+      quizzes: backupData.quizzes.length
     });
 
     return { success: true, backupData };
+
   } catch (error) {
     console.error('Error creating course backup:', error);
-    return { success: false, error: `Backup failed: ${error.message}` };
+    return { success: false, error: error.message };
   }
 };
 
-export const validateCourseIntegrity = async (courseId: string): Promise<{
-  isValid: boolean;
-  issues: string[];
-  summary: {
-    modules: number;
-    lessons: number;
-    units: number;
-    quizAssignments: number;
-  };
-}> => {
-  const issues: string[] = [];
-  
+export const validateCourseIntegrity = async (courseId: string) => {
   try {
-    // Check course exists
-    const { data: course, error: courseError } = await supabase
-      .from('courses')
-      .select('id, title')
-      .eq('id', courseId)
-      .single();
-
-    if (courseError || !course) {
-      issues.push('Course not found or inaccessible');
-      return { isValid: false, issues, summary: { modules: 0, lessons: 0, units: 0, quizAssignments: 0 } };
-    }
-
-    // Check modules structure
-    const { data: modules, error: modulesError } = await supabase
+    console.log('Validating course integrity for:', courseId);
+    
+    // Fetch course structure
+    const { data: modules } = await supabase
       .from('modules')
       .select(`
-        id,
-        title,
-        sort_order,
+        *,
         lessons:lessons(
-          id,
-          title,
-          sort_order,
-          units:units(
-            id,
-            title,
-            sort_order
-          )
+          *,
+          units:units(*)
         )
       `)
-      .eq('course_id', courseId)
-      .order('sort_order', { ascending: true });
+      .eq('course_id', courseId);
 
-    if (modulesError) {
-      issues.push(`Failed to fetch modules: ${modulesError.message}`);
-      return { isValid: false, issues, summary: { modules: 0, lessons: 0, units: 0, quizAssignments: 0 } };
-    }
-
-    const totalLessons = modules?.reduce((sum, m) => sum + (m.lessons?.length || 0), 0) || 0;
-    const totalUnits = modules?.reduce((sum, m) => 
-      sum + (m.lessons?.reduce((lessonSum, l) => lessonSum + (l.units?.length || 0), 0) || 0), 0
-    ) || 0;
-
-    // Check for orphaned records
-    const { data: orphanedLessons } = await supabase
-      .from('lessons')
-      .select('id, title')
-      .eq('course_id', courseId)
-      .not('module_id', 'in', `(${modules?.map(m => m.id).join(',') || 'null'})`);
-
-    if (orphanedLessons && orphanedLessons.length > 0) {
-      issues.push(`Found ${orphanedLessons.length} orphaned lessons`);
-    }
-
-    // Check quiz assignments
-    const { data: quizAssignments, error: quizError } = await supabase
+    const { data: quizzes } = await supabase
       .from('quizzes')
       .select('id, title, unit_id')
-      .not('unit_id', 'is', null)
-      .eq('is_deleted', false);
+      .eq('is_deleted', false)
+      .not('unit_id', 'is', null);
 
-    if (quizError) {
-      issues.push(`Failed to check quiz assignments: ${quizError.message}`);
-    }
-
+    const issues: string[] = [];
     const allUnitIds = modules?.flatMap(m => 
       m.lessons?.flatMap(l => l.units?.map(u => u.id) || []) || []
     ) || [];
 
-    const validQuizAssignments = quizAssignments?.filter(q => 
-      q.unit_id && allUnitIds.includes(q.unit_id)
+    // Check for orphaned quizzes
+    const orphanedQuizzes = quizzes?.filter(q => 
+      q.unit_id && !allUnitIds.includes(q.unit_id)
     ) || [];
+
+    if (orphanedQuizzes.length > 0) {
+      issues.push(`Found ${orphanedQuizzes.length} orphaned quizzes`);
+    }
+
+    // Check for empty modules
+    const emptyModules = modules?.filter(m => !m.lessons || m.lessons.length === 0) || [];
+    if (emptyModules.length > 0) {
+      issues.push(`Found ${emptyModules.length} empty modules`);
+    }
 
     const summary = {
       modules: modules?.length || 0,
-      lessons: totalLessons,
-      units: totalUnits,
-      quizAssignments: validQuizAssignments.length
+      lessons: modules?.flatMap(m => m.lessons || []).length || 0,
+      units: allUnitIds.length,
+      quizzes: quizzes?.length || 0,
+      orphanedQuizzes: orphanedQuizzes.length
     };
 
-    console.log('Course integrity validation completed:', { courseId, summary, issues });
+    console.log('Integrity validation completed:', { issues: issues.length, summary });
 
     return {
       isValid: issues.length === 0,
       issues,
       summary
     };
+
   } catch (error) {
     console.error('Error validating course integrity:', error);
     return {
       isValid: false,
       issues: [`Validation failed: ${error.message}`],
-      summary: { modules: 0, lessons: 0, units: 0, quizAssignments: 0 }
+      summary: {}
     };
   }
 };

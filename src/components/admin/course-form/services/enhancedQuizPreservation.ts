@@ -5,15 +5,10 @@ import { ModuleData } from "../types";
 export interface QuizAssignmentData {
   quizId: string;
   unitId: string;
-  unitTitle: string;
-  unitDescription: string;
   quizTitle: string;
-  quizDescription?: string;
+  unitTitle: string;
   moduleTitle: string;
   lessonTitle: string;
-  unitSortOrder: number;
-  lessonSortOrder: number;
-  moduleSortOrder: number;
 }
 
 export interface QuizPreservationResult {
@@ -23,9 +18,7 @@ export interface QuizPreservationResult {
   warnings: string[];
 }
 
-export const preserveQuizAssignmentsEnhanced = async (
-  courseId: string
-): Promise<QuizPreservationResult> => {
+export const preserveQuizAssignmentsEnhanced = async (courseId: string): Promise<QuizPreservationResult> => {
   const result: QuizPreservationResult = {
     success: false,
     preservedAssignments: [],
@@ -34,84 +27,98 @@ export const preserveQuizAssignmentsEnhanced = async (
   };
 
   try {
-    console.log('Enhanced quiz preservation started for course:', courseId);
-
-    // Get comprehensive course structure with quiz assignments
-    const { data: courseStructure, error: structureError } = await supabase
+    console.log('🎯 Starting enhanced quiz assignment preservation for course:', courseId);
+    
+    // Fetch complete course structure with quiz assignments
+    const { data: modules, error: modulesError } = await supabase
       .from('modules')
       .select(`
-        id,
-        title,
-        sort_order,
+        *,
         lessons:lessons(
-          id,
-          title,
-          sort_order,
-          units:units(
-            id,
-            title,
-            description,
-            sort_order,
-            quizzes:quizzes(
-              id,
-              title,
-              description,
-              passing_score,
-              time_limit_minutes,
-              is_active,
-              is_deleted
-            )
-          )
+          *,
+          units:units(*)
         )
       `)
-      .eq('course_id', courseId)
-      .order('sort_order', { ascending: true });
+      .eq('course_id', courseId);
 
-    if (structureError) {
-      result.errors.push(`Failed to fetch course structure: ${structureError.message}`);
+    if (modulesError) {
+      result.errors.push(`Failed to fetch course structure: ${modulesError.message}`);
       return result;
     }
 
-    if (!courseStructure || courseStructure.length === 0) {
-      result.warnings.push('No modules found for course');
+    if (!modules || modules.length === 0) {
+      result.warnings.push('No modules found in course');
       result.success = true;
       return result;
     }
 
-    // Extract quiz assignments with full context
-    for (const module of courseStructure) {
-      for (const lesson of module.lessons || []) {
-        for (const unit of lesson.units || []) {
-          for (const quiz of unit.quizzes || []) {
-            if (!quiz.is_deleted && quiz.is_active) {
-              result.preservedAssignments.push({
-                quizId: quiz.id,
-                unitId: unit.id,
-                unitTitle: unit.title,
-                unitDescription: unit.description || '',
-                quizTitle: quiz.title,
-                quizDescription: quiz.description,
-                moduleTitle: module.title,
-                lessonTitle: lesson.title,
-                unitSortOrder: unit.sort_order,
-                lessonSortOrder: lesson.sort_order,
-                moduleSortOrder: module.sort_order
-              });
+    // Collect all units with hierarchy information
+    const unitHierarchy = new Map<string, { unit: any; lesson: any; module: any }>();
+    
+    modules.forEach(module => {
+      module.lessons?.forEach(lesson => {
+        lesson.units?.forEach(unit => {
+          unitHierarchy.set(unit.id, { unit, lesson, module });
+        });
+      });
+    });
 
-              console.log(`Preserved quiz assignment: "${quiz.title}" -> Unit "${unit.title}" in "${lesson.title}" > "${module.title}"`);
-            }
-          }
-        }
-      }
+    console.log(`Found ${unitHierarchy.size} units in course hierarchy`);
+
+    // Fetch all quiz assignments for these units
+    const unitIds = Array.from(unitHierarchy.keys());
+    
+    if (unitIds.length === 0) {
+      result.warnings.push('No units found for quiz preservation');
+      result.success = true;
+      return result;
     }
 
+    const { data: quizzes, error: quizzesError } = await supabase
+      .from('quizzes')
+      .select('id, title, unit_id, description')
+      .in('unit_id', unitIds)
+      .eq('is_deleted', false)
+      .not('unit_id', 'is', null);
+
+    if (quizzesError) {
+      result.errors.push(`Failed to fetch quiz assignments: ${quizzesError.message}`);
+      return result;
+    }
+
+    console.log(`Found ${quizzes?.length || 0} active quiz assignments`);
+
+    // Create enhanced preservation data
+    const preservedAssignments: QuizAssignmentData[] = [];
+    
+    quizzes?.forEach(quiz => {
+      const hierarchy = unitHierarchy.get(quiz.unit_id!);
+      if (hierarchy) {
+        preservedAssignments.push({
+          quizId: quiz.id,
+          unitId: quiz.unit_id!,
+          quizTitle: quiz.title,
+          unitTitle: hierarchy.unit.title,
+          moduleTitle: hierarchy.module.title,
+          lessonTitle: hierarchy.lesson.title
+        });
+        
+        console.log(`✅ Preserved: Quiz "${quiz.title}" -> Unit "${hierarchy.unit.title}" in Module "${hierarchy.module.title}"`);
+      } else {
+        result.warnings.push(`Could not find hierarchy for quiz "${quiz.title}" (unit_id: ${quiz.unit_id})`);
+      }
+    });
+
+    result.preservedAssignments = preservedAssignments;
     result.success = true;
-    console.log(`Enhanced quiz preservation completed. Found ${result.preservedAssignments.length} assignments`);
+    
+    console.log(`🎯 Enhanced quiz preservation completed: ${preservedAssignments.length} assignments preserved`);
     
     return result;
+
   } catch (error) {
-    console.error('Error in enhanced quiz preservation:', error);
-    result.errors.push(`Unexpected error: ${error.message}`);
+    console.error('💥 Error in enhanced quiz preservation:', error);
+    result.errors.push(`Preservation failed: ${error.message}`);
     return result;
   }
 };
@@ -129,129 +136,118 @@ export const restoreQuizAssignmentsEnhanced = async (
   };
 
   try {
-    console.log('Enhanced quiz restoration started for course:', courseId);
-    console.log('Assignments to restore:', preservedAssignments.length);
+    console.log('🔄 Starting enhanced quiz assignment restoration for course:', courseId);
+    console.log(`Attempting to restore ${preservedAssignments.length} quiz assignments`);
 
     if (preservedAssignments.length === 0) {
       result.success = true;
-      result.warnings.push('No quiz assignments to restore');
+      console.log('No quiz assignments to restore');
       return result;
     }
 
-    // Get current course structure after recreation
-    const { data: currentStructure, error: structureError } = await supabase
+    // Fetch the current course structure after content recreation
+    const { data: currentModules, error: fetchError } = await supabase
       .from('modules')
       .select(`
-        id,
-        title,
-        sort_order,
+        *,
         lessons:lessons(
-          id,
-          title,
-          sort_order,
-          units:units(id, title, description, sort_order)
+          *,
+          units:units(*)
         )
       `)
-      .eq('course_id', courseId)
-      .order('sort_order', { ascending: true });
+      .eq('course_id', courseId);
 
-    if (structureError) {
-      result.errors.push(`Failed to fetch current structure: ${structureError.message}`);
+    if (fetchError) {
+      result.errors.push(`Failed to fetch current course structure: ${fetchError.message}`);
       return result;
     }
 
-    // Create mapping strategies for finding units
-    const unitMappingStrategies = [
-      // Strategy 1: Exact title match within same lesson/module structure
-      (assignment: QuizAssignmentData) => {
-        for (const module of currentStructure || []) {
-          if (module.title === assignment.moduleTitle && module.sort_order === assignment.moduleSortOrder) {
-            for (const lesson of module.lessons || []) {
-              if (lesson.title === assignment.lessonTitle && lesson.sort_order === assignment.lessonSortOrder) {
-                for (const unit of lesson.units || []) {
-                  if (unit.title === assignment.unitTitle && unit.sort_order === assignment.unitSortOrder) {
-                    return unit.id;
-                  }
-                }
-              }
-            }
-          }
-        }
-        return null;
-      },
+    if (!currentModules || currentModules.length === 0) {
+      result.errors.push('No modules found in recreated course structure');
+      return result;
+    }
+
+    // Create a comprehensive mapping system
+    const unitMapping = new Map<string, string>(); // old unit id -> new unit id
+    
+    // Strategy 1: Match by hierarchy path (module -> lesson -> unit titles)
+    preservedAssignments.forEach(preserved => {
+      // Find matching module
+      const matchingModule = currentModules.find(m => m.title === preserved.moduleTitle);
+      if (!matchingModule) {
+        result.warnings.push(`Could not find module "${preserved.moduleTitle}" for quiz "${preserved.quizTitle}"`);
+        return;
+      }
+
+      // Find matching lesson
+      const matchingLesson = matchingModule.lessons?.find(l => l.title === preserved.lessonTitle);
+      if (!matchingLesson) {
+        result.warnings.push(`Could not find lesson "${preserved.lessonTitle}" in module "${preserved.moduleTitle}" for quiz "${preserved.quizTitle}"`);
+        return;
+      }
+
+      // Find matching unit
+      const matchingUnit = matchingLesson.units?.find(u => u.title === preserved.unitTitle);
+      if (!matchingUnit) {
+        result.warnings.push(`Could not find unit "${preserved.unitTitle}" in lesson "${preserved.lessonTitle}" for quiz "${preserved.quizTitle}"`);
+        return;
+      }
+
+      unitMapping.set(preserved.unitId, matchingUnit.id);
+      console.log(`📍 Mapped unit: "${preserved.unitTitle}" (${preserved.unitId} -> ${matchingUnit.id})`);
+    });
+
+    console.log(`Successfully mapped ${unitMapping.size} out of ${preservedAssignments.length} units`);
+
+    // Restore quiz assignments
+    let restoredCount = 0;
+    
+    for (const preserved of preservedAssignments) {
+      const newUnitId = unitMapping.get(preserved.unitId);
       
-      // Strategy 2: Title and description match (relaxed structure)
-      (assignment: QuizAssignmentData) => {
-        for (const module of currentStructure || []) {
-          for (const lesson of module.lessons || []) {
-            for (const unit of lesson.units || []) {
-              if (unit.title === assignment.unitTitle && 
-                  (unit.description || '').trim() === assignment.unitDescription.trim()) {
-                return unit.id;
-              }
-            }
-          }
-        }
-        return null;
-      },
-
-      // Strategy 3: Title only match (last resort)
-      (assignment: QuizAssignmentData) => {
-        for (const module of currentStructure || []) {
-          for (const lesson of module.lessons || []) {
-            for (const unit of lesson.units || []) {
-              if (unit.title === assignment.unitTitle) {
-                return unit.id;
-              }
-            }
-          }
-        }
-        return null;
-      }
-    ];
-
-    // Restore quiz assignments using mapping strategies
-    for (const assignment of preservedAssignments) {
-      let newUnitId: string | null = null;
-      let strategyUsed = 0;
-
-      // Try each strategy until one works
-      for (let i = 0; i < unitMappingStrategies.length; i++) {
-        newUnitId = unitMappingStrategies[i](assignment);
-        if (newUnitId) {
-          strategyUsed = i + 1;
-          break;
-        }
+      if (!newUnitId) {
+        result.errors.push(`Could not map unit for quiz "${preserved.quizTitle}"`);
+        continue;
       }
 
-      if (newUnitId) {
-        // Restore the quiz assignment
+      try {
         const { error: updateError } = await supabase
           .from('quizzes')
-          .update({ unit_id: newUnitId })
-          .eq('id', assignment.quizId);
+          .update({ 
+            unit_id: newUnitId,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', preserved.quizId);
 
         if (updateError) {
-          result.errors.push(`Failed to restore quiz "${assignment.quizTitle}": ${updateError.message}`);
+          result.errors.push(`Failed to restore quiz "${preserved.quizTitle}": ${updateError.message}`);
         } else {
-          result.preservedAssignments.push({
-            ...assignment,
-            unitId: newUnitId
-          });
-          console.log(`Successfully restored quiz "${assignment.quizTitle}" to unit "${assignment.unitTitle}" using strategy ${strategyUsed}`);
+          console.log(`✅ Restored quiz assignment: "${preserved.quizTitle}" -> "${preserved.unitTitle}"`);
+          restoredCount++;
+          result.preservedAssignments.push(preserved);
         }
-      } else {
-        result.warnings.push(`Could not find matching unit for quiz "${assignment.quizTitle}" (original unit: "${assignment.unitTitle}")`);
+      } catch (error) {
+        result.errors.push(`Error restoring quiz "${preserved.quizTitle}": ${error.message}`);
       }
     }
 
-    result.success = true;
-    console.log(`Enhanced quiz restoration completed. Restored ${result.preservedAssignments.length} assignments`);
+    result.success = restoredCount > 0 || preservedAssignments.length === 0;
     
+    console.log(`🔄 Enhanced quiz restoration completed: ${restoredCount}/${preservedAssignments.length} assignments restored`);
+    
+    if (result.errors.length > 0) {
+      console.warn('⚠️ Quiz restoration errors:', result.errors);
+    }
+    
+    if (result.warnings.length > 0) {
+      console.warn('⚠️ Quiz restoration warnings:', result.warnings);
+    }
+
     return result;
+
   } catch (error) {
-    console.error('Error in enhanced quiz restoration:', error);
-    result.errors.push(`Unexpected error: ${error.message}`);
+    console.error('💥 Error in enhanced quiz restoration:', error);
+    result.errors.push(`Restoration failed: ${error.message}`);
     return result;
   }
 };

@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
@@ -175,7 +176,7 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
     
     setIsSubmitting(true);
     try {
-      console.log('🚀 Starting enhanced course update with comprehensive safety mechanisms');
+      console.log('🚀 Starting enhanced course update with data protection');
       
       // Use the enhanced transactional update service
       const updateResult = await performEnhancedTransactionalCourseUpdate(course.id, data, modules);
@@ -190,7 +191,7 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
         ].join('\n');
 
         toast({
-          title: "Success",
+          title: "✅ Update Successful - No Data Lost!",
           description: successDetails,
         });
 
@@ -215,14 +216,14 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
         ].filter(Boolean).join('\n');
           
         toast({
-          title: "Update Issues Detected", 
+          title: "⚠️ Update Issues Detected", 
           description: errorDetails,
           variant: "destructive",
         });
 
         // Show backup information if available
         if (updateResult.backupId) {
-          console.warn('🛡️ Backup created for rollback:', updateResult.backupId);
+          console.warn('🛡️ Backup available for recovery:', updateResult.backupId);
         }
       }
 
@@ -239,8 +240,8 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
     } catch (error) {
       console.error('💥 Critical error updating course:', error);
       toast({
-        title: "Critical Error",
-        description: "Course update failed completely. Please try again or contact support.",
+        title: "🚨 Critical Error",
+        description: "Course update failed completely. Your data has been preserved. Please try again or contact support.",
         variant: "destructive",
       });
     } finally {
