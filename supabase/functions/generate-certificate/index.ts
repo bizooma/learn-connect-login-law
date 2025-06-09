@@ -42,6 +42,13 @@ serve(async (req) => {
       getCertificateTemplate(supabaseClient)
     ]);
 
+    console.log('Certificate data retrieved:', {
+      profileName: `${profile.first_name} ${profile.last_name}`,
+      courseTitle: course.title,
+      templateId: template.id,
+      templateUrl: template.template_image_url
+    });
+
     // Get or create certificate record
     const certificateRecord = await getOrCreateCertificateRecord(
       supabaseClient,
@@ -52,13 +59,21 @@ serve(async (req) => {
       course
     );
 
+    console.log('Certificate record prepared:', {
+      certificateId: certificateRecord.id,
+      certificateNumber: certificateRecord.certificate_number
+    });
+
     // Load template image and generate certificate
     const templateImageData = await loadTemplateImage(template.template_image_url);
     const certificateBlob = await createCertificateCanvas(templateImageData, certificateRecord);
     
     const arrayBuffer = await certificateBlob.arrayBuffer();
 
-    console.log('Certificate generated successfully');
+    console.log('Certificate generated successfully:', {
+      certificateNumber: certificateRecord.certificate_number,
+      fileSize: arrayBuffer.byteLength
+    });
 
     return new Response(arrayBuffer, {
       headers: {
@@ -70,8 +85,16 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error generating certificate:', error);
+    
+    // Provide detailed error information for debugging
+    const errorResponse = {
+      error: error.message,
+      details: error.stack || 'No stack trace available',
+      timestamp: new Date().toISOString()
+    };
+    
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify(errorResponse),
       { 
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
