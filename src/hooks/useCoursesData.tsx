@@ -9,7 +9,7 @@ type Level = Tables<'levels'>;
 
 export const useCoursesData = () => {
   const { toast } = useToast();
-  const { isAdmin } = useUserRole(); // Changed from hasAdminPrivileges to isAdmin
+  const { isAdmin } = useUserRole();
   const [courses, setCourses] = useState<Course[]>([]);
   const [levels, setLevels] = useState<Level[]>([]);
   const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
@@ -21,7 +21,33 @@ export const useCoursesData = () => {
   useEffect(() => {
     fetchCourses();
     fetchLevels();
-  }, [isAdmin]); // Changed from hasAdminPrivileges to isAdmin
+  }, [isAdmin]);
+
+  const sortCourses = (coursesToSort: Course[]) => {
+    return coursesToSort.sort((a, b) => {
+      // First, sort by category (Legal first, then Sales)
+      const categoryOrder = { 'Legal': 1, 'Sales': 2 };
+      const aCategoryOrder = categoryOrder[a.category as keyof typeof categoryOrder] || 999;
+      const bCategoryOrder = categoryOrder[b.category as keyof typeof categoryOrder] || 999;
+      
+      if (aCategoryOrder !== bCategoryOrder) {
+        return aCategoryOrder - bCategoryOrder;
+      }
+      
+      // Then sort by level (100, 200, 300)
+      const getLevelNumber = (level: string) => {
+        if (level.includes('100')) return 1;
+        if (level.includes('200')) return 2;
+        if (level.includes('300')) return 3;
+        return 999;
+      };
+      
+      const aLevelOrder = getLevelNumber(a.level);
+      const bLevelOrder = getLevelNumber(b.level);
+      
+      return aLevelOrder - bLevelOrder;
+    });
+  };
 
   const fetchCourses = async () => {
     try {
@@ -40,8 +66,9 @@ export const useCoursesData = () => {
         throw error;
       }
 
-      setCourses(data || []);
-      setFilteredCourses(data || []);
+      const sortedData = sortCourses(data || []);
+      setCourses(sortedData);
+      setFilteredCourses(sortedData);
     } catch (error) {
       console.error('Error fetching courses:', error);
       toast({
@@ -107,7 +134,9 @@ export const useCoursesData = () => {
       filtered = filtered.filter(course => course.level === level);
     }
 
-    setFilteredCourses(filtered);
+    // Apply the same sorting to filtered results
+    const sortedFiltered = sortCourses(filtered);
+    setFilteredCourses(sortedFiltered);
   };
 
   const clearFilters = () => {
