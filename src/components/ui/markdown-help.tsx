@@ -60,7 +60,7 @@ const MarkdownHelp = () => {
           <div>
             <p className="font-medium mb-1">Links & More:</p>
             <p className="text-muted-foreground">[Link Text](URL)</p>
-            <p className="text-muted-foreground">> Quote block</p>
+            <p className="text-muted-foreground">{">"} Quote block</p>
             <p className="text-muted-foreground">--- (line break)</p>
           </div>
         </div>
