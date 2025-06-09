@@ -4,14 +4,9 @@ import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
 import { CourseFormData, ModuleData, LessonData, UnitData } from "./types";
 import { useCourseForm } from "./hooks/useCourseForm";
-import { useCourseContentManagement } from "./hooks/useCourseContentManagement";
-import { updateCourseBasicInfo } from "./services/courseUpdateService";
-import { cleanupExistingCourseContent } from "./services/courseContentCleanup";
-import { createLessonsAndUnits } from "./services/sectionCreation";
 import { createWelcomeCalendarEvent } from "./services/calendarService";
 import { supabase } from "@/integrations/supabase/client";
-import { createCourseWithModules } from "./services/courseSubmissionService";
-import { performSelectiveUpdate, shouldUseSelectiveUpdate } from "./services/selectiveUpdateService";
+import { performTransactionalCourseUpdate, validateTransactionResult } from "./services/transactionalCourseUpdate";
 
 type Course = Tables<'courses'>;
 
@@ -76,12 +71,10 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
       if (!filesData) return [];
       
       try {
-        // Handle if it's already an array
         if (Array.isArray(filesData)) {
           return filesData.filter(file => file && file.url && file.name);
         }
         
-        // Handle if it's a JSON string
         if (typeof filesData === 'string') {
           const parsed = JSON.parse(filesData);
           return Array.isArray(parsed) ? parsed.filter(file => file && file.url && file.name) : [];
@@ -114,12 +107,10 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
         file_size: lesson.file_size || 0,
         sort_order: lesson.sort_order,
         units: lesson.units?.map(unit => {
-          // Parse files from the database
           const files = parseFilesFromDatabase(unit.files);
           
           console.log('Unit files parsed in edit form:', unit.title, 'Files:', files);
           
-          // Fallback to legacy single file format if no files array
           const finalFiles = files.length === 0 && unit.file_url ? [{
             url: unit.file_url,
             name: unit.file_name || 'Download File',
@@ -185,30 +176,50 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
     
     setIsSubmitting(true);
     try {
-      await updateCourseBasicInfo(course, data);
-      await ensureCalendarExists(course.id);
-
-      // Determine update strategy based on content structure
-      const useSelective = shouldUseSelectiveUpdate(modules);
+      console.log('Starting enhanced course update with safety mechanisms');
       
-      if (useSelective) {
-        console.log('Using selective update to preserve lesson order and quiz assignments');
-        await performSelectiveUpdate(course.id, modules);
+      // Use the new transactional update service
+      const updateResult = await performTransactionalCourseUpdate(course.id, data, modules);
+      
+      // Validate the transaction result
+      const validation = validateTransactionResult(updateResult);
+      
+      if (updateResult.success && validation.isValid) {
+        toast({
+          title: "Success",
+          description: `Course updated successfully. ${updateResult.quizAssignmentsRestored || 0} quiz assignments restored.`,
+        });
+
+        await ensureCalendarExists(course.id);
+        onSuccess();
       } else {
-        console.log('Using full cleanup and recreation with quiz assignment preservation');
-        await cleanupExistingCourseContent(course.id);
-        
-        if (modules.length > 0) {
-          await createCourseWithModules(course.id, data, modules);
+        // Partial success or issues detected
+        const errorMsg = updateResult.errors.length > 0 
+          ? updateResult.errors.join(', ') 
+          : 'Course update completed with issues';
+          
+        toast({
+          title: validation.isValid ? "Warning" : "Error", 
+          description: errorMsg,
+          variant: validation.isValid ? "default" : "destructive",
+        });
+
+        if (validation.isValid) {
+          // Still call success callback if no critical issues
+          onSuccess();
         }
       }
 
-      toast({
-        title: "Success",
-        description: "Course updated successfully",
-      });
+      // Log warnings for debugging
+      if (updateResult.warnings.length > 0) {
+        console.warn('Update warnings:', updateResult.warnings);
+      }
 
-      onSuccess();
+      // Log validation results
+      if (validation.recommendations.length > 0) {
+        console.info('Recommendations:', validation.recommendations);
+      }
+
     } catch (error) {
       console.error('Error updating course:', error);
       toast({
