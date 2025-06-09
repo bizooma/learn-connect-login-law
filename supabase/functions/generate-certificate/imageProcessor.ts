@@ -6,25 +6,62 @@ export async function loadTemplateImage(templateUrl: string): Promise<Uint8Array
   
   let finalUrl = templateUrl;
   
-  // Handle relative URLs by constructing absolute URL
+  // Handle relative URLs by constructing the correct absolute URL
   if (templateUrl.startsWith('/')) {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL');
-    if (!supabaseUrl) {
-      throw new Error('SUPABASE_URL environment variable is not set');
+    if (templateUrl.startsWith('/lovable-uploads/')) {
+      // For Lovable uploads, we need to get the current domain from the request
+      // Since we're in an edge function, we'll try to construct the URL differently
+      const currentDomain = 'https://lovable.app'; // Lovable's main domain
+      finalUrl = `${currentDomain}${templateUrl}`;
+      console.log('Resolved Lovable upload URL to:', finalUrl);
+    } else {
+      // For other relative URLs, use Supabase URL
+      const supabaseUrl = Deno.env.get('SUPABASE_URL');
+      if (!supabaseUrl) {
+        throw new Error('SUPABASE_URL environment variable is not set');
+      }
+      finalUrl = `${supabaseUrl}${templateUrl}`;
+      console.log('Resolved relative URL to:', finalUrl);
     }
-    finalUrl = `${supabaseUrl}${templateUrl}`;
-    console.log('Resolved relative URL to:', finalUrl);
   }
   
   try {
+    console.log('Attempting to fetch template from:', finalUrl);
     const templateResponse = await fetch(finalUrl);
+    
     if (!templateResponse.ok) {
       console.error('Failed to fetch template image:', {
         url: finalUrl,
         status: templateResponse.status,
-        statusText: templateResponse.statusText
+        statusText: templateResponse.statusText,
+        headers: Object.fromEntries(templateResponse.headers.entries())
       });
-      throw new Error(`Failed to load certificate template image: ${templateResponse.status} ${templateResponse.statusText}`);
+      
+      // If the first attempt failed and it was a Lovable upload, try alternative domains
+      if (templateUrl.startsWith('/lovable-uploads/') && finalUrl.includes('lovable.app')) {
+        console.log('Trying alternative domain for Lovable upload...');
+        const altUrl = `https://lovable.dev${templateUrl}`;
+        console.log('Attempting alternative URL:', altUrl);
+        
+        const altResponse = await fetch(altUrl);
+        if (altResponse.ok) {
+          const templateArrayBuffer = await altResponse.arrayBuffer();
+          const imageData = new Uint8Array(templateArrayBuffer);
+          console.log('Template image loaded successfully from alternative URL:', {
+            url: altUrl,
+            size: imageData.length
+          });
+          return imageData;
+        }
+        
+        console.error('Alternative URL also failed:', {
+          url: altUrl,
+          status: altResponse.status,
+          statusText: altResponse.statusText
+        });
+      }
+      
+      throw new Error(`Failed to load certificate template image: ${templateResponse.status} ${templateResponse.statusText} from ${finalUrl}`);
     }
 
     const templateArrayBuffer = await templateResponse.arrayBuffer();
@@ -32,12 +69,18 @@ export async function loadTemplateImage(templateUrl: string): Promise<Uint8Array
     
     console.log('Template image loaded successfully:', {
       url: finalUrl,
-      size: imageData.length
+      size: imageData.length,
+      contentType: templateResponse.headers.get('content-type')
     });
     
     return imageData;
   } catch (error) {
-    console.error('Error loading template image:', error);
+    console.error('Error loading template image:', {
+      originalUrl: templateUrl,
+      finalUrl: finalUrl,
+      error: error.message,
+      stack: error.stack
+    });
     throw new Error(`Failed to load certificate template image: ${error.message}`);
   }
 }
