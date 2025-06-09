@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
@@ -6,7 +5,7 @@ import { CourseFormData, ModuleData, LessonData, UnitData } from "./types";
 import { useCourseForm } from "./hooks/useCourseForm";
 import { createWelcomeCalendarEvent } from "./services/calendarService";
 import { supabase } from "@/integrations/supabase/client";
-import { performTransactionalCourseUpdate, validateTransactionResult } from "./services/transactionalCourseUpdate";
+import { performEnhancedTransactionalCourseUpdate } from "./services/enhancedTransactionalCourseUpdate";
 
 type Course = Tables<'courses'>;
 
@@ -176,55 +175,72 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
     
     setIsSubmitting(true);
     try {
-      console.log('Starting enhanced course update with safety mechanisms');
+      console.log('🚀 Starting enhanced course update with comprehensive safety mechanisms');
       
-      // Use the new transactional update service
-      const updateResult = await performTransactionalCourseUpdate(course.id, data, modules);
+      // Use the enhanced transactional update service
+      const updateResult = await performEnhancedTransactionalCourseUpdate(course.id, data, modules);
       
-      // Validate the transaction result
-      const validation = validateTransactionResult(updateResult);
-      
-      if (updateResult.success && validation.isValid) {
+      if (updateResult.success) {
+        // Show detailed success message
+        const successDetails = [
+          `Course updated successfully!`,
+          `Quiz assignments restored: ${updateResult.quizAssignmentsRestored || 0}`,
+          `Integrity score: ${updateResult.integrityScore || 'N/A'}/100`,
+          `Performance: ${updateResult.performanceMetrics?.totalDurationMs || 0}ms`
+        ].join('\n');
+
         toast({
           title: "Success",
-          description: `Course updated successfully. ${updateResult.quizAssignmentsRestored || 0} quiz assignments restored.`,
+          description: successDetails,
         });
+
+        // Log performance summary
+        if (updateResult.performanceMetrics) {
+          console.log('📊 Update Performance Summary:', updateResult.performanceMetrics);
+        }
+
+        // Log validation report if available
+        if (updateResult.validationReport) {
+          console.log('📋 Validation Report:\n', updateResult.validationReport);
+        }
 
         await ensureCalendarExists(course.id);
         onSuccess();
       } else {
-        // Partial success or issues detected
-        const errorMsg = updateResult.errors.length > 0 
-          ? updateResult.errors.join(', ') 
-          : 'Course update completed with issues';
+        // Enhanced error handling with detailed information
+        const errorDetails = [
+          'Course update completed with issues:',
+          ...updateResult.errors.slice(0, 3), // Show first 3 errors
+          updateResult.errors.length > 3 ? `...and ${updateResult.errors.length - 3} more errors` : ''
+        ].filter(Boolean).join('\n');
           
         toast({
-          title: validation.isValid ? "Warning" : "Error", 
-          description: errorMsg,
-          variant: validation.isValid ? "default" : "destructive",
+          title: "Update Issues Detected", 
+          description: errorDetails,
+          variant: "destructive",
         });
 
-        if (validation.isValid) {
-          // Still call success callback if no critical issues
-          onSuccess();
+        // Show backup information if available
+        if (updateResult.backupId) {
+          console.warn('🛡️ Backup created for rollback:', updateResult.backupId);
         }
       }
 
-      // Log warnings for debugging
+      // Log comprehensive warnings for debugging
       if (updateResult.warnings.length > 0) {
-        console.warn('Update warnings:', updateResult.warnings);
+        console.warn('⚠️ Update warnings:', updateResult.warnings);
       }
 
-      // Log validation results
-      if (validation.recommendations.length > 0) {
-        console.info('Recommendations:', validation.recommendations);
+      // Log validation and performance data
+      if (updateResult.validationSummary) {
+        console.info('📋 Validation Summary:', updateResult.validationSummary);
       }
 
     } catch (error) {
-      console.error('Error updating course:', error);
+      console.error('💥 Critical error updating course:', error);
       toast({
-        title: "Error",
-        description: "Failed to update course",
+        title: "Critical Error",
+        description: "Course update failed completely. Please try again or contact support.",
         variant: "destructive",
       });
     } finally {
