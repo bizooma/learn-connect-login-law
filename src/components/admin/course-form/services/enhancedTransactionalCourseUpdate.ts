@@ -55,57 +55,44 @@ export const performEnhancedTransactionalCourseUpdate = async (
   try {
     console.log('🚀 Starting enhanced transactional course update for:', courseId);
 
-    // Phase 1: Fetch existing course structure
+    // Phase 1: Fetch existing course structure and preserve quiz mappings
     const phase1Start = Date.now();
-    console.log('📋 Phase 1: Analyzing existing course structure');
+    console.log('📋 Phase 1: Analyzing existing course structure and preserving quiz assignments');
     
     const existingStructure = await fetchExistingCourseStructure(courseId);
-    phaseTimings.phase1_analysis = Date.now() - phase1Start;
-
-    // Phase 2: Calculate content differences
-    const phase2Start = Date.now();
-    console.log('🔍 Phase 2: Computing content differences');
-    
-    const contentDiff = calculateContentDiff(existingStructure, modules);
     const quizMappings = await createQuizMappings(existingStructure, modules);
     
-    console.log('Content diff summary:', {
-      modulesToUpdate: contentDiff.modulesToUpdate.length,
-      modulesToCreate: contentDiff.modulesToCreate.length,
-      modulesToDelete: contentDiff.modulesToDelete.length,
-      quizMappings: quizMappings.length
-    });
-    
-    phaseTimings.phase2_diff = Date.now() - phase2Start;
+    console.log('Quiz mappings to preserve:', quizMappings.length);
+    phaseTimings.phase1_analysis = Date.now() - phase1Start;
 
-    // Phase 3: Update course basic information
-    const phase3Start = Date.now();
-    console.log('📝 Phase 3: Updating course metadata');
+    // Phase 2: Update course metadata
+    const phase2Start = Date.now();
+    console.log('📝 Phase 2: Updating course metadata');
     
     await updateCourseMetadata(courseId, courseData);
-    phaseTimings.phase3_metadata = Date.now() - phase3Start;
+    phaseTimings.phase2_metadata = Date.now() - phase2Start;
 
-    // Phase 4: Apply incremental content updates
+    // Phase 3: Perform safe content replacement (fix for duplication)
+    const phase3Start = Date.now();
+    console.log('🔧 Phase 3: Performing safe content replacement to prevent duplicates');
+    
+    await performSafeContentReplacement(courseId, modules);
+    phaseTimings.phase3_content = Date.now() - phase3Start;
+
+    // Phase 4: Restore quiz assignments using title matching
     const phase4Start = Date.now();
-    console.log('🔧 Phase 4: Applying incremental content updates');
+    console.log('🎯 Phase 4: Restoring quiz assignments using intelligent matching');
     
-    await applyIncrementalUpdates(courseId, contentDiff);
-    phaseTimings.phase4_updates = Date.now() - phase4Start;
-
-    // Phase 5: Restore quiz assignments
-    const phase5Start = Date.now();
-    console.log('🎯 Phase 5: Restoring quiz assignments');
-    
-    const quizRestoreCount = await restoreQuizAssignments(quizMappings);
+    const quizRestoreCount = await restoreQuizAssignmentsByTitle(quizMappings);
     result.quizAssignmentsRestored = quizRestoreCount;
     
-    phaseTimings.phase5_quizzes = Date.now() - phase5Start;
+    phaseTimings.phase4_quizzes = Date.now() - phase4Start;
 
-    // Phase 6: Validation and cleanup
-    const phase6Start = Date.now();
-    console.log('✅ Phase 6: Final validation');
+    // Phase 5: Validation and cleanup
+    const phase5Start = Date.now();
+    console.log('✅ Phase 5: Final validation and duplicate detection');
     
-    const validation = await validateCourseIntegrity(courseId);
+    const validation = await validateCourseIntegrityWithDuplicateCheck(courseId);
     result.validationSummary = validation.summary;
     result.integrityScore = validation.score;
     
@@ -113,7 +100,7 @@ export const performEnhancedTransactionalCourseUpdate = async (
       result.warnings.push(...validation.issues);
     }
     
-    phaseTimings.phase6_validation = Date.now() - phase6Start;
+    phaseTimings.phase5_validation = Date.now() - phase5Start;
 
     // Success!
     result.success = true;
@@ -128,7 +115,8 @@ export const performEnhancedTransactionalCourseUpdate = async (
     console.log('✨ Enhanced course update completed successfully!', {
       totalTime: `${totalTime}ms`,
       quizAssignmentsRestored: result.quizAssignmentsRestored,
-      integrityScore: result.integrityScore
+      integrityScore: result.integrityScore,
+      duplicatesDetected: validation.duplicateCount || 0
     });
 
     return result;
@@ -302,100 +290,133 @@ const updateCourseMetadata = async (courseId: string, courseData: CourseFormData
   console.log('Course metadata updated successfully');
 };
 
-const applyIncrementalUpdates = async (courseId: string, diff: ContentDiff) => {
-  console.log('Applying incremental content updates...');
+const performSafeContentReplacement = async (courseId: string, modules: ModuleData[]) => {
+  console.log('🔄 Starting safe content replacement to eliminate duplicates');
   
-  // For now, use the existing course creation logic but with preserved IDs
-  // This is a simplified implementation - in practice, you'd want more granular updates
-  
-  const { createCourseWithModules } = await import("./courseSubmissionService");
-  
-  // Update existing modules and create new ones
-  for (const module of diff.modulesToUpdate) {
-    console.log(`Updating module: ${module.title}`);
-    // Here you would implement module update logic
-  }
-  
-  for (const module of diff.modulesToCreate) {
-    console.log(`Creating new module: ${module.title}`);
-    // Here you would implement module creation logic
-  }
-  
-  // For now, fall back to the full recreation but with better error handling
-  if (diff.modulesToUpdate.length > 0 || diff.modulesToCreate.length > 0) {
-    // Clean up existing content but preserve quiz relationships
-    await cleanupExistingContentSafely(courseId);
-    
-    // Recreate content structure
-    await createCourseWithModules(courseId, { title: '', description: '', instructor: '', category: '', level: '', duration: '' }, diff.modulesToUpdate.concat(diff.modulesToCreate));
-  }
-  
-  console.log('Incremental updates applied');
-};
-
-const cleanupExistingContentSafely = async (courseId: string) => {
-  console.log('Performing safe content cleanup...');
-  
-  // Mark content as deleted but don't hard delete until quiz assignments are restored
-  const { data: modules } = await supabase
-    .from('modules')
-    .select('id')
-    .eq('course_id', courseId);
-
-  if (modules) {
-    // Soft delete approach - mark as deleted but keep data
-    await supabase
+  try {
+    // First, get all existing module IDs for this course
+    const { data: existingModules } = await supabase
       .from('modules')
-      .update({ is_draft: true, updated_at: new Date().toISOString() })
+      .select('id')
       .eq('course_id', courseId);
+
+    if (existingModules && existingModules.length > 0) {
+      const moduleIds = existingModules.map(m => m.id);
       
-    console.log('Existing content marked for cleanup');
+      // Get all lesson IDs for these modules
+      const { data: existingLessons } = await supabase
+        .from('lessons')
+        .select('id')
+        .in('module_id', moduleIds);
+
+      if (existingLessons && existingLessons.length > 0) {
+        const lessonIds = existingLessons.map(l => l.id);
+        
+        // Delete all units first (to maintain referential integrity)
+        console.log('🗑️ Removing existing units...');
+        await supabase
+          .from('units')
+          .delete()
+          .in('section_id', lessonIds);
+      }
+
+      // Delete all lessons
+      console.log('🗑️ Removing existing lessons...');
+      await supabase
+        .from('lessons')
+        .delete()
+        .in('module_id', moduleIds);
+
+      // Delete all modules
+      console.log('🗑️ Removing existing modules...');
+      await supabase
+        .from('modules')
+        .delete()
+        .eq('course_id', courseId);
+    }
+
+    // Now create the new content structure
+    console.log('🏗️ Creating new content structure...');
+    const { createCourseWithModules } = await import("./courseSubmissionService");
+    
+    // Create dummy course data for the creation function
+    const dummyCourseData = {
+      title: '',
+      description: '',
+      instructor: '',
+      category: '',
+      level: '',
+      duration: ''
+    };
+    
+    await createCourseWithModules(courseId, dummyCourseData, modules);
+    
+    console.log('✅ Safe content replacement completed successfully');
+    
+  } catch (error) {
+    console.error('❌ Error during safe content replacement:', error);
+    throw new Error(`Content replacement failed: ${error.message}`);
   }
 };
 
-const restoreQuizAssignments = async (mappings: QuizMapping[]): Promise<number> => {
-  console.log('Restoring quiz assignments...');
+const restoreQuizAssignmentsByTitle = async (mappings: QuizMapping[]): Promise<number> => {
+  console.log('🎯 Restoring quiz assignments using intelligent title matching...');
   
   let restoredCount = 0;
   
   for (const mapping of mappings) {
     try {
-      // Find the new unit by title since IDs might have changed
-      const { data: newUnits } = await supabase
+      // Find the new unit by exact title match
+      const { data: matchingUnits } = await supabase
         .from('units')
-        .select('id')
+        .select('id, title')
         .eq('title', mapping.unitTitle)
         .limit(1);
       
-      if (newUnits && newUnits.length > 0) {
-        const newUnitId = newUnits[0].id;
+      if (matchingUnits && matchingUnits.length > 0) {
+        const newUnitId = matchingUnits[0].id;
         
-        // Update quiz assignment
-        const { error } = await supabase
+        // Check if this quiz still exists and isn't already assigned
+        const { data: existingQuiz } = await supabase
           .from('quizzes')
-          .update({ unit_id: newUnitId })
-          .eq('id', mapping.quizId);
+          .select('id, unit_id, title')
+          .eq('id', mapping.quizId)
+          .eq('is_deleted', false)
+          .single();
         
-        if (error) {
-          console.error(`Failed to restore quiz "${mapping.quizTitle}":`, error);
+        if (existingQuiz) {
+          // Update quiz assignment to new unit
+          const { error } = await supabase
+            .from('quizzes')
+            .update({ 
+              unit_id: newUnitId,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', mapping.quizId);
+          
+          if (error) {
+            console.error(`❌ Failed to restore quiz "${mapping.quizTitle}":`, error);
+          } else {
+            console.log(`✅ Restored quiz: "${mapping.quizTitle}" -> "${mapping.unitTitle}"`);
+            restoredCount++;
+          }
         } else {
-          console.log(`Restored quiz assignment: "${mapping.quizTitle}" -> "${mapping.unitTitle}"`);
-          restoredCount++;
+          console.warn(`⚠️ Quiz "${mapping.quizTitle}" no longer exists or was deleted`);
         }
       } else {
-        console.warn(`Could not find new unit for quiz restoration: "${mapping.unitTitle}"`);
+        console.warn(`⚠️ Could not find matching unit for quiz: "${mapping.unitTitle}"`);
       }
     } catch (error) {
-      console.error(`Error restoring quiz "${mapping.quizTitle}":`, error);
+      console.error(`❌ Error restoring quiz "${mapping.quizTitle}":`, error);
     }
   }
   
-  console.log(`Quiz assignment restoration completed: ${restoredCount} restored`);
+  console.log(`🎯 Quiz restoration completed: ${restoredCount}/${mappings.length} restored`);
   return restoredCount;
 };
 
-const validateCourseIntegrity = async (courseId: string) => {
-  console.log('Validating course integrity...');
+const validateCourseIntegrityWithDuplicateCheck = async (courseId: string) => {
+  console.log('🔍 Validating course integrity with duplicate detection...');
   
   // Fetch course structure
   const { data: modules } = await supabase
@@ -416,7 +437,55 @@ const validateCourseIntegrity = async (courseId: string) => {
     .not('unit_id', 'is', null);
 
   const issues: string[] = [];
+  const warnings: string[] = [];
   let score = 100;
+  let duplicateCount = 0;
+
+  // Check for duplicate modules
+  if (modules) {
+    const moduleTitles = modules.map(m => m.title.toLowerCase().trim());
+    const duplicateModules = moduleTitles.filter((title, index) => 
+      moduleTitles.indexOf(title) !== index
+    );
+    
+    if (duplicateModules.length > 0) {
+      duplicateCount += duplicateModules.length;
+      issues.push(`Found ${duplicateModules.length} duplicate modules`);
+      score -= 30;
+    }
+
+    // Check for duplicate lessons within modules
+    modules.forEach(module => {
+      if (module.lessons) {
+        const lessonTitles = module.lessons.map(l => l.title.toLowerCase().trim());
+        const duplicateLessons = lessonTitles.filter((title, index) => 
+          lessonTitles.indexOf(title) !== index
+        );
+        
+        if (duplicateLessons.length > 0) {
+          duplicateCount += duplicateLessons.length;
+          warnings.push(`Module "${module.title}" has ${duplicateLessons.length} duplicate lessons`);
+          score -= 10;
+        }
+
+        // Check for duplicate units within lessons
+        module.lessons.forEach(lesson => {
+          if (lesson.units) {
+            const unitTitles = lesson.units.map(u => u.title.toLowerCase().trim());
+            const duplicateUnits = unitTitles.filter((title, index) => 
+              unitTitles.indexOf(title) !== index
+            );
+            
+            if (duplicateUnits.length > 0) {
+              duplicateCount += duplicateUnits.length;
+              warnings.push(`Lesson "${lesson.title}" has ${duplicateUnits.length} duplicate units`);
+              score -= 5;
+            }
+          }
+        });
+      }
+    });
+  }
 
   // Check for orphaned quizzes
   const allUnitIds = modules?.flatMap(m => 
@@ -432,7 +501,7 @@ const validateCourseIntegrity = async (courseId: string) => {
     score -= 20;
   }
 
-  // Check module structure
+  // Calculate summary
   const moduleCount = modules?.length || 0;
   const lessonCount = modules?.flatMap(m => m.lessons || []).length || 0;
   const unitCount = allUnitIds.length;
@@ -442,15 +511,24 @@ const validateCourseIntegrity = async (courseId: string) => {
     lessons: lessonCount,
     units: unitCount,
     quizzes: quizzes?.length || 0,
-    orphanedQuizzes: orphanedQuizzes.length
+    orphanedQuizzes: orphanedQuizzes.length,
+    duplicatesFound: duplicateCount
   };
 
-  console.log('Integrity validation completed:', { score, issues: issues.length, summary });
+  console.log('🔍 Integrity validation completed:', { 
+    score, 
+    issues: issues.length, 
+    warnings: warnings.length,
+    duplicates: duplicateCount,
+    summary 
+  });
 
   return {
-    score,
+    score: Math.max(0, score),
     issues,
+    warnings,
     summary,
-    isValid: issues.length === 0
+    isValid: issues.length === 0,
+    duplicateCount
   };
 };
