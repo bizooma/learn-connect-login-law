@@ -1,17 +1,15 @@
 
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import QuestionManagement from "./QuestionManagement";
 import { QuizWithDetails } from "./types";
+import { supabase } from "@/integrations/supabase/client";
 
 interface EditQuizFormProps {
   open: boolean;
@@ -26,36 +24,8 @@ const EditQuizForm = ({ open, onOpenChange, quiz, onQuizUpdated }: EditQuizFormP
   const [passingScore, setPassingScore] = useState(70);
   const [timeLimit, setTimeLimit] = useState<number | null>(null);
   const [isActive, setIsActive] = useState(true);
-  const [selectedUnitId, setSelectedUnitId] = useState("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
-
-  // Fetch available units for the quiz's course
-  const { data: units } = useQuery({
-    queryKey: ['units-for-quiz', quiz?.unit?.lesson?.course?.id],
-    queryFn: async () => {
-      if (!quiz?.unit?.lesson?.course?.id) return [];
-      
-      const { data, error } = await supabase
-        .from('units')
-        .select(`
-          id,
-          title,
-          section_id,
-          lessons!inner (
-            id,
-            title,
-            course_id
-          )
-        `)
-        .eq('lessons.course_id', quiz.unit.lesson.course.id)
-        .order('title');
-
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!quiz?.unit?.lesson?.course?.id
-  });
 
   useEffect(() => {
     if (open && quiz) {
@@ -64,14 +34,13 @@ const EditQuizForm = ({ open, onOpenChange, quiz, onQuizUpdated }: EditQuizFormP
       setPassingScore(quiz.passing_score);
       setTimeLimit(quiz.time_limit_minutes);
       setIsActive(quiz.is_active);
-      setSelectedUnitId(quiz.unit_id);
     }
   }, [open, quiz]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!quiz || !title.trim() || !selectedUnitId) {
+    if (!quiz || !title.trim()) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -91,7 +60,6 @@ const EditQuizForm = ({ open, onOpenChange, quiz, onQuizUpdated }: EditQuizFormP
           passing_score: passingScore,
           time_limit_minutes: timeLimit,
           is_active: isActive,
-          unit_id: selectedUnitId,
           updated_at: new Date().toISOString(),
         })
         .eq('id', quiz.id);
@@ -160,22 +128,6 @@ const EditQuizForm = ({ open, onOpenChange, quiz, onQuizUpdated }: EditQuizFormP
                     placeholder="Enter quiz description (optional)"
                     rows={3}
                   />
-                </div>
-
-                <div>
-                  <Label htmlFor="unit">Unit *</Label>
-                  <Select value={selectedUnitId} onValueChange={setSelectedUnitId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a unit" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {units?.map((unit) => (
-                        <SelectItem key={unit.id} value={unit.id}>
-                          {unit.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
