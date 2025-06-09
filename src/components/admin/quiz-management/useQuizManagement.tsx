@@ -122,23 +122,52 @@ export const useQuizManagement = () => {
     });
   };
 
-  // Updated to use soft delete instead of hard delete
+  // Enhanced quiz deletion with better error handling
   const handleQuizDeleted = async (quizId: string, title: string) => {
     try {
-      const { error } = await supabase.rpc('soft_delete_quiz', { quiz_id: quizId });
+      console.log('Attempting to delete quiz:', quizId, title);
+      
+      // Call the soft_delete_quiz function
+      const { data, error } = await supabase.rpc('soft_delete_quiz', { 
+        quiz_id: quizId 
+      });
 
-      if (error) throw error;
+      console.log('Soft delete response:', { data, error });
 
+      if (error) {
+        console.error('Error from soft_delete_quiz function:', error);
+        throw error;
+      }
+
+      // Check if the function returned false (quiz not found or not deleted)
+      if (data === false) {
+        throw new Error('Quiz not found or could not be deleted');
+      }
+
+      console.log('Quiz successfully soft deleted');
       refetch();
       toast({
         title: "Quiz Moved to Trash",
         description: `"${title}" has been moved to trash. You can restore it from the Deleted Quizzes tab.`,
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error soft deleting quiz:', error);
+      
+      // Provide more specific error messages
+      let errorMessage = "Failed to delete quiz";
+      if (error.message) {
+        if (error.message.includes('Only admins can delete quizzes')) {
+          errorMessage = "You don't have permission to delete quizzes";
+        } else if (error.message.includes('Quiz not found')) {
+          errorMessage = "Quiz not found or already deleted";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: "Error",
-        description: "Failed to delete quiz",
+        description: errorMessage,
         variant: "destructive",
       });
     }
