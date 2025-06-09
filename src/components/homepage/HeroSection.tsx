@@ -1,5 +1,4 @@
 
-
 const HeroSection = () => {
   return (
     <section 
@@ -17,7 +16,7 @@ const HeroSection = () => {
               Immigration Law Firm Training
             </h1>
             
-            {/* Category Cards - Reordered with Legal first, then Sales */}
+            {/* Category Cards - Single row with Legal Training */}
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
               {/* Legal Training 100 */}
               <div className="relative group cursor-pointer">
@@ -47,42 +46,6 @@ const HeroSection = () => {
                   <img 
                     src="/lovable-uploads/85b49a80-3092-4f89-b069-0c652d3d7d4f.png" 
                     alt="Legal Training 300" 
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Second row - Sales Training */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-12">
-              {/* Sales Training 100 */}
-              <div className="relative group cursor-pointer">
-                <div className="bg-white/20 backdrop-blur-sm rounded-lg p-0 h-32 overflow-hidden transition-transform hover:scale-105">
-                  <img 
-                    src="/lovable-uploads/b99418cf-ba10-4d30-b227-6114c570b88f.png" 
-                    alt="Sales Training 100" 
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                </div>
-              </div>
-              
-              {/* Sales Training 200 */}
-              <div className="relative group cursor-pointer">
-                <div className="bg-white/20 backdrop-blur-sm rounded-lg p-0 h-32 overflow-hidden transition-transform hover:scale-105">
-                  <img 
-                    src="/lovable-uploads/c714af9d-aba5-4b13-932f-39b27929b695.png" 
-                    alt="Sales Training 200" 
-                    className="w-full h-full object-cover rounded-lg"
-                  />
-                </div>
-              </div>
-              
-              {/* Sales Training 300 */}
-              <div className="relative group cursor-pointer">
-                <div className="bg-white/20 backdrop-blur-sm rounded-lg p-0 h-32 overflow-hidden transition-transform hover:scale-105">
-                  <img 
-                    src="/lovable-uploads/85b49a80-3092-4f89-b069-0c652d3d7d4f.png" 
-                    alt="Sales Training 300" 
                     className="w-full h-full object-cover rounded-lg"
                   />
                 </div>
@@ -119,4 +82,3 @@ const HeroSection = () => {
 };
 
 export default HeroSection;
-
