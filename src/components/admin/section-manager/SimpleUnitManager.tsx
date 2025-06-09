@@ -10,6 +10,7 @@ import { UnitData } from "./types";
 import QuizSelector from "./QuizSelector";
 import UnitImageUpload from "../UnitImageUpload";
 import FileUpload from "../FileUpload";
+import MarkdownHelp from "@/components/ui/markdown-help";
 
 interface SimpleUnitManagerProps {
   unit: UnitData;
@@ -180,12 +181,15 @@ const SimpleUnitManager = ({
         />
 
         <div>
-          <Label htmlFor={`unit-content-${sectionIndex}-${unitIndex}`}>Content</Label>
+          <div className="flex items-center justify-between mb-1">
+            <Label htmlFor={`unit-content-${sectionIndex}-${unitIndex}`}>Content</Label>
+            <MarkdownHelp />
+          </div>
           <Textarea
             id={`unit-content-${sectionIndex}-${unitIndex}`}
             value={unit.content}
             onChange={(e) => onUpdateUnit(sectionIndex, unitIndex, 'content', e.target.value)}
-            placeholder="Enter unit content"
+            placeholder="Enter unit content (supports Markdown formatting)"
             rows={3}
           />
         </div>

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -9,6 +8,7 @@ import { Video, Upload, Youtube } from 'lucide-react';
 import PowerPointVideoIntegration from './PowerPointVideoIntegration';
 import MultipleFileUpload from '../MultipleFileUpload';
 import EnhancedQuizSelector from './EnhancedQuizSelector';
+import MarkdownHelp from '@/components/ui/markdown-help';
 
 interface UnitFormProps {
   unit: any;
@@ -73,14 +73,20 @@ const UnitForm = ({ unit, onUnitChange, onRemove, unitIndex }: UnitFormProps) =>
         </div>
         
         <div>
-          <Label htmlFor="unit-content">Content</Label>
+          <div className="flex items-center justify-between mb-2">
+            <Label htmlFor="unit-content">Content</Label>
+            <MarkdownHelp />
+          </div>
           <Textarea
             id="unit-content"
             value={unit.content}
             onChange={(e) => onUnitChange('content', e.target.value)}
-            placeholder="Enter unit content"
+            placeholder="Enter unit content (supports Markdown formatting)"
             rows={4}
           />
+          <p className="text-xs text-muted-foreground mt-1">
+            You can use Markdown formatting for headers, lists, links, and more.
+          </p>
         </div>
 
         <div className="space-y-4">

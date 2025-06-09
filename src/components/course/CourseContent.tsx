@@ -1,4 +1,3 @@
-
 import { Tables } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
@@ -13,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Download, File } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCourseCompletion } from "@/hooks/useCourseCompletion";
+import MarkdownRenderer from "@/components/ui/markdown-renderer";
 
 type Unit = Tables<'units'>;
 type Quiz = Tables<'quizzes'>;
@@ -215,8 +215,11 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
       {unit?.content && (
         <div className="bg-white rounded-lg shadow-sm border p-6">
           <h3 className="text-lg font-semibold mb-4 break-words">Unit Content</h3>
-          <div className="prose max-w-none">
-            <p className="text-gray-700 leading-relaxed break-words">{unit.content}</p>
+          <div className="max-w-none">
+            <MarkdownRenderer 
+              content={unit.content} 
+              className="text-gray-700 leading-relaxed break-words"
+            />
           </div>
         </div>
       )}

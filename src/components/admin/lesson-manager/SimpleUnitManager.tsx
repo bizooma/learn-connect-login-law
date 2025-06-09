@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +10,7 @@ import { UnitData } from "./types";
 import EnhancedQuizSelector from "../course-form/EnhancedQuizSelector";
 import UnitImageUpload from "../UnitImageUpload";
 import FileUpload from "../FileUpload";
+import MarkdownHelp from "@/components/ui/markdown-help";
 
 interface SimpleUnitManagerProps {
   unit: UnitData;
@@ -172,12 +172,15 @@ const SimpleUnitManager = ({
         />
 
         <div>
-          <Label htmlFor={`unit-content-${lessonIndex}-${unitIndex}`}>Content</Label>
+          <div className="flex items-center justify-between mb-1">
+            <Label htmlFor={`unit-content-${lessonIndex}-${unitIndex}`}>Content</Label>
+            <MarkdownHelp />
+          </div>
           <Textarea
             id={`unit-content-${lessonIndex}-${unitIndex}`}
             value={unit.content}
             onChange={(e) => onUpdateUnit(lessonIndex, unitIndex, 'content', e.target.value)}
-            placeholder="Enter unit content"
+            placeholder="Enter unit content (supports Markdown formatting)"
             rows={3}
           />
         </div>

@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -6,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trash2, ArrowUp, ArrowDown, Upload } from "lucide-react";
 import MultipleFileUpload from "@/components/admin/MultipleFileUpload";
+import MarkdownHelp from "@/components/ui/markdown-help";
 
 interface UnitData {
   id?: string;
@@ -123,12 +123,18 @@ const UnitCard = ({
           rows={2}
         />
         
-        <Textarea
-          value={unit.content}
-          onChange={(e) => onUpdateUnit(moduleIndex, lessonIndex, unitIndex, 'content', e.target.value)}
-          placeholder="Unit content"
-          rows={3}
-        />
+        <div>
+          <div className="flex items-center justify-between mb-2">
+            <label className="block text-sm font-medium">Content</label>
+            <MarkdownHelp />
+          </div>
+          <Textarea
+            value={unit.content}
+            onChange={(e) => onUpdateUnit(moduleIndex, lessonIndex, unitIndex, 'content', e.target.value)}
+            placeholder="Unit content (supports Markdown formatting)"
+            rows={3}
+          />
+        </div>
 
         <div className="grid grid-cols-2 gap-4">
           <div>
