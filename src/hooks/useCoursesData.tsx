@@ -66,7 +66,12 @@ export const useCoursesData = () => {
         throw error;
       }
 
-      const sortedData = sortCourses(data || []);
+      // Remove any potential duplicates by id
+      const uniqueCourses = data ? data.filter((course, index, self) => 
+        index === self.findIndex(c => c.id === course.id)
+      ) : [];
+
+      const sortedData = sortCourses(uniqueCourses);
       setCourses(sortedData);
       setFilteredCourses(sortedData);
     } catch (error) {

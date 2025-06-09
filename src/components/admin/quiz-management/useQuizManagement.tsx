@@ -29,17 +29,18 @@ export const useQuizManagement = () => {
   const { toast } = useToast();
   const navigate = useNavigate();
 
-  // Fetch quizzes with simplified query to avoid join issues
+  // Fetch quizzes with proper filtering for soft-deleted items
   const { data: quizzes, isLoading, refetch } = useQuery({
     queryKey: ['quizzes'],
     queryFn: async () => {
-      console.log('Fetching quizzes with simplified query...');
+      console.log('Fetching active quizzes...');
       
-      // First, fetch all non-deleted quizzes
+      // Fetch only non-deleted quizzes
       const { data: quizzesData, error: quizzesError } = await supabase
         .from('quizzes')
         .select('*')
         .eq('is_deleted', false)
+        .is('deleted_at', null)
         .order('updated_at', { ascending: false });
 
       if (quizzesError) {
@@ -47,11 +48,15 @@ export const useQuizManagement = () => {
         throw quizzesError;
       }
 
-      console.log('Fetched quizzes:', quizzesData?.length || 0);
+      console.log('Fetched active quizzes:', quizzesData?.length || 0);
 
-      // Then, fetch question counts for each quiz separately
+      // Remove duplicates by id and fetch question counts
+      const uniqueQuizzes = quizzesData ? quizzesData.filter((quiz, index, self) => 
+        index === self.findIndex(q => q.id === quiz.id)
+      ) : [];
+
       const quizzesWithQuestions = await Promise.all(
-        (quizzesData || []).map(async (quiz) => {
+        uniqueQuizzes.map(async (quiz) => {
           const { count, error: countError } = await supabase
             .from('quiz_questions')
             .select('*', { count: 'exact', head: true })
@@ -64,7 +69,7 @@ export const useQuizManagement = () => {
 
           return {
             ...quiz,
-            quiz_questions: Array(count || 0).fill({ id: 'placeholder' }) // Create array for compatibility
+            quiz_questions: Array(count || 0).fill({ id: 'placeholder' })
           };
         })
       );
@@ -95,7 +100,13 @@ export const useQuizManagement = () => {
         `);
 
       if (error) throw error;
-      return data;
+      
+      // Remove any duplicates by id
+      const uniqueUnits = data ? data.filter((unit, index, self) => 
+        index === self.findIndex(u => u.id === unit.id)
+      ) : [];
+      
+      return uniqueUnits;
     }
   });
 
@@ -122,12 +133,10 @@ export const useQuizManagement = () => {
     });
   };
 
-  // Enhanced quiz deletion with better error handling
   const handleQuizDeleted = async (quizId: string, title: string) => {
     try {
       console.log('Attempting to delete quiz:', quizId, title);
       
-      // Call the soft_delete_quiz function
       const { data, error } = await supabase.rpc('soft_delete_quiz', { 
         quiz_id: quizId 
       });
@@ -139,7 +148,6 @@ export const useQuizManagement = () => {
         throw error;
       }
 
-      // Check if the function returned false (quiz not found or not deleted)
       if (data === false) {
         throw new Error('Quiz not found or could not be deleted');
       }
@@ -153,7 +161,6 @@ export const useQuizManagement = () => {
     } catch (error: any) {
       console.error('Error soft deleting quiz:', error);
       
-      // Provide more specific error messages
       let errorMessage = "Failed to delete quiz";
       if (error.message) {
         if (error.message.includes('Only admins can delete quizzes')) {

@@ -32,7 +32,12 @@ export const useUnitProgress = (courseId: string) => {
         return;
       }
 
-      const progressMap = data.reduce((acc, item) => {
+      // Remove any duplicate entries by unit_id
+      const uniqueProgress = data ? data.filter((item, index, self) => 
+        index === self.findIndex(p => p.unit_id === item.unit_id)
+      ) : [];
+
+      const progressMap = uniqueProgress.reduce((acc, item) => {
         acc[item.unit_id] = item;
         return acc;
       }, {} as Record<string, UnitProgressData>);
