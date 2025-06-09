@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
@@ -6,7 +5,7 @@ import { CourseFormData, ModuleData, LessonData, UnitData } from "./types";
 import { useCourseForm } from "./hooks/useCourseForm";
 import { createWelcomeCalendarEvent } from "./services/calendarService";
 import { supabase } from "@/integrations/supabase/client";
-import { performEnhancedTransactionalCourseUpdate } from "./services/enhancedTransactionalCourseUpdate";
+import { performSafeCourseUpdate } from "./services/safeCourseUpdateService";
 
 type Course = Tables<'courses'>;
 
@@ -176,33 +175,29 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
     
     setIsSubmitting(true);
     try {
-      console.log('🚀 Starting enhanced course update with data protection');
+      console.log('🛡️ Starting SAFE course update - NO DATA WILL BE LOST');
       
-      // Use the enhanced transactional update service
-      const updateResult = await performEnhancedTransactionalCourseUpdate(course.id, data, modules);
+      // Use the new SAFE update service that preserves all data
+      const updateResult = await performSafeCourseUpdate(course.id, data, modules);
       
       if (updateResult.success) {
         // Show detailed success message
         const successDetails = [
-          `Course updated successfully!`,
-          `Quiz assignments restored: ${updateResult.quizAssignmentsRestored || 0}`,
-          `Integrity score: ${updateResult.integrityScore || 'N/A'}/100`,
+          `Course updated safely - NO data lost!`,
+          `Items updated: ${updateResult.itemsUpdated}`,
+          `Items created: ${updateResult.itemsCreated}`,
+          `Items preserved: ${updateResult.itemsPreserved}`,
           `Performance: ${updateResult.performanceMetrics?.totalDurationMs || 0}ms`
         ].join('\n');
 
         toast({
-          title: "✅ Update Successful - No Data Lost!",
+          title: "✅ SAFE Update Successful - Zero Data Loss!",
           description: successDetails,
         });
 
         // Log performance summary
         if (updateResult.performanceMetrics) {
-          console.log('📊 Update Performance Summary:', updateResult.performanceMetrics);
-        }
-
-        // Log validation report if available
-        if (updateResult.validationReport) {
-          console.log('📋 Validation Report:\n', updateResult.validationReport);
+          console.log('📊 SAFE Update Performance Summary:', updateResult.performanceMetrics);
         }
 
         await ensureCalendarExists(course.id);
@@ -220,21 +215,11 @@ export const useEditCourseForm = (course: Course | null, open: boolean, onSucces
           description: errorDetails,
           variant: "destructive",
         });
-
-        // Show backup information if available
-        if (updateResult.backupId) {
-          console.warn('🛡️ Backup available for recovery:', updateResult.backupId);
-        }
       }
 
       // Log comprehensive warnings for debugging
       if (updateResult.warnings.length > 0) {
         console.warn('⚠️ Update warnings:', updateResult.warnings);
-      }
-
-      // Log validation and performance data
-      if (updateResult.validationSummary) {
-        console.info('📋 Validation Summary:', updateResult.validationSummary);
       }
 
     } catch (error) {
