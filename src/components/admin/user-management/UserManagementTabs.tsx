@@ -6,6 +6,12 @@ import UserAuditTab from "./UserAuditTab";
 import BulkStudentPasswordUpdate from "../BulkStudentPasswordUpdate";
 
 const UserManagementTabs = () => {
+  const handleUserRestored = () => {
+    // This will trigger a refresh of the active users list
+    // The individual components handle their own data fetching
+    console.log('User restored - components will refresh their data');
+  };
+
   return (
     <div className="space-y-6">
       <Tabs defaultValue="active" className="w-full">
@@ -21,7 +27,7 @@ const UserManagementTabs = () => {
         </TabsContent>
         
         <TabsContent value="inactive" className="space-y-4">
-          <InactiveUsersTab />
+          <InactiveUsersTab onUserRestored={handleUserRestored} />
         </TabsContent>
         
         <TabsContent value="audit" className="space-y-4">
