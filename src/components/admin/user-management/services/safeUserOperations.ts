@@ -1,6 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client";
-import { updateUserRoleSafe, softDeleteUserSafe, restoreUserSafe } from "./updatedUserManagementService";
+import { updateUserRoleSafe, softDeleteUserSafe, restoreUserSafe } from "../updatedUserManagementService";
 
 export interface UserOperationResult {
   success: boolean;

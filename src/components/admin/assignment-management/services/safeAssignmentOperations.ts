@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface AssignmentOperationResult {
@@ -302,29 +301,26 @@ export const validateAssignmentIntegrity = async () => {
     }
     
     // Check for duplicate assignments
-    const { data: duplicateCheck } = await supabase
+    const { data: allAssignments } = await supabase
       .from('course_assignments')
-      .select('user_id, course_id')
-      .then(({ data }) => {
-        if (!data) return { data: [] };
-        
-        const seen = new Map();
-        const duplicates: any[] = [];
-        
-        data.forEach(assignment => {
-          const key = `${assignment.user_id}-${assignment.course_id}`;
-          if (seen.has(key)) {
-            duplicates.push(assignment);
-          } else {
-            seen.set(key, assignment);
-          }
-        });
-        
-        return { data: duplicates };
-      });
+      .select('user_id, course_id');
     
-    if (duplicateCheck.data.length > 0) {
-      warnings.push(`Found ${duplicateCheck.data.length} duplicate assignments`);
+    if (allAssignments) {
+      const seen = new Map();
+      const duplicates: any[] = [];
+      
+      allAssignments.forEach(assignment => {
+        const key = `${assignment.user_id}-${assignment.course_id}`;
+        if (seen.has(key)) {
+          duplicates.push(assignment);
+        } else {
+          seen.set(key, assignment);
+        }
+      });
+      
+      if (duplicates.length > 0) {
+        warnings.push(`Found ${duplicates.length} duplicate assignments`);
+      }
     }
     
     // Get summary statistics
