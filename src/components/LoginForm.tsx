@@ -37,7 +37,7 @@ const LoginForm = () => {
           title: "Login Successful",
           description: "Welcome back to your learning platform!",
         });
-        // Navigate to dashboard where Index.tsx will handle role-based routing
+        // Navigate to dashboard where role-based routing will handle the redirect
         console.log('LoginForm: Login successful, navigating to dashboard');
         navigate("/dashboard");
       }
