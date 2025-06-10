@@ -79,9 +79,10 @@ const AdminUnitCompletionDialog = ({
       if (result.success) {
         toast({
           title: "✅ Unit Marked Complete",
-          description: `Successfully marked "${unitTitle}" as complete for ${userName}`,
+          description: `Successfully marked "${unitTitle}" as complete for ${userName}. Course progress updated.`,
         });
         
+        // Trigger parent refresh to show updated progress
         if (onSuccess) {
           onSuccess();
         }
@@ -125,7 +126,7 @@ const AdminUnitCompletionDialog = ({
             Admin Unit Completion Override
           </DialogTitle>
           <DialogDescription>
-            Mark a unit as completed for a user. This will bypass the normal completion requirements.
+            Mark a unit as completed for a user. This will bypass the normal completion requirements and update course progress.
           </DialogDescription>
         </DialogHeader>
 
@@ -186,7 +187,7 @@ const AdminUnitCompletionDialog = ({
 
           <div className="p-3 bg-orange-50 border border-orange-200 rounded">
             <p className="text-xs text-orange-700">
-              <strong>Warning:</strong> This action will mark the unit as completed and may affect course completion status. 
+              <strong>Warning:</strong> This action will mark the unit as completed and update course completion status. 
               This action is logged for audit purposes.
             </p>
           </div>

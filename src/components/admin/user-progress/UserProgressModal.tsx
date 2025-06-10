@@ -43,6 +43,7 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
   const [userProgress, setUserProgress] = useState<UserProgressData | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
+  const [refreshKey, setRefreshKey] = useState(0); // Add refresh trigger
   const { toast } = useToast();
 
   const fetchUserProgress = async () => {
@@ -171,10 +172,11 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
     if (isOpen && userId) {
       fetchUserProgress();
     }
-  }, [isOpen, userId]);
+  }, [isOpen, userId, refreshKey]); // Include refreshKey in dependencies
 
   const handleRefresh = () => {
-    fetchUserProgress();
+    console.log('🔄 Refreshing user progress data...');
+    setRefreshKey(prev => prev + 1); // Trigger refresh
   };
 
   const handleDeleteCourse = async (courseId: string) => {
@@ -231,7 +233,7 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
                             : 'bg-gray-50 border-gray-200 hover:bg-gray-100'
                         }`}
                       >
-                        {course.course_title}
+                        {course.course_title} ({course.progress_percentage}%)
                       </button>
                     ))}
                   </div>

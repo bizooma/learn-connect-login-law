@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 
 export interface AdminUnitCompletionResult {
@@ -19,6 +18,76 @@ interface DatabaseFunctionResponse {
   audit_id: string;
   message: string;
 }
+
+// Helper function to recalculate course progress after unit completion
+const recalculateCourseProgress = async (userId: string, courseId: string) => {
+  console.log('🔄 Recalculating course progress after admin unit completion');
+  
+  try {
+    // Get all units in the course
+    const { data: lessons, error: lessonsError } = await supabase
+      .from('lessons')
+      .select(`
+        id,
+        units!inner(id)
+      `)
+      .eq('course_id', courseId);
+
+    if (lessonsError) {
+      console.error('Error fetching lessons for progress calculation:', lessonsError);
+      return;
+    }
+
+    const allUnits = lessons?.flatMap(lesson => lesson.units) || [];
+    const totalUnits = allUnits.length;
+
+    if (totalUnits === 0) {
+      console.log('No units found for course, skipping progress calculation');
+      return;
+    }
+
+    // Get completed units
+    const { data: completedUnits, error: progressError } = await supabase
+      .from('user_unit_progress')
+      .select('unit_id')
+      .eq('user_id', userId)
+      .eq('course_id', courseId)
+      .eq('completed', true);
+
+    if (progressError) {
+      console.error('Error fetching unit progress:', progressError);
+      return;
+    }
+
+    const completedCount = completedUnits?.length || 0;
+    const progressPercentage = Math.round((completedCount / totalUnits) * 100);
+    const status = progressPercentage === 100 ? 'completed' : 
+                  progressPercentage > 0 ? 'in_progress' : 'not_started';
+
+    console.log(`📊 Course progress calculated: ${completedCount}/${totalUnits} units = ${progressPercentage}%`);
+
+    // Update course progress
+    const { error: updateError } = await supabase
+      .from('user_course_progress')
+      .upsert({
+        user_id: userId,
+        course_id: courseId,
+        status,
+        progress_percentage: progressPercentage,
+        last_accessed_at: new Date().toISOString(),
+        ...(status === 'completed' && { completed_at: new Date().toISOString() }),
+        updated_at: new Date().toISOString()
+      });
+
+    if (updateError) {
+      console.error('Error updating course progress:', updateError);
+    } else {
+      console.log('✅ Course progress updated successfully');
+    }
+  } catch (error) {
+    console.error('Error in course progress recalculation:', error);
+  }
+};
 
 export const safeAdminMarkUnitComplete = async (
   userId: string,
@@ -62,6 +131,9 @@ export const safeAdminMarkUnitComplete = async (
       result.backupId = response.audit_id;
       
       console.log('✅ Unit marked complete successfully:', response);
+      
+      // Recalculate course progress after successful unit completion
+      await recalculateCourseProgress(userId, courseId);
     } else {
       result.errors.push('Database function returned failure');
       result.failedUnits = 1;
