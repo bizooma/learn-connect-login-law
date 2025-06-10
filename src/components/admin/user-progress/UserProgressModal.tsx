@@ -177,6 +177,11 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
     fetchUserProgress();
   };
 
+  const handleDeleteCourse = async (courseId: string) => {
+    // Implementation for delete course functionality
+    console.log('Delete course:', courseId);
+  };
+
   const selectedCourse = userProgress?.courses.find(c => c.course_id === selectedCourseId);
 
   return (
@@ -202,7 +207,9 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
             <TabsContent value="overview" className="space-y-4">
               <UserProgressCourseList 
                 courses={userProgress.courses}
+                onDeleteCourse={handleDeleteCourse}
                 onRefresh={handleRefresh}
+                userId={userProgress.user_id}
               />
             </TabsContent>
             

@@ -23,6 +23,7 @@ interface UserProgressCourseListProps {
   courses: CourseProgressData[];
   onDeleteCourse: (courseId: string) => void;
   onMarkCompleted?: (courseId: string) => void;
+  onRefresh?: () => void;
   userId?: string;
 }
 
@@ -30,6 +31,7 @@ const UserProgressCourseList = ({
   courses, 
   onDeleteCourse, 
   onMarkCompleted,
+  onRefresh,
   userId 
 }: UserProgressCourseListProps) => {
   const { user } = useAuth();

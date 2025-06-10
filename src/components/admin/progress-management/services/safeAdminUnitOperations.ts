@@ -52,8 +52,8 @@ export const safeAdminMarkUnitComplete = async (
       return result;
     }
 
-    // Type the response properly
-    const response = data as DatabaseFunctionResponse;
+    // Type the response properly - cast through unknown first
+    const response = data as unknown as DatabaseFunctionResponse;
     
     if (response?.success) {
       result.success = true;
