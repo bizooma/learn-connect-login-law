@@ -223,7 +223,7 @@ export const useCourseForm = (courseId?: string) => {
         // Create new course
         console.log('🆕 Creating new course...');
         
-        const newCourseId = await createCourse(courseData, modules);
+        const newCourseId = await createCourse(courseData, modules, isDraft);
         
         toast({
           title: "Success",
