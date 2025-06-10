@@ -138,49 +138,81 @@ export const validateAdminUnitCompletion = async (
   const warnings: string[] = [];
 
   try {
-    // Check if user exists and is assigned to course
+    // First check if the unit actually belongs to the course by traversing the relationships
+    const { data: unitWithCourse, error: unitError } = await supabase
+      .from('units')
+      .select(`
+        id,
+        title,
+        section_id,
+        lessons!inner(
+          id,
+          course_id
+        )
+      `)
+      .eq('id', unitId)
+      .single();
+
+    if (unitError || !unitWithCourse) {
+      issues.push('Unit does not exist');
+      return { isValid: false, issues, warnings };
+    }
+
+    // Check if the unit's lesson belongs to the specified course
+    if (unitWithCourse.lessons.course_id !== courseId) {
+      issues.push('Unit does not belong to the specified course');
+      return { isValid: false, issues, warnings };
+    }
+
+    // Check if user exists
+    const { data: user, error: userError } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', userId)
+      .single();
+
+    if (userError || !user) {
+      issues.push('User does not exist');
+      return { isValid: false, issues, warnings };
+    }
+
+    // Check if user has course assignment OR course progress (more flexible check)
     const { data: assignment, error: assignmentError } = await supabase
       .from('course_assignments')
       .select('id')
       .eq('user_id', userId)
       .eq('course_id', courseId)
-      .single();
+      .maybeSingle();
 
-    if (assignmentError || !assignment) {
-      issues.push('User is not assigned to this course');
-    }
+    const { data: progress, error: progressError } = await supabase
+      .from('user_course_progress')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('course_id', courseId)
+      .maybeSingle();
 
-    // Check if unit exists in the course
-    const { data: unit, error: unitError } = await supabase
-      .from('units')
-      .select(`
-        id,
-        title,
-        lessons!inner(course_id)
-      `)
-      .eq('id', unitId)
-      .single();
-
-    if (unitError || !unit) {
-      issues.push('Unit does not exist');
-    } else if (unit.lessons.course_id !== courseId) {
-      issues.push('Unit does not belong to the specified course');
+    // If neither assignment nor progress exists, the user might not be properly enrolled
+    if ((!assignment && assignmentError) && (!progress && progressError)) {
+      warnings.push('User may not be properly enrolled in this course, but override will create necessary records');
+    } else if (!assignment && !progress) {
+      warnings.push('No existing assignment or progress found - will be created during override');
     }
 
     // Check if unit is already completed
-    const { data: progress, error: progressError } = await supabase
+    const { data: unitProgress, error: unitProgressError } = await supabase
       .from('user_unit_progress')
       .select('completed, completion_method')
       .eq('user_id', userId)
       .eq('unit_id', unitId)
       .eq('course_id', courseId)
-      .single();
+      .maybeSingle();
 
-    if (!progressError && progress?.completed) {
-      warnings.push(`Unit is already completed via ${progress.completion_method}`);
+    if (!unitProgressError && unitProgress?.completed) {
+      warnings.push(`Unit is already completed via ${unitProgress.completion_method}`);
     }
 
   } catch (error: any) {
+    console.error('Validation error:', error);
     issues.push(`Validation error: ${error.message}`);
   }
 
