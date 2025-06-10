@@ -159,7 +159,7 @@ export const useCourseForm = (courseId?: string) => {
               video_type: (unit.video_url?.includes('youtube.com') || unit.video_url?.includes('youtu.be')) ? 'youtube' as const : 'upload' as const,
               duration_minutes: unit.duration_minutes || 0,
               sort_order: unit.sort_order || unitIndex,
-              quiz_id: preservedQuizId,
+              quiz_id: preservedQuizId || "",
               image_url: "",
               file_url: unit.file_url || "",
               file_name: unit.file_name || "",
@@ -223,7 +223,7 @@ export const useCourseForm = (courseId?: string) => {
         // Create new course
         console.log('🆕 Creating new course...');
         
-        const newCourseId = await createCourse(courseData, modules, isDraft);
+        const newCourseId = await createCourse(courseData, modules);
         
         toast({
           title: "Success",
