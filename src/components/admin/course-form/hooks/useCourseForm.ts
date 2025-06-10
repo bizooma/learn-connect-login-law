@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { CourseFormData, ModuleData } from "../types";
 import { supabase } from "@/integrations/supabase/client";
 import { performSafeCourseUpdate } from "../services/safeCourseUpdateService";
-import { createCourse } from "../services/courseCreation";
+import { createCourseWithModules } from "../services/courseCreation";
 
 export const useCourseForm = (courseId?: string) => {
   const [courseData, setCourseData] = useState<CourseFormData>({
@@ -220,10 +220,10 @@ export const useCourseForm = (courseId?: string) => {
           throw new Error(result.errors.join(', '));
         }
       } else {
-        // Create new course
+        // Create new course using the correct function that accepts courseData, modules, and isDraft
         console.log('🆕 Creating new course...');
         
-        const newCourseId = await createCourse(courseData, modules, isDraft);
+        const newCourseId = await createCourseWithModules(courseData, modules, isDraft);
         
         toast({
           title: "Success",
