@@ -54,12 +54,12 @@ const HeroSection = () => {
           </div>
 
           {/* Right Side - Professional Woman Image */}
-          <div className="relative h-full flex items-end justify-end lg:justify-start lg:pl-8" style={{ transform: 'translateY(-40px)' }}>
-            <div className="relative z-50 w-full">
+          <div className="relative h-full flex items-end justify-end lg:justify-end lg:pl-16" style={{ transform: 'translateY(-40px)' }}>
+            <div className="relative z-50 w-full flex justify-end">
               <img 
                 src="/lovable-uploads/61c3f405-c372-43ea-a6e7-a12bcd703981.png" 
                 alt="Professional woman with laptop" 
-                className="w-full max-w-lg ml-auto lg:ml-8 object-contain"
+                className="w-full max-w-lg ml-auto lg:ml-16 object-contain"
                 style={{ height: 'auto', maxHeight: '600px' }}
               />
             </div>
