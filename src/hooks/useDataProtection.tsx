@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -17,6 +16,10 @@ import {
   safeBulkMarkCompleted,
   validateProgressIntegrity 
 } from "@/components/admin/progress-management/services/safeProgressOperations";
+import {
+  safeAdminMarkUnitComplete,
+  safeBulkAdminMarkUnitsComplete
+} from "@/components/admin/progress-management/services/safeAdminUnitOperations";
 
 export const useDataProtection = () => {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -27,7 +30,7 @@ export const useDataProtection = () => {
       const successMessage = [
         `${operationType} completed successfully!`,
         result.backupId ? `Backup ID: ${result.backupId}` : '',
-        `Processed: ${result.assignmentsProcessed || result.progressRecordsProcessed || 'N/A'}`,
+        `Processed: ${result.assignmentsProcessed || result.progressRecordsProcessed || result.completedUnits || 'N/A'}`,
         result.warnings.length > 0 ? `Warnings: ${result.warnings.length}` : ''
       ].filter(Boolean).join('\n');
 
@@ -136,6 +139,37 @@ export const useDataProtection = () => {
     }
   };
 
+  // New admin unit completion operations
+  const protectedAdminMarkUnitComplete = async (
+    userId: string, 
+    unitId: string, 
+    courseId: string, 
+    reason?: string
+  ) => {
+    setIsProcessing(true);
+    try {
+      const result = await safeAdminMarkUnitComplete(userId, unitId, courseId, reason);
+      showOperationResult(result, 'Admin Unit Completion');
+      return result.success;
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const protectedBulkAdminMarkUnitsComplete = async (
+    assignments: Array<{ userId: string; unitId: string; courseId: string }>,
+    reason?: string
+  ) => {
+    setIsProcessing(true);
+    try {
+      const result = await safeBulkAdminMarkUnitsComplete(assignments, reason);
+      showOperationResult(result, 'Bulk Admin Unit Completion');
+      return result.success;
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   // Integrity validation
   const validateAllDataIntegrity = async (userId?: string) => {
     setIsProcessing(true);
@@ -210,6 +244,10 @@ export const useDataProtection = () => {
     // Progress operations
     protectedProgressReset,
     protectedBulkComplete,
+    
+    // New admin unit completion operations
+    protectedAdminMarkUnitComplete,
+    protectedBulkAdminMarkUnitsComplete,
     
     // Validation
     validateAllDataIntegrity,

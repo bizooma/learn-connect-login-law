@@ -1433,6 +1433,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      admin_mark_unit_completed: {
+        Args: {
+          p_user_id: string
+          p_unit_id: string
+          p_course_id: string
+          p_reason?: string
+          p_performed_by?: string
+        }
+        Returns: Json
+      }
       cleanup_old_drafts: {
         Args: Record<PropertyKey, never>
         Returns: undefined
