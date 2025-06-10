@@ -1,10 +1,9 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { CourseFormData, ModuleData } from "../types";
 import { supabase } from "@/integrations/supabase/client";
 import { performSafeCourseUpdate } from "../services/safeCourseUpdateService";
-import { createCourseWithModules } from "../services/courseCreation";
+import { createCourse } from "../services/courseCreation";
 
 export const useCourseForm = (courseId?: string) => {
   const [courseData, setCourseData] = useState<CourseFormData>({
@@ -220,17 +219,17 @@ export const useCourseForm = (courseId?: string) => {
           throw new Error(result.errors.join(', '));
         }
       } else {
-        // Create new course using the correct function that accepts courseData, modules, and isDraft
+        // Create new course using the available createCourse function
         console.log('🆕 Creating new course...');
         
-        const newCourseId = await createCourseWithModules(courseData, modules, isDraft);
+        const course = await createCourse(courseData, isDraft);
         
         toast({
           title: "Success",
           description: "Course created successfully!",
         });
         
-        return newCourseId;
+        return course.id;
       }
     } catch (error: any) {
       console.error('Error saving course:', error);
