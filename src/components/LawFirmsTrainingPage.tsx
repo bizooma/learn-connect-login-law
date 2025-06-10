@@ -1,12 +1,12 @@
 
-import SimpleNavigationHeader from "./homepage/SimpleNavigationHeader";
+import NavigationHeader from "./homepage/NavigationHeader";
 import LawFirmsHeroSection from "./law-firms/LawFirmsHeroSection";
 import Footer from "./homepage/Footer";
 
 const LawFirmsTrainingPage = () => {
   return (
     <div className="min-h-screen">
-      <SimpleNavigationHeader />
+      <NavigationHeader />
       <LawFirmsHeroSection />
       
       {/* Additional sections can be added here */}

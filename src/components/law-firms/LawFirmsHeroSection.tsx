@@ -1,4 +1,6 @@
 
+import { Button } from "@/components/ui/button";
+
 const LawFirmsHeroSection = () => {
   return (
     <section 
@@ -10,29 +12,44 @@ const LawFirmsHeroSection = () => {
       }}
     >
       {/* Dark overlay for better text readability */}
-      <div className="absolute inset-0 bg-black bg-opacity-40"></div>
+      <div className="absolute inset-0 bg-black bg-opacity-50"></div>
       
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
-        <div className="flex flex-col items-center justify-center min-h-[80vh] text-center text-white">
-          {/* Main Heading */}
-          <h1 className="text-5xl md:text-7xl font-bold mb-8 leading-tight">
-            Immigration Law Firms
-          </h1>
+      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="flex flex-col justify-center min-h-screen pt-20 pb-32">
           
-          {/* Subheading */}
-          <p className="text-xl md:text-2xl mb-12 max-w-4xl leading-relaxed">
-            I created this training platform for immigration law firms to help YOU help more immigrants, without putting anything else on your plate.
-          </p>
-        </div>
-        
-        {/* Bottom Section */}
-        <div className="absolute bottom-20 left-1/2 transform -translate-x-1/2 text-center">
-          <h2 className="text-3xl md:text-4xl font-bold text-white mb-4">
-            Immigration Law Firm Owners
-          </h2>
-          <p className="text-lg text-white max-w-4xl">
-            New Frontier University's training courses are expertly designed to streamline the onboarding process and elevate employee training for law firms. Our curriculum combines industry-leading best practices with engaging, interactive content that addresses the unique challenges of the legal environment.
-          </p>
+          {/* Main Content Area */}
+          <div className="text-center text-white mb-16">
+            {/* Main Heading */}
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
+              Immigration Law Firms
+            </h1>
+            
+            {/* Subheading */}
+            <p className="text-lg md:text-xl lg:text-2xl mb-8 max-w-5xl mx-auto leading-relaxed">
+              I created this training platform for immigration law firms to help YOU help more immigrants, without putting anything else on your plate.
+            </p>
+            
+            {/* CTA Button */}
+            <Button 
+              className="text-black font-semibold px-8 py-4 text-lg rounded-md transition-colors hover:opacity-90"
+              style={{ backgroundColor: '#FFDA00' }}
+            >
+              Get Started Today
+            </Button>
+          </div>
+          
+          {/* Bottom Section */}
+          <div className="text-center text-white">
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-6">
+              Immigration Law Firm Owners
+            </h2>
+            <div className="max-w-5xl mx-auto">
+              <p className="text-base md:text-lg lg:text-xl leading-relaxed">
+                New Frontier University's training courses are expertly designed to streamline the onboarding process and elevate employee training for law firms. Our curriculum combines industry-leading best practices with engaging, interactive content that addresses the unique challenges of the legal environment.
+              </p>
+            </div>
+          </div>
+          
         </div>
       </div>
     </section>
