@@ -21,6 +21,7 @@ import StudentDashboard from "./components/StudentDashboard";
 import ClientDashboard from "./components/ClientDashboard";
 import FreeDashboard from "./components/FreeDashboard";
 import ProtectedFlowchartLMSTree from "@/pages/ProtectedFlowchartLMSTree";
+import LawFirmsTraining from "./pages/LawFirmsTraining";
 
 const queryClient = new QueryClient();
 
@@ -48,6 +49,7 @@ function App() {
                 <Route path="/knowledge-base" element={<KnowledgeBase />} />
                 <Route path="/admin-knowledge-base" element={<AdminKnowledgeBase />} />
                 <Route path="/flowchart-lms-tree" element={<ProtectedFlowchartLMSTree />} />
+                <Route path="/law-firms-training" element={<LawFirmsTraining />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
