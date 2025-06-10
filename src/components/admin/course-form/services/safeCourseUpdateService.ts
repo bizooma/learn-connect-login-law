@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CourseFormData, ModuleData } from "../types";
 import { uploadImageFile } from "../fileUploadUtils";
+import { preserveQuizAssignmentsEnhanced, restoreQuizAssignmentsEnhanced, QuizAssignmentData } from "./enhancedQuizPreservation";
 
 export interface SafeUpdateResult {
   success: boolean;
@@ -11,6 +12,8 @@ export interface SafeUpdateResult {
   itemsUpdated: number;
   itemsCreated: number;
   itemsPreserved: number;
+  quizAssignmentsPreserved: number;
+  quizAssignmentsRestored: number;
   performanceMetrics?: {
     totalDurationMs: number;
     phaseTimings: Record<string, number>;
@@ -31,11 +34,35 @@ export const performSafeCourseUpdate = async (
     warnings: [],
     itemsUpdated: 0,
     itemsCreated: 0,
-    itemsPreserved: 0
+    itemsPreserved: 0,
+    quizAssignmentsPreserved: 0,
+    quizAssignmentsRestored: 0
   };
+
+  let preservedQuizAssignments: QuizAssignmentData[] = [];
 
   try {
     console.log('🛡️ Starting SAFE course update for:', courseId);
+
+    // Phase 0: Preserve quiz assignments BEFORE any modifications
+    const phase0Start = Date.now();
+    console.log('🎯 Phase 0: Preserving quiz assignments before update');
+    
+    const preservationResult = await preserveQuizAssignmentsEnhanced(courseId);
+    if (preservationResult.success) {
+      preservedQuizAssignments = preservationResult.preservedAssignments;
+      result.quizAssignmentsPreserved = preservedQuizAssignments.length;
+      console.log(`✅ Preserved ${preservedQuizAssignments.length} quiz assignments`);
+      
+      if (preservationResult.warnings.length > 0) {
+        result.warnings.push(...preservationResult.warnings);
+      }
+    } else {
+      console.error('❌ Quiz preservation failed:', preservationResult.errors);
+      result.warnings.push(...preservationResult.errors.map(err => `Quiz preservation warning: ${err}`));
+    }
+    
+    phaseTimings.phase0_quiz_preservation = Date.now() - phase0Start;
 
     // Phase 1: Update course metadata only
     const phase1Start = Date.now();
@@ -55,16 +82,39 @@ export const performSafeCourseUpdate = async (
     
     phaseTimings.phase2_content = Date.now() - phase2Start;
 
-    // Phase 3: Validation only (no destructive operations)
+    // Phase 3: Restore quiz assignments AFTER content updates
     const phase3Start = Date.now();
-    console.log('✅ Phase 3: Validating course integrity (non-destructive)');
+    console.log('🔄 Phase 3: Restoring quiz assignments after content update');
     
-    const validation = await validateCourseIntegrityNonDestructive(courseId);
+    if (preservedQuizAssignments.length > 0) {
+      const restorationResult = await restoreQuizAssignmentsEnhanced(courseId, preservedQuizAssignments, modules);
+      if (restorationResult.success) {
+        result.quizAssignmentsRestored = restorationResult.preservedAssignments.length;
+        console.log(`✅ Restored ${result.quizAssignmentsRestored} quiz assignments`);
+        
+        if (restorationResult.warnings.length > 0) {
+          result.warnings.push(...restorationResult.warnings);
+        }
+      } else {
+        console.error('❌ Quiz restoration failed:', restorationResult.errors);
+        result.errors.push(...restorationResult.errors.map(err => `Quiz restoration error: ${err}`));
+      }
+    } else {
+      console.log('ℹ️ No quiz assignments to restore');
+    }
+    
+    phaseTimings.phase3_quiz_restoration = Date.now() - phase3Start;
+
+    // Phase 4: Validation (non-destructive)
+    const phase4Start = Date.now();
+    console.log('✅ Phase 4: Validating course integrity and quiz assignments');
+    
+    const validation = await validateCourseIntegrityWithQuizzes(courseId, preservedQuizAssignments);
     if (validation.issues.length > 0) {
       result.warnings.push(...validation.issues);
     }
     
-    phaseTimings.phase3_validation = Date.now() - phase3Start;
+    phaseTimings.phase4_validation = Date.now() - phase4Start;
 
     result.success = true;
     result.courseId = courseId;
@@ -79,7 +129,9 @@ export const performSafeCourseUpdate = async (
       totalTime: `${totalTime}ms`,
       itemsUpdated: result.itemsUpdated,
       itemsCreated: result.itemsCreated,
-      itemsPreserved: result.itemsPreserved
+      itemsPreserved: result.itemsPreserved,
+      quizAssignmentsPreserved: result.quizAssignmentsPreserved,
+      quizAssignmentsRestored: result.quizAssignmentsRestored
     });
 
     return result;
@@ -87,6 +139,19 @@ export const performSafeCourseUpdate = async (
   } catch (error) {
     console.error('💥 Safe course update failed:', error);
     result.errors.push(`Update failed: ${error.message}`);
+    
+    // If we have preserved quiz assignments and the update failed, try to restore them
+    if (preservedQuizAssignments.length > 0) {
+      console.log('🚨 Attempting emergency quiz assignment restoration due to update failure');
+      try {
+        await restoreQuizAssignmentsEnhanced(courseId, preservedQuizAssignments, modules);
+        result.warnings.push('Emergency quiz assignment restoration attempted due to update failure');
+      } catch (restoreError) {
+        console.error('💥 Emergency restoration also failed:', restoreError);
+        result.errors.push(`Emergency quiz restoration failed: ${restoreError.message}`);
+      }
+    }
+    
     return result;
   }
 };
@@ -405,8 +470,8 @@ const createNewUnit = async (lessonId: string, unitData: any, sortOrder: number)
   }
 };
 
-const validateCourseIntegrityNonDestructive = async (courseId: string) => {
-  console.log('🔍 Validating course integrity (non-destructive)...');
+const validateCourseIntegrityWithQuizzes = async (courseId: string, expectedQuizAssignments: QuizAssignmentData[]) => {
+  console.log('🔍 Validating course integrity and quiz assignments...');
   
   const { data: modules } = await supabase
     .from('modules')
@@ -421,7 +486,7 @@ const validateCourseIntegrityNonDestructive = async (courseId: string) => {
 
   const issues: string[] = [];
   
-  // Just report issues, don't fix them destructively
+  // Basic integrity check
   const moduleCount = modules?.length || 0;
   const lessonCount = modules?.flatMap(m => m.lessons || []).length || 0;
   const unitCount = modules?.flatMap(m => 
@@ -432,7 +497,35 @@ const validateCourseIntegrityNonDestructive = async (courseId: string) => {
     issues.push('Course has no modules');
   }
 
-  console.log('🔍 Integrity validation completed (non-destructive):', {
+  // Validate quiz assignments
+  if (expectedQuizAssignments.length > 0) {
+    console.log(`🎯 Validating ${expectedQuizAssignments.length} expected quiz assignments...`);
+    
+    // Get all units in the course after update
+    const allUnits = modules?.flatMap(m => 
+      m.lessons?.flatMap(l => l.units || []) || []
+    ) || [];
+    
+    const unitIds = allUnits.map(u => u.id);
+    
+    // Check current quiz assignments
+    const { data: currentQuizzes } = await supabase
+      .from('quizzes')
+      .select('id, unit_id, title')
+      .in('unit_id', unitIds)
+      .eq('is_deleted', false);
+    
+    const currentAssignmentCount = currentQuizzes?.length || 0;
+    const expectedCount = expectedQuizAssignments.length;
+    
+    if (currentAssignmentCount < expectedCount) {
+      issues.push(`Missing quiz assignments: expected ${expectedCount}, found ${currentAssignmentCount}`);
+    }
+    
+    console.log(`🎯 Quiz validation: ${currentAssignmentCount}/${expectedCount} assignments found`);
+  }
+
+  console.log('🔍 Integrity validation completed:', {
     modules: moduleCount,
     lessons: lessonCount,
     units: unitCount,
