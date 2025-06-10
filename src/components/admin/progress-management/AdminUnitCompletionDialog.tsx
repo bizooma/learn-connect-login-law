@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -108,11 +108,11 @@ const AdminUnitCompletionDialog = ({
   };
 
   // Auto-validate when dialog opens
-  useState(() => {
+  useEffect(() => {
     if (open && userId && unitId && courseId) {
       handleValidate();
     }
-  });
+  }, [open, userId, unitId, courseId]);
 
   const canProceed = validationResult?.isValid && reason.trim();
 
