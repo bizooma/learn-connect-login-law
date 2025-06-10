@@ -41,16 +41,20 @@ export const useCourseForm = (courseId?: string) => {
 
       if (courseError) throw courseError;
 
+      console.log('Loaded course data:', course);
+
       // Set course data
       setCourseData({
         title: course.title,
         description: course.description || "",
         instructor: course.instructor,
         category: course.category,
-        level: course.level,
+        level: course.level || "",  // Ensure level is properly set
         duration: course.duration,
         image_url: course.image_url || "",
       });
+
+      console.log('Set course data with level:', course.level);
 
       // Fetch course structure with quiz assignments - FIXED: Added explicit ordering
       const { data: modulesData, error: modulesError } = await supabase
@@ -198,6 +202,9 @@ export const useCourseForm = (courseId?: string) => {
     try {
       setSaving(true);
       
+      console.log('Saving course with data:', courseData);
+      console.log('Course level being saved:', courseData.level);
+      
       if (courseId) {
         // Update existing course using safe update service
         console.log('🔄 Updating existing course with quiz preservation...');
@@ -260,7 +267,12 @@ export const useCourseForm = (courseId?: string) => {
   };
 
   const updateCourseData = (data: Partial<CourseFormData>) => {
-    setCourseData(prev => ({ ...prev, ...data }));
+    console.log('Updating course data:', data);
+    setCourseData(prev => {
+      const updated = { ...prev, ...data };
+      console.log('Updated course data with level:', updated.level);
+      return updated;
+    });
   };
 
   const updateModules = (newModules: ModuleData[]) => {

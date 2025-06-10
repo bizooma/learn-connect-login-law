@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { CourseFormData, ModuleData } from "../types";
 import { uploadImageFile } from "../fileUploadUtils";
@@ -147,19 +148,22 @@ export const performSafeCourseUpdate = async (
 
 const updateCourseMetadataSafely = async (courseId: string, courseData: CourseFormData) => {
   console.log('Updating course metadata safely...');
+  console.log('Course data level:', courseData.level);
   
   const updateData: any = {
     title: courseData.title,
     description: courseData.description,
     instructor: courseData.instructor,
     category: courseData.category,
-    level: courseData.level,
     duration: courseData.duration,
     updated_at: new Date().toISOString(),
   };
 
-  // Validate level exists in the levels table before updating
-  if (courseData.level) {
+  // Only validate and set level if it's provided
+  if (courseData.level && courseData.level.trim() !== '') {
+    console.log('Validating level:', courseData.level);
+    
+    // Validate level exists in the levels table before updating
     const { data: levelExists, error: levelError } = await supabase
       .from('levels')
       .select('code')
@@ -171,10 +175,22 @@ const updateCourseMetadataSafely = async (courseId: string, courseData: CourseFo
       throw new Error(`Failed to validate level: ${levelError.message}`);
     }
 
+    console.log('Level validation result:', levelExists);
+
     if (!levelExists) {
       console.error('Level not found:', courseData.level);
+      // Get available levels for debugging
+      const { data: availableLevels } = await supabase
+        .from('levels')
+        .select('code, name');
+      console.log('Available levels:', availableLevels);
       throw new Error(`Level "${courseData.level}" does not exist in the database. Please select a valid level.`);
     }
+
+    updateData.level = courseData.level;
+    console.log('Level validation passed, adding to update data');
+  } else {
+    console.log('No level provided, skipping level validation');
   }
 
   if (courseData.image_file) {
@@ -185,12 +201,15 @@ const updateCourseMetadataSafely = async (courseId: string, courseData: CourseFo
     }
   }
 
+  console.log('Final update data:', updateData);
+
   const { error } = await supabase
     .from('courses')
     .update(updateData)
     .eq('id', courseId);
 
   if (error) {
+    console.error('Course update error:', error);
     throw new Error(`Failed to update course metadata: ${error.message}`);
   }
   
