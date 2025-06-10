@@ -11,7 +11,7 @@ const ServicesSection = () => {
           <img 
             src="/lovable-uploads/979e4b84-f03e-438a-bfc9-467e407c7bb2.png" 
             alt="Sales Training 200 Track" 
-            className="h-16 w-auto object-contain"
+            className="w-full h-16 object-contain"
           />
         </div>
         <h3 className="text-2xl font-bold text-gray-900 mb-4">LAW FIRMS</h3>
