@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
@@ -41,8 +40,21 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
 
     console.log('Modules data fetched:', modulesData);
 
+    // Apply ordering to nested relations since Supabase doesn't support nested ordering in select
+    const orderedModulesData = modulesData?.map(module => ({
+      ...module,
+      lessons: module.lessons
+        ?.sort((a, b) => (a.sort_order !== null && a.sort_order !== undefined ? a.sort_order : 0) - 
+                         (b.sort_order !== null && b.sort_order !== undefined ? b.sort_order : 0))
+        ?.map(lesson => ({
+          ...lesson,
+          units: lesson.units?.sort((a, b) => (a.sort_order !== null && a.sort_order !== undefined ? a.sort_order : 0) - 
+                                             (b.sort_order !== null && b.sort_order !== undefined ? b.sort_order : 0))
+        }))
+    }));
+
     // Collect all units to fetch quiz assignments
-    const allUnits = modulesData?.flatMap(m => 
+    const allUnits = orderedModulesData?.flatMap(m => 
       m.lessons?.flatMap(l => l.units || []) || []
     ) || [];
 
@@ -87,8 +99,8 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
       }
     };
 
-    // Transform the data to match our ModuleData interface
-    const modules: ModuleData[] = modulesData?.map((module, moduleIndex) => ({
+    // Transform the data to match our ModuleData interface - using pre-ordered data
+    const modules: ModuleData[] = orderedModulesData?.map((module, moduleIndex) => ({
       id: module.id,
       title: module.title,
       description: module.description || '',
@@ -96,7 +108,7 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
       file_url: module.file_url || '',
       file_name: module.file_name || '',
       file_size: module.file_size || 0,
-      sort_order: module.sort_order || moduleIndex,
+      sort_order: module.sort_order !== null && module.sort_order !== undefined ? module.sort_order : moduleIndex,
       lessons: module.lessons?.map((lesson, lessonIndex) => ({
         id: lesson.id,
         title: lesson.title,
@@ -105,7 +117,7 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
         file_url: lesson.file_url || '',
         file_name: lesson.file_name || '',
         file_size: lesson.file_size || 0,
-        sort_order: lesson.sort_order || lessonIndex,
+        sort_order: lesson.sort_order !== null && lesson.sort_order !== undefined ? lesson.sort_order : lessonIndex,
         units: lesson.units?.map((unit, unitIndex) => {
           const files = parseFilesFromDatabase(unit.files);
           
@@ -131,7 +143,7 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
             video_url: unit.video_url || '',
             video_type: (unit.video_url?.includes('youtube.com') || unit.video_url?.includes('youtu.be')) ? 'youtube' as const : 'upload' as const,
             duration_minutes: unit.duration_minutes || 0,
-            sort_order: unit.sort_order || unitIndex,
+            sort_order: unit.sort_order !== null && unit.sort_order !== undefined ? unit.sort_order : unitIndex,
             quiz_id: preservedQuizId, // CRITICAL: Preserve quiz assignment
             image_url: '',
             file_url: unit.file_url || '',
@@ -139,8 +151,8 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
             file_size: unit.file_size || 0,
             files: finalFiles
           } as UnitData;
-        }).sort((a, b) => a.sort_order - b.sort_order) || []
-      } as LessonData)).sort((a, b) => a.sort_order - b.sort_order) || []
+        }) || []
+      } as LessonData)) || []
     } as ModuleData)) || [];
 
     console.log('Modules with preserved quiz assignments:', modules);
