@@ -1,3 +1,4 @@
+
 import { Tables } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
 import { useEffect, useState } from "react";
@@ -249,13 +250,6 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
           courseId={courseId} 
           onComplete={refetchCompletion}
         />
-      )}
-
-      {/* Debug info for quiz status */}
-      {unit && (
-        <div className="text-xs text-gray-500 bg-gray-100 p-2 rounded">
-          Debug: Unit ID: {unit.id} | Quiz Loading: {quizLoading.toString()} | Has Quiz: {hasQuiz ? 'Yes' : 'No'} | Quiz ID: {unitQuiz?.id || 'None'}
-        </div>
       )}
 
       {/* Certificate Download Section */}
