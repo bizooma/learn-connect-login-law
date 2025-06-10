@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -10,6 +9,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import QuestionManagement from "./QuestionManagement";
 import { QuizWithDetails } from "./types";
 import { supabase } from "@/integrations/supabase/client";
+import { validateQuizName } from "./quizValidation";
 
 interface EditQuizFormProps {
   open: boolean;
@@ -25,6 +25,7 @@ const EditQuizForm = ({ open, onOpenChange, quiz, onQuizUpdated }: EditQuizFormP
   const [timeLimit, setTimeLimit] = useState<number | null>(null);
   const [isActive, setIsActive] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [nameValidationError, setNameValidationError] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -34,6 +35,7 @@ const EditQuizForm = ({ open, onOpenChange, quiz, onQuizUpdated }: EditQuizFormP
       setPassingScore(quiz.passing_score);
       setTimeLimit(quiz.time_limit_minutes);
       setIsActive(quiz.is_active);
+      setNameValidationError(null);
     }
   }, [open, quiz]);
 
@@ -50,8 +52,17 @@ const EditQuizForm = ({ open, onOpenChange, quiz, onQuizUpdated }: EditQuizFormP
     }
 
     setLoading(true);
+    setNameValidationError(null);
     
     try {
+      // Validate quiz name for duplicates (excluding current quiz)
+      const validation = await validateQuizName(title, quiz.id);
+      if (!validation.isValid) {
+        setNameValidationError(validation.error || "Invalid quiz name");
+        setLoading(false);
+        return;
+      }
+
       const { error } = await supabase
         .from('quizzes')
         .update({
@@ -73,6 +84,7 @@ const EditQuizForm = ({ open, onOpenChange, quiz, onQuizUpdated }: EditQuizFormP
         description: "Quiz updated successfully",
       });
       
+      setNameValidationError(null);
       onQuizUpdated();
       onOpenChange(false);
     } catch (error) {
@@ -117,6 +129,9 @@ const EditQuizForm = ({ open, onOpenChange, quiz, onQuizUpdated }: EditQuizFormP
                     placeholder="Enter quiz title"
                     required
                   />
+                  {nameValidationError && (
+                    <p className="text-sm text-red-600 mt-1">{nameValidationError}</p>
+                  )}
                 </div>
 
                 <div>

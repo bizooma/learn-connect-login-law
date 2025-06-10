@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -11,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { validateQuizName } from "./quizValidation";
 
 interface CreateQuizFormProps {
   open: boolean;
@@ -31,6 +31,7 @@ const formSchema = z.object({
 const CreateQuizForm = ({ open, onOpenChange, onQuizCreated }: CreateQuizFormProps) => {
   const { toast } = useToast();
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [nameValidationError, setNameValidationError] = useState<string | null>(null);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -45,7 +46,17 @@ const CreateQuizForm = ({ open, onOpenChange, onQuizCreated }: CreateQuizFormPro
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     setIsSubmitting(true);
+    setNameValidationError(null);
+
     try {
+      // Validate quiz name for duplicates
+      const validation = await validateQuizName(values.title);
+      if (!validation.isValid) {
+        setNameValidationError(validation.error || "Invalid quiz name");
+        setIsSubmitting(false);
+        return;
+      }
+
       const { error } = await supabase
         .from('quizzes')
         .insert({
@@ -54,7 +65,6 @@ const CreateQuizForm = ({ open, onOpenChange, onQuizCreated }: CreateQuizFormPro
           passing_score: values.passing_score,
           time_limit_minutes: values.time_limit_minutes,
           is_active: values.is_active,
-          // unit_id is now optional and not included
         });
 
       if (error) throw error;
@@ -65,6 +75,7 @@ const CreateQuizForm = ({ open, onOpenChange, onQuizCreated }: CreateQuizFormPro
       });
       
       form.reset();
+      setNameValidationError(null);
       onQuizCreated();
       onOpenChange(false);
     } catch (error: any) {
@@ -98,6 +109,9 @@ const CreateQuizForm = ({ open, onOpenChange, onQuizCreated }: CreateQuizFormPro
                       <Input placeholder="Enter quiz title" {...field} />
                     </FormControl>
                     <FormMessage />
+                    {nameValidationError && (
+                      <p className="text-sm text-red-600">{nameValidationError}</p>
+                    )}
                   </FormItem>
                 )}
               />
