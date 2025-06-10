@@ -6,6 +6,7 @@ export interface CourseFormData {
   category: string;
   level: string;
   duration: string;
+  image_url?: string;
   image_file?: File;
 }
 

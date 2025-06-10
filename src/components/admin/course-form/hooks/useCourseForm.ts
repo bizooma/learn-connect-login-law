@@ -68,27 +68,33 @@ export const useCourseForm = (courseId?: string) => {
       if (modulesError) throw modulesError;
 
       // Transform data to match form structure
-      const transformedModules = modulesData?.map(module => ({
+      const transformedModules = modulesData?.map((module, index) => ({
         id: module.id,
         title: module.title,
         description: module.description || "",
         image_url: module.image_url,
-        lessons: module.lessons?.map(lesson => ({
+        sort_order: module.sort_order || index,
+        lessons: module.lessons?.map((lesson, lessonIndex) => ({
           id: lesson.id,
           title: lesson.title,
           description: lesson.description || "",
           image_url: lesson.image_url,
-          units: lesson.units?.map(unit => ({
+          sort_order: lesson.sort_order || lessonIndex,
+          units: lesson.units?.map((unit, unitIndex) => ({
             id: unit.id,
             title: unit.title,
             description: unit.description || "",
             content: unit.content || "",
-            video_url: unit.video_url,
+            video_url: unit.video_url || "",
+            video_type: (unit.video_url?.includes('youtube.com') || unit.video_url?.includes('youtu.be')) ? 'youtube' as const : 'upload' as const,
             duration_minutes: unit.duration_minutes || 0,
-            files: unit.files || [],
+            sort_order: unit.sort_order || unitIndex,
+            quiz_id: unit.quiz_id,
+            image_url: unit.image_url,
             file_url: unit.file_url,
             file_name: unit.file_name,
             file_size: unit.file_size,
+            files: unit.files || [],
           })) || []
         })) || []
       })) || [];

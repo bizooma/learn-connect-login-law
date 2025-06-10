@@ -2,56 +2,42 @@
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
-import { CourseFormData, SectionData } from "./types";
-import { handleCourseSubmission } from "./courseSubmissionHandler";
+import { CourseFormData } from "./types";
+import { Tables } from "@/integrations/supabase/types";
 
-export const useCourseForm = (onSuccess: () => void) => {
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [sections, setSections] = useState<SectionData[]>([]);
+type Course = Tables<'courses'>;
+
+export const useCourseForm = (course?: Course | null, open?: boolean) => {
   const { toast } = useToast();
   
   const form = useForm<CourseFormData>({
     defaultValues: {
-      title: "",
-      description: "",
-      instructor: "",
-      category: "",
-      level: "",
-      duration: "",
+      title: course?.title || "",
+      description: course?.description || "",
+      instructor: course?.instructor || "",
+      category: course?.category || "",
+      level: course?.level || "",
+      duration: course?.duration || "",
+      image_url: course?.image_url || "",
       image_file: undefined,
     },
   });
 
-  const onSubmit = async (data: CourseFormData) => {
-    setIsSubmitting(true);
-    try {
-      await handleCourseSubmission(data, sections);
-
-      toast({
-        title: "Success",
-        description: "Course created successfully",
+  // Reset form when course changes or dialog opens
+  useState(() => {
+    if (course && open) {
+      form.reset({
+        title: course.title || "",
+        description: course.description || "",
+        instructor: course.instructor || "",
+        category: course.category || "",
+        level: course.level || "",
+        duration: course.duration || "",
+        image_url: course.image_url || "",
+        image_file: undefined,
       });
-
-      form.reset();
-      setSections([]);
-      onSuccess();
-    } catch (error) {
-      console.error('Error creating course:', error);
-      toast({
-        title: "Error",
-        description: "Failed to create course",
-        variant: "destructive",
-      });
-    } finally {
-      setIsSubmitting(false);
     }
-  };
+  });
 
-  return {
-    form,
-    isSubmitting,
-    sections,
-    setSections,
-    onSubmit,
-  };
+  return form;
 };

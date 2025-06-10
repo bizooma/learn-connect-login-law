@@ -1,8 +1,9 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
 import { CourseFormData, ModuleData, LessonData, UnitData } from "./types";
-import { useCourseForm } from "./hooks/useCourseForm";
+import { useCourseForm } from "./useCourseForm";
 import { createWelcomeCalendarEvent } from "./services/calendarService";
 import { supabase } from "@/integrations/supabase/client";
 import { performSafeCourseUpdate } from "./services/safeCourseUpdateService";
@@ -87,7 +88,7 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
     };
 
     // Transform the data to match our ModuleData interface
-    const modules: ModuleData[] = modulesData?.map(module => ({
+    const modules: ModuleData[] = modulesData?.map((module, moduleIndex) => ({
       id: module.id,
       title: module.title,
       description: module.description || '',
@@ -95,8 +96,8 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
       file_url: module.file_url || '',
       file_name: module.file_name || '',
       file_size: module.file_size || 0,
-      sort_order: module.sort_order,
-      lessons: module.lessons?.map(lesson => ({
+      sort_order: module.sort_order || moduleIndex,
+      lessons: module.lessons?.map((lesson, lessonIndex) => ({
         id: lesson.id,
         title: lesson.title,
         description: lesson.description || '',
@@ -104,8 +105,8 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
         file_url: lesson.file_url || '',
         file_name: lesson.file_name || '',
         file_size: lesson.file_size || 0,
-        sort_order: lesson.sort_order,
-        units: lesson.units?.map(unit => {
+        sort_order: lesson.sort_order || lessonIndex,
+        units: lesson.units?.map((unit, unitIndex) => {
           const files = parseFilesFromDatabase(unit.files);
           
           console.log('Unit files parsed in edit form:', unit.title, 'Files:', files);
@@ -130,7 +131,7 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
             video_url: unit.video_url || '',
             video_type: (unit.video_url?.includes('youtube.com') || unit.video_url?.includes('youtu.be')) ? 'youtube' as const : 'upload' as const,
             duration_minutes: unit.duration_minutes || 0,
-            sort_order: unit.sort_order,
+            sort_order: unit.sort_order || unitIndex,
             quiz_id: preservedQuizId, // CRITICAL: Preserve quiz assignment
             image_url: '',
             file_url: unit.file_url || '',
