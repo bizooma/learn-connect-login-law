@@ -1,6 +1,5 @@
 
 import { Button } from "@/components/ui/button";
-import { FileText } from "lucide-react";
 
 const ServicesSection = () => {
   return (
@@ -54,7 +53,11 @@ const ServicesSection = () => {
       {/* Immigration Law */}
       <div className="text-center flex flex-col h-full">
         <div className="flex justify-center mb-6">
-          <FileText className="h-16 w-16 text-blue-500" />
+          <img 
+            src="/lovable-uploads/ce3df313-7cfb-4830-9476-2f7bd4e1715b.png" 
+            alt="Legal Training 100 Track" 
+            className="w-full h-16 object-contain"
+          />
         </div>
         <h3 className="text-2xl font-bold text-gray-900 mb-4">IMMIGRATION LAW</h3>
         <p className="text-gray-600 mb-8 leading-relaxed flex-grow">
