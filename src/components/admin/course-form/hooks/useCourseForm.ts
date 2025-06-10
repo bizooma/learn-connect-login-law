@@ -1,9 +1,10 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { CourseFormData, ModuleData } from "../types";
 import { supabase } from "@/integrations/supabase/client";
 import { performSafeCourseUpdate } from "../services/safeCourseUpdateService";
-import { createCourse } from "../services/courseCreation";
+import { createCourseWithContent } from "../services/createCourseWithContent";
 
 export const useCourseForm = (courseId?: string) => {
   const [courseData, setCourseData] = useState<CourseFormData>({
@@ -219,16 +220,20 @@ export const useCourseForm = (courseId?: string) => {
           throw new Error(result.errors.join(', '));
         }
       } else {
-        // Create new course using the available createCourse function
-        console.log('🆕 Creating new course...');
+        // Create new course with all content using the comprehensive service
+        console.log('🆕 Creating new course with content...', {
+          moduleCount: modules.length,
+          isDraft
+        });
         
-        const course = await createCourse(courseData, isDraft);
+        const course = await createCourseWithContent(courseData, modules, isDraft);
         
         toast({
           title: "Success",
-          description: "Course created successfully!",
+          description: `Course created successfully with ${modules.length} modules!`,
         });
         
+        console.log('✅ New course created with content:', course.id);
         return course.id;
       }
     } catch (error: any) {
