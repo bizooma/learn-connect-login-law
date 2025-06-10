@@ -11,6 +11,15 @@ export interface AdminUnitCompletionResult {
   affectedUsers: string[];
 }
 
+interface DatabaseFunctionResponse {
+  success: boolean;
+  user_id: string;
+  unit_id: string;
+  course_id: string;
+  audit_id: string;
+  message: string;
+}
+
 export const safeAdminMarkUnitComplete = async (
   userId: string,
   unitId: string,
@@ -43,13 +52,16 @@ export const safeAdminMarkUnitComplete = async (
       return result;
     }
 
-    if (data?.success) {
+    // Type the response properly
+    const response = data as DatabaseFunctionResponse;
+    
+    if (response?.success) {
       result.success = true;
       result.completedUnits = 1;
       result.affectedUsers = [userId];
-      result.backupId = data.audit_id;
+      result.backupId = response.audit_id;
       
-      console.log('✅ Unit marked complete successfully:', data);
+      console.log('✅ Unit marked complete successfully:', response);
     } else {
       result.errors.push('Database function returned failure');
       result.failedUnits = 1;

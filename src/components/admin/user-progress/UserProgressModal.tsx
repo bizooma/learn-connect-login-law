@@ -13,26 +13,30 @@ interface UserProgressModalProps {
   userId: string | null;
 }
 
+interface CourseProgressData {
+  course_id: string;
+  course_title: string;
+  status: string;
+  progress_percentage: number;
+  started_at: string | null;
+  completed_at: string | null;
+  last_accessed_at: string | null;
+  completed_units: number;
+  total_units: number;
+  units: Array<{
+    unit_id: string;
+    unit_title: string;
+    completed: boolean;
+    completion_method: string | null;
+    completed_at: string | null;
+  }>;
+}
+
 interface UserProgressData {
   user_id: string;
   user_email: string;
   user_name: string;
-  courses: Array<{
-    course_id: string;
-    course_title: string;
-    status: string;
-    progress_percentage: number;
-    started_at: string | null;
-    completed_at: string | null;
-    last_accessed_at: string | null;
-    units: Array<{
-      unit_id: string;
-      unit_title: string;
-      completed: boolean;
-      completion_method: string | null;
-      completed_at: string | null;
-    }>;
-  }>;
+  courses: CourseProgressData[];
 }
 
 const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) => {
@@ -95,6 +99,8 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
               started_at: course.started_at,
               completed_at: course.completed_at,
               last_accessed_at: course.last_accessed_at,
+              completed_units: 0,
+              total_units: 0,
               units: []
             };
           }
@@ -123,6 +129,10 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
             })
           );
 
+          // Calculate completed and total units
+          const completedUnits = unitsWithProgress.filter(unit => unit.completed).length;
+          const totalUnits = unitsWithProgress.length;
+
           return {
             course_id: course.course_id,
             course_title: course.courses.title,
@@ -131,6 +141,8 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
             started_at: course.started_at,
             completed_at: course.completed_at,
             last_accessed_at: course.last_accessed_at,
+            completed_units: completedUnits,
+            total_units: totalUnits,
             units: unitsWithProgress
           };
         })
