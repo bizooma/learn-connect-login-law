@@ -52,7 +52,7 @@ export const useCourseForm = (courseId?: string) => {
         image_url: course.image_url || "",
       });
 
-      // Fetch course structure with quiz assignments
+      // Fetch course structure with quiz assignments - FIXED: Added explicit ordering
       const { data: modulesData, error: modulesError } = await supabase
         .from('modules')
         .select(`
@@ -67,8 +67,19 @@ export const useCourseForm = (courseId?: string) => {
 
       if (modulesError) throw modulesError;
 
+      // Apply ordering to nested relations since Supabase doesn't support nested ordering in select
+      const orderedModulesData = modulesData?.map(module => ({
+        ...module,
+        lessons: module.lessons
+          ?.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+          ?.map(lesson => ({
+            ...lesson,
+            units: lesson.units?.sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+          }))
+      }));
+
       // Collect all units to fetch quiz assignments
-      const allUnits = modulesData?.flatMap(m => 
+      const allUnits = orderedModulesData?.flatMap(m => 
         m.lessons?.flatMap(l => l.units || []) || []
       ) || [];
 
@@ -113,8 +124,8 @@ export const useCourseForm = (courseId?: string) => {
         }
       };
 
-      // Transform data to match form structure
-      const transformedModules: ModuleData[] = modulesData?.map((module, index) => ({
+      // Transform data to match form structure - using pre-ordered data
+      const transformedModules: ModuleData[] = orderedModulesData?.map((module, index) => ({
         id: module.id,
         title: module.title,
         description: module.description || "",
@@ -165,8 +176,8 @@ export const useCourseForm = (courseId?: string) => {
               file_size: unit.file_size || 0,
               files: finalFiles
             };
-          }).sort((a, b) => a.sort_order - b.sort_order) || []
-        })).sort((a, b) => a.sort_order - b.sort_order) || []
+          }) || []
+        })) || []
       })) || [];
 
       setModules(transformedModules);
