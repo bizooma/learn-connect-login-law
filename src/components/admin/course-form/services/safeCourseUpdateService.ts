@@ -169,6 +169,25 @@ const updateCourseMetadataSafely = async (courseId: string, courseData: CourseFo
     updated_at: new Date().toISOString(),
   };
 
+  // Validate level exists in the levels table before updating
+  if (courseData.level) {
+    const { data: levelExists, error: levelError } = await supabase
+      .from('levels')
+      .select('code')
+      .eq('code', courseData.level)
+      .maybeSingle();
+
+    if (levelError) {
+      console.error('Error checking level:', levelError);
+      throw new Error(`Failed to validate level: ${levelError.message}`);
+    }
+
+    if (!levelExists) {
+      console.error('Level not found:', courseData.level);
+      throw new Error(`Level "${courseData.level}" does not exist in the database. Please select a valid level.`);
+    }
+  }
+
   if (courseData.image_file) {
     try {
       updateData.image_url = await uploadImageFile(courseData.image_file);
