@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { CourseFormData, ModuleData } from "../types";
 import { uploadImageFile } from "../fileUploadUtils";
@@ -71,39 +70,29 @@ export const performSafeCourseUpdate = async (
     await updateCourseMetadataSafely(courseId, courseData);
     phaseTimings.phase1_metadata = Date.now() - phase1Start;
 
-    // Phase 2: Incremental content updates (NO DELETIONS)
+    // Phase 2: Enhanced incremental content updates with quiz preservation
     const phase2Start = Date.now();
-    console.log('🔧 Phase 2: Performing incremental content updates (preserving all data)');
+    console.log('🔧 Phase 2: Performing enhanced incremental content updates with quiz preservation');
     
-    const updateStats = await performIncrementalContentUpdate(courseId, modules);
+    const updateStats = await performEnhancedIncrementalUpdate(courseId, modules, preservedQuizAssignments);
     result.itemsUpdated = updateStats.updated;
     result.itemsCreated = updateStats.created;
     result.itemsPreserved = updateStats.preserved;
     
     phaseTimings.phase2_content = Date.now() - phase2Start;
 
-    // Phase 3: Restore quiz assignments AFTER content updates
+    // Phase 3: Final quiz assignment verification
     const phase3Start = Date.now();
-    console.log('🔄 Phase 3: Restoring quiz assignments after content update');
+    console.log('🔄 Phase 3: Verifying quiz assignments after content update');
     
-    if (preservedQuizAssignments.length > 0) {
-      const restorationResult = await restoreQuizAssignmentsEnhanced(courseId, preservedQuizAssignments, modules);
-      if (restorationResult.success) {
-        result.quizAssignmentsRestored = restorationResult.preservedAssignments.length;
-        console.log(`✅ Restored ${result.quizAssignmentsRestored} quiz assignments`);
-        
-        if (restorationResult.warnings.length > 0) {
-          result.warnings.push(...restorationResult.warnings);
-        }
-      } else {
-        console.error('❌ Quiz restoration failed:', restorationResult.errors);
-        result.errors.push(...restorationResult.errors.map(err => `Quiz restoration error: ${err}`));
-      }
-    } else {
-      console.log('ℹ️ No quiz assignments to restore');
+    const verificationResult = await verifyQuizAssignments(courseId, modules);
+    result.quizAssignmentsRestored = verificationResult.restored;
+    
+    if (verificationResult.warnings.length > 0) {
+      result.warnings.push(...verificationResult.warnings);
     }
     
-    phaseTimings.phase3_quiz_restoration = Date.now() - phase3Start;
+    phaseTimings.phase3_quiz_verification = Date.now() - phase3Start;
 
     // Phase 4: Validation (non-destructive)
     const phase4Start = Date.now();
@@ -208,8 +197,12 @@ const updateCourseMetadataSafely = async (courseId: string, courseData: CourseFo
   console.log('Course metadata updated safely');
 };
 
-const performIncrementalContentUpdate = async (courseId: string, modules: ModuleData[]) => {
-  console.log('🔄 Starting incremental content update (NO data loss)');
+const performEnhancedIncrementalUpdate = async (
+  courseId: string, 
+  modules: ModuleData[], 
+  preservedQuizAssignments: QuizAssignmentData[]
+) => {
+  console.log('🔄 Starting enhanced incremental content update with quiz preservation');
   
   let updated = 0;
   let created = 0;
@@ -235,6 +228,13 @@ const performIncrementalContentUpdate = async (courseId: string, modules: Module
 
     console.log('Existing modules found:', existingModules?.length || 0);
 
+    // Create a map of preserved quiz assignments by unit title for easy lookup
+    const quizByUnitTitle = new Map();
+    preservedQuizAssignments.forEach(qa => {
+      const key = `${qa.moduleTitle}:${qa.lessonTitle}:${qa.unitTitle}`;
+      quizByUnitTitle.set(key, qa.quizId);
+    });
+
     // Process each module incrementally
     for (let i = 0; i < modules.length; i++) {
       const moduleData = modules[i];
@@ -248,7 +248,7 @@ const performIncrementalContentUpdate = async (courseId: string, modules: Module
       if (existingModule) {
         // Update existing module
         console.log(`Updating existing module: ${moduleData.title}`);
-        await updateExistingModule(existingModule.id, moduleData, i);
+        await updateExistingModuleEnhanced(existingModule.id, moduleData, i, quizByUnitTitle);
         updated++;
       } else {
         // Create new module
@@ -271,7 +271,7 @@ const performIncrementalContentUpdate = async (courseId: string, modules: Module
       console.log(`Preserved ${preserved} existing modules not in form`);
     }
 
-    console.log('✅ Incremental content update completed safely', {
+    console.log('✅ Enhanced incremental content update completed safely', {
       updated,
       created,
       preserved
@@ -280,12 +280,17 @@ const performIncrementalContentUpdate = async (courseId: string, modules: Module
     return { updated, created, preserved };
 
   } catch (error) {
-    console.error('❌ Error during incremental content update:', error);
-    throw new Error(`Incremental update failed: ${error.message}`);
+    console.error('❌ Error during enhanced incremental content update:', error);
+    throw new Error(`Enhanced incremental update failed: ${error.message}`);
   }
 };
 
-const updateExistingModule = async (moduleId: string, moduleData: ModuleData, sortOrder: number) => {
+const updateExistingModuleEnhanced = async (
+  moduleId: string, 
+  moduleData: ModuleData, 
+  sortOrder: number, 
+  quizByUnitTitle: Map<string, string>
+) => {
   // Update module metadata
   const { error: moduleError } = await supabase
     .from('modules')
@@ -302,13 +307,18 @@ const updateExistingModule = async (moduleId: string, moduleData: ModuleData, so
     throw new Error(`Failed to update module: ${moduleError.message}`);
   }
 
-  // Update lessons incrementally
+  // Update lessons incrementally with enhanced unit handling
   if (moduleData.lessons) {
-    await updateLessonsIncrementally(moduleId, moduleData.lessons);
+    await updateLessonsEnhanced(moduleId, moduleData.lessons, moduleData.title, quizByUnitTitle);
   }
 };
 
-const updateLessonsIncrementally = async (moduleId: string, lessons: any[]) => {
+const updateLessonsEnhanced = async (
+  moduleId: string, 
+  lessons: any[], 
+  moduleTitle: string, 
+  quizByUnitTitle: Map<string, string>
+) => {
   // Get existing lessons for this module
   const { data: existingLessons } = await supabase
     .from('lessons')
@@ -329,8 +339,8 @@ const updateLessonsIncrementally = async (moduleId: string, lessons: any[]) => {
     );
 
     if (existingLesson) {
-      // Update existing lesson
-      await updateExistingLesson(existingLesson.id, lessonData, i);
+      // Update existing lesson with enhanced unit handling
+      await updateExistingLessonEnhanced(existingLesson.id, lessonData, i, moduleTitle, quizByUnitTitle);
     } else {
       // Create new lesson
       await createNewLesson(moduleId, lessonData, i);
@@ -338,7 +348,13 @@ const updateLessonsIncrementally = async (moduleId: string, lessons: any[]) => {
   }
 };
 
-const updateExistingLesson = async (lessonId: string, lessonData: any, sortOrder: number) => {
+const updateExistingLessonEnhanced = async (
+  lessonId: string, 
+  lessonData: any, 
+  sortOrder: number, 
+  moduleTitle: string, 
+  quizByUnitTitle: Map<string, string>
+) => {
   const { error: lessonError } = await supabase
     .from('lessons')
     .update({
@@ -354,13 +370,19 @@ const updateExistingLesson = async (lessonId: string, lessonData: any, sortOrder
     throw new Error(`Failed to update lesson: ${lessonError.message}`);
   }
 
-  // Update units incrementally
+  // Update units with enhanced handling that preserves order and quiz assignments
   if (lessonData.units) {
-    await updateUnitsIncrementally(lessonId, lessonData.units);
+    await updateUnitsEnhanced(lessonId, lessonData.units, moduleTitle, lessonData.title, quizByUnitTitle);
   }
 };
 
-const updateUnitsIncrementally = async (lessonId: string, units: any[]) => {
+const updateUnitsEnhanced = async (
+  lessonId: string, 
+  units: any[], 
+  moduleTitle: string, 
+  lessonTitle: string, 
+  quizByUnitTitle: Map<string, string>
+) => {
   // Get existing units for this lesson
   const { data: existingUnits } = await supabase
     .from('units')
@@ -371,6 +393,13 @@ const updateUnitsIncrementally = async (lessonId: string, units: any[]) => {
   for (let i = 0; i < units.length; i++) {
     const unitData = units[i];
     
+    // Determine the quiz assignment for this unit
+    const quizKey = `${moduleTitle}:${lessonTitle}:${unitData.title}`;
+    const preservedQuizId = quizByUnitTitle.get(quizKey);
+    const finalQuizId = unitData.quiz_id || preservedQuizId;
+    
+    console.log(`Unit "${unitData.title}" - Form quiz: ${unitData.quiz_id}, Preserved quiz: ${preservedQuizId}, Final: ${finalQuizId}`);
+    
     // Find existing unit by ID or title+position
     const existingUnit = existingUnits?.find(eu => 
       (unitData.id && eu.id === unitData.id) ||
@@ -378,18 +407,23 @@ const updateUnitsIncrementally = async (lessonId: string, units: any[]) => {
     );
 
     if (existingUnit) {
-      // Update existing unit
-      console.log(`Updating existing unit: ${unitData.title}`);
-      await updateExistingUnit(existingUnit.id, unitData, i);
+      // Update existing unit with preserved quiz assignment and correct sort order
+      console.log(`Updating existing unit: ${unitData.title} at position ${i}`);
+      await updateExistingUnitEnhanced(existingUnit.id, unitData, i, finalQuizId);
     } else {
       // Create new unit
-      console.log(`Creating new unit: ${unitData.title}`);
-      await createNewUnit(lessonId, unitData, i);
+      console.log(`Creating new unit: ${unitData.title} at position ${i}`);
+      await createNewUnitEnhanced(lessonId, unitData, i, finalQuizId);
     }
   }
 };
 
-const updateExistingUnit = async (unitId: string, unitData: any, sortOrder: number) => {
+const updateExistingUnitEnhanced = async (
+  unitId: string, 
+  unitData: any, 
+  sortOrder: number, 
+  quizId?: string
+) => {
   const { error: unitError } = await supabase
     .from('units')
     .update({
@@ -398,7 +432,7 @@ const updateExistingUnit = async (unitId: string, unitData: any, sortOrder: numb
       content: unitData.content,
       video_url: unitData.video_url,
       duration_minutes: unitData.duration_minutes,
-      sort_order: sortOrder,
+      sort_order: sortOrder,  // Explicitly set the correct sort order
       files: unitData.files,
       file_url: unitData.file_url,
       file_name: unitData.file_name,
@@ -409,6 +443,119 @@ const updateExistingUnit = async (unitId: string, unitData: any, sortOrder: numb
 
   if (unitError) {
     throw new Error(`Failed to update unit: ${unitError.message}`);
+  }
+
+  // Handle quiz assignment separately
+  if (quizId) {
+    console.log(`Assigning quiz ${quizId} to unit ${unitId}`);
+    const { error: quizError } = await supabase
+      .from('quizzes')
+      .update({ unit_id: unitId })
+      .eq('id', quizId);
+
+    if (quizError) {
+      console.error(`Failed to assign quiz to unit: ${quizError.message}`);
+    } else {
+      console.log(`✅ Quiz successfully assigned to unit`);
+    }
+  }
+};
+
+const createNewUnitEnhanced = async (
+  lessonId: string, 
+  unitData: any, 
+  sortOrder: number, 
+  quizId?: string
+) => {
+  const { data: unit, error } = await supabase
+    .from('units')
+    .insert({
+      section_id: lessonId,
+      title: unitData.title,
+      description: unitData.description,
+      content: unitData.content,
+      video_url: unitData.video_url,
+      duration_minutes: unitData.duration_minutes,
+      sort_order: sortOrder,
+      files: unitData.files,
+      file_url: unitData.file_url,
+      file_name: unitData.file_name,
+      file_size: unitData.file_size
+    })
+    .select()
+    .single();
+
+  if (error) {
+    throw new Error(`Failed to create unit: ${error.message}`);
+  }
+
+  // Handle quiz assignment
+  if (quizId && unit) {
+    console.log(`Assigning quiz ${quizId} to new unit ${unit.id}`);
+    const { error: quizError } = await supabase
+      .from('quizzes')
+      .update({ unit_id: unit.id })
+      .eq('id', quizId);
+
+    if (quizError) {
+      console.error(`Failed to assign quiz to new unit: ${quizError.message}`);
+    } else {
+      console.log(`✅ Quiz successfully assigned to new unit`);
+    }
+  }
+};
+
+const verifyQuizAssignments = async (courseId: string, modules: ModuleData[]) => {
+  console.log('🔍 Verifying quiz assignments after update...');
+  
+  let restored = 0;
+  const warnings: string[] = [];
+
+  try {
+    // Get all quiz assignments that should exist based on the form data
+    const expectedAssignments: { unitTitle: string; quizId: string }[] = [];
+    
+    modules.forEach(module => {
+      module.lessons?.forEach(lesson => {
+        lesson.units?.forEach(unit => {
+          if (unit.quiz_id) {
+            expectedAssignments.push({
+              unitTitle: unit.title,
+              quizId: unit.quiz_id
+            });
+          }
+        });
+      });
+    });
+
+    console.log(`Expected ${expectedAssignments.length} quiz assignments from form`);
+
+    // Verify each expected assignment
+    for (const expected of expectedAssignments) {
+      const { data: quiz, error } = await supabase
+        .from('quizzes')
+        .select('id, unit_id')
+        .eq('id', expected.quizId)
+        .single();
+
+      if (error) {
+        warnings.push(`Could not verify quiz ${expected.quizId} for unit ${expected.unitTitle}`);
+        continue;
+      }
+
+      if (quiz.unit_id) {
+        restored++;
+        console.log(`✅ Verified quiz assignment: ${expected.quizId} -> unit ${quiz.unit_id}`);
+      } else {
+        warnings.push(`Quiz ${expected.quizId} is not assigned to any unit (expected: ${expected.unitTitle})`);
+      }
+    }
+
+    return { restored, warnings };
+
+  } catch (error) {
+    console.error('Error verifying quiz assignments:', error);
+    return { restored: 0, warnings: [`Verification failed: ${error.message}`] };
   }
 };
 
