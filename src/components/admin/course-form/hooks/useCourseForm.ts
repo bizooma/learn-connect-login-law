@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { CourseFormData, ModuleData } from "../types";
@@ -123,7 +122,7 @@ export const useCourseForm = (courseId?: string) => {
         file_url: module.file_url || "",
         file_name: module.file_name || "",
         file_size: module.file_size || 0,
-        sort_order: module.sort_order || index,
+        sort_order: module.sort_order !== null && module.sort_order !== undefined ? module.sort_order : index,
         lessons: module.lessons?.map((lesson, lessonIndex) => ({
           id: lesson.id,
           title: lesson.title,
@@ -132,7 +131,7 @@ export const useCourseForm = (courseId?: string) => {
           file_url: lesson.file_url || "",
           file_name: lesson.file_name || "",
           file_size: lesson.file_size || 0,
-          sort_order: lesson.sort_order || lessonIndex,
+          sort_order: lesson.sort_order !== null && lesson.sort_order !== undefined ? lesson.sort_order : lessonIndex,
           units: lesson.units?.map((unit, unitIndex) => {
             const files = parseFilesFromDatabase(unit.files);
             
@@ -158,7 +157,7 @@ export const useCourseForm = (courseId?: string) => {
               video_url: unit.video_url || "",
               video_type: (unit.video_url?.includes('youtube.com') || unit.video_url?.includes('youtu.be')) ? 'youtube' as const : 'upload' as const,
               duration_minutes: unit.duration_minutes || 0,
-              sort_order: unit.sort_order || unitIndex,
+              sort_order: unit.sort_order !== null && unit.sort_order !== undefined ? unit.sort_order : unitIndex,
               quiz_id: preservedQuizId || "",
               image_url: "",
               file_url: unit.file_url || "",
