@@ -19,44 +19,48 @@ interface DatabaseFunctionResponse {
   message: string;
 }
 
-// Helper function to recalculate course progress after unit completion
+// Enhanced helper function to recalculate course progress after unit completion
 const recalculateCourseProgress = async (userId: string, courseId: string) => {
-  console.log('🔄 Recalculating course progress after admin unit completion');
+  console.log('🔄 Starting course progress recalculation:', { userId, courseId });
   
   try {
-    // Get all units in the course
+    // Get all units in the course through the proper relationships
     const { data: lessons, error: lessonsError } = await supabase
       .from('lessons')
       .select(`
         id,
-        units!inner(id)
+        units(id, title)
       `)
       .eq('course_id', courseId);
 
     if (lessonsError) {
-      console.error('Error fetching lessons for progress calculation:', lessonsError);
-      return;
+      console.error('❌ Error fetching lessons for progress calculation:', lessonsError);
+      throw lessonsError;
     }
 
-    const allUnits = lessons?.flatMap(lesson => lesson.units) || [];
+    console.log('📚 Found lessons for course:', lessons);
+
+    const allUnits = lessons?.flatMap(lesson => lesson.units || []) || [];
     const totalUnits = allUnits.length;
 
+    console.log(`📊 Total units in course: ${totalUnits}`);
+
     if (totalUnits === 0) {
-      console.log('No units found for course, skipping progress calculation');
+      console.log('⚠️ No units found for course, skipping progress calculation');
       return;
     }
 
-    // Get completed units
+    // Get completed units for this user and course
     const { data: completedUnits, error: progressError } = await supabase
       .from('user_unit_progress')
-      .select('unit_id')
+      .select('unit_id, completed')
       .eq('user_id', userId)
       .eq('course_id', courseId)
       .eq('completed', true);
 
     if (progressError) {
-      console.error('Error fetching unit progress:', progressError);
-      return;
+      console.error('❌ Error fetching unit progress:', progressError);
+      throw progressError;
     }
 
     const completedCount = completedUnits?.length || 0;
@@ -64,10 +68,16 @@ const recalculateCourseProgress = async (userId: string, courseId: string) => {
     const status = progressPercentage === 100 ? 'completed' : 
                   progressPercentage > 0 ? 'in_progress' : 'not_started';
 
-    console.log(`📊 Course progress calculated: ${completedCount}/${totalUnits} units = ${progressPercentage}%`);
+    console.log(`📈 Course progress calculated:`, {
+      completedCount,
+      totalUnits,
+      progressPercentage,
+      status,
+      completedUnits: completedUnits?.map(u => u.unit_id)
+    });
 
-    // Update course progress
-    const { error: updateError } = await supabase
+    // Update course progress with explicit conflict resolution
+    const { data: updateResult, error: updateError } = await supabase
       .from('user_course_progress')
       .upsert({
         user_id: userId,
@@ -75,17 +85,38 @@ const recalculateCourseProgress = async (userId: string, courseId: string) => {
         status,
         progress_percentage: progressPercentage,
         last_accessed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
         ...(status === 'completed' && { completed_at: new Date().toISOString() }),
-        updated_at: new Date().toISOString()
-      });
+        ...(status === 'in_progress' && progressPercentage > 0 && { started_at: new Date().toISOString() })
+      }, {
+        onConflict: 'user_id,course_id'
+      })
+      .select();
 
     if (updateError) {
-      console.error('Error updating course progress:', updateError);
-    } else {
-      console.log('✅ Course progress updated successfully');
+      console.error('❌ Error updating course progress:', updateError);
+      throw updateError;
     }
+
+    console.log('✅ Course progress updated successfully:', updateResult);
+    
+    // Verify the update by fetching the latest data
+    const { data: verifyData, error: verifyError } = await supabase
+      .from('user_course_progress')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('course_id', courseId)
+      .single();
+
+    if (verifyError) {
+      console.error('❌ Error verifying progress update:', verifyError);
+    } else {
+      console.log('🔍 Verification - Current course progress in DB:', verifyData);
+    }
+
   } catch (error) {
-    console.error('Error in course progress recalculation:', error);
+    console.error('❌ Error in course progress recalculation:', error);
+    throw error;
   }
 };
 
@@ -105,7 +136,7 @@ export const safeAdminMarkUnitComplete = async (
   };
 
   try {
-    console.log('🔧 Admin unit completion:', { userId, unitId, courseId, reason });
+    console.log('🔧 Starting admin unit completion:', { userId, unitId, courseId, reason });
 
     // Call the database function
     const { data, error } = await supabase.rpc('admin_mark_unit_completed', {
@@ -116,12 +147,13 @@ export const safeAdminMarkUnitComplete = async (
     });
 
     if (error) {
+      console.error('❌ Database function error:', error);
       result.errors.push(`Failed to mark unit complete: ${error.message}`);
       result.failedUnits = 1;
       return result;
     }
 
-    // Type the response properly - cast through unknown first
+    // Type the response properly
     const response = data as unknown as DatabaseFunctionResponse;
     
     if (response?.success) {
@@ -132,9 +164,13 @@ export const safeAdminMarkUnitComplete = async (
       
       console.log('✅ Unit marked complete successfully:', response);
       
-      // Recalculate course progress after successful unit completion
+      // Critical: Recalculate course progress after successful unit completion
+      console.log('🔄 Triggering course progress recalculation...');
       await recalculateCourseProgress(userId, courseId);
+      console.log('✅ Course progress recalculation completed');
+      
     } else {
+      console.error('❌ Database function returned failure:', response);
       result.errors.push('Database function returned failure');
       result.failedUnits = 1;
     }

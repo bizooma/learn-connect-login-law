@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -43,7 +42,7 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
   const [userProgress, setUserProgress] = useState<UserProgressData | null>(null);
   const [loading, setLoading] = useState(false);
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
-  const [refreshKey, setRefreshKey] = useState(0); // Add refresh trigger
+  const [refreshKey, setRefreshKey] = useState(0);
   const { toast } = useToast();
 
   const fetchUserProgress = async () => {
@@ -51,6 +50,8 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
 
     setLoading(true);
     try {
+      console.log('🔄 Fetching user progress for user:', userId);
+
       // Fetch user profile
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
@@ -62,7 +63,7 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
         throw new Error(`Failed to fetch user profile: ${profileError.message}`);
       }
 
-      // Fetch user's course progress
+      // Fetch user's course progress with explicit logging
       const { data: courseProgress, error: progressError } = await supabase
         .from('user_course_progress')
         .select(`
@@ -75,9 +76,13 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
         throw new Error(`Failed to fetch course progress: ${progressError.message}`);
       }
 
+      console.log('📊 Raw course progress data from DB:', courseProgress);
+
       // Fetch detailed unit progress for each course
       const coursesWithUnits = await Promise.all(
         (courseProgress || []).map(async (course) => {
+          console.log(`📚 Processing course: ${course.courses.title} (${course.course_id})`);
+          
           // Get lessons and units for this course
           const { data: lessons, error: lessonsError } = await supabase
             .from('lessons')
@@ -108,6 +113,7 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
 
           // Flatten units from all lessons
           const allUnits = lessons?.flatMap(lesson => lesson.units) || [];
+          console.log(`📝 Found ${allUnits.length} units in course ${course.courses.title}`);
 
           // Get unit progress for each unit
           const unitsWithProgress = await Promise.all(
@@ -120,10 +126,15 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
                 .eq('course_id', course.course_id)
                 .single();
 
+              const isCompleted = unitProgress?.completed || false;
+              if (isCompleted) {
+                console.log(`✅ Unit "${unit.title}" is completed via ${unitProgress?.completion_method}`);
+              }
+
               return {
                 unit_id: unit.id,
                 unit_title: unit.title,
-                completed: unitProgress?.completed || false,
+                completed: isCompleted,
                 completion_method: unitProgress?.completion_method || null,
                 completed_at: unitProgress?.completed_at || null
               };
@@ -133,12 +144,19 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
           // Calculate completed and total units
           const completedUnits = unitsWithProgress.filter(unit => unit.completed).length;
           const totalUnits = unitsWithProgress.length;
+          
+          console.log(`📈 Course progress summary for ${course.courses.title}:`, {
+            completedUnits,
+            totalUnits,
+            dbProgressPercentage: course.progress_percentage,
+            calculatedPercentage: totalUnits > 0 ? Math.round((completedUnits / totalUnits) * 100) : 0
+          });
 
           return {
             course_id: course.course_id,
             course_title: course.courses.title,
             status: course.status,
-            progress_percentage: course.progress_percentage,
+            progress_percentage: course.progress_percentage, // Use the DB value
             started_at: course.started_at,
             completed_at: course.completed_at,
             last_accessed_at: course.last_accessed_at,
@@ -156,8 +174,10 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
         courses: coursesWithUnits
       });
 
+      console.log('✅ User progress data set:', coursesWithUnits);
+
     } catch (error: any) {
-      console.error('Error fetching user progress:', error);
+      console.error('❌ Error fetching user progress:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to fetch user progress",
@@ -170,13 +190,14 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
 
   useEffect(() => {
     if (isOpen && userId) {
+      console.log('🔄 UserProgressModal opened, triggering fetch...');
       fetchUserProgress();
     }
-  }, [isOpen, userId, refreshKey]); // Include refreshKey in dependencies
+  }, [isOpen, userId, refreshKey]);
 
   const handleRefresh = () => {
-    console.log('🔄 Refreshing user progress data...');
-    setRefreshKey(prev => prev + 1); // Trigger refresh
+    console.log('🔄 Manual refresh triggered in UserProgressModal...');
+    setRefreshKey(prev => prev + 1);
   };
 
   const handleDeleteCourse = async (courseId: string) => {
