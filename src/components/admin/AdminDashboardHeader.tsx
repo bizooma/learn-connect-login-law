@@ -32,7 +32,7 @@ const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
   };
 
   const handleLMSTree = () => {
-    navigate('/lms-tree');
+    navigate('/flowchart-lms-tree');
   };
 
   const handleProfile = () => {

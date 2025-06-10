@@ -1,3 +1,4 @@
+
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,13 +15,12 @@ import Courses from "./pages/Courses";
 import OwnerDashboard from "./pages/OwnerDashboard";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
-import LMSTree from "./pages/LMSTree";
 import KnowledgeBase from "./pages/KnowledgeBase";
 import AdminKnowledgeBase from "./pages/AdminKnowledgeBase";
 import StudentDashboard from "./components/StudentDashboard";
 import ClientDashboard from "./components/ClientDashboard";
 import FreeDashboard from "./components/FreeDashboard";
-import FlowchartLMSTree from "@/pages/FlowchartLMSTree";
+import ProtectedFlowchartLMSTree from "@/pages/ProtectedFlowchartLMSTree";
 
 const queryClient = new QueryClient();
 
@@ -45,10 +45,9 @@ function App() {
                 <Route path="/client-dashboard" element={<ClientDashboard />} />
                 <Route path="/free-dashboard" element={<FreeDashboard />} />
                 <Route path="/reset-password" element={<ResetPassword />} />
-                <Route path="/lms-tree" element={<LMSTree />} />
                 <Route path="/knowledge-base" element={<KnowledgeBase />} />
                 <Route path="/admin-knowledge-base" element={<AdminKnowledgeBase />} />
-                <Route path="/flowchart-lms-tree" element={<FlowchartLMSTree />} />
+                <Route path="/flowchart-lms-tree" element={<ProtectedFlowchartLMSTree />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </BrowserRouter>
