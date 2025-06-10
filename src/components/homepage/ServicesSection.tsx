@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { Scale, Users, FileText } from "lucide-react";
+import { Users, FileText } from "lucide-react";
 
 const ServicesSection = () => {
   return (
@@ -8,7 +8,11 @@ const ServicesSection = () => {
       {/* Law Firms */}
       <div className="text-center flex flex-col h-full">
         <div className="flex justify-center mb-6">
-          <Scale className="h-16 w-16 text-blue-500" />
+          <img 
+            src="/lovable-uploads/979e4b84-f03e-438a-bfc9-467e407c7bb2.png" 
+            alt="Sales Training 200 Track" 
+            className="h-16 w-auto object-contain"
+          />
         </div>
         <h3 className="text-2xl font-bold text-gray-900 mb-4">LAW FIRMS</h3>
         <p className="text-gray-600 mb-8 leading-relaxed flex-grow">
