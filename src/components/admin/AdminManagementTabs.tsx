@@ -6,20 +6,18 @@ import AssignmentManagement from "./AssignmentManagement";
 import UserProgressManagement from "./UserProgressManagement";
 import QuizManagement from "./QuizManagement";
 import NotificationManagement from "./NotificationManagement";
-import DataProtection from "./DataProtection";
 
 const AdminManagementTabs = () => {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="courses" className="w-full">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="courses">Courses</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="assignments">Assignments</TabsTrigger>
           <TabsTrigger value="progress">User Progress</TabsTrigger>
           <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
           <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="data-protection">Data Protection</TabsTrigger>
         </TabsList>
 
         <TabsContent value="courses" className="space-y-4">
@@ -44,10 +42,6 @@ const AdminManagementTabs = () => {
 
         <TabsContent value="notifications" className="space-y-4">
           <NotificationManagement />
-        </TabsContent>
-
-        <TabsContent value="data-protection" className="space-y-4">
-          <DataProtection />
         </TabsContent>
       </Tabs>
     </div>
