@@ -1459,6 +1459,15 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      diagnose_progress_inconsistencies: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          total_users_with_progress: number
+          users_with_zero_progress: number
+          users_with_completed_units_but_zero_progress: number
+          sample_inconsistent_records: Json
+        }[]
+      }
       generate_certificate_number: {
         Args: Record<PropertyKey, never>
         Returns: string
