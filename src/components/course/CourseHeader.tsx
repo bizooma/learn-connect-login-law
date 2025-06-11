@@ -5,6 +5,7 @@ import { ArrowLeft, Star, Users, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Tables } from "@/integrations/supabase/types";
 import { getLevelColor, getLevelDisplayName } from "@/utils/courseUtils";
+import { useEnrollmentCounts } from "@/hooks/useEnrollmentCounts";
 
 type Course = Tables<'courses'>;
 
@@ -14,6 +15,10 @@ interface CourseHeaderProps {
 
 const CourseHeader = ({ course }: CourseHeaderProps) => {
   const navigate = useNavigate();
+  const { enrollmentCounts } = useEnrollmentCounts();
+
+  // Get actual enrollment count
+  const enrollmentCount = enrollmentCounts[course.id] || 0;
 
   return (
     <>
@@ -67,7 +72,7 @@ const CourseHeader = ({ course }: CourseHeaderProps) => {
               <div className="flex flex-wrap items-center gap-6 text-sm text-white/80">
                 <div className="flex items-center">
                   <Users className="h-4 w-4 mr-2" />
-                  {course.students_enrolled || 0} students
+                  {enrollmentCount} students
                 </div>
                 <div className="flex items-center">
                   <Clock className="h-4 w-4 mr-2" />
