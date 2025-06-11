@@ -17,65 +17,35 @@ export const useEnrollmentCounts = () => {
     try {
       setLoading(true);
       
-      // Get enrollment counts from course_assignments
-      const { data: assignmentCounts, error: assignmentError } = await supabase
+      // Get all course assignments
+      const { data: assignments, error: assignmentsError } = await supabase
         .from('course_assignments')
-        .select('course_id')
-        .eq('is_mandatory', false); // Include all assignments
+        .select('course_id, user_id');
 
-      if (assignmentError) {
-        throw assignmentError;
+      if (assignmentsError) {
+        throw assignmentsError;
       }
 
-      // Also get counts from user_course_progress for users who might have progress without explicit assignment
-      const { data: progressCounts, error: progressError } = await supabase
-        .from('user_course_progress')
-        .select('course_id');
+      // Get all active users (not deleted)
+      const { data: activeUsers, error: usersError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('is_deleted', false);
 
-      if (progressError) {
-        throw progressError;
+      if (usersError) {
+        throw usersError;
       }
 
-      // Combine and count unique enrollments per course
-      const allEnrollments = [...(assignmentCounts || []), ...(progressCounts || [])];
-      const courseEnrollments: Record<string, Set<string>> = {};
+      // Create a Set of active user IDs for quick lookup
+      const activeUserIds = new Set(activeUsers?.map(user => user.id) || []);
 
-      // For assignments, we count each assignment
-      assignmentCounts?.forEach(assignment => {
-        if (!courseEnrollments[assignment.course_id]) {
-          courseEnrollments[assignment.course_id] = new Set();
-        }
-        courseEnrollments[assignment.course_id].add(assignment.course_id + '_assignment');
-      });
-
-      // For progress, we count each unique user
-      progressCounts?.forEach(progress => {
-        if (!courseEnrollments[progress.course_id]) {
-          courseEnrollments[progress.course_id] = new Set();
-        }
-        courseEnrollments[progress.course_id].add(progress.course_id + '_progress');
-      });
-
-      // Get more accurate count by querying assignments with user info
-      const { data: detailedAssignments, error: detailedError } = await supabase
-        .from('course_assignments')
-        .select(`
-          course_id,
-          user_id,
-          profiles!inner(id, is_deleted)
-        `);
-
-      if (detailedError) {
-        console.error('Error fetching detailed assignments:', detailedError);
-      }
-
-      // Count active users per course
+      // Count enrollments per course, only for active users
       const enrollmentMap: Record<string, number> = {};
       
-      if (detailedAssignments) {
-        detailedAssignments.forEach(assignment => {
-          // Only count non-deleted users
-          if (!assignment.profiles?.is_deleted) {
+      if (assignments) {
+        assignments.forEach(assignment => {
+          // Only count if the user is active (not deleted)
+          if (activeUserIds.has(assignment.user_id)) {
             if (!enrollmentMap[assignment.course_id]) {
               enrollmentMap[assignment.course_id] = 0;
             }
