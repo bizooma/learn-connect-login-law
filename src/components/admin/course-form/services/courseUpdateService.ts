@@ -26,17 +26,29 @@ export const updateCourseBasicInfo = async (
   }
 
   const updateData: any = {
-    title: courseData.title,
-    description: courseData.description,
-    instructor: courseData.instructor,
-    category: courseData.category,
-    level: courseData.level,
-    duration: courseData.duration,
+    title: courseData.title || course.title,
+    description: courseData.description || course.description,
+    instructor: courseData.instructor || course.instructor,
+    category: courseData.category || course.category,
+    level: courseData.level || course.level,
+    duration: courseData.duration || course.duration,
     updated_at: new Date().toISOString(),
   };
 
+  // Only update image if a new one was uploaded
   if (imageUrl) {
     updateData.image_url = imageUrl;
+  }
+
+  // Ensure no empty values that would violate constraints
+  if (!updateData.title || updateData.title.trim() === '') {
+    updateData.title = course.title;
+  }
+  if (!updateData.instructor || updateData.instructor.trim() === '') {
+    updateData.instructor = course.instructor;
+  }
+  if (!updateData.category || updateData.category.trim() === '') {
+    updateData.category = course.category;
   }
 
   const { data: updatedCourse, error: courseError } = await supabase
@@ -62,6 +74,18 @@ export const updateCourse = async (
 ) => {
   console.log('Updating course with ID:', courseId, 'Data:', courseData);
 
+  // First, get the existing course to preserve current values
+  const { data: existingCourse, error: fetchError } = await supabase
+    .from('courses')
+    .select('*')
+    .eq('id', courseId)
+    .single();
+
+  if (fetchError) {
+    console.error('Error fetching existing course:', fetchError);
+    throw new Error(`Failed to fetch existing course: ${fetchError.message}`);
+  }
+
   let imageUrl = '';
   
   if (courseData.image_file) {
@@ -76,18 +100,30 @@ export const updateCourse = async (
   }
 
   const updateData: any = {
-    title: courseData.title,
-    description: courseData.description,
-    instructor: courseData.instructor,
-    category: courseData.category,
-    level: courseData.level,
-    duration: courseData.duration,
+    title: courseData.title || existingCourse.title,
+    description: courseData.description || existingCourse.description,
+    instructor: courseData.instructor || existingCourse.instructor,
+    category: courseData.category || existingCourse.category,
+    level: courseData.level || existingCourse.level,
+    duration: courseData.duration || existingCourse.duration,
     is_draft: isDraft,
     updated_at: new Date().toISOString(),
   };
 
+  // Only update image if a new one was uploaded
   if (imageUrl) {
     updateData.image_url = imageUrl;
+  }
+
+  // Ensure no empty values that would violate constraints
+  if (!updateData.title || updateData.title.trim() === '') {
+    updateData.title = existingCourse.title;
+  }
+  if (!updateData.instructor || updateData.instructor.trim() === '') {
+    updateData.instructor = existingCourse.instructor;
+  }
+  if (!updateData.category || updateData.category.trim() === '') {
+    updateData.category = existingCourse.category;
   }
 
   const { data: course, error: courseError } = await supabase
