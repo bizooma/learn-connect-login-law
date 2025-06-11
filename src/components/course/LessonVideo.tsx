@@ -23,7 +23,10 @@ const LessonVideo = ({ lesson, courseId }: LessonVideoProps) => {
 
   const getYouTubeEmbedUrl = (url: string) => {
     const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/);
-    return videoId ? `https://www.youtube.com/embed/${videoId[1]}` : url;
+    if (videoId) {
+      return `https://www.youtube.com/embed/${videoId[1]}?modestbranding=1&rel=0&showinfo=0&controls=1&disablekb=0&fs=1&iv_load_policy=3`;
+    }
+    return url;
   };
 
   return (

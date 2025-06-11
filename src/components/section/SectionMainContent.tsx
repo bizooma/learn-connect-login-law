@@ -31,7 +31,7 @@ const getYouTubeEmbedUrl = (url: string): string => {
   }
   
   if (videoId) {
-    return `https://www.youtube.com/embed/${videoId}`;
+    return `https://www.youtube.com/embed/${videoId}?modestbranding=1&rel=0&showinfo=0&controls=1&disablekb=0&fs=1&iv_load_policy=3`;
   }
   
   return url; // Return original if not a YouTube URL
