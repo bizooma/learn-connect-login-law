@@ -52,7 +52,7 @@ const BulkProgressRecalculation = () => {
       }
 
       console.log('✅ Bulk recalculation completed:', data);
-      setLastResult(data);
+      setLastResult(data as BulkRecalculationResult);
       
       toast({
         title: "✅ Bulk Recalculation Complete",
