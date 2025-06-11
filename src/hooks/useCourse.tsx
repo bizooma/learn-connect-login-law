@@ -37,119 +37,134 @@ export const useCourse = (courseId: string) => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (!courseId) return;
+  const fetchCourse = async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-    const fetchCourse = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Fetch course with modules, lessons, and units with proper ordering
-        const { data: courseData, error: courseError } = await supabase
-          .from('courses')
-          .select(`
+      // Fetch course with modules, lessons, and units with proper ordering
+      const { data: courseData, error: courseError } = await supabase
+        .from('courses')
+        .select(`
+          *,
+          modules:modules(
             *,
-            modules:modules(
+            lessons:lessons(
               *,
-              lessons:lessons(
-                *,
-                units:units(*)
-              )
+              units:units(*)
             )
-          `)
-          .eq('id', courseId)
-          .order('sort_order', { referencedTable: 'modules', ascending: true })
-          .order('sort_order', { referencedTable: 'modules.lessons', ascending: true })
-          .order('sort_order', { referencedTable: 'modules.lessons.units', ascending: true })
-          .single();
+          )
+        `)
+        .eq('id', courseId)
+        .order('sort_order', { referencedTable: 'modules', ascending: true })
+        .order('sort_order', { referencedTable: 'modules.lessons', ascending: true })
+        .order('sort_order', { referencedTable: 'modules.lessons.units', ascending: true })
+        .single();
 
-        if (courseError) throw courseError;
+      if (courseError) throw courseError;
 
-        if (courseData) {
-          // Get all unit IDs for quiz lookup
-          const allUnits = courseData.modules?.flatMap(m => 
-            m.lessons?.flatMap(l => l.units || []) || []
-          ) || [];
+      if (courseData) {
+        // Get all unit IDs for quiz lookup
+        const allUnits = courseData.modules?.flatMap(m => 
+          m.lessons?.flatMap(l => l.units || []) || []
+        ) || [];
 
-          // Fetch quizzes for all units
-          const { data: quizzesData } = await supabase
-            .from('quizzes')
-            .select('id, title, description, is_active, unit_id')
-            .in('unit_id', allUnits.map(u => u.id));
+        // Fetch quizzes for all units
+        const { data: quizzesData } = await supabase
+          .from('quizzes')
+          .select('id, title, description, is_active, unit_id')
+          .in('unit_id', allUnits.map(u => u.id));
 
-          // Create quiz map
-          const quizMap = new Map();
-          quizzesData?.forEach(quiz => {
-            if (quiz.unit_id) {
-              quizMap.set(quiz.unit_id, quiz);
-            }
-          });
+        // Create quiz map
+        const quizMap = new Map();
+        quizzesData?.forEach(quiz => {
+          if (quiz.unit_id) {
+            quizMap.set(quiz.unit_id, quiz);
+          }
+        });
 
-          // Enhance modules with proper ordering
-          const enhancedModules = courseData.modules?.map(module => ({
-            ...module,
-            lessons: module.lessons?.map(lesson => ({
-              ...lesson,
-              units: lesson.units?.map(unit => {
-                let files: Array<{ url: string; name: string; size: number }> = [];
-                
-                // Handle the new files format (jsonb array)
-                if (unit.files) {
-                  try {
-                    const parsedFiles = Array.isArray(unit.files) ? unit.files : JSON.parse(unit.files as string);
-                    files = Array.isArray(parsedFiles) ? parsedFiles : [];
-                  } catch (e) {
-                    console.error('Error parsing unit files:', e);
-                    files = [];
-                  }
+        // Enhance modules with proper ordering
+        const enhancedModules = courseData.modules?.map(module => ({
+          ...module,
+          lessons: module.lessons?.map(lesson => ({
+            ...lesson,
+            units: lesson.units?.map(unit => {
+              let files: Array<{ url: string; name: string; size: number }> = [];
+              
+              // Handle the new files format (jsonb array)
+              if (unit.files) {
+                try {
+                  const parsedFiles = Array.isArray(unit.files) ? unit.files : JSON.parse(unit.files as string);
+                  files = Array.isArray(parsedFiles) ? parsedFiles : [];
+                } catch (e) {
+                  console.error('Error parsing unit files:', e);
+                  files = [];
                 }
-                
-                // Fallback to legacy single file format if no files array
-                if (files.length === 0 && unit.file_url) {
-                  files = [{
-                    url: unit.file_url,
-                    name: unit.file_name || 'Download File',
-                    size: unit.file_size || 0
-                  }];
-                }
+              }
+              
+              // Fallback to legacy single file format if no files array
+              if (files.length === 0 && unit.file_url) {
+                files = [{
+                  url: unit.file_url,
+                  name: unit.file_name || 'Download File',
+                  size: unit.file_size || 0
+                }];
+              }
 
-                return {
-                  ...unit,
-                  quiz: quizMap.get(unit.id) || undefined,
-                  files
-                };
-              })?.sort((a, b) => a.sort_order - b.sort_order) || []
-            }))?.sort((a, b) => a.sort_order - b.sort_order) || []
-          }))?.sort((a, b) => a.sort_order - b.sort_order) || [];
+              return {
+                ...unit,
+                quiz: quizMap.get(unit.id) || undefined,
+                files
+              };
+            })?.sort((a, b) => a.sort_order - b.sort_order) || []
+          }))?.sort((a, b) => a.sort_order - b.sort_order) || []
+        }))?.sort((a, b) => a.sort_order - b.sort_order) || [];
 
-          // For backward compatibility, also create a flat lessons array with proper ordering
-          const flatLessons = enhancedModules.flatMap(m => m.lessons || []);
+        // For backward compatibility, also create a flat lessons array with proper ordering
+        const flatLessons = enhancedModules.flatMap(m => m.lessons || []);
 
-          const enhancedCourse = {
-            ...courseData,
-            modules: enhancedModules,
-            lessons: flatLessons
-          };
+        const enhancedCourse = {
+          ...courseData,
+          modules: enhancedModules,
+          lessons: flatLessons
+        };
 
-          setCourse(enhancedCourse);
+        setCourse(enhancedCourse);
 
-          // Auto-select first unit if none selected
-          if (!selectedUnit && flatLessons.length > 0) {
-            const firstUnit = flatLessons[0]?.units?.[0];
-            if (firstUnit) {
-              setSelectedUnit(firstUnit);
-            }
+        // Auto-select first unit if none selected and we have units
+        if (!selectedUnit && flatLessons.length > 0) {
+          const firstUnit = flatLessons[0]?.units?.[0];
+          if (firstUnit) {
+            setSelectedUnit(firstUnit);
           }
         }
-      } catch (err) {
-        console.error('Error fetching course:', err);
-        setError(err instanceof Error ? err.message : 'Failed to fetch course');
-      } finally {
-        setLoading(false);
-      }
-    };
 
+        // If current selected unit no longer exists, reset selection
+        if (selectedUnit) {
+          const unitStillExists = flatLessons.some(lesson => 
+            lesson.units.some(unit => unit.id === selectedUnit.id)
+          );
+          if (!unitStillExists) {
+            const firstUnit = flatLessons[0]?.units?.[0];
+            setSelectedUnit(firstUnit || null);
+          }
+        }
+      }
+    } catch (err) {
+      console.error('Error fetching course:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch course');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const refreshCourse = async () => {
+    console.log('Refreshing course data...');
+    await fetchCourse();
+  };
+
+  useEffect(() => {
+    if (!courseId) return;
     fetchCourse();
   }, [courseId]);
 
@@ -158,6 +173,7 @@ export const useCourse = (courseId: string) => {
     selectedUnit,
     setSelectedUnit,
     loading,
-    error
+    error,
+    refreshCourse
   };
 };

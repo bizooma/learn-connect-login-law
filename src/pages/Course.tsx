@@ -5,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import CourseHeader from "@/components/course/CourseHeader";
 import CourseSidebar from "@/components/course/CourseSidebar";
 import CourseMainContent from "@/components/course/CourseMainContent";
@@ -16,7 +17,7 @@ const Course = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { isAdmin } = useUserRole();
-  const { course, selectedUnit, setSelectedUnit, loading, error } = useCourse(courseId!);
+  const { course, selectedUnit, setSelectedUnit, loading, error, refreshCourse } = useCourse(courseId!);
   const { updateCourseProgress } = useUserProgress(user?.id);
 
   useEffect(() => {
@@ -35,6 +36,62 @@ const Course = () => {
       updateCourseProgress(course.id, 'in_progress', 0);
     }
   }, [course, user, authLoading, isAdmin, navigate, updateCourseProgress]);
+
+  // Set up real-time subscriptions for course content changes
+  useEffect(() => {
+    if (!courseId) return;
+
+    console.log('Setting up real-time subscriptions for course:', courseId);
+
+    // Subscribe to changes in modules, lessons, and units for this course
+    const channel = supabase
+      .channel(`course-${courseId}-changes`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'modules',
+          filter: `course_id=eq.${courseId}`
+        },
+        (payload) => {
+          console.log('Module change detected:', payload);
+          refreshCourse();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'lessons',
+          filter: `course_id=eq.${courseId}`
+        },
+        (payload) => {
+          console.log('Lesson change detected:', payload);
+          refreshCourse();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'units'
+        },
+        (payload) => {
+          console.log('Unit change detected:', payload);
+          // Check if this unit belongs to our course by refreshing
+          refreshCourse();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('Cleaning up real-time subscriptions');
+      supabase.removeChannel(channel);
+    };
+  }, [courseId, refreshCourse]);
 
   if (authLoading || loading) {
     return <CourseLoading />;
