@@ -1443,6 +1443,18 @@ export type Database = {
         }
         Returns: Json
       }
+      admin_recalculate_all_progress: {
+        Args: { p_reason?: string }
+        Returns: Json
+      }
+      bulk_recalculate_course_progress: {
+        Args: { p_audit_reason?: string }
+        Returns: {
+          courses_updated: number
+          users_affected: number
+          details: Json
+        }[]
+      }
       cleanup_old_drafts: {
         Args: Record<PropertyKey, never>
         Returns: undefined

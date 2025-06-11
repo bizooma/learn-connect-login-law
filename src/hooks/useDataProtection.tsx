@@ -170,6 +170,44 @@ export const useDataProtection = () => {
     }
   };
 
+  // New bulk progress recalculation operation
+  const protectedBulkProgressRecalculation = async (reason?: string) => {
+    setIsProcessing(true);
+    try {
+      console.log('🔄 Starting protected bulk progress recalculation...');
+      
+      const { data, error } = await supabase.rpc('admin_recalculate_all_progress', {
+        p_reason: reason || 'Administrative bulk progress recalculation'
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      const result = {
+        success: data.success,
+        coursesUpdated: data.courses_updated,
+        usersAffected: data.users_affected,
+        errors: data.details?.errors || [],
+        warnings: [],
+        backupId: data.details?.audit_id
+      };
+
+      showOperationResult(result, 'Bulk Progress Recalculation');
+      return result.success;
+    } catch (error: any) {
+      console.error('❌ Protected bulk recalculation error:', error);
+      toast({
+        title: "🚨 Recalculation Failed",
+        description: error.message || "Failed to perform bulk recalculation",
+        variant: "destructive",
+      });
+      return false;
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
   // Integrity validation
   const validateAllDataIntegrity = async (userId?: string) => {
     setIsProcessing(true);
@@ -248,6 +286,9 @@ export const useDataProtection = () => {
     // New admin unit completion operations
     protectedAdminMarkUnitComplete,
     protectedBulkAdminMarkUnitsComplete,
+    
+    // New bulk recalculation operation
+    protectedBulkProgressRecalculation,
     
     // Validation
     validateAllDataIntegrity,
