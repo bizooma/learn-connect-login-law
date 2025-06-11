@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { CourseFormData, ModuleData } from "../types";
 import { uploadImageFile } from "../fileUploadUtils";
@@ -150,12 +149,28 @@ const updateCourseMetadataSafely = async (courseId: string, courseData: CourseFo
   console.log('Updating course metadata safely...');
   console.log('Course data level:', courseData.level);
   
+  // First, fetch the existing course data to use as fallbacks
+  const { data: existingCourse, error: fetchError } = await supabase
+    .from('courses')
+    .select('*')
+    .eq('id', courseId)
+    .single();
+
+  if (fetchError) {
+    console.error('Error fetching existing course:', fetchError);
+    throw new Error(`Failed to fetch existing course: ${fetchError.message}`);
+  }
+
+  if (!existingCourse) {
+    throw new Error('Course not found');
+  }
+
   const updateData: any = {
-    title: courseData.title,
-    description: courseData.description,
-    instructor: courseData.instructor,
-    category: courseData.category,
-    duration: courseData.duration,
+    title: courseData.title || existingCourse.title,
+    description: courseData.description || existingCourse.description,
+    instructor: courseData.instructor || existingCourse.instructor,
+    category: courseData.category || existingCourse.category,
+    duration: courseData.duration || existingCourse.duration,
     updated_at: new Date().toISOString(),
   };
 
@@ -190,15 +205,39 @@ const updateCourseMetadataSafely = async (courseId: string, courseData: CourseFo
     updateData.level = courseData.level;
     console.log('Level validation passed, adding to update data');
   } else {
-    console.log('No level provided, skipping level validation');
+    // Use existing level if no new level provided
+    updateData.level = existingCourse.level;
+    console.log('Using existing level:', existingCourse.level);
   }
 
+  // Handle image upload
   if (courseData.image_file) {
     try {
       updateData.image_url = await uploadImageFile(courseData.image_file);
     } catch (error) {
       console.warn('Image upload failed:', error);
     }
+  }
+
+  // Final validation to ensure no empty values that would violate constraints
+  if (!updateData.title || updateData.title.trim() === '') {
+    updateData.title = existingCourse.title;
+    console.log('Using fallback title:', existingCourse.title);
+  }
+  if (!updateData.instructor || updateData.instructor.trim() === '') {
+    updateData.instructor = existingCourse.instructor;
+    console.log('Using fallback instructor:', existingCourse.instructor);
+  }
+  if (!updateData.category || updateData.category.trim() === '') {
+    updateData.category = existingCourse.category;
+    console.log('Using fallback category:', existingCourse.category);
+  }
+
+  // Validate that we have valid values before attempting the update
+  if (!updateData.title || updateData.title.trim() === '' ||
+      !updateData.instructor || updateData.instructor.trim() === '' ||
+      !updateData.category || updateData.category.trim() === '') {
+    throw new Error('Cannot update course: missing required fields (title, instructor, or category)');
   }
 
   console.log('Final update data:', updateData);
