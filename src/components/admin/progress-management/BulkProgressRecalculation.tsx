@@ -35,7 +35,15 @@ interface SupabaseBulkRecalculationResponse {
   };
 }
 
-// Type for diagnostic results
+// Type for diagnostic results from Supabase
+interface SupabaseDiagnosticResponse {
+  total_users_with_progress: number;
+  users_with_zero_progress: number;
+  users_with_completed_units_but_zero_progress: number;
+  sample_inconsistent_records: any; // This comes as JSON from Supabase
+}
+
+// Type for our internal diagnostic results
 interface DiagnosticResult {
   total_users_with_progress: number;
   users_with_zero_progress: number;
@@ -64,11 +72,23 @@ const BulkProgressRecalculation = () => {
       }
 
       console.log('📊 Diagnostic results:', data);
-      setDiagnosticResult(data[0]); // RPC returns array, take first result
+      
+      // Transform the Supabase response to our internal type
+      const supabaseResult = data[0] as SupabaseDiagnosticResponse;
+      const transformedResult: DiagnosticResult = {
+        total_users_with_progress: supabaseResult.total_users_with_progress,
+        users_with_zero_progress: supabaseResult.users_with_zero_progress,
+        users_with_completed_units_but_zero_progress: supabaseResult.users_with_completed_units_but_zero_progress,
+        sample_inconsistent_records: Array.isArray(supabaseResult.sample_inconsistent_records) 
+          ? supabaseResult.sample_inconsistent_records 
+          : (supabaseResult.sample_inconsistent_records ? [supabaseResult.sample_inconsistent_records] : [])
+      };
+      
+      setDiagnosticResult(transformedResult);
       
       toast({
         title: "🔍 Diagnostic Complete",
-        description: `Found ${data[0]?.users_with_completed_units_but_zero_progress || 0} users with progress inconsistencies`,
+        description: `Found ${transformedResult.users_with_completed_units_but_zero_progress} users with progress inconsistencies`,
       });
       
     } catch (error: any) {
