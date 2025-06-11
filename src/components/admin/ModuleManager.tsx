@@ -100,13 +100,13 @@ const ModuleManager = ({ modules, onModulesChange }: ModuleManagerProps) => {
             moduleIndex={moduleIndex}
             isExpanded={expandedModules.has(moduleIndex)}
             onToggleExpanded={() => toggleExpanded(moduleIndex)}
-            onUpdate={(field, value) => updateModule(moduleIndex, field, value)}
+            onUpdate={(field, value) => updateModule(moduleIndex, field as keyof ModuleData, value)}
             onDelete={() => deleteModule(moduleIndex)}
             onAddLesson={() => addLesson(moduleIndex)}
-            onUpdateLesson={(lessonIndex, field, value) => updateLesson(moduleIndex, lessonIndex, field, value)}
+            onUpdateLesson={(lessonIndex, field, value) => updateLesson(moduleIndex, lessonIndex, field as keyof LessonData, value)}
             onDeleteLesson={(lessonIndex) => deleteLesson(moduleIndex, lessonIndex)}
             onAddUnit={(lessonIndex) => addUnit(moduleIndex, lessonIndex)}
-            onUpdateUnit={(lessonIndex, unitIndex, field, value) => updateUnit(moduleIndex, lessonIndex, unitIndex, field, value)}
+            onUpdateUnit={(lessonIndex, unitIndex, field, value) => updateUnit(moduleIndex, lessonIndex, unitIndex, field as keyof UnitData, value)}
             onDeleteUnit={(lessonIndex, unitIndex) => deleteUnit(moduleIndex, lessonIndex, unitIndex)}
             onVideoFileChange={(lessonIndex, unitIndex, file) => handleVideoFileChange(moduleIndex, lessonIndex, unitIndex, file)}
             onMoveModuleUp={() => moveModuleToPosition(moduleIndex, moduleIndex - 1)}

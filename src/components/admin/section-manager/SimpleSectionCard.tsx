@@ -113,9 +113,9 @@ const SimpleSectionCard = ({
                   unitIndex={originalIndex}
                   sectionIndex={sectionIndex}
                   totalSections={1}
-                  onUpdateUnit={(unitIdx, field, value) => onUpdateUnit(unitIdx, field, value)}
-                  onDeleteUnit={(unitIdx) => onDeleteUnit(unitIdx)}
-                  onVideoFileChange={(unitIdx, file) => onVideoFileChange(unitIdx, file)}
+                  onUpdateUnit={(sectionIdx, unitIdx, field, value) => onUpdateUnit(unitIdx, field, value)}
+                  onDeleteUnit={(sectionIdx, unitIdx) => onDeleteUnit(unitIdx)}
+                  onVideoFileChange={(sectionIdx, unitIdx, file) => onVideoFileChange(unitIdx, file)}
                   onMoveUnitUp={() => {}}
                   onMoveUnitDown={() => {}}
                   onMoveUnitToSection={() => {}}
