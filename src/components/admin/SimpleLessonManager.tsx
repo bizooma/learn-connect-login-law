@@ -133,23 +133,13 @@ const SimpleLessonManager = ({ lessons, onLessonsChange }: SimpleLessonManagerPr
             lesson={lesson}
             lessonIndex={lessonIndex}
             isExpanded={expandedLessons.has(lessonIndex)}
-            onToggleExpanded={toggleExpanded}
-            onUpdateLesson={updateLesson}
-            onDeleteLesson={deleteLesson}
-            onAddUnit={handleAddUnitToLesson}
-            onUpdateUnit={updateUnit}
-            onDeleteUnit={deleteUnit}
-            onVideoFileChange={handleVideoFileChange}
-            onLessonImageUpdate={handleLessonImageUpdate}
-            onLessonVideoFileChange={handleLessonVideoFileChange}
-            onMoveLessonUp={() => handleMoveLessonUp(lessonIndex)}
-            onMoveLessonDown={() => handleMoveLessonDown(lessonIndex)}
-            onMoveUnitUp={handleMoveUnitUp}
-            onMoveUnitDown={handleMoveUnitDown}
-            onMoveUnitToLesson={moveUnitToLesson}
-            canMoveLessonUp={lessonIndex > 0}
-            canMoveLessonDown={lessonIndex < lessons.length - 1}
-            totalLessons={lessons.length}
+            onToggleExpanded={() => toggleExpanded(lessonIndex)}
+            onUpdate={(field, value) => updateLesson(lessonIndex, field, value)}
+            onDelete={() => deleteLesson(lessonIndex)}
+            onAddUnit={() => handleAddUnitToLesson(lessonIndex)}
+            onUpdateUnit={(unitIndex, field, value) => updateUnit(lessonIndex, unitIndex, field, value)}
+            onDeleteUnit={(unitIndex) => deleteUnit(lessonIndex, unitIndex)}
+            onVideoFileChange={(unitIndex, file) => handleVideoFileChange(lessonIndex, unitIndex, file)}
           />
         ))}
       </div>

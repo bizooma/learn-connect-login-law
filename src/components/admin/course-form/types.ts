@@ -1,3 +1,4 @@
+
 import { Course } from "@/integrations/supabase/types";
 
 export interface CourseFormData extends Omit<Course, 'id' | 'created_at'> {
@@ -18,6 +19,7 @@ export interface UnitData {
   file_url?: string;
   file_name?: string;
   file_size?: number;
+  image_url?: string;
   quiz_id?: string;
   _deletedInForm?: boolean; // Track form-level deletions
   _lastFilesUpdate?: number;
@@ -28,6 +30,11 @@ export interface LessonData {
   title: string;
   description: string;
   image_url?: string;
+  file_url?: string;
+  file_name?: string;
+  file_size?: number;
+  image_file?: File;
+  file?: File;
   sort_order: number;
   units: UnitData[];
   _deletedInForm?: boolean; // Track form-level deletions
@@ -38,7 +45,23 @@ export interface ModuleData {
   title: string;
   description: string;
   image_url?: string;
+  file_url?: string;
+  file_name?: string;
+  file_size?: number;
+  image_file?: File;
+  file?: File;
   sort_order: number;
   lessons: LessonData[];
+  _deletedInForm?: boolean; // Track form-level deletions
+}
+
+// Legacy interface for backward compatibility
+export interface SectionData {
+  id?: string;
+  title: string;
+  description: string;
+  image_url?: string;
+  sort_order: number;
+  units: UnitData[];
   _deletedInForm?: boolean; // Track form-level deletions
 }

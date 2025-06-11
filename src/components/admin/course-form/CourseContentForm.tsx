@@ -17,9 +17,6 @@ const CourseContentForm = ({ modules, onModulesChange }: CourseContentFormProps)
       title: '',
       description: '',
       image_url: '',
-      file_url: '',
-      file_name: '',
-      file_size: 0,
       sort_order: modules.length,
       lessons: []
     };
@@ -42,9 +39,6 @@ const CourseContentForm = ({ modules, onModulesChange }: CourseContentFormProps)
       title: '',
       description: '',
       image_url: '',
-      file_url: '',
-      file_name: '',
-      file_size: 0,
       sort_order: modules[moduleIndex].lessons.length,
       units: []
     };
@@ -78,10 +72,6 @@ const CourseContentForm = ({ modules, onModulesChange }: CourseContentFormProps)
       duration_minutes: 0,
       sort_order: modules[moduleIndex].lessons[lessonIndex].units.length,
       quiz_id: undefined,
-      image_url: '',
-      file_url: '',
-      file_name: '',
-      file_size: 0,
     };
     const updatedModules = [...modules];
     updatedModules[moduleIndex].lessons[lessonIndex].units.push(newUnit);

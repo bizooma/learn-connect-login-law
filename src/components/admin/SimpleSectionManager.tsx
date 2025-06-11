@@ -76,22 +76,13 @@ const SimpleSectionManager = ({ sections, onSectionsChange }: SimpleSectionManag
           section={section}
           sectionIndex={sectionIndex}
           isExpanded={sectionManagerProps.expandedSections.has(sectionIndex)}
-          onToggleExpanded={sectionManagerProps.toggleSectionExpanded}
-          onUpdateSection={sectionManagerProps.updateSection}
-          onDeleteSection={sectionManagerProps.deleteSection}
-          onAddUnit={sectionManagerProps.addUnit}
-          onUpdateUnit={sectionManagerProps.updateUnit}
-          onDeleteUnit={sectionManagerProps.deleteUnit}
-          onVideoFileChange={sectionManagerProps.handleVideoFileChange}
-          onSectionImageUpdate={sectionManagerProps.handleSectionImageUpdate}
-          onMoveSectionUp={() => moveSectionUp(sectionIndex)}
-          onMoveSectionDown={() => moveSectionDown(sectionIndex)}
-          onMoveUnitUp={moveUnitUp}
-          onMoveUnitDown={moveUnitDown}
-          onMoveUnitToSection={sectionManagerProps.moveUnitToSection}
-          canMoveSectionUp={sectionIndex > 0}
-          canMoveSectionDown={sectionIndex < sections.length - 1}
-          totalSections={sections.length}
+          onToggleExpanded={() => sectionManagerProps.toggleSectionExpanded(sectionIndex)}
+          onUpdate={(field, value) => sectionManagerProps.updateSection(sectionIndex, field, value)}
+          onDelete={() => sectionManagerProps.deleteSection(sectionIndex)}
+          onAddUnit={() => sectionManagerProps.addUnit(sectionIndex)}
+          onUpdateUnit={(unitIndex, field, value) => sectionManagerProps.updateUnit(sectionIndex, unitIndex, field, value)}
+          onDeleteUnit={(unitIndex) => sectionManagerProps.deleteUnit(sectionIndex, unitIndex)}
+          onVideoFileChange={(unitIndex, file) => sectionManagerProps.handleVideoFileChange(sectionIndex, unitIndex, file)}
         />
       ))}
 

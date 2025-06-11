@@ -19,7 +19,11 @@ export const useCourseForm = (course?: Course | null, open?: boolean) => {
       level: course?.level || "",
       duration: course?.duration || "",
       image_url: course?.image_url || "",
-      image_file: undefined,
+      image_file: null,
+      tags: course?.tags || [],
+      is_draft: course?.is_draft || false,
+      students_enrolled: course?.students_enrolled || 0,
+      rating: course?.rating || 0,
     },
   });
 
@@ -34,7 +38,11 @@ export const useCourseForm = (course?: Course | null, open?: boolean) => {
         level: course.level || "",
         duration: course.duration || "",
         image_url: course.image_url || "",
-        image_file: undefined,
+        image_file: null,
+        tags: course.tags || [],
+        is_draft: course.is_draft || false,
+        students_enrolled: course.students_enrolled || 0,
+        rating: course.rating || 0,
       });
     }
   });
