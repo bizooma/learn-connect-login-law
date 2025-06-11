@@ -1,6 +1,6 @@
+
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { 
   safeRoleUpdate, 
   safeUserDeactivation, 
@@ -21,19 +21,6 @@ import {
   safeAdminMarkUnitComplete,
   safeBulkAdminMarkUnitsComplete
 } from "@/components/admin/progress-management/services/safeAdminUnitOperations";
-
-// Type for the Supabase RPC response
-interface BulkRecalculationResponse {
-  success: boolean;
-  courses_updated: number;
-  users_affected: number;
-  details: {
-    affected_users: string[];
-    affected_courses: string[];
-    errors: string[];
-    audit_id: string;
-  };
-}
 
 export const useDataProtection = () => {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -153,7 +140,7 @@ export const useDataProtection = () => {
     }
   };
 
-  // New admin unit completion operations
+  // Admin unit completion operations
   const protectedAdminMarkUnitComplete = async (
     userId: string, 
     unitId: string, 
@@ -179,47 +166,6 @@ export const useDataProtection = () => {
       const result = await safeBulkAdminMarkUnitsComplete(assignments, reason);
       showOperationResult(result, 'Bulk Admin Unit Completion');
       return result.success;
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  // New bulk progress recalculation operation
-  const protectedBulkProgressRecalculation = async (reason?: string) => {
-    setIsProcessing(true);
-    try {
-      console.log('🔄 Starting protected bulk progress recalculation...');
-      
-      const { data, error } = await supabase.rpc('admin_recalculate_all_progress', {
-        p_reason: reason || 'Administrative bulk progress recalculation'
-      });
-
-      if (error) {
-        throw new Error(error.message);
-      }
-
-      // Properly type cast the response
-      const typedData = data as unknown as BulkRecalculationResponse;
-      
-      const result = {
-        success: typedData.success,
-        coursesUpdated: typedData.courses_updated,
-        usersAffected: typedData.users_affected,
-        errors: typedData.details?.errors || [],
-        warnings: [],
-        backupId: typedData.details?.audit_id
-      };
-
-      showOperationResult(result, 'Bulk Progress Recalculation');
-      return result.success;
-    } catch (error: any) {
-      console.error('❌ Protected bulk recalculation error:', error);
-      toast({
-        title: "🚨 Recalculation Failed",
-        description: error.message || "Failed to perform bulk recalculation",
-        variant: "destructive",
-      });
-      return false;
     } finally {
       setIsProcessing(false);
     }
@@ -300,12 +246,9 @@ export const useDataProtection = () => {
     protectedProgressReset,
     protectedBulkComplete,
     
-    // New admin unit completion operations
+    // Admin unit completion operations
     protectedAdminMarkUnitComplete,
     protectedBulkAdminMarkUnitsComplete,
-    
-    // New bulk recalculation operation
-    protectedBulkProgressRecalculation,
     
     // Validation
     validateAllDataIntegrity,
