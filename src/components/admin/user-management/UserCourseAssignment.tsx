@@ -22,8 +22,41 @@ const UserCourseAssignment = ({ userId, userEmail, userName, onAssignmentComplet
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [notes, setNotes] = useState("");
   const [isAssigning, setIsAssigning] = useState(false);
+  const [existingProgress, setExistingProgress] = useState<any>(null);
   const { toast } = useToast();
   const { courses, loading: coursesLoading } = useCoursesData();
+
+  // Check for existing progress when course is selected
+  useEffect(() => {
+    const checkExistingProgress = async () => {
+      if (!selectedCourse || !userId) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('user_course_progress')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('course_id', selectedCourse)
+          .maybeSingle();
+
+        if (error && error.code !== 'PGRST116') {
+          console.error('Error checking existing progress:', error);
+          return;
+        }
+
+        setExistingProgress(data);
+        
+        // Auto-select the current status if progress exists
+        if (data) {
+          setSelectedStatus(data.status);
+        }
+      } catch (error) {
+        console.error('Error checking existing progress:', error);
+      }
+    };
+
+    checkExistingProgress();
+  }, [selectedCourse, userId]);
 
   const handleClose = () => {
     if (onAssignmentComplete) {
@@ -44,54 +77,77 @@ const UserCourseAssignment = ({ userId, userEmail, userName, onAssignmentComplet
     setIsAssigning(true);
     try {
       const now = new Date().toISOString();
+      const currentUser = await supabase.auth.getUser();
       
-      // Create or update user course progress
+      if (!currentUser.data.user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Prepare progress data with proper conflict resolution
       const progressData = {
         user_id: userId,
         course_id: selectedCourse,
         status: selectedStatus,
-        progress_percentage: selectedStatus === 'completed' ? 100 : 0,
-        started_at: now,
+        progress_percentage: selectedStatus === 'completed' ? 100 : 
+                           selectedStatus === 'in_progress' ? (existingProgress?.progress_percentage || 0) : 0,
+        started_at: existingProgress?.started_at || now,
         last_accessed_at: now,
+        updated_at: now,
         ...(selectedStatus === 'completed' && { completed_at: now })
       };
 
+      // Use proper upsert with conflict resolution for user_course_progress
       const { error: progressError } = await supabase
         .from('user_course_progress')
-        .upsert(progressData);
-
-      if (progressError) throw progressError;
-
-      // Create assignment record
-      const { error: assignmentError } = await supabase
-        .from('course_assignments')
-        .upsert({
-          user_id: userId,
-          course_id: selectedCourse,
-          assigned_by: (await supabase.auth.getUser()).data.user?.id,
-          assigned_at: now,
-          notes: notes || `Manually assigned as ${selectedStatus}`,
-          is_mandatory: false
+        .upsert(progressData, {
+          onConflict: 'user_id,course_id'
         });
 
-      if (assignmentError) throw assignmentError;
+      if (progressError) {
+        console.error('Progress upsert error:', progressError);
+        throw new Error(`Failed to update course progress: ${progressError.message}`);
+      }
 
+      // Create or update assignment record with conflict resolution
+      const assignmentData = {
+        user_id: userId,
+        course_id: selectedCourse,
+        assigned_by: currentUser.data.user.id,
+        assigned_at: now,
+        notes: notes || `${existingProgress ? 'Updated' : 'Assigned'} as ${selectedStatus}`,
+        is_mandatory: false,
+        updated_at: now
+      };
+
+      const { error: assignmentError } = await supabase
+        .from('course_assignments')
+        .upsert(assignmentData, {
+          onConflict: 'user_id,course_id'
+        });
+
+      if (assignmentError) {
+        console.error('Assignment upsert error:', assignmentError);
+        throw new Error(`Failed to create assignment: ${assignmentError.message}`);
+      }
+
+      const actionWord = existingProgress ? 'Updated' : 'Assigned';
       toast({
-        title: "Course Assigned",
-        description: `Successfully assigned course to ${userName} with status: ${selectedStatus}`,
+        title: `Course ${actionWord}`,
+        description: `Successfully ${actionWord.toLowerCase()} course for ${userName} with status: ${selectedStatus}`,
       });
 
       // Reset form and close
       setSelectedCourse("");
       setSelectedStatus("");
       setNotes("");
+      setExistingProgress(null);
       handleClose();
 
-    } catch (error) {
-      console.error('Error assigning course:', error);
+    } catch (error: any) {
+      console.error('Error in course assignment:', error);
       toast({
         title: "Assignment Failed",
-        description: "Failed to assign course. Please try again.",
+        description: error.message || "Failed to assign course. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -104,13 +160,18 @@ const UserCourseAssignment = ({ userId, userEmail, userName, onAssignmentComplet
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <div className="flex items-center justify-between">
-            <DialogTitle>Assign Course</DialogTitle>
+            <DialogTitle>
+              {existingProgress ? 'Update Course Assignment' : 'Assign Course'}
+            </DialogTitle>
             <Button variant="ghost" size="sm" onClick={handleClose}>
               <X className="h-4 w-4" />
             </Button>
           </div>
           <DialogDescription>
-            Assign a course to {userName} ({userEmail}) and set their completion status.
+            {existingProgress 
+              ? `Update the course assignment for ${userName} (${userEmail}). Current status: ${existingProgress.status}`
+              : `Assign a course to ${userName} (${userEmail}) and set their completion status.`
+            }
           </DialogDescription>
         </DialogHeader>
         
@@ -135,6 +196,11 @@ const UserCourseAssignment = ({ userId, userEmail, userName, onAssignmentComplet
                 )}
               </SelectContent>
             </Select>
+            {existingProgress && selectedCourse && (
+              <p className="text-sm text-amber-600 bg-amber-50 p-2 rounded">
+                ⚠️ This user already has progress for this course (Current: {existingProgress.status}, {existingProgress.progress_percentage}% complete)
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -155,7 +221,10 @@ const UserCourseAssignment = ({ userId, userEmail, userName, onAssignmentComplet
             <Label htmlFor="notes">Notes (Optional)</Label>
             <Textarea
               id="notes"
-              placeholder="Add any notes about this assignment (e.g., 'Migrated from Kajabi')"
+              placeholder={existingProgress 
+                ? `Update notes for this assignment (e.g., 'Updated status from ${existingProgress.status}')`
+                : "Add any notes about this assignment (e.g., 'Migrated from Kajabi')"
+              }
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
@@ -174,10 +243,10 @@ const UserCourseAssignment = ({ userId, userEmail, userName, onAssignmentComplet
             {isAssigning ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Assigning...
+                {existingProgress ? 'Updating...' : 'Assigning...'}
               </>
             ) : (
-              'Assign Course'
+              existingProgress ? 'Update Assignment' : 'Assign Course'
             )}
           </Button>
         </div>
