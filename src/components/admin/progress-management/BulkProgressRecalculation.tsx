@@ -22,6 +22,19 @@ interface BulkRecalculationResult {
   };
 }
 
+// Type for the Supabase RPC response
+interface SupabaseBulkRecalculationResponse {
+  success: boolean;
+  courses_updated: number;
+  users_affected: number;
+  details: {
+    affected_users: string[];
+    affected_courses: string[];
+    errors: string[];
+    audit_id: string;
+  };
+}
+
 const BulkProgressRecalculation = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
@@ -52,11 +65,19 @@ const BulkProgressRecalculation = () => {
       }
 
       console.log('✅ Bulk recalculation completed:', data);
-      setLastResult(data as BulkRecalculationResult);
+      
+      // Properly type cast the response
+      const typedData = data as unknown as SupabaseBulkRecalculationResponse;
+      setLastResult({
+        success: typedData.success,
+        courses_updated: typedData.courses_updated,
+        users_affected: typedData.users_affected,
+        details: typedData.details
+      });
       
       toast({
         title: "✅ Bulk Recalculation Complete",
-        description: `Updated ${data.courses_updated} course records for ${data.users_affected} users`,
+        description: `Updated ${typedData.courses_updated} course records for ${typedData.users_affected} users`,
       });
 
       setShowConfirmDialog(false);

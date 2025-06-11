@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +21,19 @@ import {
   safeAdminMarkUnitComplete,
   safeBulkAdminMarkUnitsComplete
 } from "@/components/admin/progress-management/services/safeAdminUnitOperations";
+
+// Type for the Supabase RPC response
+interface BulkRecalculationResponse {
+  success: boolean;
+  courses_updated: number;
+  users_affected: number;
+  details: {
+    affected_users: string[];
+    affected_courses: string[];
+    errors: string[];
+    audit_id: string;
+  };
+}
 
 export const useDataProtection = () => {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -186,13 +198,16 @@ export const useDataProtection = () => {
         throw new Error(error.message);
       }
 
+      // Properly type cast the response
+      const typedData = data as unknown as BulkRecalculationResponse;
+      
       const result = {
-        success: data.success,
-        coursesUpdated: data.courses_updated,
-        usersAffected: data.users_affected,
-        errors: data.details?.errors || [],
+        success: typedData.success,
+        coursesUpdated: typedData.courses_updated,
+        usersAffected: typedData.users_affected,
+        errors: typedData.details?.errors || [],
         warnings: [],
-        backupId: data.details?.audit_id
+        backupId: typedData.details?.audit_id
       };
 
       showOperationResult(result, 'Bulk Progress Recalculation');
