@@ -10,17 +10,24 @@ import { useUserRole } from "@/hooks/useUserRole";
 
 type Course = Tables<'courses'>;
 
+interface CourseWithEnrollment extends Course {
+  actual_enrollment_count?: number;
+}
+
 interface CourseCardProps {
-  course: Course;
+  course: CourseWithEnrollment;
 }
 
 const CourseCard = ({ course }: CourseCardProps) => {
   const navigate = useNavigate();
-  const { isAdmin } = useUserRole(); // Changed from hasAdminPrivileges to isAdmin
+  const { isAdmin } = useUserRole();
 
   const handleViewCourse = () => {
     navigate(`/course/${course.id}`);
   };
+
+  // Use actual enrollment count if available, otherwise fall back to the database field
+  const enrollmentCount = course.actual_enrollment_count ?? course.students_enrolled ?? 0;
 
   return (
     <Card className={`h-full flex flex-col hover:shadow-lg transition-shadow duration-200 ${course.is_draft ? 'bg-gray-50 border-dashed' : 'bg-white'}`}>
@@ -72,7 +79,7 @@ const CourseCard = ({ course }: CourseCardProps) => {
           <div className="space-y-3">
             <div className={`flex items-center text-sm ${course.is_draft ? 'text-gray-500' : 'text-gray-600'}`}>
               <Users className="h-4 w-4 mr-2 text-blue-500" />
-              <span>{course.students_enrolled || 0} students enrolled</span>
+              <span>{enrollmentCount} students enrolled</span>
             </div>
             <div className={`flex items-center text-sm ${course.is_draft ? 'text-gray-500' : 'text-gray-600'}`}>
               <Clock className="h-4 w-4 mr-2 text-green-500" />

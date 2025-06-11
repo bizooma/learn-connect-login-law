@@ -5,8 +5,12 @@ import { Tables } from "@/integrations/supabase/types";
 
 type Course = Tables<'courses'>;
 
+interface CourseWithEnrollment extends Course {
+  actual_enrollment_count?: number;
+}
+
 interface CoursesGridProps {
-  filteredCourses: Course[];
+  filteredCourses: CourseWithEnrollment[];
   onClearFilters: () => void;
 }
 

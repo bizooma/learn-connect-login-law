@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useEnrollmentCounts } from "@/hooks/useEnrollmentCounts";
 
 type Course = Tables<'courses'>;
 
@@ -23,6 +24,7 @@ interface AdminCourseCardProps {
 const AdminCourseCard = ({ course, onDelete, onEdit, onStatusChange }: AdminCourseCardProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { enrollmentCounts } = useEnrollmentCounts();
   const [isToggling, setIsToggling] = useState(false);
 
   const handleViewCourse = () => {
@@ -63,6 +65,9 @@ const AdminCourseCard = ({ course, onDelete, onEdit, onStatusChange }: AdminCour
       setIsToggling(false);
     }
   };
+
+  // Get actual enrollment count
+  const enrollmentCount = enrollmentCounts[course.id] || 0;
 
   return (
     <Card className={`hover:shadow-md transition-shadow ${course.is_draft ? 'bg-gray-50 border-dashed' : 'bg-white'}`}>
@@ -111,7 +116,7 @@ const AdminCourseCard = ({ course, onDelete, onEdit, onStatusChange }: AdminCour
         
         <div className={`flex items-center justify-between text-sm mb-4 ${course.is_draft ? 'text-gray-500' : 'text-gray-600'}`}>
           <span>{course.duration}</span>
-          <span>{course.students_enrolled || 0} students</span>
+          <span>{enrollmentCount} students</span>
           <span>★ {course.rating || 0}</span>
         </div>
 

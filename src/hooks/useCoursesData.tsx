@@ -1,18 +1,25 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useEnrollmentCounts } from "@/hooks/useEnrollmentCounts";
 import { Tables } from "@/integrations/supabase/types";
 
 type Course = Tables<'courses'>;
 type Level = Tables<'levels'>;
 
+interface CourseWithEnrollment extends Course {
+  actual_enrollment_count: number;
+}
+
 export const useCoursesData = () => {
   const { toast } = useToast();
   const { isAdmin } = useUserRole();
-  const [courses, setCourses] = useState<Course[]>([]);
+  const { enrollmentCounts } = useEnrollmentCounts();
+  const [courses, setCourses] = useState<CourseWithEnrollment[]>([]);
   const [levels, setLevels] = useState<Level[]>([]);
-  const [filteredCourses, setFilteredCourses] = useState<Course[]>([]);
+  const [filteredCourses, setFilteredCourses] = useState<CourseWithEnrollment[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [selectedLevel, setSelectedLevel] = useState("All");
@@ -23,7 +30,25 @@ export const useCoursesData = () => {
     fetchLevels();
   }, [isAdmin]);
 
-  const sortCourses = (coursesToSort: Course[]) => {
+  // Update courses with enrollment counts when enrollmentCounts changes
+  useEffect(() => {
+    if (courses.length > 0) {
+      const updatedCourses = courses.map(course => ({
+        ...course,
+        actual_enrollment_count: enrollmentCounts[course.id] || 0
+      }));
+      setCourses(updatedCourses);
+      
+      // Also update filtered courses
+      const updatedFilteredCourses = filteredCourses.map(course => ({
+        ...course,
+        actual_enrollment_count: enrollmentCounts[course.id] || 0
+      }));
+      setFilteredCourses(updatedFilteredCourses);
+    }
+  }, [enrollmentCounts]);
+
+  const sortCourses = (coursesToSort: CourseWithEnrollment[]) => {
     return coursesToSort.sort((a, b) => {
       // First, sort by category (Legal first, then Sales)
       const categoryOrder = { 'Legal': 1, 'Sales': 2 };
@@ -71,7 +96,13 @@ export const useCoursesData = () => {
         index === self.findIndex(c => c.id === course.id)
       ) : [];
 
-      const sortedData = sortCourses(uniqueCourses);
+      // Add enrollment counts
+      const coursesWithEnrollment: CourseWithEnrollment[] = uniqueCourses.map(course => ({
+        ...course,
+        actual_enrollment_count: enrollmentCounts[course.id] || 0
+      }));
+
+      const sortedData = sortCourses(coursesWithEnrollment);
       setCourses(sortedData);
       setFilteredCourses(sortedData);
     } catch (error) {
