@@ -149,9 +149,9 @@ const LessonCard = ({
                   unitIndex={originalIndex}
                   lessonIndex={lessonIndex}
                   moduleIndex={moduleIndex}
-                  onUpdateUnit={(unitIdx, field, value) => onUpdateUnit(unitIdx, field, value)}
-                  onDeleteUnit={(unitIdx) => onDeleteUnit(unitIdx)}
-                  onVideoFileChange={(unitIdx, file) => onVideoFileChange(unitIdx, file)}
+                  onUpdateUnit={(moduleIdx, lessonIdx, unitIdx, field, value) => onUpdateUnit(unitIdx, field, value)}
+                  onDeleteUnit={(moduleIdx, lessonIdx, unitIdx) => onDeleteUnit(unitIdx)}
+                  onVideoFileChange={(moduleIdx, lessonIdx, unitIdx, file) => onVideoFileChange(unitIdx, file)}
                   onMoveUnitUp={() => {}}
                   onMoveUnitDown={() => {}}
                   canMoveUnitUp={false}
