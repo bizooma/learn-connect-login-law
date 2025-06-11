@@ -14,8 +14,11 @@ export interface UnitData {
   file_url?: string;
   file_name?: string;
   file_size?: number;
+  file?: File;
+  newFiles?: File[];
   quiz_id?: string;
-  _deletedInForm?: boolean; // Track form-level deletions
+  _deletedInForm?: boolean;
+  _lastFilesUpdate?: number;
 }
 
 export interface SectionData {
@@ -23,7 +26,14 @@ export interface SectionData {
   title: string;
   description: string;
   image_url?: string;
+  file_url?: string;
+  file_name?: string;
+  file_size?: number;
+  video_url?: string;
+  video_type?: 'youtube' | 'upload';
+  video_file?: File;
+  duration_minutes?: number;
   sort_order: number;
   units: UnitData[];
-  _deletedInForm?: boolean; // Track form-level deletions
+  _deletedInForm?: boolean;
 }

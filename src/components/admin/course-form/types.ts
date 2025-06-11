@@ -1,8 +1,17 @@
 
-import { Course } from "@/integrations/supabase/types";
-
-export interface CourseFormData extends Omit<Course, 'id' | 'created_at'> {
+export interface CourseFormData {
+  title: string;
+  description: string;
+  instructor: string;
+  category: string;
+  level: string;
+  duration: string;
+  image_url: string;
   image_file: File | null;
+  tags: string[];
+  is_draft: boolean;
+  students_enrolled: number;
+  rating: number;
 }
 
 export interface UnitData {
@@ -19,9 +28,11 @@ export interface UnitData {
   file_url?: string;
   file_name?: string;
   file_size?: number;
+  file?: File;
+  newFiles?: File[];
   image_url?: string;
   quiz_id?: string;
-  _deletedInForm?: boolean; // Track form-level deletions
+  _deletedInForm?: boolean;
   _lastFilesUpdate?: number;
 }
 
@@ -37,7 +48,7 @@ export interface LessonData {
   file?: File;
   sort_order: number;
   units: UnitData[];
-  _deletedInForm?: boolean; // Track form-level deletions
+  _deletedInForm?: boolean;
 }
 
 export interface ModuleData {
@@ -52,7 +63,7 @@ export interface ModuleData {
   file?: File;
   sort_order: number;
   lessons: LessonData[];
-  _deletedInForm?: boolean; // Track form-level deletions
+  _deletedInForm?: boolean;
 }
 
 // Legacy interface for backward compatibility
@@ -61,7 +72,14 @@ export interface SectionData {
   title: string;
   description: string;
   image_url?: string;
+  file_url?: string;
+  file_name?: string;
+  file_size?: number;
+  video_url?: string;
+  video_type?: 'youtube' | 'upload';
+  video_file?: File;
+  duration_minutes?: number;
   sort_order: number;
   units: UnitData[];
-  _deletedInForm?: boolean; // Track form-level deletions
+  _deletedInForm?: boolean;
 }

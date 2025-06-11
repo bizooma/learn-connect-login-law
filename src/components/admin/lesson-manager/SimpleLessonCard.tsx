@@ -14,10 +14,10 @@ interface SimpleLessonCardProps {
   lessonIndex: number;
   isExpanded: boolean;
   onToggleExpanded: () => void;
-  onUpdate: (field: string, value: any) => void;
+  onUpdate: (field: keyof SectionData, value: any) => void;
   onDelete: () => void;
   onAddUnit: () => void;
-  onUpdateUnit: (unitIndex: number, field: string, value: any) => void;
+  onUpdateUnit: (unitIndex: number, field: keyof import('./types').UnitData, value: any) => void;
   onDeleteUnit: (unitIndex: number) => void;
   onVideoFileChange: (unitIndex: number, file: File | null) => void;
 }
@@ -111,9 +111,16 @@ const SimpleLessonCard = ({
                   key={originalIndex}
                   unit={unit}
                   unitIndex={originalIndex}
-                  onUpdate={(field, value) => onUpdateUnit(originalIndex, field, value)}
-                  onDelete={() => onDeleteUnit(originalIndex)}
-                  onVideoFileChange={(file) => onVideoFileChange(originalIndex, file)}
+                  lessonIndex={lessonIndex}
+                  totalLessons={1}
+                  onUpdateUnit={(lessonIdx, unitIdx, field, value) => onUpdateUnit(unitIdx, field, value)}
+                  onDeleteUnit={(lessonIdx, unitIdx) => onDeleteUnit(unitIdx)}
+                  onVideoFileChange={(lessonIdx, unitIdx, file) => onVideoFileChange(unitIdx, file)}
+                  onMoveUnitUp={() => {}}
+                  onMoveUnitDown={() => {}}
+                  onMoveUnitToLesson={() => {}}
+                  canMoveUnitUp={false}
+                  canMoveUnitDown={false}
                 />
               );
             })}

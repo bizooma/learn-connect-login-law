@@ -14,10 +14,10 @@ interface SimpleSectionCardProps {
   sectionIndex: number;
   isExpanded: boolean;
   onToggleExpanded: () => void;
-  onUpdate: (field: string, value: any) => void;
+  onUpdate: (field: keyof SectionData, value: any) => void;
   onDelete: () => void;
   onAddUnit: () => void;
-  onUpdateUnit: (unitIndex: number, field: string, value: any) => void;
+  onUpdateUnit: (unitIndex: number, field: keyof import('./types').UnitData, value: any) => void;
   onDeleteUnit: (unitIndex: number) => void;
   onVideoFileChange: (unitIndex: number, file: File | null) => void;
 }

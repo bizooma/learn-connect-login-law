@@ -12,9 +12,6 @@ export const useLessonOperations = ({ lessons, onLessonsChange }: UseLessonOpera
       title: `Lesson ${lessons.length + 1}`,
       description: '',
       image_url: '',
-      video_url: '',
-      video_type: 'youtube',
-      duration_minutes: 0,
       sort_order: lessons.length,
       units: []
     };
