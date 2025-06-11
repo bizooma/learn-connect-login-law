@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { CourseFormData, ModuleData } from "../types";
 import { uploadImageFile } from "../fileUploadUtils";
@@ -626,13 +627,19 @@ const createNewModule = async (courseId: string, moduleData: ModuleData, sortOrd
     sort_order: sortOrder
   }];
   
-  const dummyCourseData = {
+  const dummyCourseData: CourseFormData = {
     title: '',
     description: '',
     instructor: '',
     category: '',
     level: '',
-    duration: ''
+    duration: '',
+    image_url: '',
+    image_file: null,
+    tags: [],
+    is_draft: false,
+    students_enrolled: 0,
+    rating: 0
   };
   
   await createCourseWithModules(courseId, dummyCourseData, tempModules);

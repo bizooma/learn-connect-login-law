@@ -154,7 +154,6 @@ const LessonCard = ({
                   onVideoFileChange={(unitIdx, file) => onVideoFileChange(unitIdx, file)}
                   onMoveUnitUp={() => {}}
                   onMoveUnitDown={() => {}}
-                  onMoveUnitToSection={() => {}}
                   canMoveUnitUp={false}
                   canMoveUnitDown={false}
                 />

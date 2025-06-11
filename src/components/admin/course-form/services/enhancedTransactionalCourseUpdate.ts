@@ -1,3 +1,4 @@
+
 import { supabase } from "@/integrations/supabase/client";
 import { CourseFormData, ModuleData } from "../types";
 import { uploadImageFile } from "../fileUploadUtils";
@@ -340,13 +341,19 @@ const performSafeContentReplacement = async (courseId: string, modules: ModuleDa
     const { createCourseWithModules } = await import("./courseSubmissionService");
     
     // Create dummy course data for the creation function
-    const dummyCourseData = {
+    const dummyCourseData: CourseFormData = {
       title: '',
       description: '',
       instructor: '',
       category: '',
       level: '',
-      duration: ''
+      duration: '',
+      image_url: '',
+      image_file: null,
+      tags: [],
+      is_draft: false,
+      students_enrolled: 0,
+      rating: 0
     };
     
     await createCourseWithModules(courseId, dummyCourseData, modules);
