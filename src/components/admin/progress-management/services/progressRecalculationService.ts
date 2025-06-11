@@ -76,8 +76,8 @@ export const progressRecalculationService = {
 
       console.log('✅ Refined progress recalculation completed:', data);
 
-      // Type assertion with proper checking
-      const typedData = data as AdminRecalculateProgressResponse;
+      // Type assertion with proper checking - convert to unknown first
+      const typedData = data as unknown as AdminRecalculateProgressResponse;
 
       return {
         success: typedData?.success || false,
@@ -125,8 +125,8 @@ export const progressRecalculationService = {
         throw error;
       }
 
-      // Type assertion for diagnosis data
-      const diagnosisData = (data as DiagnosisResponse[])?.[0];
+      // Type assertion for diagnosis data - convert to unknown first
+      const diagnosisData = (data as unknown as DiagnosisResponse[])?.[0];
 
       return {
         success: true,
