@@ -1,3 +1,4 @@
+
 import { Control } from "react-hook-form";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -6,18 +7,9 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Tables } from "@/integrations/supabase/types";
+import { CourseFormData } from "./types";
 
 type Level = Tables<'levels'>;
-
-interface CourseFormData {
-  title: string;
-  description: string;
-  instructor: string;
-  category: string;
-  level: string;
-  duration: string;
-  image_file?: File;
-}
 
 interface CourseBasicInfoFormProps {
   control: Control<CourseFormData>;

@@ -99,25 +99,22 @@ const ModuleManager = ({ modules, onModulesChange }: ModuleManagerProps) => {
             module={module}
             moduleIndex={moduleIndex}
             isExpanded={expandedModules.has(moduleIndex)}
-            onToggleExpanded={toggleExpanded}
-            onUpdateModule={updateModule}
-            onDeleteModule={deleteModule}
-            onAddLesson={addLesson}
-            onUpdateLesson={updateLesson}
-            onDeleteLesson={deleteLesson}
-            onAddUnit={addUnit}
-            onUpdateUnit={updateUnit}
-            onDeleteUnit={deleteUnit}
-            onVideoFileChange={handleVideoFileChange}
-            onLessonImageUpdate={handleLessonImageUpdate}
-            canMoveModuleUp={moduleIndex > 0}
-            canMoveModuleDown={moduleIndex < modules.length - 1}
+            onToggleExpanded={() => toggleExpanded(moduleIndex)}
+            onUpdate={(field, value) => updateModule(moduleIndex, field, value)}
+            onDelete={() => deleteModule(moduleIndex)}
+            onAddLesson={() => addLesson(moduleIndex)}
+            onUpdateLesson={(lessonIndex, field, value) => updateLesson(moduleIndex, lessonIndex, field, value)}
+            onDeleteLesson={(lessonIndex) => deleteLesson(moduleIndex, lessonIndex)}
+            onAddUnit={(lessonIndex) => addUnit(moduleIndex, lessonIndex)}
+            onUpdateUnit={(lessonIndex, unitIndex, field, value) => updateUnit(moduleIndex, lessonIndex, unitIndex, field, value)}
+            onDeleteUnit={(lessonIndex, unitIndex) => deleteUnit(moduleIndex, lessonIndex, unitIndex)}
+            onVideoFileChange={(lessonIndex, unitIndex, file) => handleVideoFileChange(moduleIndex, lessonIndex, unitIndex, file)}
             onMoveModuleUp={() => moveModuleToPosition(moduleIndex, moduleIndex - 1)}
             onMoveModuleDown={() => moveModuleToPosition(moduleIndex, moduleIndex + 1)}
+            canMoveModuleUp={moduleIndex > 0}
+            canMoveModuleDown={moduleIndex < modules.length - 1}
             onMoveLessonUp={(lessonIndex: number) => moveLessonWithinModule(moduleIndex, lessonIndex, lessonIndex - 1)}
             onMoveLessonDown={(lessonIndex: number) => moveLessonWithinModule(moduleIndex, lessonIndex, lessonIndex + 1)}
-            onMoveUnitUp={(lessonIndex: number, unitIndex: number) => moveUnitWithinLesson(moduleIndex, lessonIndex, unitIndex, unitIndex - 1)}
-            onMoveUnitDown={(lessonIndex: number, unitIndex: number) => moveUnitWithinLesson(moduleIndex, lessonIndex, unitIndex, unitIndex + 1)}
           />
         ))}
       </div>

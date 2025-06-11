@@ -152,6 +152,11 @@ const LessonCard = ({
                   onUpdateUnit={(unitIdx, field, value) => onUpdateUnit(unitIdx, field, value)}
                   onDeleteUnit={(unitIdx) => onDeleteUnit(unitIdx)}
                   onVideoFileChange={(unitIdx, file) => onVideoFileChange(unitIdx, file)}
+                  onMoveUnitUp={() => {}}
+                  onMoveUnitDown={() => {}}
+                  onMoveUnitToSection={() => {}}
+                  canMoveUnitUp={false}
+                  canMoveUnitDown={false}
                 />
               );
             })}

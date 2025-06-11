@@ -1,330 +1,321 @@
 
-import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { Badge } from "@/components/ui/badge";
-import { Plus, Trash2, Edit, Check, X } from "lucide-react";
-import { QuizData, QuestionData, OptionData } from "./types";
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
+import { Trash2, Plus } from 'lucide-react';
+import { QuizData, QuestionData, OptionData } from './types';
 
 interface QuizManagerProps {
-  quiz: QuizData | undefined;
-  onQuizUpdate: (quiz: QuizData | undefined) => void;
+  quizzes: QuizData[];
+  onQuizzesChange: (quizzes: QuizData[]) => void;
 }
 
-const QuizManager = ({ quiz, onQuizUpdate }: QuizManagerProps) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editingQuestion, setEditingQuestion] = useState<number | null>(null);
+const QuizManager = ({ quizzes, onQuizzesChange }: QuizManagerProps) => {
+  const [expandedQuizzes, setExpandedQuizzes] = useState<Set<number>>(new Set());
 
-  const handleCreateQuiz = () => {
+  const addQuiz = () => {
     const newQuiz: QuizData = {
-      title: "New Quiz",
-      description: "",
+      title: '',
+      description: '',
       passing_score: 70,
-      time_limit_minutes: undefined,
+      time_limit_minutes: 30,
       is_active: true,
       questions: []
     };
-    onQuizUpdate(newQuiz);
-    setIsEditing(true);
+    onQuizzesChange([...quizzes, newQuiz]);
   };
 
-  const handleDeleteQuiz = () => {
-    onQuizUpdate(undefined);
-    setIsEditing(false);
+  const updateQuiz = (quizIndex: number, field: keyof QuizData, value: any) => {
+    const updatedQuizzes = [...quizzes];
+    updatedQuizzes[quizIndex] = { ...updatedQuizzes[quizIndex], [field]: value };
+    onQuizzesChange(updatedQuizzes);
   };
 
-  const handleQuizChange = (field: keyof QuizData, value: any) => {
-    if (!quiz) return;
-    onQuizUpdate({ ...quiz, [field]: value });
+  const deleteQuiz = (quizIndex: number) => {
+    const updatedQuizzes = quizzes.filter((_, index) => index !== quizIndex);
+    onQuizzesChange(updatedQuizzes);
   };
 
-  const handleAddQuestion = () => {
-    if (!quiz) return;
+  const addQuestion = (quizIndex: number) => {
     const newQuestion: QuestionData = {
-      question_text: "New question",
+      question_text: '',
       question_type: 'multiple_choice',
       points: 1,
-      sort_order: quiz.questions.length,
       options: [
-        { option_text: "Option 1", is_correct: true, sort_order: 0 },
-        { option_text: "Option 2", is_correct: false, sort_order: 1 }
+        { option_text: '', is_correct: true },
+        { option_text: '', is_correct: false }
       ]
     };
-    onQuizUpdate({ ...quiz, questions: [...quiz.questions, newQuestion] });
+    
+    const updatedQuizzes = [...quizzes];
+    updatedQuizzes[quizIndex].questions.push(newQuestion);
+    onQuizzesChange(updatedQuizzes);
   };
 
-  const handleDeleteQuestion = (questionIndex: number) => {
-    if (!quiz) return;
-    const updatedQuestions = quiz.questions.filter((_, i) => i !== questionIndex);
-    onQuizUpdate({ ...quiz, questions: updatedQuestions });
+  const updateQuestion = (quizIndex: number, questionIndex: number, field: keyof QuestionData, value: any) => {
+    const updatedQuizzes = [...quizzes];
+    updatedQuizzes[quizIndex].questions[questionIndex] = {
+      ...updatedQuizzes[quizIndex].questions[questionIndex],
+      [field]: value
+    };
+    onQuizzesChange(updatedQuizzes);
   };
 
-  const handleQuestionChange = (questionIndex: number, field: keyof QuestionData, value: any) => {
-    if (!quiz) return;
-    const updatedQuestions = quiz.questions.map((q, i) => 
-      i === questionIndex ? { ...q, [field]: value } : q
-    );
-    onQuizUpdate({ ...quiz, questions: updatedQuestions });
+  const deleteQuestion = (quizIndex: number, questionIndex: number) => {
+    const updatedQuizzes = [...quizzes];
+    updatedQuizzes[quizIndex].questions = updatedQuizzes[quizIndex].questions.filter((_, index) => index !== questionIndex);
+    onQuizzesChange(updatedQuizzes);
   };
 
-  const handleOptionChange = (questionIndex: number, optionIndex: number, field: keyof OptionData, value: any) => {
-    if (!quiz) return;
-    const updatedQuestions = quiz.questions.map((q, i) => {
-      if (i === questionIndex) {
-        const updatedOptions = q.options.map((o, j) => 
-          j === optionIndex ? { ...o, [field]: value } : o
-        );
-        return { ...q, options: updatedOptions };
-      }
-      return q;
-    });
-    onQuizUpdate({ ...quiz, questions: updatedQuestions });
-  };
-
-  const handleAddOption = (questionIndex: number) => {
-    if (!quiz) return;
-    const question = quiz.questions[questionIndex];
+  const addOption = (quizIndex: number, questionIndex: number) => {
     const newOption: OptionData = {
-      option_text: `Option ${question.options.length + 1}`,
-      is_correct: false,
-      sort_order: question.options.length
+      option_text: '',
+      is_correct: false
     };
     
-    const updatedQuestions = quiz.questions.map((q, i) => 
-      i === questionIndex ? { ...q, options: [...q.options, newOption] } : q
-    );
-    onQuizUpdate({ ...quiz, questions: updatedQuestions });
+    const updatedQuizzes = [...quizzes];
+    updatedQuizzes[quizIndex].questions[questionIndex].options.push(newOption);
+    onQuizzesChange(updatedQuizzes);
   };
 
-  const handleDeleteOption = (questionIndex: number, optionIndex: number) => {
-    if (!quiz) return;
-    const updatedQuestions = quiz.questions.map((q, i) => {
-      if (i === questionIndex) {
-        const updatedOptions = q.options.filter((_, j) => j !== optionIndex);
-        return { ...q, options: updatedOptions };
+  const updateOption = (quizIndex: number, questionIndex: number, optionIndex: number, field: keyof OptionData, value: any) => {
+    const updatedQuizzes = [...quizzes];
+    updatedQuizzes[quizIndex].questions[questionIndex].options[optionIndex] = {
+      ...updatedQuizzes[quizIndex].questions[questionIndex].options[optionIndex],
+      [field]: value
+    };
+    onQuizzesChange(updatedQuizzes);
+  };
+
+  const deleteOption = (quizIndex: number, questionIndex: number, optionIndex: number) => {
+    const updatedQuizzes = [...quizzes];
+    updatedQuizzes[quizIndex].questions[questionIndex].options = 
+      updatedQuizzes[quizIndex].questions[questionIndex].options.filter((_, index) => index !== optionIndex);
+    onQuizzesChange(updatedQuizzes);
+  };
+
+  const toggleQuizExpanded = (quizIndex: number) => {
+    setExpandedQuizzes(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(quizIndex)) {
+        newSet.delete(quizIndex);
+      } else {
+        newSet.add(quizIndex);
       }
-      return q;
+      return newSet;
     });
-    onQuizUpdate({ ...quiz, questions: updatedQuestions });
   };
-
-  if (!quiz) {
-    return (
-      <Card className="border-dashed">
-        <CardContent className="flex items-center justify-center py-6">
-          <Button onClick={handleCreateQuiz} variant="outline">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Quiz
-          </Button>
-        </CardContent>
-      </Card>
-    );
-  }
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <CardTitle className="text-base">Quiz</CardTitle>
-            <Badge variant="secondary">
-              {quiz.questions.length} questions
-            </Badge>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setIsEditing(!isEditing)}
-            >
-              {isEditing ? <Check className="h-4 w-4" /> : <Edit className="h-4 w-4" />}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleDeleteQuiz}
-              className="text-red-600 hover:text-red-700"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {isEditing ? (
-          <>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h3 className="text-lg font-semibold">Quizzes</h3>
+        <Button onClick={addQuiz}>
+          <Plus className="h-4 w-4 mr-2" />
+          Add Quiz
+        </Button>
+      </div>
+
+      {quizzes.map((quiz, quizIndex) => (
+        <Card key={quizIndex} className="border-purple-200">
+          <CardHeader className="bg-purple-50 cursor-pointer" onClick={() => toggleQuizExpanded(quizIndex)}>
+            <CardTitle className="flex items-center justify-between">
+              <span>Quiz {quizIndex + 1}: {quiz.title || 'Untitled Quiz'}</span>
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deleteQuiz(quizIndex);
+                }}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          
+          {expandedQuizzes.has(quizIndex) && (
+            <CardContent className="pt-4 space-y-4">
               <div>
                 <Label>Quiz Title</Label>
                 <Input
                   value={quiz.title}
-                  onChange={(e) => handleQuizChange('title', e.target.value)}
+                  onChange={(e) => updateQuiz(quizIndex, 'title', e.target.value)}
                   placeholder="Enter quiz title"
                 />
               </div>
+              
               <div>
-                <Label>Passing Score (%)</Label>
-                <Input
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={quiz.passing_score}
-                  onChange={(e) => handleQuizChange('passing_score', parseInt(e.target.value) || 70)}
+                <Label>Quiz Description</Label>
+                <Textarea
+                  value={quiz.description}
+                  onChange={(e) => updateQuiz(quizIndex, 'description', e.target.value)}
+                  placeholder="Enter quiz description"
                 />
               </div>
-            </div>
-            
-            <div>
-              <Label>Description</Label>
-              <Textarea
-                value={quiz.description || ''}
-                onChange={(e) => handleQuizChange('description', e.target.value)}
-                placeholder="Enter quiz description"
-                rows={2}
-              />
-            </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <Label>Time Limit (minutes)</Label>
-                <Input
-                  type="number"
-                  min="1"
-                  value={quiz.time_limit_minutes || ''}
-                  onChange={(e) => handleQuizChange('time_limit_minutes', e.target.value ? parseInt(e.target.value) : undefined)}
-                  placeholder="No limit"
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Passing Score (%)</Label>
+                  <Input
+                    type="number"
+                    value={quiz.passing_score || 70}
+                    onChange={(e) => updateQuiz(quizIndex, 'passing_score', parseInt(e.target.value))}
+                    min="0"
+                    max="100"
+                  />
+                </div>
+                
+                <div>
+                  <Label>Time Limit (minutes)</Label>
+                  <Input
+                    type="number"
+                    value={quiz.time_limit_minutes || 30}
+                    onChange={(e) => updateQuiz(quizIndex, 'time_limit_minutes', parseInt(e.target.value))}
+                    min="1"
+                  />
+                </div>
               </div>
+
               <div className="flex items-center space-x-2">
                 <Switch
-                  checked={quiz.is_active}
-                  onCheckedChange={(checked) => handleQuizChange('is_active', checked)}
+                  checked={quiz.is_active ?? true}
+                  onCheckedChange={(checked) => updateQuiz(quizIndex, 'is_active', checked)}
                 />
-                <Label>Active</Label>
-              </div>
-            </div>
-
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium">Questions</h4>
-                <Button onClick={handleAddQuestion} size="sm" variant="outline">
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Question
-                </Button>
+                <Label>Active Quiz</Label>
               </div>
 
-              {quiz.questions.map((question, questionIndex) => (
-                <Card key={questionIndex} className="bg-gray-50">
-                  <CardContent className="p-4 space-y-3">
-                    <div className="flex items-center justify-between">
-                      <Label>Question {questionIndex + 1}</Label>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleDeleteQuestion(questionIndex)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-3 w-3" />
-                      </Button>
-                    </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                      <div className="md:col-span-2">
-                        <Input
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-medium">Questions</h4>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => addQuestion(quizIndex)}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Question
+                  </Button>
+                </div>
+
+                {quiz.questions.map((question, questionIndex) => (
+                  <Card key={questionIndex} className="border-orange-200 ml-4">
+                    <CardHeader className="bg-orange-50 py-2">
+                      <CardTitle className="flex items-center justify-between text-sm">
+                        <span>Question {questionIndex + 1}</span>
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => deleteQuestion(quizIndex, questionIndex)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="pt-4 space-y-4">
+                      <div>
+                        <Label>Question Text</Label>
+                        <Textarea
                           value={question.question_text}
-                          onChange={(e) => handleQuestionChange(questionIndex, 'question_text', e.target.value)}
+                          onChange={(e) => updateQuestion(quizIndex, questionIndex, 'question_text', e.target.value)}
                           placeholder="Enter question text"
                         />
                       </div>
-                      <div>
-                        <Input
-                          type="number"
-                          min="1"
-                          value={question.points}
-                          onChange={(e) => handleQuestionChange(questionIndex, 'points', parseInt(e.target.value) || 1)}
-                          placeholder="Points"
-                        />
-                      </div>
-                    </div>
 
-                    <div className="space-y-2">
-                      <div className="flex items-center justify-between">
-                        <Label className="text-sm">Options</Label>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleAddOption(questionIndex)}
-                        >
-                          <Plus className="h-3 w-3 mr-1" />
-                          Add Option
-                        </Button>
-                      </div>
-                      
-                      {question.options.map((option, optionIndex) => (
-                        <div key={optionIndex} className="flex items-center space-x-2">
-                          <Input
-                            value={option.option_text}
-                            onChange={(e) => handleOptionChange(questionIndex, optionIndex, 'option_text', e.target.value)}
-                            placeholder={`Option ${optionIndex + 1}`}
-                            className="flex-1"
-                          />
-                          <div className="flex items-center space-x-1">
-                            <input
-                              type="radio"
-                              name={`correct-${questionIndex}`}
-                              checked={option.is_correct}
-                              onChange={(e) => {
-                                // Only one option can be correct, so update all options
-                                const updatedOptions = question.options.map((o, i) => ({
-                                  ...o,
-                                  is_correct: i === optionIndex
-                                }));
-                                handleQuestionChange(questionIndex, 'options', updatedOptions);
-                              }}
-                            />
-                            <Label className="text-xs">Correct</Label>
-                          </div>
-                          {question.options.length > 2 && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteOption(questionIndex, optionIndex)}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          )}
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label>Question Type</Label>
+                          <Select
+                            value={question.question_type}
+                            onValueChange={(value) => updateQuestion(quizIndex, questionIndex, 'question_type', value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="multiple_choice">Multiple Choice</SelectItem>
+                              <SelectItem value="true_false">True/False</SelectItem>
+                            </SelectContent>
+                          </Select>
                         </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </>
-        ) : (
-          <div className="space-y-2">
-            <p className="font-medium">{quiz.title}</p>
-            {quiz.description && (
-              <p className="text-sm text-gray-600">{quiz.description}</p>
-            )}
-            <div className="flex items-center space-x-4 text-sm text-gray-500">
-              <span>Passing Score: {quiz.passing_score}%</span>
-              {quiz.time_limit_minutes && (
-                <span>Time Limit: {quiz.time_limit_minutes} min</span>
-              )}
-              <Badge variant={quiz.is_active ? "default" : "secondary"}>
-                {quiz.is_active ? "Active" : "Inactive"}
-              </Badge>
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+                        
+                        <div>
+                          <Label>Points</Label>
+                          <Input
+                            type="number"
+                            value={question.points || 1}
+                            onChange={(e) => updateQuestion(quizIndex, questionIndex, 'points', parseInt(e.target.value))}
+                            min="1"
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center justify-between">
+                          <Label>Answer Options</Label>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => addOption(quizIndex, questionIndex)}
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Option
+                          </Button>
+                        </div>
+
+                        {question.options.map((option, optionIndex) => (
+                          <div key={optionIndex} className="flex items-center space-x-2 p-2 border rounded">
+                            <Checkbox
+                              checked={option.is_correct}
+                              onCheckedChange={(checked) => 
+                                updateOption(quizIndex, questionIndex, optionIndex, 'is_correct', checked)
+                              }
+                            />
+                            <Input
+                              value={option.option_text}
+                              onChange={(e) => 
+                                updateOption(quizIndex, questionIndex, optionIndex, 'option_text', e.target.value)
+                              }
+                              placeholder="Enter option text"
+                              className="flex-1"
+                            />
+                            <Button
+                              variant="destructive"
+                              size="sm"
+                              onClick={() => deleteOption(quizIndex, questionIndex, optionIndex)}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          )}
+        </Card>
+      ))}
+
+      {quizzes.length === 0 && (
+        <Card className="border-dashed border-gray-300">
+          <CardContent className="pt-6 text-center">
+            <p className="text-gray-500 mb-4">No quizzes created yet.</p>
+            <Button onClick={addQuiz}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Your First Quiz
+            </Button>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 };
 
