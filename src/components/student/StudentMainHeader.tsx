@@ -1,5 +1,5 @@
 
-import { BookOpen, Menu, LogOut, User, HelpCircle } from "lucide-react";
+import { BookOpen, Menu, LogOut, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -23,10 +23,6 @@ const StudentMainHeader = () => {
       console.error('Error signing out:', error);
       navigate('/', { replace: true });
     }
-  };
-
-  const handleProfile = () => {
-    console.log('Navigate to profile page');
   };
 
   const handleKnowledgeBase = () => {
@@ -67,10 +63,6 @@ const StudentMainHeader = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={handleProfile} className="flex items-center space-x-2">
-                  <User className="h-4 w-4" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleKnowledgeBase} className="flex items-center space-x-2">
                   <HelpCircle className="h-4 w-4" />
                   <span>Help & Knowledge Base</span>

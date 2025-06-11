@@ -1,5 +1,5 @@
 
-import { BookOpen, Menu, LogOut, TreePine, User, HelpCircle, Sparkles } from "lucide-react";
+import { BookOpen, Menu, LogOut, TreePine, HelpCircle, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -33,11 +33,6 @@ const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
 
   const handleLMSTree = () => {
     navigate('/flowchart-lms-tree');
-  };
-
-  const handleProfile = () => {
-    // Navigate to profile page - you can implement this route as needed
-    console.log('Navigate to profile page');
   };
 
   const handleKnowledgeBase = () => {
@@ -83,10 +78,6 @@ const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
-                <DropdownMenuItem onClick={handleProfile} className="flex items-center space-x-2">
-                  <User className="h-4 w-4" />
-                  <span>Profile</span>
-                </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleKnowledgeBase} className="flex items-center space-x-2">
                   <HelpCircle className="h-4 w-4" />
                   <span>Admin Help & Knowledge Base</span>
