@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { CourseFormData, ModuleData } from "../types";
@@ -14,6 +15,11 @@ export const useCourseForm = (courseId?: string) => {
     level: "",
     duration: "",
     image_url: "",
+    image_file: null,
+    tags: [],
+    is_draft: false,
+    students_enrolled: 0,
+    rating: 0,
   });
   
   const [modules, setModules] = useState<ModuleData[]>([]);
@@ -43,15 +49,20 @@ export const useCourseForm = (courseId?: string) => {
 
       console.log('Loaded course data:', course);
 
-      // Set course data
+      // Set course data with all required properties
       setCourseData({
         title: course.title,
         description: course.description || "",
         instructor: course.instructor,
         category: course.category,
-        level: course.level || "",  // Ensure level is properly set
+        level: course.level || "",
         duration: course.duration,
         image_url: course.image_url || "",
+        image_file: null,
+        tags: course.tags || [],
+        is_draft: course.is_draft || false,
+        students_enrolled: course.students_enrolled || 0,
+        rating: course.rating || 0,
       });
 
       console.log('Set course data with level:', course.level);

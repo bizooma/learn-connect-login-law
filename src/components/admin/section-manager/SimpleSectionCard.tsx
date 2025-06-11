@@ -111,9 +111,14 @@ const SimpleSectionCard = ({
                   key={originalIndex}
                   unit={unit}
                   unitIndex={originalIndex}
-                  onUpdate={(field, value) => onUpdateUnit(originalIndex, field, value)}
-                  onDelete={() => onDeleteUnit(originalIndex)}
-                  onVideoFileChange={(file) => onVideoFileChange(originalIndex, file)}
+                  onUpdateUnit={(unitIdx, field, value) => onUpdateUnit(unitIdx, field, value)}
+                  onDeleteUnit={(unitIdx) => onDeleteUnit(unitIdx)}
+                  onVideoFileChange={(unitIdx, file) => onVideoFileChange(unitIdx, file)}
+                  onMoveUnitUp={() => {}}
+                  onMoveUnitDown={() => {}}
+                  onMoveUnitToSection={() => {}}
+                  canMoveUnitUp={false}
+                  canMoveUnitDown={false}
                 />
               );
             })}

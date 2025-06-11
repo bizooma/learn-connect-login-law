@@ -5,32 +5,10 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Trash2, ChevronDown, ChevronRight, Plus } from 'lucide-react';
+import { Trash2, ChevronDown, ChevronRight, Plus, MoveUp, MoveDown } from 'lucide-react';
+import { LessonData } from '../course-form/types';
 import UnitCard from './UnitCard';
-
-interface LessonData {
-  id?: string;
-  title: string;
-  description: string;
-  image_url?: string;
-  sort_order: number;
-  units: UnitData[];
-  _deletedInForm?: boolean;
-}
-
-interface UnitData {
-  id?: string;
-  title: string;
-  description: string;
-  content: string;
-  video_url: string;
-  video_type: 'youtube' | 'upload';
-  video_file?: File;
-  duration_minutes: number;
-  sort_order: number;
-  quiz_id?: string;
-  _deletedInForm?: boolean;
-}
+import LessonImageUpload from '../LessonImageUpload';
 
 interface LessonCardProps {
   lesson: LessonData;
@@ -43,8 +21,11 @@ interface LessonCardProps {
   onAddUnit: () => void;
   onUpdateUnit: (unitIndex: number, field: string, value: any) => void;
   onDeleteUnit: (unitIndex: number) => void;
-  onVideoFileChange: (unitIndex: number, file: File | null) => void;
-  onImageUpdate: (imageUrl: string | null) => void;
+  onVideoFileChange: (unitIndex: number, file: File) => void;
+  onMoveLessonUp: () => void;
+  onMoveLessonDown: () => void;
+  canMoveLessonUp: boolean;
+  canMoveLessonDown: boolean;
 }
 
 const LessonCard = ({
@@ -59,14 +40,20 @@ const LessonCard = ({
   onUpdateUnit,
   onDeleteUnit,
   onVideoFileChange,
-  onImageUpdate
+  onMoveLessonUp,
+  onMoveLessonDown,
+  canMoveLessonUp,
+  canMoveLessonDown
 }: LessonCardProps) => {
-  // Filter out units marked as deleted in form
+  const handleLessonImageUpdate = (imageUrl: string | null) => {
+    onUpdate('image_url', imageUrl || '');
+  };
+
   const visibleUnits = lesson.units.filter(unit => !unit._deletedInForm);
 
   return (
-    <Card className="mb-4 border-blue-200">
-      <CardHeader className="bg-blue-50 pb-3">
+    <Card className="border-green-200 ml-4">
+      <CardHeader className="bg-green-50 py-2">
         <CardTitle className="flex items-center justify-between text-base">
           <div className="flex items-center gap-2">
             <Button
@@ -81,15 +68,35 @@ const LessonCard = ({
                 <ChevronRight className="h-4 w-4" />
               )}
             </Button>
-            <span>Lesson {lessonIndex + 1}: {lesson.title || 'Untitled'}</span>
+            <span>Lesson {lessonIndex + 1}</span>
           </div>
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={onDelete}
-          >
-            <Trash2 className="h-4 w-4" />
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onMoveLessonUp}
+              disabled={!canMoveLessonUp}
+              className="p-1"
+            >
+              <MoveUp className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={onMoveLessonDown}
+              disabled={!canMoveLessonDown}
+              className="p-1"
+            >
+              <MoveDown className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="destructive"
+              size="sm"
+              onClick={onDelete}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
         </CardTitle>
       </CardHeader>
       
@@ -113,6 +120,12 @@ const LessonCard = ({
             />
           </div>
 
+          <LessonImageUpload
+            currentImageUrl={lesson.image_url}
+            onImageUpdate={handleLessonImageUpdate}
+            lessonIndex={lessonIndex}
+          />
+
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <h5 className="font-medium">Units ({visibleUnits.length})</h5>
@@ -127,7 +140,6 @@ const LessonCard = ({
             </div>
 
             {visibleUnits.map((unit, unitIndex) => {
-              // Find the original index in the full units array
               const originalIndex = lesson.units.findIndex(u => u === unit);
               
               return (
@@ -137,9 +149,9 @@ const LessonCard = ({
                   unitIndex={originalIndex}
                   lessonIndex={lessonIndex}
                   moduleIndex={moduleIndex}
-                  onUpdate={(field, value) => onUpdateUnit(originalIndex, field, value)}
-                  onDelete={() => onDeleteUnit(originalIndex)}
-                  onVideoFileChange={(file) => onVideoFileChange(originalIndex, file)}
+                  onUpdateUnit={(unitIdx, field, value) => onUpdateUnit(unitIdx, field, value)}
+                  onDeleteUnit={(unitIdx) => onDeleteUnit(unitIdx)}
+                  onVideoFileChange={(unitIdx, file) => onVideoFileChange(unitIdx, file)}
                 />
               );
             })}
