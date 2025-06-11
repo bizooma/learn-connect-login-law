@@ -22,6 +22,26 @@ export interface ProgressRecalculationResult {
   warnings: string[];
 }
 
+// Type for the RPC response
+interface AdminRecalculateProgressResponse {
+  success: boolean;
+  courses_updated?: number;
+  users_affected?: number;
+  details?: {
+    audit_id?: string;
+    errors?: string[];
+    [key: string]: any;
+  };
+}
+
+// Type for diagnosis response
+interface DiagnosisResponse {
+  total_users_with_progress: number;
+  users_with_zero_progress: number;
+  users_with_completed_units_but_zero_progress: number;
+  sample_inconsistent_records: any[];
+}
+
 export const progressRecalculationService = {
   /**
    * Refined progress recalculation that preserves manual admin work
@@ -56,17 +76,20 @@ export const progressRecalculationService = {
 
       console.log('✅ Refined progress recalculation completed:', data);
 
+      // Type assertion with proper checking
+      const typedData = data as AdminRecalculateProgressResponse;
+
       return {
-        success: data.success,
-        recordsUpdated: data.courses_updated || 0,
-        usersAffected: data.users_affected || 0,
-        inconsistenciesFound: data.courses_updated || 0,
+        success: typedData?.success || false,
+        recordsUpdated: typedData?.courses_updated || 0,
+        usersAffected: typedData?.users_affected || 0,
+        inconsistenciesFound: typedData?.courses_updated || 0,
         details: {
           updatedRecords: [], // Would need to parse from details if needed
-          auditIds: data.details?.audit_id ? [data.details.audit_id] : [],
+          auditIds: typedData?.details?.audit_id ? [typedData.details.audit_id] : [],
           preservedManualWork: true
         },
-        errors: data.details?.errors || [],
+        errors: typedData?.details?.errors || [],
         warnings: []
       };
 
@@ -102,14 +125,17 @@ export const progressRecalculationService = {
         throw error;
       }
 
+      // Type assertion for diagnosis data
+      const diagnosisData = (data as DiagnosisResponse[])?.[0];
+
       return {
         success: true,
-        totalUsers: data[0]?.total_users_with_progress || 0,
-        usersWithZeroProgress: data[0]?.users_with_zero_progress || 0,
-        inconsistentUsers: data[0]?.users_with_completed_units_but_zero_progress || 0,
-        sampleRecords: data[0]?.sample_inconsistent_records || [],
-        healthScore: data[0]?.users_with_completed_units_but_zero_progress > 0 ? 
-          Math.max(0, 100 - (data[0].users_with_completed_units_but_zero_progress / data[0].total_users_with_progress * 100)) : 100
+        totalUsers: diagnosisData?.total_users_with_progress || 0,
+        usersWithZeroProgress: diagnosisData?.users_with_zero_progress || 0,
+        inconsistentUsers: diagnosisData?.users_with_completed_units_but_zero_progress || 0,
+        sampleRecords: diagnosisData?.sample_inconsistent_records || [],
+        healthScore: diagnosisData?.users_with_completed_units_but_zero_progress > 0 ? 
+          Math.max(0, 100 - (diagnosisData.users_with_completed_units_but_zero_progress / diagnosisData.total_users_with_progress * 100)) : 100
       };
 
     } catch (error) {
