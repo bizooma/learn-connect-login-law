@@ -21,6 +21,14 @@ interface UserCourseProgressProps {
   showOnlyCompleted?: boolean;
 }
 
+// Helper function to get display title for courses
+const getCourseDisplayTitle = (title: string | null | undefined): string => {
+  if (!title || title.trim() === '') {
+    return 'Untitled Course';
+  }
+  return title;
+};
+
 const UserCourseProgress = ({ userId, showOnlyAssigned = false, showOnlyCompleted = false }: UserCourseProgressProps) => {
   const { courseProgress, completedCourses, inProgressCourses, currentCourse, loading } = useUserProgress(userId);
   const navigate = useNavigate();
@@ -87,7 +95,7 @@ const UserCourseProgress = ({ userId, showOnlyAssigned = false, showOnlyComplete
     rawCourseProgress: courseProgress,
     courseProgressDetails: courseProgress.map(c => ({
       id: c.id,
-      title: c.title,
+      title: getCourseDisplayTitle(c.title),
       hasProgress: !!c.progress,
       progressId: c.progress?.id,
       status: c.progress?.status || 'none',
@@ -95,7 +103,7 @@ const UserCourseProgress = ({ userId, showOnlyAssigned = false, showOnlyComplete
     })),
     filteredCoursesToShow: coursesToShow.map(c => ({
       id: c.id,
-      title: c.title,
+      title: getCourseDisplayTitle(c.title),
       status: c.progress?.status || 'none'
     }))
   });
@@ -111,7 +119,7 @@ const UserCourseProgress = ({ userId, showOnlyAssigned = false, showOnlyComplete
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <h3 className="font-semibold text-lg">{course.title}</h3>
+                      <h3 className="font-semibold text-lg">{getCourseDisplayTitle(course.title)}</h3>
                       <Badge className={getStatusColor(course.progress?.status || 'not_started')}>
                         {getStatusText(course.progress?.status || 'not_started')}
                       </Badge>

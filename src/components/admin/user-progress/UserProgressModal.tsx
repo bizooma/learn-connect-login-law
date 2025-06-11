@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -37,6 +38,14 @@ interface UserProgressData {
   user_name: string;
   courses: CourseProgressData[];
 }
+
+// Helper function to get display title for courses
+const getCourseDisplayTitle = (title: string | null | undefined): string => {
+  if (!title || title.trim() === '') {
+    return 'Untitled Course';
+  }
+  return title;
+};
 
 const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) => {
   const [userProgress, setUserProgress] = useState<UserProgressData | null>(null);
@@ -81,7 +90,8 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
       // Fetch detailed unit progress for each course
       const coursesWithUnits = await Promise.all(
         (courseProgress || []).map(async (course) => {
-          console.log(`📚 Processing course: ${course.courses.title} (${course.course_id})`);
+          const courseTitle = getCourseDisplayTitle(course.courses.title);
+          console.log(`📚 Processing course: ${courseTitle} (${course.course_id})`);
           
           // Get lessons and units for this course
           const { data: lessons, error: lessonsError } = await supabase
@@ -99,7 +109,7 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
             console.error('Error fetching lessons:', lessonsError);
             return {
               course_id: course.course_id,
-              course_title: course.courses.title,
+              course_title: courseTitle,
               status: course.status,
               progress_percentage: course.progress_percentage,
               started_at: course.started_at,
@@ -113,7 +123,7 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
 
           // Flatten units from all lessons
           const allUnits = lessons?.flatMap(lesson => lesson.units) || [];
-          console.log(`📝 Found ${allUnits.length} units in course ${course.courses.title}`);
+          console.log(`📝 Found ${allUnits.length} units in course ${courseTitle}`);
 
           // Get unit progress for each unit
           const unitsWithProgress = await Promise.all(
@@ -133,7 +143,7 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
 
               return {
                 unit_id: unit.id,
-                unit_title: unit.title,
+                unit_title: unit.title || 'Untitled Unit',
                 completed: isCompleted,
                 completion_method: unitProgress?.completion_method || null,
                 completed_at: unitProgress?.completed_at || null
@@ -145,7 +155,7 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
           const completedUnits = unitsWithProgress.filter(unit => unit.completed).length;
           const totalUnits = unitsWithProgress.length;
           
-          console.log(`📈 Course progress summary for ${course.courses.title}:`, {
+          console.log(`📈 Course progress summary for ${courseTitle}:`, {
             completedUnits,
             totalUnits,
             dbProgressPercentage: course.progress_percentage,
@@ -154,7 +164,7 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
 
           return {
             course_id: course.course_id,
-            course_title: course.courses.title,
+            course_title: courseTitle,
             status: course.status,
             progress_percentage: course.progress_percentage, // Use the DB value
             started_at: course.started_at,

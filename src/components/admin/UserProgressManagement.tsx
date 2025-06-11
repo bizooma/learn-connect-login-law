@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -31,6 +32,14 @@ interface UserOption {
 }
 
 const ITEMS_PER_PAGE = 50;
+
+// Helper function to get display title for courses
+const getCourseDisplayTitle = (title: string | null | undefined): string => {
+  if (!title || title.trim() === '') {
+    return 'Untitled Course';
+  }
+  return title;
+};
 
 const UserProgressManagement = () => {
   const [userProgress, setUserProgress] = useState<UserProgress[]>([]);
@@ -143,7 +152,7 @@ const UserProgressManagement = () => {
           user_email: profile?.email || 'Unknown',
           user_name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'Unknown',
           course_id: progress.course_id,
-          course_title: course?.title || 'Unknown Course',
+          course_title: getCourseDisplayTitle(course?.title),
           status: progress.status,
           progress_percentage: progress.progress_percentage,
           started_at: progress.started_at,
@@ -157,7 +166,10 @@ const UserProgressManagement = () => {
       setUserProgress(formattedProgress);
       
       // Extract unique courses for filter
-      const uniqueCourses = [...new Set(progressData?.map(p => ({ id: p.course_id, title: p.courses?.title || 'Unknown Course' })))];
+      const uniqueCourses = [...new Set(progressData?.map(p => ({ 
+        id: p.course_id, 
+        title: getCourseDisplayTitle(p.courses?.title)
+      })))];
       setCourses(uniqueCourses);
 
       // Extract unique users for filter
