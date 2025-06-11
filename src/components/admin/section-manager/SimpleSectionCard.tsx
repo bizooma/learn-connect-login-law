@@ -1,34 +1,25 @@
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
-import { Trash2, Plus, ChevronDown, ChevronUp, ArrowUp, ArrowDown } from "lucide-react";
-import SectionImageUpload from "../SectionImageUpload";
-import SimpleUnitManager from "./SimpleUnitManager";
-import { UnitData, SectionData } from "./types";
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { Trash2, ChevronDown, ChevronRight, Plus } from 'lucide-react';
+import { SectionData } from './types';
+import SimpleUnitManager from './SimpleUnitManager';
 
 interface SimpleSectionCardProps {
   section: SectionData;
   sectionIndex: number;
   isExpanded: boolean;
-  onToggleExpanded: (index: number) => void;
-  onUpdateSection: (index: number, field: keyof SectionData, value: any) => void;
-  onDeleteSection: (index: number) => void;
-  onAddUnit: (sectionIndex: number) => void;
-  onUpdateUnit: (sectionIndex: number, unitIndex: number, field: keyof UnitData, value: any) => void;
-  onDeleteUnit: (sectionIndex: number, unitIndex: number) => void;
-  onVideoFileChange: (sectionIndex: number, unitIndex: number, file: File | null) => void;
-  onSectionImageUpdate: (sectionIndex: number, imageUrl: string | null) => void;
-  onMoveSectionUp: () => void;
-  onMoveSectionDown: () => void;
-  onMoveUnitUp: (sectionIndex: number, unitIndex: number) => void;
-  onMoveUnitDown: (sectionIndex: number, unitIndex: number) => void;
-  onMoveUnitToSection: (fromSectionIndex: number, unitIndex: number, toSectionIndex: number) => void;
-  canMoveSectionUp: boolean;
-  canMoveSectionDown: boolean;
-  totalSections: number;
+  onToggleExpanded: () => void;
+  onUpdate: (field: string, value: any) => void;
+  onDelete: () => void;
+  onAddUnit: () => void;
+  onUpdateUnit: (unitIndex: number, field: string, value: any) => void;
+  onDeleteUnit: (unitIndex: number) => void;
+  onVideoFileChange: (unitIndex: number, file: File | null) => void;
 }
 
 const SimpleSectionCard = ({
@@ -36,154 +27,106 @@ const SimpleSectionCard = ({
   sectionIndex,
   isExpanded,
   onToggleExpanded,
-  onUpdateSection,
-  onDeleteSection,
+  onUpdate,
+  onDelete,
   onAddUnit,
   onUpdateUnit,
   onDeleteUnit,
-  onVideoFileChange,
-  onSectionImageUpdate,
-  onMoveSectionUp,
-  onMoveSectionDown,
-  onMoveUnitUp,
-  onMoveUnitDown,
-  onMoveUnitToSection,
-  canMoveSectionUp,
-  canMoveSectionDown,
-  totalSections,
+  onVideoFileChange
 }: SimpleSectionCardProps) => {
-  const handleToggleExpanded = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    onToggleExpanded(sectionIndex);
-  };
+  // Filter out units marked as deleted in form
+  const visibleUnits = section.units.filter(unit => !unit._deletedInForm);
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <div className="flex items-center space-x-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onMoveSectionUp}
-                disabled={!canMoveSectionUp}
-                className="h-6 w-6 p-0"
-              >
-                <ArrowUp className="h-3 w-3" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={onMoveSectionDown}
-                disabled={!canMoveSectionDown}
-                className="h-6 w-6 p-0"
-              >
-                <ArrowDown className="h-3 w-3" />
-              </Button>
-            </div>
-            <CardTitle className="text-base">
-              Section {sectionIndex + 1}
-            </CardTitle>
-            <Badge variant="secondary">
-              {section.units.length} units
-            </Badge>
-          </div>
-          <div className="flex items-center space-x-2">
+    <Card className="mb-4">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleToggleExpanded}
-              className="flex items-center space-x-1"
+              onClick={onToggleExpanded}
+              className="p-1"
             >
               {isExpanded ? (
-                <>
-                  <ChevronUp className="h-4 w-4" />
-                  <span>Collapse</span>
-                </>
+                <ChevronDown className="h-4 w-4" />
               ) : (
-                <>
-                  <ChevronDown className="h-4 w-4" />
-                  <span>Expand</span>
-                </>
+                <ChevronRight className="h-4 w-4" />
               )}
             </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => onDeleteSection(sectionIndex)}
-              className="text-red-600 hover:text-red-700"
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            <span>Section {sectionIndex + 1}: {section.title || 'Untitled'}</span>
           </div>
-        </div>
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={onDelete}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      
+      {isExpanded && (
+        <CardContent className="space-y-4">
           <div>
-            <Label htmlFor={`section-title-${sectionIndex}`}>Section Title</Label>
+            <Label htmlFor={`section-title-${sectionIndex}`}>Title</Label>
             <Input
               id={`section-title-${sectionIndex}`}
               value={section.title}
-              onChange={(e) => onUpdateSection(sectionIndex, 'title', e.target.value)}
+              onChange={(e) => onUpdate('title', e.target.value)}
               placeholder="Enter section title"
             />
           </div>
+          
           <div>
             <Label htmlFor={`section-description-${sectionIndex}`}>Description</Label>
-            <Input
+            <Textarea
               id={`section-description-${sectionIndex}`}
               value={section.description}
-              onChange={(e) => onUpdateSection(sectionIndex, 'description', e.target.value)}
+              onChange={(e) => onUpdate('description', e.target.value)}
               placeholder="Enter section description"
+              rows={3}
             />
           </div>
-        </div>
 
-        <SectionImageUpload
-          currentImageUrl={section.image_url}
-          onImageUpdate={(imageUrl) => onSectionImageUpdate(sectionIndex, imageUrl)}
-          sectionIndex={sectionIndex}
-        />
-
-        {isExpanded && (
-          <div className="mt-6 space-y-4">
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
-              <h4 className="font-medium">Units</h4>
+              <h4 className="text-md font-semibold">Units ({visibleUnits.length})</h4>
               <Button
-                onClick={() => onAddUnit(sectionIndex)}
-                size="sm"
                 variant="outline"
+                size="sm"
+                onClick={onAddUnit}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 Add Unit
               </Button>
             </div>
 
-            <div className="space-y-3">
-              {section.units.map((unit, unitIndex) => (
+            {visibleUnits.map((unit, unitIndex) => {
+              // Find the original index in the full units array
+              const originalIndex = section.units.findIndex(u => u === unit);
+              
+              return (
                 <SimpleUnitManager
-                  key={unitIndex}
+                  key={originalIndex}
                   unit={unit}
-                  unitIndex={unitIndex}
-                  sectionIndex={sectionIndex}
-                  totalSections={totalSections}
-                  onUpdateUnit={onUpdateUnit}
-                  onDeleteUnit={onDeleteUnit}
-                  onVideoFileChange={onVideoFileChange}
-                  onMoveUnitUp={() => onMoveUnitUp(sectionIndex, unitIndex)}
-                  onMoveUnitDown={() => onMoveUnitDown(sectionIndex, unitIndex)}
-                  onMoveUnitToSection={(toSectionIndex) => onMoveUnitToSection(sectionIndex, unitIndex, toSectionIndex)}
-                  canMoveUnitUp={unitIndex > 0}
-                  canMoveUnitDown={unitIndex < section.units.length - 1}
+                  unitIndex={originalIndex}
+                  onUpdate={(field, value) => onUpdateUnit(originalIndex, field, value)}
+                  onDelete={() => onDeleteUnit(originalIndex)}
+                  onVideoFileChange={(file) => onVideoFileChange(originalIndex, file)}
                 />
-              ))}
-            </div>
+              );
+            })}
+
+            {visibleUnits.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <p>No units in this section yet.</p>
+                <p className="text-sm">Click "Add Unit" to create the first unit.</p>
+              </div>
+            )}
           </div>
-        )}
-      </CardContent>
+        </CardContent>
+      )}
     </Card>
   );
 };

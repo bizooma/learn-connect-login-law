@@ -33,6 +33,9 @@ const LessonForm = ({
     onLessonUpdate('image_url', imageUrl || '');
   };
 
+  // Filter out units marked as deleted in form
+  const visibleUnits = lesson.units.filter(unit => !unit._deletedInForm);
+
   return (
     <Card className="border-green-200 ml-4">
       <CardHeader className="bg-green-50 py-2">
@@ -87,15 +90,20 @@ const LessonForm = ({
             </Button>
           </div>
 
-          {lesson.units.map((unit, unitIndex) => (
-            <UnitForm
-              key={unitIndex}
-              unit={unit}
-              onUnitChange={(field, value) => onUnitUpdate(unitIndex, field, value)}
-              onRemove={() => onUnitRemove(unitIndex)}
-              unitIndex={unitIndex}
-            />
-          ))}
+          {visibleUnits.map((unit, unitIndex) => {
+            // Find the original index in the full units array
+            const originalIndex = lesson.units.findIndex(u => u === unit);
+            
+            return (
+              <UnitForm
+                key={originalIndex}
+                unit={unit}
+                onUnitChange={(field, value) => onUnitUpdate(originalIndex, field, value)}
+                onRemove={() => onUnitRemove(originalIndex)}
+                unitIndex={originalIndex}
+              />
+            );
+          })}
         </div>
       </CardContent>
     </Card>

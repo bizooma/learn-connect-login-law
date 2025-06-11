@@ -29,13 +29,10 @@ export const useSectionManager = ({ sections, onSectionsChange }: UseSectionMana
   };
 
   const deleteSection = (index: number) => {
-    const updatedSections = sections.filter((_, i) => i !== index);
-    // Update sort orders
-    const reorderedSections = updatedSections.map((section, i) => ({
-      ...section,
-      sort_order: i
-    }));
-    onSectionsChange(reorderedSections);
+    const updatedSections = sections.map((section, i) => 
+      i === index ? { ...section, _deletedInForm: true } : section
+    );
+    onSectionsChange(updatedSections);
   };
 
   const addUnit = (sectionIndex: number) => {
@@ -80,8 +77,11 @@ export const useSectionManager = ({ sections, onSectionsChange }: UseSectionMana
       i === sectionIndex 
         ? { 
             ...section, 
-            units: section.units.filter((_, j) => j !== unitIndex)
-              .map((unit, index) => ({ ...unit, sort_order: index }))
+            units: section.units.map((unit, j) => 
+              j === unitIndex 
+                ? { ...unit, _deletedInForm: true }  // Mark as deleted instead of removing
+                : unit
+            )
           }
         : section
     );

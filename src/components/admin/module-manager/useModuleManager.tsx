@@ -8,6 +8,7 @@ interface ModuleData {
   image_url?: string;
   sort_order: number;
   lessons: LessonData[];
+  _deletedInForm?: boolean;
 }
 
 interface LessonData {
@@ -17,6 +18,7 @@ interface LessonData {
   image_url?: string;
   sort_order: number;
   units: UnitData[];
+  _deletedInForm?: boolean;
 }
 
 interface UnitData {
@@ -30,6 +32,7 @@ interface UnitData {
   duration_minutes: number;
   sort_order: number;
   quiz_id?: string;
+  _deletedInForm?: boolean;
 }
 
 interface UseModuleManagerProps {
@@ -57,12 +60,10 @@ export const useModuleManager = ({ modules, onModulesChange }: UseModuleManagerP
   };
 
   const deleteModule = (index: number) => {
-    const updatedModules = modules.filter((_, i) => i !== index);
-    const reorderedModules = updatedModules.map((module, i) => ({
-      ...module,
-      sort_order: i
-    }));
-    onModulesChange(reorderedModules);
+    const updatedModules = modules.map((module, i) => 
+      i === index ? { ...module, _deletedInForm: true } : module
+    );
+    onModulesChange(updatedModules);
   };
 
   const addLesson = (moduleIndex: number) => {
@@ -101,8 +102,11 @@ export const useModuleManager = ({ modules, onModulesChange }: UseModuleManagerP
       i === moduleIndex 
         ? { 
             ...module, 
-            lessons: module.lessons.filter((_, j) => j !== lessonIndex)
-              .map((lesson, index) => ({ ...lesson, sort_order: index }))
+            lessons: module.lessons.map((lesson, j) => 
+              j === lessonIndex 
+                ? { ...lesson, _deletedInForm: true }  // Mark as deleted instead of removing
+                : lesson
+            )
           }
         : module
     );
@@ -166,8 +170,11 @@ export const useModuleManager = ({ modules, onModulesChange }: UseModuleManagerP
               j === lessonIndex 
                 ? { 
                     ...lesson, 
-                    units: lesson.units.filter((_, k) => k !== unitIndex)
-                      .map((unit, index) => ({ ...unit, sort_order: index }))
+                    units: lesson.units.map((unit, k) => 
+                      k === unitIndex 
+                        ? { ...unit, _deletedInForm: true }  // Mark as deleted instead of removing
+                        : unit
+                    )
                   }
                 : lesson
             )

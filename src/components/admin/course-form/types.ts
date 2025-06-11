@@ -1,53 +1,7 @@
+import { Course } from "@/integrations/supabase/types";
 
-export interface CourseFormData {
-  title: string;
-  description: string;
-  instructor: string;
-  category: string;
-  level: string;
-  duration: string;
-  image_url?: string;
-  image_file?: File;
-}
-
-export interface ModuleData {
-  id?: string;
-  title: string;
-  description: string;
-  image_url?: string;
-  image_file?: File;
-  file_url?: string;
-  file?: File;
-  file_name?: string;
-  file_size?: number;
-  sort_order: number;
-  lessons: LessonData[];
-}
-
-export interface LessonData {
-  id?: string;
-  title: string;
-  description: string;
-  image_url?: string;
-  image_file?: File;
-  file_url?: string;
-  file?: File;
-  file_name?: string;
-  file_size?: number;
-  sort_order: number;
-  units: UnitData[];
-}
-
-export interface SectionData {
-  id?: string;
-  title: string;
-  description: string;
-  image_url?: string;
-  file_url?: string;
-  file_name?: string;
-  file_size?: number;
-  sort_order: number;
-  units: UnitData[];
+export interface CourseFormData extends Omit<Course, 'id' | 'created_at'> {
+  image_file: File | null;
 }
 
 export interface UnitData {
@@ -60,39 +14,31 @@ export interface UnitData {
   video_file?: File;
   duration_minutes: number;
   sort_order: number;
-  quiz_id?: string;
-  image_url?: string;
+  files?: Array<{ url: string; name: string; size: number }>;
   file_url?: string;
   file_name?: string;
   file_size?: number;
-  file?: File;
-  files?: Array<{ url: string; name: string; size: number }>;
-  newFiles?: File[];
+  quiz_id?: string;
+  _deletedInForm?: boolean; // Track form-level deletions
   _lastFilesUpdate?: number;
 }
 
-export interface QuizData {
+export interface LessonData {
   id?: string;
   title: string;
-  description?: string;
-  passing_score: number;
-  time_limit_minutes?: number;
-  is_active: boolean;
-  questions: QuestionData[];
+  description: string;
+  image_url?: string;
+  sort_order: number;
+  units: UnitData[];
+  _deletedInForm?: boolean; // Track form-level deletions
 }
 
-export interface QuestionData {
+export interface ModuleData {
   id?: string;
-  question_text: string;
-  question_type: 'multiple_choice';
-  points: number;
+  title: string;
+  description: string;
+  image_url?: string;
   sort_order: number;
-  options: OptionData[];
-}
-
-export interface OptionData {
-  id?: string;
-  option_text: string;
-  is_correct: boolean;
-  sort_order: number;
+  lessons: LessonData[];
+  _deletedInForm?: boolean; // Track form-level deletions
 }

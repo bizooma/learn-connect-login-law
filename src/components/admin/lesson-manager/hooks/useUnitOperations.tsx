@@ -60,8 +60,11 @@ export const useUnitOperations = ({ lessons, onLessonsChange }: UseUnitOperation
       i === lessonIndex 
         ? { 
             ...lesson, 
-            units: lesson.units.filter((_, j) => j !== unitIndex)
-              .map((unit, index) => ({ ...unit, sort_order: index }))
+            units: lesson.units.map((unit, j) => 
+              j === unitIndex 
+                ? { ...unit, _deletedInForm: true }  // Mark as deleted instead of removing
+                : unit
+            )
           }
         : lesson
     );
