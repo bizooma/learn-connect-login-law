@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ProfileImageUpload from "./ProfileImageUpload";
 import UserCourseProgress from "../user/UserCourseProgress";
+import PasswordChangeSection from "../shared/PasswordChangeSection";
 
 const ProfileManagement = () => {
   const { user } = useAuth();
@@ -117,7 +118,7 @@ const ProfileManagement = () => {
           <TabsTrigger value="progress">Course Progress</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="profile">
+        <TabsContent value="profile" className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Profile Settings</CardTitle>
@@ -190,6 +191,8 @@ const ProfileManagement = () => {
               </form>
             </CardContent>
           </Card>
+
+          <PasswordChangeSection />
         </TabsContent>
 
         <TabsContent value="progress">
