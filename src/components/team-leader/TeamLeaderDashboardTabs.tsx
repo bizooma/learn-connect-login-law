@@ -10,12 +10,12 @@ const TeamLeaderDashboardTabs = () => {
     <Tabs defaultValue="overview" className="w-full">
       <TabsList 
         className="grid w-full grid-cols-3"
-        style={{ backgroundColor: '#213C82' }}
+        style={{ backgroundColor: '#FFDA00' }}
       >
         <TabsTrigger 
           value="overview" 
           className="flex items-center data-[state=active]:bg-white data-[state=active]:text-black"
-          style={{ color: 'white' }}
+          style={{ color: 'black' }}
         >
           <BarChart3 className="h-4 w-4 mr-2" />
           Overview
@@ -23,7 +23,7 @@ const TeamLeaderDashboardTabs = () => {
         <TabsTrigger 
           value="team" 
           className="flex items-center data-[state=active]:bg-white data-[state=active]:text-black"
-          style={{ color: 'white' }}
+          style={{ color: 'black' }}
         >
           <Users className="h-4 w-4 mr-2" />
           Team Members
@@ -31,7 +31,7 @@ const TeamLeaderDashboardTabs = () => {
         <TabsTrigger 
           value="profile" 
           className="flex items-center data-[state=active]:bg-white data-[state=active]:text-black"
-          style={{ color: 'white' }}
+          style={{ color: 'black' }}
         >
           <User className="h-4 w-4 mr-2" />
           Profile
