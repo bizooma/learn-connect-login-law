@@ -10,7 +10,7 @@ const TeamLeaderDashboardTabs = () => {
     <Tabs defaultValue="overview" className="w-full">
       <TabsList 
         className="grid w-full grid-cols-3"
-        style={{ backgroundColor: '#FFA500' }}
+        style={{ backgroundColor: '#213C82' }}
       >
         <TabsTrigger 
           value="overview" 
