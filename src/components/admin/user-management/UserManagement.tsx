@@ -60,8 +60,8 @@ const UserManagement = () => {
         return;
       }
 
-      // Use the new safe role update function
-      await updateUserRoleSafe(userId, newRole, 'Administrative role change via user management interface');
+      // Use the new safe role update function with proper typing
+      await updateUserRoleSafe(userId, newRole as 'admin' | 'owner' | 'student' | 'client' | 'free', 'Administrative role change via user management interface');
 
       // Refresh users list
       await fetchUsers();
