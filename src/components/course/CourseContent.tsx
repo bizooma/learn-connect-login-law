@@ -37,7 +37,7 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
   const [unitQuiz, setUnitQuiz] = useState<Quiz | null>(null);
   const [quizLoading, setQuizLoading] = useState(false);
 
-  // Fetch quiz for the current unit
+  // Fetch quiz for the current unit with real-time updates
   useEffect(() => {
     const fetchUnitQuiz = async () => {
       if (!unit?.id) {
@@ -55,13 +55,15 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
           .eq('unit_id', unit.id)
           .eq('is_active', true)
           .eq('is_deleted', false)
+          .is('deleted_at', null)
           .maybeSingle();
 
         if (error) {
           console.error('COURSE CONTENT: Error fetching quiz:', error);
           setUnitQuiz(null);
         } else {
-          console.log('COURSE CONTENT: Quiz found:', quizData);
+          console.log('COURSE CONTENT: Quiz found:', quizData ? `${quizData.title} (ID: ${quizData.id})` : 'No quiz');
+          console.log('COURSE CONTENT: Quiz deletion status:', quizData ? { is_deleted: quizData.is_deleted, deleted_at: quizData.deleted_at } : 'N/A');
           setUnitQuiz(quizData);
         }
       } catch (error) {
@@ -73,6 +75,33 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
     };
 
     fetchUnitQuiz();
+
+    // Set up real-time subscription for quiz changes
+    if (unit?.id) {
+      console.log('COURSE CONTENT: Setting up real-time subscription for unit quiz changes');
+      
+      const channel = supabase
+        .channel(`unit-quiz-${unit.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'quizzes',
+            filter: `unit_id=eq.${unit.id}`
+          },
+          (payload) => {
+            console.log('COURSE CONTENT: Quiz change detected:', payload);
+            fetchUnitQuiz(); // Refetch quiz data when changes occur
+          }
+        )
+        .subscribe();
+
+      return () => {
+        console.log('COURSE CONTENT: Cleaning up real-time subscription');
+        supabase.removeChannel(channel);
+      };
+    }
   }, [unit?.id]);
 
   // Refresh completion status when component mounts or courseId changes
@@ -101,7 +130,7 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
   };
 
   // Check if this unit has a quiz attached to it
-  const hasQuiz = unitQuiz && unitQuiz.is_active;
+  const hasQuiz = unitQuiz && unitQuiz.is_active && !unitQuiz.is_deleted;
 
   // Convert UnitWithQuiz to Unit for components that expect the database type
   const unitForDatabase: Unit | null = unit ? {
