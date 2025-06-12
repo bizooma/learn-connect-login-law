@@ -685,6 +685,7 @@ export type Database = {
           law_firm_id: string | null
           law_firm_name: string | null
           profile_image_url: string | null
+          team_leader_id: string | null
           updated_at: string | null
         }
         Insert: {
@@ -698,6 +699,7 @@ export type Database = {
           law_firm_id?: string | null
           law_firm_name?: string | null
           profile_image_url?: string | null
+          team_leader_id?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -711,6 +713,7 @@ export type Database = {
           law_firm_id?: string | null
           law_firm_name?: string | null
           profile_image_url?: string | null
+          team_leader_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -719,6 +722,13 @@ export type Database = {
             columns: ["law_firm_id"]
             isOneToOne: false
             referencedRelation: "law_firms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_team_leader_id_fkey"
+            columns: ["team_leader_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1591,7 +1601,13 @@ export type Database = {
         | "video_pause"
         | "video_complete"
         | "page_view"
-      app_role: "admin" | "owner" | "student" | "client" | "free"
+      app_role:
+        | "admin"
+        | "owner"
+        | "student"
+        | "client"
+        | "free"
+        | "team_leader"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1720,7 +1736,7 @@ export const Constants = {
         "video_complete",
         "page_view",
       ],
-      app_role: ["admin", "owner", "student", "client", "free"],
+      app_role: ["admin", "owner", "student", "client", "free", "team_leader"],
     },
   },
 } as const

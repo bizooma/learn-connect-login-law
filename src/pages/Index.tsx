@@ -10,7 +10,7 @@ import { useEffect, useRef } from "react";
 
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
-  const { isAdmin, isOwner, isStudent, isClient, isFree, loading: roleLoading } = useUserRole();
+  const { isAdmin, isOwner, isTeamLeader, isStudent, isClient, isFree, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   const location = useLocation();
   const hasRedirected = useRef(false);
@@ -22,6 +22,7 @@ const Index = () => {
       authLoading,
       roleLoading,
       isOwner,
+      isTeamLeader,
       isStudent,
       isClient,
       isFree,
@@ -77,6 +78,13 @@ const Index = () => {
           navigate("/owner-dashboard", { replace: true });
           return;
         }
+        // Redirect team leaders to their dedicated dashboard
+        if (isTeamLeader) {
+          console.log('Index: Redirecting team leader to team leader dashboard');
+          hasRedirected.current = true;
+          navigate("/team-leader-dashboard", { replace: true });
+          return;
+        }
         // Redirect students to their dedicated dashboard
         if (isStudent) {
           console.log('Index: Redirecting student to student dashboard');
@@ -106,7 +114,7 @@ const Index = () => {
         hasRedirected.current = false; // Reset on error
       }
     }
-  }, [user?.id, isOwner, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate, location.pathname]);
+  }, [user?.id, isOwner, isTeamLeader, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate, location.pathname]);
 
   // Show loading while auth or roles are being determined
   if (authLoading || (user && roleLoading)) {

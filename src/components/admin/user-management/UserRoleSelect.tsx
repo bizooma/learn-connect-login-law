@@ -5,7 +5,7 @@ import { getAvailableRoles } from "./userRoleUtils";
 
 interface UserRoleSelectProps {
   currentRole: string;
-  onRoleChange: (newRole: 'admin' | 'owner' | 'student' | 'client' | 'free') => void;
+  onRoleChange: (newRole: 'admin' | 'owner' | 'student' | 'client' | 'free' | 'team_leader') => void;
 }
 
 const UserRoleSelect = ({ currentRole, onRoleChange }: UserRoleSelectProps) => {

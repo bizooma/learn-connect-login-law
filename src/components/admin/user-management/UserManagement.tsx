@@ -48,13 +48,13 @@ const UserManagement = () => {
     }
   };
 
-  const updateUserRole = async (userId: string, newRole: 'admin' | 'owner' | 'student' | 'client' | 'free') => {
+  const updateUserRole = async (userId: string, newRole: 'admin' | 'owner' | 'student' | 'client' | 'free' | 'team_leader') => {
     try {
       // Check if current user can assign this role
-      if (!isAdmin && (newRole === 'admin' || newRole === 'owner')) {
+      if (!isAdmin && (newRole === 'admin' || newRole === 'owner' || newRole === 'team_leader')) {
         toast({
           title: "Access Denied",
-          description: "You don't have permission to assign admin or owner roles",
+          description: "You don't have permission to assign admin, owner, or team leader roles",
           variant: "destructive",
         });
         return;

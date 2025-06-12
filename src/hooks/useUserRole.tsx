@@ -112,6 +112,7 @@ export const useUserRole = () => {
   // Compute derived values safely
   const isAdmin = role === 'admin';
   const isOwner = role === 'owner';
+  const isTeamLeader = role === 'team_leader';
   const isStudent = role === 'student';
   const isClient = role === 'client';
   const isFree = role === 'free';
@@ -125,6 +126,7 @@ export const useUserRole = () => {
     role,
     isAdmin,
     isOwner,
+    isTeamLeader,
     isStudent,
     isClient,
     isFree,
@@ -139,6 +141,7 @@ export const useUserRole = () => {
     role, 
     isAdmin, 
     isOwner, 
+    isTeamLeader,
     isStudent, 
     isClient, 
     isFree, 

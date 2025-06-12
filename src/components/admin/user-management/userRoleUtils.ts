@@ -11,6 +11,8 @@ export const getRoleBadgeColor = (role: string): string => {
       return 'bg-red-100 text-red-800';
     case 'owner':
       return 'bg-purple-100 text-purple-800';
+    case 'team_leader':
+      return 'bg-orange-100 text-orange-800';
     case 'student':
       return 'bg-blue-100 text-blue-800';
     case 'client':
@@ -29,6 +31,7 @@ export const getAvailableRoles = (isAdmin: boolean, isOwner: boolean) => {
       { value: 'free', label: 'Free' },
       { value: 'student', label: 'Student' },
       { value: 'client', label: 'Client' },
+      { value: 'team_leader', label: 'Team Leader' },
       { value: 'owner', label: 'Owner' },
       { value: 'admin', label: 'Admin' }
     ];
