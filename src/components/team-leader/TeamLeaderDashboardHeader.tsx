@@ -1,11 +1,12 @@
 
 import { useAuth } from "@/hooks/useAuth";
 import { useTeamMembers } from "@/hooks/useTeamMembers";
-import { Users, Target, TrendingUp } from "lucide-react";
+import { Users, Target, TrendingUp, LogOut } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 
 const TeamLeaderDashboardHeader = () => {
-  const { user } = useAuth();
+  const { user, signOut } = useAuth();
   const { teamMembers } = useTeamMembers();
 
   // Count all team members since they're all assigned to this team leader
@@ -36,6 +37,16 @@ const TeamLeaderDashboardHeader = () => {
                 Welcome back, {user?.email}
               </p>
             </div>
+          </div>
+          <div className="flex items-center space-x-4">
+            <Button
+              variant="ghost"
+              onClick={signOut}
+              className="flex items-center text-white hover:bg-white/10"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
           </div>
         </div>
 
