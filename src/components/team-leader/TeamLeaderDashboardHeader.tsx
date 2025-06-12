@@ -8,9 +8,8 @@ const TeamLeaderDashboardHeader = () => {
   const { user } = useAuth();
   const { teamMembers } = useTeamMembers();
 
-  const activeMembers = teamMembers.filter(member => 
-    member.roles?.includes('student') || member.roles?.includes('client')
-  ).length;
+  // Count all team members since they're all assigned to this team leader
+  const activeMembers = teamMembers.length;
 
   return (
     <div className="bg-white shadow-sm border-b">

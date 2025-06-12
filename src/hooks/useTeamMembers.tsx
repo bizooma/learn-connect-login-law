@@ -77,7 +77,7 @@ export const useTeamMembers = () => {
 
       console.log('useTeamMembers: Roles data:', roles);
 
-      // Combine profiles with their roles
+      // Combine profiles with their roles, defaulting to 'student' if no role is found
       const formattedMembers = profiles.map(profile => ({
         id: profile.id,
         email: profile.email,
@@ -85,7 +85,7 @@ export const useTeamMembers = () => {
         last_name: profile.last_name || '',
         created_at: profile.created_at,
         profile_image_url: profile.profile_image_url,
-        roles: roles?.filter(r => r.user_id === profile.id).map(r => r.role) || []
+        roles: roles?.filter(r => r.user_id === profile.id).map(r => r.role) || ['student'] // Default to student role
       }));
 
       console.log('useTeamMembers: Formatted members:', formattedMembers);
