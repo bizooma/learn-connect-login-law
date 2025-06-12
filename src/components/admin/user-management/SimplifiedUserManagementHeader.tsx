@@ -27,7 +27,8 @@ const SimplifiedUserManagementHeader = ({
                 Student: {stats.roleCounts.student || 0}, 
                 Client: {stats.roleCounts.client || 0}, 
                 Free: {stats.roleCounts.free || 0}, 
-                Owner: {stats.roleCounts.owner || 0})
+                Owner: {stats.roleCounts.owner || 0}, 
+                Team Leader: {stats.roleCounts.team_leader || 0})
               </span>
             )}
           </p>
