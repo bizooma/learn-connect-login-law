@@ -9,6 +9,7 @@ import SafeRoleUpdateDialog from "./SafeRoleUpdateDialog";
 import UserCourseAssignment from "./UserCourseAssignment";
 import UserEmailEditDialog from "./UserEmailEditDialog";
 import UserPasswordResetDialog from "./UserPasswordResetDialog";
+import TeamAssignmentDialog from "./TeamAssignmentDialog";
 import { UserProfile } from "./types";
 import { getUserRole, getRoleBadgeColor } from "./userRoleUtils";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -95,6 +96,12 @@ export const UserCard = ({
                   {user.law_firm_name}
                 </p>
               )}
+
+              {user.team_leader_id && (
+                <p className="text-sm text-orange-600 mb-2">
+                  Assigned to team leader
+                </p>
+              )}
               
               <div className="space-y-3">
                 <div className="flex items-center gap-2 mb-3">
@@ -129,6 +136,13 @@ export const UserCard = ({
                       <BarChart3 className="h-3 w-3" />
                       View Progress
                     </Button>
+                  )}
+
+                  {isAdmin && (
+                    <TeamAssignmentDialog
+                      user={user}
+                      onAssignmentComplete={handleRoleUpdated}
+                    />
                   )}
 
                   {isAdmin && (
