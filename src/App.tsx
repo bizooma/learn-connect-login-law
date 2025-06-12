@@ -20,6 +20,9 @@ import ProtectedFlowchartLMSTree from "./pages/ProtectedFlowchartLMSTree";
 import NotFound from "./pages/NotFound";
 import OwnerDashboard from "./pages/OwnerDashboard";
 import TeamLeaderDashboard from "./pages/TeamLeaderDashboard";
+import StudentDashboard from "./pages/StudentDashboard";
+import ClientDashboard from "./pages/ClientDashboard";
+import FreeDashboard from "./pages/FreeDashboard";
 
 const queryClient = new QueryClient();
 
@@ -46,6 +49,9 @@ const App = () => (
             <Route path="/protected-flowchart-lms-tree" element={<ProtectedFlowchartLMSTree />} />
             <Route path="/owner-dashboard" element={<OwnerDashboard />} />
             <Route path="/team-leader-dashboard" element={<TeamLeaderDashboard />} />
+            <Route path="/student-dashboard" element={<StudentDashboard />} />
+            <Route path="/client-dashboard" element={<ClientDashboard />} />
+            <Route path="/free-dashboard" element={<FreeDashboard />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
