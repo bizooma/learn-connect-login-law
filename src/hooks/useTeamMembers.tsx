@@ -21,10 +21,15 @@ export const useTeamMembers = () => {
   const { user } = useAuth();
 
   const fetchTeamMembers = async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      console.log('useTeamMembers: No user ID available');
+      setLoading(false);
+      return;
+    }
 
     try {
       setLoading(true);
+      console.log('useTeamMembers: Fetching team members for team leader:', user.id);
       
       // Fetch users assigned to this team leader
       const { data: profiles, error } = await supabase
@@ -51,11 +56,19 @@ export const useTeamMembers = () => {
         return;
       }
 
+      console.log('useTeamMembers: Raw profiles data:', profiles);
+
       const formattedMembers = profiles?.map(profile => ({
-        ...profile,
+        id: profile.id,
+        email: profile.email,
+        first_name: profile.first_name || '',
+        last_name: profile.last_name || '',
+        created_at: profile.created_at,
+        profile_image_url: profile.profile_image_url,
         roles: profile.user_roles?.map((ur: any) => ur.role) || []
       })) || [];
 
+      console.log('useTeamMembers: Formatted members:', formattedMembers);
       setTeamMembers(formattedMembers);
     } catch (error) {
       console.error('Error in fetchTeamMembers:', error);
