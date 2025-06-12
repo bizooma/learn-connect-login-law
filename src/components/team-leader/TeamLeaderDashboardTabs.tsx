@@ -6,6 +6,7 @@ import { useAuth } from "@/hooks/useAuth";
 import DashboardContent from "@/components/dashboard/DashboardContent";
 import TeamLeaderProfileTab from "./TeamLeaderProfileTab";
 import TeamMemberManagement from "./TeamMemberManagement";
+import TeamLeadershipInfoCard from "./TeamLeadershipInfoCard";
 
 const TeamLeaderDashboardTabs = () => {
   const { user } = useAuth();
@@ -36,16 +37,19 @@ const TeamLeaderDashboardTabs = () => {
       </TabsList>
 
       <TabsContent value="overview" className="mt-6">
-        <DashboardContent
-          activeTab={courseTab}
-          onTabChange={setCourseTab}
-          userId={user.id}
-          title="Team Leader Dashboard"
-          description="Monitor your learning progress and manage your team's development"
-          assignedTabLabel="Assigned Courses"
-          completedTabLabel="Completed Courses"
-          yellowTabs={true}
-        />
+        <div className="space-y-6">
+          <TeamLeadershipInfoCard />
+          <DashboardContent
+            activeTab={courseTab}
+            onTabChange={setCourseTab}
+            userId={user.id}
+            title="Team Leader Dashboard"
+            description="Monitor your learning progress and manage your team's development"
+            assignedTabLabel="Assigned Courses"
+            completedTabLabel="Completed Courses"
+            yellowTabs={true}
+          />
+        </div>
       </TabsContent>
 
       <TabsContent value="courses" className="mt-6">
