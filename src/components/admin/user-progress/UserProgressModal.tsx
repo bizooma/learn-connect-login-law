@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -139,6 +138,7 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
           
           // Add missing courses to progress data with default values
           const missingProgressEntries = missingCourses?.map(course => ({
+            id: `temp-${course.id}`,
             user_id: userId,
             course_id: course.id,
             status: 'not_started',
@@ -146,6 +146,8 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
             started_at: null,
             completed_at: null,
             last_accessed_at: null,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
             courses: { id: course.id, title: course.title }
           })) || [];
 
