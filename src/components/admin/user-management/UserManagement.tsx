@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -61,7 +60,7 @@ const UserManagement = () => {
       }
 
       // Use the new safe role update function with proper typing
-      await updateUserRoleSafe(userId, newRole as 'admin' | 'owner' | 'student' | 'client' | 'free', 'Administrative role change via user management interface');
+      await updateUserRoleSafe(userId, newRole, 'Administrative role change via user management interface');
 
       // Refresh users list
       await fetchUsers();

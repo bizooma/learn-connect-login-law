@@ -1,5 +1,5 @@
-
 import { supabase } from "@/integrations/supabase/client";
+import { UserProfile } from "./types";
 
 export const fetchUsersWithStatsSafe = async () => {
   console.log('Fetching users with safe filters...');
@@ -55,27 +55,23 @@ export const fetchUsersWithStatsSafe = async () => {
   }
 };
 
-export const updateUserRoleSafe = async (userId: string, newRole: 'admin' | 'owner' | 'student' | 'client' | 'free', reason?: string) => {
-  try {
-    console.log(`Safely updating role for user ${userId} to ${newRole}`);
-    
-    const { data, error } = await supabase.rpc('update_user_role_safe', {
-      p_user_id: userId,
-      p_new_role: newRole,
-      p_reason: reason || 'Administrative role change'
-    });
+export const updateUserRoleSafe = async (
+  userId: string, 
+  newRole: 'admin' | 'owner' | 'student' | 'client' | 'free' | 'team_leader', 
+  reason: string
+) => {
+  const { data, error } = await supabase.rpc('update_user_role_safe', {
+    p_user_id: userId,
+    p_new_role: newRole,
+    p_reason: reason
+  });
 
-    if (error) {
-      console.error('Error in safe role update:', error);
-      throw error;
-    }
-
-    console.log('Safe role update successful:', data);
-    return data;
-  } catch (error) {
-    console.error('Error in updateUserRoleSafe:', error);
-    throw error;
+  if (error) {
+    console.error('Error updating user role:', error);
+    throw new Error(error.message || 'Failed to update user role');
   }
+
+  return data;
 };
 
 export const softDeleteUserSafe = async (userId: string, reason: string) => {
