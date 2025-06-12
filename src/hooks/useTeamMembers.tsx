@@ -31,8 +31,8 @@ export const useTeamMembers = () => {
       setLoading(true);
       console.log('useTeamMembers: Fetching team members for team leader:', user.id);
       
-      // Fetch users assigned to this team leader
-      const { data: profiles, error } = await supabase
+      // First, fetch users assigned to this team leader
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
         .select(`
           id,
@@ -40,14 +40,13 @@ export const useTeamMembers = () => {
           first_name,
           last_name,
           created_at,
-          profile_image_url,
-          user_roles (role)
+          profile_image_url
         `)
         .eq('team_leader_id', user.id)
         .eq('is_deleted', false);
 
-      if (error) {
-        console.error('Error fetching team members:', error);
+      if (profilesError) {
+        console.error('Error fetching team member profiles:', profilesError);
         toast({
           title: "Error",
           description: "Failed to fetch team members",
@@ -58,15 +57,36 @@ export const useTeamMembers = () => {
 
       console.log('useTeamMembers: Raw profiles data:', profiles);
 
-      const formattedMembers = profiles?.map(profile => ({
+      if (!profiles || profiles.length === 0) {
+        console.log('useTeamMembers: No profiles found for team leader:', user.id);
+        setTeamMembers([]);
+        return;
+      }
+
+      // Then fetch roles for these users
+      const userIds = profiles.map(p => p.id);
+      const { data: roles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role')
+        .in('user_id', userIds);
+
+      if (rolesError) {
+        console.error('Error fetching user roles:', rolesError);
+        // Continue without roles rather than failing completely
+      }
+
+      console.log('useTeamMembers: Roles data:', roles);
+
+      // Combine profiles with their roles
+      const formattedMembers = profiles.map(profile => ({
         id: profile.id,
         email: profile.email,
         first_name: profile.first_name || '',
         last_name: profile.last_name || '',
         created_at: profile.created_at,
         profile_image_url: profile.profile_image_url,
-        roles: profile.user_roles?.map((ur: any) => ur.role) || []
-      })) || [];
+        roles: roles?.filter(r => r.user_id === profile.id).map(r => r.role) || []
+      }));
 
       console.log('useTeamMembers: Formatted members:', formattedMembers);
       setTeamMembers(formattedMembers);
