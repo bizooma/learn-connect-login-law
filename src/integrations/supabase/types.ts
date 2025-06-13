@@ -1570,6 +1570,23 @@ export type Database = {
         Args: { p_user_id: string; p_reason?: string; p_performed_by?: string }
         Returns: Json
       }
+      safe_unit_upsert: {
+        Args: {
+          p_unit_id: string
+          p_section_id: string
+          p_title: string
+          p_description: string
+          p_content: string
+          p_video_url: string
+          p_duration_minutes: number
+          p_sort_order: number
+          p_file_url?: string
+          p_file_name?: string
+          p_file_size?: number
+          p_files?: Json
+        }
+        Returns: string
+      }
       soft_delete_quiz: {
         Args: { quiz_id: string }
         Returns: boolean
