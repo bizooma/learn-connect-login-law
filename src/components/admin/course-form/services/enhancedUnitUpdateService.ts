@@ -46,8 +46,8 @@ export const updateUnitsEnhanced = async (
       let filesData = unit.files;
       if (unit.file_uploads && unit.file_uploads.length > 0) {
         try {
-          const { uploadMultipleFiles } = await import("../fileUploadUtils");
-          filesData = await uploadMultipleFiles(unit.file_uploads);
+          const { createMultipleFileUpload } = await import("./fileUploadService");
+          filesData = await createMultipleFileUpload(unit.file_uploads, 'unit', i);
           console.log('📎 Multiple files uploaded successfully');
         } catch (error) {
           result.warnings.push(`File uploads failed: ${error.message}`);

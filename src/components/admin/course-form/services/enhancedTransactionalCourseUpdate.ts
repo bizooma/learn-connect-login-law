@@ -419,12 +419,12 @@ const createCourseContentEnhanced = async (courseId: string, modules: ModuleData
           title: lesson.title,
           description: lesson.description,
           image_url: lesson.image_url,
-          video_url: lesson.video_url,
+          video_url: lesson.video_url || null,
           video_type: lesson.video_type || 'youtube',
           file_url: lesson.file_url,
           file_name: lesson.file_name,
           file_size: lesson.file_size,
-          duration_minutes: lesson.duration_minutes,
+          duration_minutes: lesson.duration_minutes || null,
           sort_order: lessonIndex
         })
         .select()

@@ -30,6 +30,7 @@ export interface UnitData {
   file_size?: number;
   file?: File;
   newFiles?: File[];
+  file_uploads?: File[];
   image_url?: string;
   quiz_id?: string;
   _deletedInForm?: boolean;
@@ -44,6 +45,9 @@ export interface LessonData {
   file_url?: string;
   file_name?: string;
   file_size?: number;
+  video_url?: string;
+  video_type?: 'youtube' | 'upload';
+  duration_minutes?: number;
   image_file?: File;
   file?: File;
   sort_order: number;
