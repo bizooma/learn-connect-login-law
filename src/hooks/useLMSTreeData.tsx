@@ -76,7 +76,7 @@ export const useLMSTreeData = () => {
             is_draft: lesson.is_draft,
             created_at: lesson.created_at,
             updated_at: lesson.updated_at,
-            lessons: lesson.units?.map((unit, unitIndex) => ({
+            lessons: lesson.units?.filter(unit => !unit.is_draft).map((unit, unitIndex) => ({
               id: unit.id,
               course_id: course.id,
               module_id: lesson.id, // This will be the new module ID
@@ -108,15 +108,15 @@ export const useLMSTreeData = () => {
           };
         }
 
-        // For courses without Main Module, process normally but check for single-lesson modules
+        // For courses without Main Module, process normally but check for single-lesson modules and filter draft units
         const processedModules = course.modules?.map(module => {
-          // Sort lessons and units properly
+          // Sort lessons and units properly, filtering out draft units
           if (module.lessons) {
             module.lessons = module.lessons
               .sort((a, b) => a.sort_order - b.sort_order)
               .map(lesson => ({
                 ...lesson,
-                units: lesson.units?.sort((a, b) => a.sort_order - b.sort_order) || []
+                units: lesson.units?.filter(unit => !unit.is_draft).sort((a, b) => a.sort_order - b.sort_order) || []
               }));
           }
           return module;

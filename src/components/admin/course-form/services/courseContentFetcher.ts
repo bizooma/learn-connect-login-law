@@ -59,12 +59,12 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
 
     console.log('Modules data fetched:', modulesData);
 
-    // Collect all units from all lessons to fetch quizzes
+    // Collect all units from all lessons to fetch quizzes - exclude draft units
     const allUnits = modulesData?.flatMap(m => 
-      m.lessons?.flatMap(l => l.units || []) || []
+      m.lessons?.flatMap(l => l.units?.filter(u => !u.is_draft) || []) || []
     ) || [];
     
-    // Fetch quiz assignments for all units - this is crucial for preserving assignments
+    // Fetch quiz assignments for all non-draft units - this is crucial for preserving assignments
     const { data: quizzesData, error: quizzesError } = await supabase
       .from('quizzes')
       .select('id, unit_id, title, description, passing_score, time_limit_minutes, is_active')
@@ -102,7 +102,7 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
       video_type: getVideoType(lesson.video_url || "") as 'youtube' | 'upload',
       duration_minutes: lesson.duration_minutes || 0,
       sort_order: lesson.sort_order,
-      units: (lesson.units || []).map((unit: Unit) => {
+      units: (lesson.units || []).filter((unit: Unit) => !unit.is_draft).map((unit: Unit) => {
         // Parse files from the database
         const files = parseFilesFromDatabase(unit.files);
         
@@ -140,7 +140,7 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
       }).sort((a, b) => a.sort_order - b.sort_order)
     })).sort((a, b) => a.sort_order - b.sort_order) || [];
 
-    console.log('Formatted lessons with preserved quiz assignments:', formattedLessons);
+    console.log('Formatted lessons with preserved quiz assignments and filtered draft units:', formattedLessons);
     return formattedLessons;
   } catch (error) {
     console.error('Error fetching course content:', error);

@@ -64,12 +64,12 @@ export const useCourse = (courseId: string) => {
       if (courseError) throw courseError;
 
       if (courseData) {
-        // Get all unit IDs for quiz lookup
+        // Get all unit IDs for quiz lookup - only include non-draft units
         const allUnits = courseData.modules?.flatMap(m => 
-          m.lessons?.flatMap(l => l.units || []) || []
+          m.lessons?.flatMap(l => l.units?.filter(u => !u.is_draft) || []) || []
         ) || [];
 
-        // Fetch quizzes for all units
+        // Fetch quizzes for all non-draft units
         const { data: quizzesData } = await supabase
           .from('quizzes')
           .select('id, title, description, is_active, unit_id')
@@ -83,12 +83,12 @@ export const useCourse = (courseId: string) => {
           }
         });
 
-        // Enhance modules with proper ordering
+        // Enhance modules with proper ordering and filter out draft units
         const enhancedModules = courseData.modules?.map(module => ({
           ...module,
           lessons: module.lessons?.map(lesson => ({
             ...lesson,
-            units: lesson.units?.map(unit => {
+            units: lesson.units?.filter(unit => !unit.is_draft).map(unit => {
               let files: Array<{ url: string; name: string; size: number }> = [];
               
               // Handle the new files format (jsonb array)
@@ -120,7 +120,7 @@ export const useCourse = (courseId: string) => {
           }))?.sort((a, b) => a.sort_order - b.sort_order) || []
         }))?.sort((a, b) => a.sort_order - b.sort_order) || [];
 
-        // For backward compatibility, also create a flat lessons array with proper ordering
+        // For backward compatibility, also create a flat lessons array with proper ordering and filter out draft units
         const flatLessons = enhancedModules.flatMap(m => m.lessons || []);
 
         const enhancedCourse = {
@@ -139,10 +139,10 @@ export const useCourse = (courseId: string) => {
           }
         }
 
-        // If current selected unit no longer exists, reset selection
+        // If current selected unit no longer exists (or was marked as draft), reset selection
         if (selectedUnit) {
           const unitStillExists = flatLessons.some(lesson => 
-            lesson.units.some(unit => unit.id === selectedUnit.id)
+            lesson.units.some(unit => unit.id === selectedUnit.id && !unit.is_draft)
           );
           if (!unitStillExists) {
             const firstUnit = flatLessons[0]?.units?.[0];

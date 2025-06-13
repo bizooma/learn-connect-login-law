@@ -40,11 +40,12 @@ export const useSection = (id: string | undefined) => {
 
       console.log('Lesson data fetched:', lessonData);
 
-      // Fetch units for this lesson
+      // Fetch units for this lesson - exclude draft units
       const { data: unitsData, error: unitsError } = await supabase
         .from('units')
         .select('*')
         .eq('section_id', id)
+        .eq('is_draft', false)
         .order('sort_order', { ascending: true });
 
       if (unitsError) {
@@ -52,7 +53,7 @@ export const useSection = (id: string | undefined) => {
         throw unitsError;
       }
 
-      console.log('Units data fetched:', unitsData);
+      console.log('Units data fetched (excluding drafts):', unitsData);
 
       const lessonWithUnits: LessonWithUnits = {
         ...lessonData,
