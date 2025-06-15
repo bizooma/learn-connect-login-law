@@ -21,6 +21,7 @@ const ProfileManagement = () => {
     last_name: '',
     email: '',
     law_firm_name: '',
+    job_title: '',
     profile_image_url: '',
   });
 
@@ -47,6 +48,7 @@ const ProfileManagement = () => {
         last_name: data.last_name || '',
         email: data.email || '',
         law_firm_name: data.law_firm_name || '',
+        job_title: data.job_title || '',
         profile_image_url: data.profile_image_url || '',
       });
     } catch (error) {
@@ -70,6 +72,7 @@ const ProfileManagement = () => {
           first_name: formData.first_name,
           last_name: formData.last_name,
           law_firm_name: formData.law_firm_name,
+          job_title: formData.job_title,
           updated_at: new Date().toISOString(),
         })
         .eq('id', user?.id);
@@ -165,6 +168,18 @@ const ProfileManagement = () => {
                     value={formData.law_firm_name}
                     onChange={handleInputChange}
                     placeholder="Enter your law firm name"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="job_title">Job Title (Optional)</Label>
+                  <Input
+                    id="job_title"
+                    name="job_title"
+                    type="text"
+                    value={formData.job_title}
+                    onChange={handleInputChange}
+                    placeholder="Enter your job title"
                   />
                 </div>
 
