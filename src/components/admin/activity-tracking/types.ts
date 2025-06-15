@@ -1,17 +1,20 @@
-
 export interface UserSession {
   id: string;
   user_id: string;
-  course_id?: string;
+  course_id?: string | null;
   session_start: string;
-  session_end?: string;
-  duration_seconds?: number;
+  session_end?: string | null;
+  duration_seconds?: number | null;
   session_type: 'general' | 'course' | 'unit';
-  entry_point?: string;
-  exit_point?: string;
+  entry_point?: string | null;
+  exit_point?: string | null;
   user_email?: string;
   course_title?: string;
   metadata?: Record<string, any>;
+  ip_address?: unknown;
+  user_agent?: string | null;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface SessionStats {

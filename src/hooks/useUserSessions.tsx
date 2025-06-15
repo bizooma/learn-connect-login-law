@@ -14,11 +14,11 @@ export const useUserSessions = (filters: ActivityFilters = {}) => {
     try {
       setLoading(true);
       
+      // First get sessions data
       let query = supabase
         .from('user_sessions')
         .select(`
           *,
-          profiles!user_sessions_user_id_fkey(email),
           courses(title)
         `)
         .order('session_start', { ascending: false });
@@ -40,15 +40,32 @@ export const useUserSessions = (filters: ActivityFilters = {}) => {
         query = query.eq('session_type', filters.sessionType);
       }
 
-      const { data, error } = await query.limit(1000);
+      const { data: sessionsData, error: sessionsError } = await query.limit(1000);
 
-      if (error) throw error;
+      if (sessionsError) throw sessionsError;
 
-      const formattedSessions = data?.map(session => ({
+      // Get user emails separately
+      const userIds = Array.from(new Set(sessionsData?.map(s => s.user_id) || []));
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .in('id', userIds)
+        .eq('is_deleted', false);
+
+      if (profilesError) throw profilesError;
+
+      // Create a map for quick email lookup
+      const emailMap = new Map();
+      profilesData?.forEach(profile => {
+        emailMap.set(profile.id, profile.email);
+      });
+
+      const formattedSessions = sessionsData?.map(session => ({
         ...session,
-        user_email: session.profiles?.email,
+        user_email: emailMap.get(session.user_id),
         course_title: session.courses?.title,
-        session_type: session.session_type as 'general' | 'course' | 'unit'
+        session_type: session.session_type as 'general' | 'course' | 'unit',
+        metadata: (session.metadata as Record<string, any>) || {}
       })) || [];
 
       // Apply search filter if provided
