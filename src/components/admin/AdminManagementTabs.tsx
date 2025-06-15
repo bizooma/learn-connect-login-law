@@ -13,15 +13,66 @@ const AdminManagementTabs = () => {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="courses">Courses</TabsTrigger>
-          <TabsTrigger value="quizzes">Quizzes</TabsTrigger>
-          <TabsTrigger value="assignments">Assignments</TabsTrigger>
-          <TabsTrigger value="progress">Progress</TabsTrigger>
-          <TabsTrigger value="notifications">Notifications</TabsTrigger>
-          <TabsTrigger value="calendar">Calendar</TabsTrigger>
-          <TabsTrigger value="activity">Activity</TabsTrigger>
+        <TabsList 
+          className="grid w-full grid-cols-4 lg:grid-cols-8"
+          style={{ backgroundColor: '#FFDA00' }}
+        >
+          <TabsTrigger 
+            value="users"
+            className="data-[state=active]:bg-white data-[state=active]:text-black"
+            style={{ color: 'black' }}
+          >
+            Users
+          </TabsTrigger>
+          <TabsTrigger 
+            value="courses"
+            className="data-[state=active]:bg-white data-[state=active]:text-black"
+            style={{ color: 'black' }}
+          >
+            Courses
+          </TabsTrigger>
+          <TabsTrigger 
+            value="quizzes"
+            className="data-[state=active]:bg-white data-[state=active]:text-black"
+            style={{ color: 'black' }}
+          >
+            Quizzes
+          </TabsTrigger>
+          <TabsTrigger 
+            value="assignments"
+            className="data-[state=active]:bg-white data-[state=active]:text-black"
+            style={{ color: 'black' }}
+          >
+            Assignments
+          </TabsTrigger>
+          <TabsTrigger 
+            value="progress"
+            className="data-[state=active]:bg-white data-[state=active]:text-black"
+            style={{ color: 'black' }}
+          >
+            Progress
+          </TabsTrigger>
+          <TabsTrigger 
+            value="notifications"
+            className="data-[state=active]:bg-white data-[state=active]:text-black"
+            style={{ color: 'black' }}
+          >
+            Notifications
+          </TabsTrigger>
+          <TabsTrigger 
+            value="calendar"
+            className="data-[state=active]:bg-white data-[state=active]:text-black"
+            style={{ color: 'black' }}
+          >
+            Calendar
+          </TabsTrigger>
+          <TabsTrigger 
+            value="activity"
+            className="data-[state=active]:bg-white data-[state=active]:text-black"
+            style={{ color: 'black' }}
+          >
+            Activity
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="users" className="space-y-4">
