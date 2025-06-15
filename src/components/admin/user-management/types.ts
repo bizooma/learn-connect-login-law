@@ -5,6 +5,7 @@ export interface UserProfile {
   first_name?: string;
   last_name?: string;
   law_firm_name?: string;
+  job_title?: string;
   profile_image_url?: string;
   created_at: string;
   updated_at?: string;

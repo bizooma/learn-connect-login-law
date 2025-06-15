@@ -681,6 +681,7 @@ export type Database = {
           first_name: string | null
           id: string
           is_deleted: boolean | null
+          job_title: string | null
           last_name: string | null
           law_firm_id: string | null
           law_firm_name: string | null
@@ -695,6 +696,7 @@ export type Database = {
           first_name?: string | null
           id: string
           is_deleted?: boolean | null
+          job_title?: string | null
           last_name?: string | null
           law_firm_id?: string | null
           law_firm_name?: string | null
@@ -709,6 +711,7 @@ export type Database = {
           first_name?: string | null
           id?: string
           is_deleted?: boolean | null
+          job_title?: string | null
           last_name?: string | null
           law_firm_id?: string | null
           law_firm_name?: string | null
