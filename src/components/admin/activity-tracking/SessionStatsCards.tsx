@@ -23,8 +23,11 @@ const SessionStatsCards = ({ stats, loading }: SessionStatsCardsProps) => {
     const totalSessions = stats.reduce((sum, stat) => sum + stat.total_sessions, 0);
     const totalTimeSeconds = stats.reduce((sum, stat) => sum + stat.total_time_seconds, 0);
     const totalTimeHours = Math.round(totalTimeSeconds / 3600 * 10) / 10;
+    
+    // Calculate weighted average session duration
+    const totalSessionTime = stats.reduce((sum, stat) => sum + (stat.total_sessions * stat.avg_session_duration), 0);
     const avgSessionMinutes = totalSessions > 0 
-      ? Math.round((totalTimeSeconds / totalSessions) / 60 * 10) / 10 
+      ? Math.round((totalSessionTime / totalSessions) / 60 * 10) / 10 
       : 0;
 
     return {
