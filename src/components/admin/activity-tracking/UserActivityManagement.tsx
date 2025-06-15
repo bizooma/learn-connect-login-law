@@ -3,7 +3,6 @@ import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ActivityFiltersComponent from "./ActivityFilters";
 import SessionsTable from "./SessionsTable";
-import SessionStatsCards from "./SessionStatsCards";
 import { useUserSessions } from "@/hooks/useUserSessions";
 import { exportSessionsToCSV, exportStatsToCSV } from "@/utils/activityCsvExport";
 import type { ActivityFilters } from "./types";
@@ -35,8 +34,6 @@ const UserActivityManagement = () => {
         onExportCSV={handleExportSessionsCSV}
         loading={loading}
       />
-
-      <SessionStatsCards stats={stats} loading={loading} />
 
       <Tabs defaultValue="sessions" className="w-full">
         <TabsList className="grid w-full grid-cols-2">
