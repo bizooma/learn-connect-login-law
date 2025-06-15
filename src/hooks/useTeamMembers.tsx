@@ -9,6 +9,7 @@ export interface TeamMember {
   email: string;
   first_name: string;
   last_name: string;
+  job_title?: string;
   created_at: string;
   profile_image_url?: string;
   roles?: string[];
@@ -39,6 +40,7 @@ export const useTeamMembers = () => {
           email,
           first_name,
           last_name,
+          job_title,
           created_at,
           profile_image_url
         `)
@@ -83,6 +85,7 @@ export const useTeamMembers = () => {
         email: profile.email,
         first_name: profile.first_name || '',
         last_name: profile.last_name || '',
+        job_title: profile.job_title || '',
         created_at: profile.created_at,
         profile_image_url: profile.profile_image_url,
         roles: roles?.filter(r => r.user_id === profile.id).map(r => r.role) || ['student'] // Default to student role
