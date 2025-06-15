@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -20,6 +19,7 @@ const FreeDashboard = () => {
     last_name: "",
     email: "",
     law_firm_name: "",
+    job_title: "",
     profile_image_url: ""
   });
   const [loading, setLoading] = useState(true);
@@ -53,6 +53,7 @@ const FreeDashboard = () => {
           last_name: data.last_name || "",
           email: data.email || "",
           law_firm_name: data.law_firm_name || "",
+          job_title: data.job_title || "",
           profile_image_url: data.profile_image_url || ""
         });
       }

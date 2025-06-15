@@ -9,6 +9,7 @@ interface ProfileData {
   last_name: string;
   email: string;
   law_firm_name: string;
+  job_title: string;
   profile_image_url: string;
 }
 
