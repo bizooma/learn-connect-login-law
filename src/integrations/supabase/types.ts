@@ -1326,6 +1326,65 @@ export type Database = {
           },
         ]
       }
+      user_sessions: {
+        Row: {
+          course_id: string | null
+          created_at: string
+          duration_seconds: number | null
+          entry_point: string | null
+          exit_point: string | null
+          id: string
+          ip_address: unknown | null
+          metadata: Json | null
+          session_end: string | null
+          session_start: string
+          session_type: string
+          updated_at: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          course_id?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          entry_point?: string | null
+          exit_point?: string | null
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          session_end?: string | null
+          session_start?: string
+          session_type?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          course_id?: string | null
+          created_at?: string
+          duration_seconds?: number | null
+          entry_point?: string | null
+          exit_point?: string | null
+          id?: string
+          ip_address?: unknown | null
+          metadata?: Json | null
+          session_end?: string | null
+          session_start?: string
+          session_type?: string
+          updated_at?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_sessions_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_unit_progress: {
         Row: {
           completed: boolean
@@ -1481,6 +1540,10 @@ export type Database = {
           sample_inconsistent_records: Json
         }[]
       }
+      end_user_session: {
+        Args: { p_session_id: string; p_exit_point?: string; p_metadata?: Json }
+        Returns: boolean
+      }
       generate_certificate_number: {
         Args: Record<PropertyKey, never>
         Returns: string
@@ -1503,6 +1566,19 @@ export type Database = {
           old_data: Json
           new_data: Json
           is_reversible: boolean
+        }[]
+      }
+      get_user_session_stats: {
+        Args: { p_user_id?: string; p_start_date?: string; p_end_date?: string }
+        Returns: {
+          user_id: string
+          user_email: string
+          total_sessions: number
+          total_time_seconds: number
+          avg_session_duration: number
+          course_sessions: number
+          general_sessions: number
+          last_activity: string
         }[]
       }
       has_role: {
@@ -1598,6 +1674,18 @@ export type Database = {
         Args: { p_user_id: string; p_reason?: string; p_performed_by?: string }
         Returns: Json
       }
+      start_user_session: {
+        Args: {
+          p_user_id: string
+          p_course_id?: string
+          p_session_type?: string
+          p_entry_point?: string
+          p_ip_address?: unknown
+          p_user_agent?: string
+          p_metadata?: Json
+        }
+        Returns: string
+      }
       update_user_role_safe: {
         Args: {
           p_user_id: string
@@ -1621,6 +1709,9 @@ export type Database = {
         | "video_pause"
         | "video_complete"
         | "page_view"
+        | "course_enter"
+        | "course_exit"
+        | "session_timeout"
       app_role:
         | "admin"
         | "owner"
@@ -1755,6 +1846,9 @@ export const Constants = {
         "video_pause",
         "video_complete",
         "page_view",
+        "course_enter",
+        "course_exit",
+        "session_timeout",
       ],
       app_role: ["admin", "owner", "student", "client", "free", "team_leader"],
     },
