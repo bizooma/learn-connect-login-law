@@ -88,20 +88,24 @@ export const useUserSessions = (filters: ActivityFilters = {}) => {
         description: "Failed to fetch user sessions",
         variant: "destructive",
       });
-    } finally {
-      setLoading(false);
     }
   };
 
   const fetchStats = async () => {
     try {
+      console.log('Fetching stats with filters:', filters);
+      
       const { data, error } = await supabase.rpc('get_user_session_stats', {
         p_user_id: filters.userId || null,
         p_start_date: filters.startDate || null,
         p_end_date: filters.endDate || null
       });
 
+      console.log('Stats RPC response:', { data, error });
+
       if (error) throw error;
+      
+      console.log('Setting stats:', data);
       setStats(data || []);
     } catch (error) {
       console.error('Error fetching session stats:', error);
@@ -114,8 +118,13 @@ export const useUserSessions = (filters: ActivityFilters = {}) => {
   };
 
   useEffect(() => {
-    fetchSessions();
-    fetchStats();
+    const fetchData = async () => {
+      setLoading(true);
+      await Promise.all([fetchSessions(), fetchStats()]);
+      setLoading(false);
+    };
+    
+    fetchData();
   }, [filters]);
 
   return {
@@ -123,8 +132,12 @@ export const useUserSessions = (filters: ActivityFilters = {}) => {
     stats,
     loading,
     refetch: () => {
-      fetchSessions();
-      fetchStats();
+      const fetchData = async () => {
+        setLoading(true);
+        await Promise.all([fetchSessions(), fetchStats()]);
+        setLoading(false);
+      };
+      fetchData();
     }
   };
 };
