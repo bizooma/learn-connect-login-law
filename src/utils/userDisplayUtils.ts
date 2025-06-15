@@ -40,3 +40,17 @@ export const formatUserDisplayName = (
 export const getUserJobTitle = (user: UserWithJobTitle): string => {
   return user.job_title || '';
 };
+
+/**
+ * Creates a formatted display name with job title on a separate line
+ * @param user - User object with first_name, last_name, and optional job_title
+ * @returns Object with name and jobTitle for multi-line display
+ */
+export const formatUserDisplayMultiLine = (user: UserWithJobTitle) => {
+  const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ');
+  
+  return {
+    name: fullName || 'Unknown User',
+    jobTitle: user.job_title || ''
+  };
+};

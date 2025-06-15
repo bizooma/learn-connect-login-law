@@ -6,6 +6,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { User, Eye } from "lucide-react";
 import { TeamMember } from "@/hooks/useTeamMembers";
 import { getRoleBadgeColor } from "@/components/admin/user-management/userRoleUtils";
+import { formatUserDisplayName } from "@/utils/userDisplayUtils";
 import UserProgressModal from "@/components/admin/user-progress/UserProgressModal";
 import { useState } from "react";
 
@@ -27,6 +28,9 @@ const TeamMemberCard = ({ member }: TeamMemberCardProps) => {
     return 'U';
   };
 
+  const displayName = formatUserDisplayName(member, false); // Get name without job title
+  const jobTitle = member.job_title;
+
   return (
     <>
       <Card className="hover:shadow-md transition-shadow">
@@ -41,20 +45,26 @@ const TeamMemberCard = ({ member }: TeamMemberCardProps) => {
             
             <div className="flex-1 min-w-0">
               <div className="flex items-center justify-between">
-                <p className="text-sm font-medium text-gray-900 truncate">
-                  {member.first_name && member.last_name 
-                    ? `${member.first_name} ${member.last_name}`
-                    : member.email
-                  }
-                </p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium text-gray-900 truncate">
+                    {displayName !== 'Unknown User' ? displayName : member.email}
+                  </p>
+                  {jobTitle && (
+                    <p className="text-xs text-gray-600 truncate">
+                      {jobTitle}
+                    </p>
+                  )}
+                </div>
                 <Badge className={getRoleBadgeColor(role)}>
                   {role}
                 </Badge>
               </div>
               
-              <p className="text-xs text-gray-500 truncate mt-1">
-                {member.email}
-              </p>
+              {displayName !== 'Unknown User' && (
+                <p className="text-xs text-gray-500 truncate mt-1">
+                  {member.email}
+                </p>
+              )}
               
               <p className="text-xs text-gray-400 mt-1">
                 Joined {new Date(member.created_at).toLocaleDateString()}

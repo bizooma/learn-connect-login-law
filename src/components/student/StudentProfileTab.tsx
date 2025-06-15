@@ -16,6 +16,7 @@ interface ProfileData {
   last_name: string;
   email: string;
   law_firm_name: string;
+  job_title: string;
   profile_image_url: string;
 }
 
@@ -29,6 +30,7 @@ const StudentProfileTab = () => {
     last_name: '',
     email: '',
     law_firm_name: '',
+    job_title: '',
     profile_image_url: ''
   });
 
@@ -54,6 +56,7 @@ const StudentProfileTab = () => {
         last_name: data.last_name || '',
         email: data.email || '',
         law_firm_name: data.law_firm_name || '',
+        job_title: data.job_title || '',
         profile_image_url: data.profile_image_url || ''
       });
     } catch (error) {
@@ -77,6 +80,7 @@ const StudentProfileTab = () => {
           first_name: profile.first_name,
           last_name: profile.last_name,
           law_firm_name: profile.law_firm_name,
+          job_title: profile.job_title,
         })
         .eq('id', user?.id);
 
@@ -161,6 +165,16 @@ const StudentProfileTab = () => {
               value={profile.law_firm_name}
               onChange={(e) => setProfile(prev => ({ ...prev, law_firm_name: e.target.value }))}
               placeholder="Enter your law firm name"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="job_title">Job Title (Optional)</Label>
+            <Input
+              id="job_title"
+              value={profile.job_title}
+              onChange={(e) => setProfile(prev => ({ ...prev, job_title: e.target.value }))}
+              placeholder="Enter your job title"
             />
           </div>
 
