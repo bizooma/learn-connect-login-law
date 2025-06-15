@@ -47,7 +47,8 @@ export const useUserSessions = (filters: ActivityFilters = {}) => {
       const formattedSessions = data?.map(session => ({
         ...session,
         user_email: session.profiles?.email,
-        course_title: session.courses?.title
+        course_title: session.courses?.title,
+        session_type: session.session_type as 'general' | 'course' | 'unit'
       })) || [];
 
       // Apply search filter if provided
