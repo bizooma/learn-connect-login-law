@@ -1,4 +1,3 @@
-
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import UserManagementTabs from "./user-management/UserManagementTabs";
 import CourseManagement from "./CourseManagement";
@@ -8,13 +7,14 @@ import UserProgressManagement from "./UserProgressManagement";
 import NotificationManagement from "./NotificationManagement";
 import CalendarCleanup from "./CalendarCleanup";
 import UserActivityManagement from "./activity-tracking/UserActivityManagement";
+import ProfileManagement from "./ProfileManagement";
 
 const AdminManagementTabs = () => {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="users" className="w-full">
         <TabsList 
-          className="grid w-full grid-cols-4 lg:grid-cols-8"
+          className="grid w-full grid-cols-4 lg:grid-cols-9"
           style={{ backgroundColor: '#FFDA00' }}
         >
           <TabsTrigger 
@@ -73,6 +73,13 @@ const AdminManagementTabs = () => {
           >
             Activity
           </TabsTrigger>
+          <TabsTrigger 
+            value="profile"
+            className="data-[state=active]:bg-white data-[state=active]:text-black"
+            style={{ color: 'black' }}
+          >
+            Profile
+          </TabsTrigger>
         </TabsList>
         
         <TabsContent value="users" className="space-y-4">
@@ -105,6 +112,10 @@ const AdminManagementTabs = () => {
         
         <TabsContent value="activity" className="space-y-4">
           <UserActivityManagement />
+        </TabsContent>
+        
+        <TabsContent value="profile" className="space-y-4">
+          <ProfileManagement />
         </TabsContent>
       </Tabs>
     </div>
