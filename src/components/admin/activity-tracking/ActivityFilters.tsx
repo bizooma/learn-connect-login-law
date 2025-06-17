@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Search, Filter, Download } from "lucide-react";
+import TimeFilterPresets from "./TimeFilterPresets";
 import type { ActivityFilters } from "./types";
 
 interface ActivityFiltersProps {
@@ -28,6 +29,16 @@ const ActivityFiltersComponent = ({
     setLocalFilters(newFilters);
   };
 
+  const handlePresetSelect = (startDate: string, endDate?: string) => {
+    const newFilters = { 
+      ...localFilters, 
+      startDate: startDate || undefined, 
+      endDate: endDate || undefined 
+    };
+    setLocalFilters(newFilters);
+    onFiltersChange(newFilters);
+  };
+
   const applyFilters = () => {
     onFiltersChange(localFilters);
   };
@@ -36,6 +47,12 @@ const ActivityFiltersComponent = ({
     const clearedFilters: ActivityFilters = {};
     setLocalFilters(clearedFilters);
     onFiltersChange(clearedFilters);
+  };
+
+  const quickSessionTypeFilter = (sessionType: string) => {
+    const newFilters = { ...localFilters, sessionType: sessionType === 'all' ? undefined : sessionType };
+    setLocalFilters(newFilters);
+    onFiltersChange(newFilters);
   };
 
   return (
@@ -47,6 +64,25 @@ const ActivityFiltersComponent = ({
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
+        {/* Time Filter Presets */}
+        <TimeFilterPresets onPresetSelect={handlePresetSelect} />
+        
+        {/* Quick Session Type Filters */}
+        <div className="flex flex-wrap gap-2 items-center">
+          <span className="text-sm text-gray-600 mr-2">Session types:</span>
+          {['all', 'general', 'course', 'unit'].map((type) => (
+            <Button
+              key={type}
+              variant={localFilters.sessionType === type || (type === 'all' && !localFilters.sessionType) ? "default" : "outline"}
+              size="sm"
+              onClick={() => quickSessionTypeFilter(type)}
+              className="text-xs capitalize"
+            >
+              {type}
+            </Button>
+          ))}
+        </div>
+
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
             <Label htmlFor="start-date">Start Date</Label>

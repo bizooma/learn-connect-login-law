@@ -10,7 +10,15 @@ import type { ActivityFilters } from "./types";
 
 const UserActivityManagement = () => {
   const [filters, setFilters] = useState<ActivityFilters>({});
-  const { sessions, stats, loading, refetch } = useUserSessions(filters);
+  const { 
+    sessions, 
+    stats, 
+    loading, 
+    pagination, 
+    changePage, 
+    changePageSize, 
+    refetch 
+  } = useUserSessions(filters);
 
   const handleExportSessionsCSV = () => {
     exportSessionsToCSV(sessions, filters);
@@ -54,9 +62,17 @@ const UserActivityManagement = () => {
               ⏱️ Duration is automatically calculated from session start to session end.
               <br />
               🎯 Filter by course or session type to analyze specific learning patterns.
+              <br />
+              🔴 Active sessions are highlighted in green - these are users currently online.
             </p>
           </div>
-          <SessionsTable sessions={sessions} loading={loading} />
+          <SessionsTable 
+            sessions={sessions} 
+            loading={loading} 
+            pagination={pagination}
+            onPageChange={changePage}
+            onPageSizeChange={changePageSize}
+          />
         </TabsContent>
         
         <TabsContent value="statistics" className="space-y-4">

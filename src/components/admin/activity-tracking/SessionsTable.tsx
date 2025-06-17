@@ -2,15 +2,29 @@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock, Monitor, BookOpen } from "lucide-react";
+import { Clock, Monitor, BookOpen, Circle } from "lucide-react";
+import SessionsPagination from "./SessionsPagination";
 import type { UserSession } from "./types";
 
 interface SessionsTableProps {
   sessions: UserSession[];
   loading: boolean;
+  pagination: {
+    page: number;
+    pageSize: number;
+    totalCount: number;
+  };
+  onPageChange: (page: number) => void;
+  onPageSizeChange: (pageSize: number) => void;
 }
 
-const SessionsTable = ({ sessions, loading }: SessionsTableProps) => {
+const SessionsTable = ({ 
+  sessions, 
+  loading, 
+  pagination, 
+  onPageChange, 
+  onPageSizeChange 
+}: SessionsTableProps) => {
   const formatDuration = (seconds?: number) => {
     if (!seconds) return 'N/A';
     const hours = Math.floor(seconds / 3600);
@@ -52,6 +66,12 @@ const SessionsTable = ({ sessions, loading }: SessionsTableProps) => {
     );
   };
 
+  const isActiveSession = (session: UserSession) => {
+    return !session.session_end;
+  };
+
+  const activeSessionsCount = sessions.filter(isActiveSession).length;
+
   if (loading) {
     return (
       <Card>
@@ -68,13 +88,26 @@ const SessionsTable = ({ sessions, loading }: SessionsTableProps) => {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>User Sessions ({sessions.length})</CardTitle>
+        <CardTitle className="flex items-center justify-between">
+          <div>
+            User Sessions ({pagination.totalCount})
+          </div>
+          {activeSessionsCount > 0 && (
+            <div className="flex items-center space-x-2">
+              <Circle className="h-3 w-3 fill-green-500 text-green-500" />
+              <span className="text-sm text-green-600 font-medium">
+                {activeSessionsCount} active session{activeSessionsCount !== 1 ? 's' : ''}
+              </span>
+            </div>
+          )}
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
+                <TableHead>Status</TableHead>
                 <TableHead>User</TableHead>
                 <TableHead>Session Type</TableHead>
                 <TableHead>Course</TableHead>
@@ -88,13 +121,23 @@ const SessionsTable = ({ sessions, loading }: SessionsTableProps) => {
             <TableBody>
               {sessions.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                  <TableCell colSpan={9} className="text-center py-8 text-gray-500">
                     No sessions found for the selected criteria
                   </TableCell>
                 </TableRow>
               ) : (
                 sessions.map((session) => (
-                  <TableRow key={session.id}>
+                  <TableRow key={session.id} className={isActiveSession(session) ? 'bg-green-50' : ''}>
+                    <TableCell>
+                      {isActiveSession(session) ? (
+                        <div className="flex items-center space-x-1">
+                          <Circle className="h-3 w-3 fill-green-500 text-green-500" />
+                          <span className="text-green-600 text-xs font-medium">Active</span>
+                        </div>
+                      ) : (
+                        <span className="text-gray-400 text-xs">Ended</span>
+                      )}
+                    </TableCell>
                     <TableCell className="font-medium">
                       {session.user_email || 'Unknown User'}
                     </TableCell>
@@ -108,7 +151,9 @@ const SessionsTable = ({ sessions, loading }: SessionsTableProps) => {
                       {new Date(session.session_start).toLocaleString()}
                     </TableCell>
                     <TableCell>
-                      {session.session_end ? new Date(session.session_end).toLocaleString() : 'Active'}
+                      {session.session_end ? new Date(session.session_end).toLocaleString() : (
+                        <span className="text-green-600 font-medium">Active</span>
+                      )}
                     </TableCell>
                     <TableCell>
                       <span className={session.duration_seconds ? '' : 'text-gray-400'}>
@@ -127,6 +172,15 @@ const SessionsTable = ({ sessions, loading }: SessionsTableProps) => {
             </TableBody>
           </Table>
         </div>
+        
+        <SessionsPagination
+          currentPage={pagination.page}
+          pageSize={pagination.pageSize}
+          totalCount={pagination.totalCount}
+          onPageChange={onPageChange}
+          onPageSizeChange={onPageSizeChange}
+          loading={loading}
+        />
       </CardContent>
     </Card>
   );

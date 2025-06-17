@@ -4,43 +4,95 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { UserSession, SessionStats, ActivityFilters } from "@/components/admin/activity-tracking/types";
 
+interface PaginationState {
+  page: number;
+  pageSize: number;
+  totalCount: number;
+}
+
 export const useUserSessions = (filters: ActivityFilters = {}) => {
   const [sessions, setSessions] = useState<UserSession[]>([]);
   const [stats, setStats] = useState<SessionStats[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState<PaginationState>({
+    page: 1,
+    pageSize: 25,
+    totalCount: 0
+  });
   const { toast } = useToast();
 
-  const fetchSessions = async () => {
+  // Set smart defaults for filters
+  const getSmartFilters = (filters: ActivityFilters): ActivityFilters => {
+    const smartFilters = { ...filters };
+    
+    // Default to last 24 hours if no date range is specified
+    if (!smartFilters.startDate && !smartFilters.endDate) {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      smartFilters.startDate = yesterday.toISOString().split('T')[0];
+    }
+    
+    return smartFilters;
+  };
+
+  const fetchSessions = async (page: number = 1, pageSize: number = 25) => {
     try {
       setLoading(true);
+      const smartFilters = getSmartFilters(filters);
       
-      // First get sessions data
+      // First get the total count
+      let countQuery = supabase
+        .from('user_sessions')
+        .select('*', { count: 'exact', head: true });
+
+      // Apply filters to count query
+      if (smartFilters.startDate) {
+        countQuery = countQuery.gte('session_start', smartFilters.startDate);
+      }
+      if (smartFilters.endDate) {
+        countQuery = countQuery.lte('session_start', smartFilters.endDate);
+      }
+      if (smartFilters.userId) {
+        countQuery = countQuery.eq('user_id', smartFilters.userId);
+      }
+      if (smartFilters.courseId) {
+        countQuery = countQuery.eq('course_id', smartFilters.courseId);
+      }
+      if (smartFilters.sessionType) {
+        countQuery = countQuery.eq('session_type', smartFilters.sessionType);
+      }
+
+      const { count, error: countError } = await countQuery;
+      if (countError) throw countError;
+
+      // Now get the actual data with pagination
       let query = supabase
         .from('user_sessions')
         .select(`
           *,
           courses(title)
         `)
-        .order('session_start', { ascending: false });
+        .order('session_start', { ascending: false })
+        .range((page - 1) * pageSize, page * pageSize - 1);
 
-      // Apply filters
-      if (filters.startDate) {
-        query = query.gte('session_start', filters.startDate);
+      // Apply same filters to data query
+      if (smartFilters.startDate) {
+        query = query.gte('session_start', smartFilters.startDate);
       }
-      if (filters.endDate) {
-        query = query.lte('session_start', filters.endDate);
+      if (smartFilters.endDate) {
+        query = query.lte('session_start', smartFilters.endDate);
       }
-      if (filters.userId) {
-        query = query.eq('user_id', filters.userId);
+      if (smartFilters.userId) {
+        query = query.eq('user_id', smartFilters.userId);
       }
-      if (filters.courseId) {
-        query = query.eq('course_id', filters.courseId);
+      if (smartFilters.courseId) {
+        query = query.eq('course_id', smartFilters.courseId);
       }
-      if (filters.sessionType) {
-        query = query.eq('session_type', filters.sessionType);
+      if (smartFilters.sessionType) {
+        query = query.eq('session_type', smartFilters.sessionType);
       }
 
-      const { data: sessionsData, error: sessionsError } = await query.limit(1000);
+      const { data: sessionsData, error: sessionsError } = await query;
 
       if (sessionsError) throw sessionsError;
 
@@ -70,8 +122,8 @@ export const useUserSessions = (filters: ActivityFilters = {}) => {
 
       // Apply search filter if provided
       let filteredSessions = formattedSessions;
-      if (filters.searchTerm) {
-        const searchLower = filters.searchTerm.toLowerCase();
+      if (smartFilters.searchTerm) {
+        const searchLower = smartFilters.searchTerm.toLowerCase();
         filteredSessions = formattedSessions.filter(session => 
           session.user_email?.toLowerCase().includes(searchLower) ||
           session.course_title?.toLowerCase().includes(searchLower) ||
@@ -81,6 +133,12 @@ export const useUserSessions = (filters: ActivityFilters = {}) => {
       }
 
       setSessions(filteredSessions);
+      setPagination(prev => ({
+        ...prev,
+        page,
+        pageSize,
+        totalCount: count || 0
+      }));
     } catch (error) {
       console.error('Error fetching sessions:', error);
       toast({
@@ -117,10 +175,18 @@ export const useUserSessions = (filters: ActivityFilters = {}) => {
     }
   };
 
+  const changePage = (newPage: number) => {
+    fetchSessions(newPage, pagination.pageSize);
+  };
+
+  const changePageSize = (newPageSize: number) => {
+    fetchSessions(1, newPageSize);
+  };
+
   useEffect(() => {
     const fetchData = async () => {
       setLoading(true);
-      await Promise.all([fetchSessions(), fetchStats()]);
+      await Promise.all([fetchSessions(1, pagination.pageSize), fetchStats()]);
       setLoading(false);
     };
     
@@ -131,10 +197,13 @@ export const useUserSessions = (filters: ActivityFilters = {}) => {
     sessions,
     stats,
     loading,
+    pagination,
+    changePage,
+    changePageSize,
     refetch: () => {
       const fetchData = async () => {
         setLoading(true);
-        await Promise.all([fetchSessions(), fetchStats()]);
+        await Promise.all([fetchSessions(pagination.page, pagination.pageSize), fetchStats()]);
         setLoading(false);
       };
       fetchData();
