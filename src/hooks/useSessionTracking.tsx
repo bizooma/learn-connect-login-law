@@ -9,6 +9,7 @@ export const useSessionTracking = () => {
   const location = useLocation();
   const sessionIdRef = useRef<string | null>(null);
   const currentCourseIdRef = useRef<string | null>(null);
+  const sessionStartTimeRef = useRef<Date | null>(null);
 
   // Extract course ID from current route
   const getCurrentCourseId = (): string | null => {
@@ -19,17 +20,28 @@ export const useSessionTracking = () => {
   const startSession = async (courseId?: string) => {
     if (!user?.id) return;
 
+    // End any existing session first
+    if (sessionIdRef.current) {
+      await endSession();
+    }
+
     try {
+      const sessionType = courseId ? 'course' : 'general';
+      sessionStartTimeRef.current = new Date();
+      
+      console.log(`Starting ${sessionType} session`, { courseId, userId: user.id, entryPoint: location.pathname });
+
       const { data, error } = await supabase.rpc('start_user_session', {
         p_user_id: user.id,
         p_course_id: courseId || null,
-        p_session_type: courseId ? 'course' : 'general',
+        p_session_type: sessionType,
         p_entry_point: location.pathname,
-        p_ip_address: null, // Could be added later
+        p_ip_address: null,
         p_user_agent: navigator.userAgent,
         p_metadata: { 
           timestamp: new Date().toISOString(),
-          referrer: document.referrer 
+          referrer: document.referrer,
+          course_accessed: !!courseId
         }
       });
 
@@ -41,7 +53,7 @@ export const useSessionTracking = () => {
       sessionIdRef.current = data;
       currentCourseIdRef.current = courseId || null;
       
-      console.log('Session started:', data);
+      console.log(`${sessionType} session started:`, { sessionId: data, courseId, duration_tracking: 'enabled' });
     } catch (error) {
       console.error('Error starting session:', error);
     }
@@ -51,12 +63,25 @@ export const useSessionTracking = () => {
     if (!sessionIdRef.current) return;
 
     try {
+      const sessionDuration = sessionStartTimeRef.current 
+        ? Math.floor((new Date().getTime() - sessionStartTimeRef.current.getTime()) / 1000)
+        : 0;
+
+      console.log('Ending session:', { 
+        sessionId: sessionIdRef.current, 
+        courseId: currentCourseIdRef.current,
+        duration: `${sessionDuration} seconds`,
+        exitPoint: location.pathname
+      });
+
       const { error } = await supabase.rpc('end_user_session', {
         p_session_id: sessionIdRef.current,
         p_exit_point: location.pathname,
         p_metadata: { 
           timestamp: new Date().toISOString(),
-          final_location: location.pathname 
+          final_location: location.pathname,
+          session_duration_seconds: sessionDuration,
+          course_accessed: !!currentCourseIdRef.current
         }
       });
 
@@ -65,9 +90,14 @@ export const useSessionTracking = () => {
         return;
       }
 
-      console.log('Session ended:', sessionIdRef.current);
+      console.log('Session ended successfully:', {
+        previousSessionId: sessionIdRef.current,
+        totalDuration: `${sessionDuration} seconds`
+      });
+      
       sessionIdRef.current = null;
       currentCourseIdRef.current = null;
+      sessionStartTimeRef.current = null;
     } catch (error) {
       console.error('Error ending session:', error);
     }
@@ -76,16 +106,19 @@ export const useSessionTracking = () => {
   const updateSessionForCourse = async (newCourseId: string | null) => {
     const previousCourseId = currentCourseIdRef.current;
     
-    // If we're moving from one course to another, end current and start new
+    // If we're moving from one context to another, end current and start new
     if (previousCourseId !== newCourseId) {
+      console.log('Course context changed:', { 
+        from: previousCourseId || 'general', 
+        to: newCourseId || 'general' 
+      });
+      
       if (sessionIdRef.current) {
         await endSession();
       }
-      if (newCourseId) {
-        await startSession(newCourseId);
-      } else {
-        await startSession(); // Start general session
-      }
+      
+      // Start new session with appropriate context
+      await startSession(newCourseId || undefined);
     }
   };
 
@@ -93,20 +126,28 @@ export const useSessionTracking = () => {
   useEffect(() => {
     if (user?.id && !sessionIdRef.current) {
       const courseId = getCurrentCourseId();
+      console.log('User authenticated, initializing session tracking:', { 
+        userId: user.id, 
+        courseId: courseId || 'none',
+        route: location.pathname 
+      });
       startSession(courseId);
     }
   }, [user?.id]);
 
   // Track route changes and course transitions
   useEffect(() => {
-    const currentCourseId = getCurrentCourseId();
-    updateSessionForCourse(currentCourseId);
-  }, [location.pathname]);
+    if (user?.id) {
+      const currentCourseId = getCurrentCourseId();
+      updateSessionForCourse(currentCourseId);
+    }
+  }, [location.pathname, user?.id]);
 
   // End session when component unmounts or user logs out
   useEffect(() => {
     return () => {
       if (sessionIdRef.current) {
+        console.log('Component unmounting, ending session');
         endSession();
       }
     };
@@ -114,13 +155,23 @@ export const useSessionTracking = () => {
 
   // End session when page unloads
   useEffect(() => {
-    const handleBeforeUnload = () => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (sessionIdRef.current) {
-        // Use sendBeacon for reliability during page unload
-        navigator.sendBeacon('/api/end-session', JSON.stringify({
+        console.log('Page unloading, attempting to end session');
+        // Use sendBeacon for better reliability during page unload
+        const sessionData = {
           sessionId: sessionIdRef.current,
-          exitPoint: location.pathname
-        }));
+          exitPoint: location.pathname,
+          timestamp: new Date().toISOString()
+        };
+        
+        // Attempt to send the session end via beacon
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon('/api/end-session', JSON.stringify(sessionData));
+        }
+        
+        // Also try the normal way as fallback
+        endSession();
       }
     };
 
