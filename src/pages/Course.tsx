@@ -20,19 +20,40 @@ const Course = () => {
   const { course, selectedUnit, setSelectedUnit, loading, error, refreshCourse } = useCourse(courseId!);
   const { updateCourseProgress } = useUserProgress(user?.id);
 
+  console.log('Course: Component state:', {
+    courseId,
+    hasUser: !!user,
+    authLoading,
+    courseLoading: loading,
+    hasCourse: !!course,
+    error: error?.message || error,
+    isAdmin
+  });
+
   useEffect(() => {
+    console.log('Course: Auth/navigation useEffect triggered:', {
+      authLoading,
+      hasUser: !!user,
+      courseExists: !!course,
+      courseIsDraft: course?.is_draft,
+      isAdmin
+    });
+
     if (!authLoading && !user) {
+      console.log('Course: No user found, redirecting to login');
       navigate("/");
       return;
     }
 
     // Check if non-admin user is trying to access a draft course (only admins can access drafts)
     if (course && course.is_draft && !isAdmin) {
+      console.log('Course: Non-admin trying to access draft course, redirecting');
       navigate("/courses");
       return;
     }
 
     if (course && user) {
+      console.log('Course: Updating course progress for user');
       updateCourseProgress(course.id, 'in_progress', 0);
     }
   }, [course, user, authLoading, isAdmin, navigate, updateCourseProgress]);
@@ -94,17 +115,26 @@ const Course = () => {
   }, [courseId, refreshCourse]);
 
   if (authLoading || loading) {
+    console.log('Course: Showing loading state:', { authLoading, loading });
     return <CourseLoading />;
   }
 
   if (error || !course) {
+    console.log('Course: Showing not found state:', { error, hasCourse: !!course });
     return <CourseNotFound />;
   }
 
   // Additional check for draft course access (only admins can access drafts)
   if (course.is_draft && !isAdmin) {
+    console.log('Course: Draft course access denied for non-admin');
     return <CourseNotFound />;
   }
+
+  console.log('Course: Rendering course content:', {
+    courseTitle: course.title,
+    lessonsCount: course.lessons?.length || 0,
+    selectedUnitId: selectedUnit?.id
+  });
 
   return (
     <div className="min-h-screen bg-gray-50">

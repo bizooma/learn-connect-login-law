@@ -23,6 +23,8 @@ const UnifiedVideoPlayer = ({
   className = "aspect-video",
   autoLoad = false
 }: UnifiedVideoPlayerProps) => {
+  console.log('UnifiedVideoPlayer: Rendering with props:', { videoUrl, title, autoLoad });
+  
   const [videoError, setVideoError] = useState(false);
   const [isPlayerLoaded, setIsPlayerLoaded] = useState(autoLoad);
   const [hasError, setHasError] = useState(false);
@@ -57,22 +59,26 @@ const UnifiedVideoPlayer = ({
   const handleLoadPlayer = useCallback(() => {
     if (isPlayerLoaded) return;
 
+    console.log('UnifiedVideoPlayer: Loading player for video:', videoUrl);
     startLoadTimer();
     setIsPlayerLoaded(true);
     setHasError(false);
-  }, [isPlayerLoaded, startLoadTimer]);
+  }, [isPlayerLoaded, startLoadTimer, videoUrl]);
 
   const handlePlayerReady = useCallback(() => {
+    console.log('UnifiedVideoPlayer: Player ready for video:', videoUrl);
     endLoadTimer();
-  }, [endLoadTimer]);
+  }, [endLoadTimer, videoUrl]);
 
   const handlePlayerError = useCallback(() => {
+    console.error('UnifiedVideoPlayer: Player error for video:', videoUrl);
     recordError();
     setHasError(true);
     setIsPlayerLoaded(false);
-  }, [recordError]);
+  }, [recordError, videoUrl]);
 
   const handleRetry = useCallback(() => {
+    console.log('UnifiedVideoPlayer: Retrying player for video:', videoUrl);
     recordRetry();
     setHasError(false);
     setIsPlayerLoaded(false);
@@ -80,7 +86,7 @@ const UnifiedVideoPlayer = ({
     setTimeout(() => {
       handleLoadPlayer();
     }, 500);
-  }, [recordRetry, handleLoadPlayer]);
+  }, [recordRetry, handleLoadPlayer, videoUrl]);
 
   // Auto-load when in view (if not already loaded)
   useEffect(() => {
@@ -92,6 +98,7 @@ const UnifiedVideoPlayer = ({
   }, [isIntersecting, isPlayerLoaded, hasError, autoLoad, handleLoadPlayer]);
 
   if (!videoUrl) {
+    console.log('UnifiedVideoPlayer: No video URL provided');
     return null;
   }
 
@@ -102,11 +109,13 @@ const UnifiedVideoPlayer = ({
   };
 
   const handleVideoError = () => {
+    console.error('UnifiedVideoPlayer: Video error for URL:', videoUrl);
     setVideoError(true);
     handlePlayerError();
   };
 
   if (videoError || hasError) {
+    console.log('UnifiedVideoPlayer: Showing error state for video:', videoUrl);
     return (
       <div className={`bg-gray-100 rounded-lg flex items-center justify-center ${className}`}>
         <div className="text-center p-6">
@@ -119,6 +128,7 @@ const UnifiedVideoPlayer = ({
   }
 
   const isYouTube = isYouTubeUrl(videoUrl);
+  console.log('UnifiedVideoPlayer: Video type determined:', { isYouTube, videoUrl });
 
   return (
     <div ref={containerRef} className={className}>
