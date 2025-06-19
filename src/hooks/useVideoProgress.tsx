@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -68,8 +69,6 @@ export const useVideoProgress = (unitId: string, courseId: string) => {
   ) => {
     if (!user || !unitId || !courseId) return;
 
-    const isCompleted = watchPercentage >= 95; // Consider video completed at 95%
-
     try {
       const progressData = {
         user_id: user.id,
@@ -78,8 +77,8 @@ export const useVideoProgress = (unitId: string, courseId: string) => {
         watch_percentage: Math.round(watchPercentage),
         watched_duration_seconds: Math.round(watchedSeconds),
         total_duration_seconds: Math.round(totalSeconds),
-        is_completed: isCompleted,
-        completed_at: isCompleted ? new Date().toISOString() : null,
+        is_completed: false, // Only set to true via markVideoComplete
+        completed_at: null, // Only set via markVideoComplete
         last_watched_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       };
@@ -95,23 +94,57 @@ export const useVideoProgress = (unitId: string, courseId: string) => {
         return;
       }
 
-      // Update local state
+      // Update local state (but don't mark as completed)
       setVideoProgress(prev => ({
         ...prev,
         watch_percentage: Math.round(watchPercentage),
         watched_duration_seconds: Math.round(watchedSeconds),
-        total_duration_seconds: Math.round(totalSeconds),
-        is_completed: isCompleted,
-        completed_at: isCompleted ? new Date().toISOString() : prev.completed_at
+        total_duration_seconds: Math.round(totalSeconds)
       }));
-
-      // Update unit progress table if video is completed
-      if (isCompleted) {
-        await updateUnitVideoCompletion();
-      }
 
     } catch (error) {
       console.error('Error updating video progress:', error);
+    }
+  }, [user, unitId, courseId]);
+
+  const markVideoComplete = useCallback(async () => {
+    if (!user || !unitId || !courseId) return;
+
+    try {
+      console.log('Marking video as complete for unit:', unitId);
+
+      // Update video progress to completed
+      const { error: progressError } = await supabase
+        .from('user_video_progress')
+        .upsert({
+          user_id: user.id,
+          unit_id: unitId,
+          course_id: courseId,
+          is_completed: true,
+          completed_at: new Date().toISOString(),
+          last_watched_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id,unit_id,course_id'
+        });
+
+      if (progressError) {
+        console.error('Error marking video progress complete:', progressError);
+        return;
+      }
+
+      // Update unit progress
+      await updateUnitVideoCompletion();
+
+      // Update local state
+      setVideoProgress(prev => ({
+        ...prev,
+        is_completed: true,
+        completed_at: new Date().toISOString()
+      }));
+
+    } catch (error) {
+      console.error('Error marking video complete:', error);
     }
   }, [user, unitId, courseId]);
 
@@ -173,6 +206,7 @@ export const useVideoProgress = (unitId: string, courseId: string) => {
     videoProgress,
     loading,
     updateVideoProgress,
+    markVideoComplete,
     fetchVideoProgress
   };
 };

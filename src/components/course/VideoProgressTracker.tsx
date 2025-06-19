@@ -20,7 +20,7 @@ const VideoProgressTracker = ({
   youtubePlayer,
   videoType = 'upload'
 }: VideoProgressTrackerProps) => {
-  const { videoProgress, updateVideoProgress } = useVideoProgress(unitId, courseId);
+  const { videoProgress, updateVideoProgress, markVideoComplete } = useVideoProgress(unitId, courseId);
   const progressUpdateRef = useRef<number>();
 
   useEffect(() => {
@@ -41,8 +41,8 @@ const VideoProgressTracker = ({
       };
 
       const handleEnded = () => {
-        const duration = videoElement.duration;
-        updateVideoProgress(duration, duration, 100);
+        console.log('Video ended - marking as complete');
+        markVideoComplete();
       };
 
       const handleProgress = () => {
@@ -67,7 +67,7 @@ const VideoProgressTracker = ({
         clearTimeout(progressUpdateRef.current);
       };
     }
-  }, [videoElement, videoType, updateVideoProgress]);
+  }, [videoElement, videoType, updateVideoProgress, markVideoComplete]);
 
   useEffect(() => {
     if (videoType === 'youtube' && youtubePlayer) {
@@ -77,14 +77,8 @@ const VideoProgressTracker = ({
         const state = event.data;
         
         if (state === 0) { // Video ended
-          try {
-            const duration = youtubePlayer.getDuration();
-            if (duration > 0) {
-              updateVideoProgress(duration, duration, 100);
-            }
-          } catch (error) {
-            console.warn('Error handling YouTube video end:', error);
-          }
+          console.log('YouTube video ended - marking as complete');
+          markVideoComplete();
         } else if (state === 1) { // Playing
           // Start progress tracking
           progressInterval = window.setInterval(() => {
@@ -125,7 +119,7 @@ const VideoProgressTracker = ({
         }
       };
     }
-  }, [youtubePlayer, videoType, updateVideoProgress]);
+  }, [youtubePlayer, videoType, updateVideoProgress, markVideoComplete]);
 
   if (videoProgress.watch_percentage === 0) {
     return null; // Don't show progress until user starts watching
