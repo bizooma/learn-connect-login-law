@@ -1,6 +1,6 @@
 
 import { useEffect, useState, useRef } from 'react';
-import { useEnhancedYouTubePlayer } from '@/hooks/useEnhancedYouTubePlayer';
+import { useYouTubePlayer } from '@/hooks/useYouTubePlayer';
 import { extractYouTubeVideoId, getYouTubeContainerId } from '@/utils/youTubeUtils';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, RefreshCw } from 'lucide-react';
@@ -22,6 +22,7 @@ const YouTubeVideoPlayer = ({
 }: YouTubeVideoPlayerProps) => {
   const [containerId] = useState(() => getYouTubeContainerId());
   const [hasCompleted, setHasCompleted] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const videoId = extractYouTubeVideoId(videoUrl);
   const lastProgressRef = useRef<number>(0);
 
@@ -60,39 +61,41 @@ const YouTubeVideoPlayer = ({
     }
   };
 
-  const handleError = (error: string) => {
-    console.error('YouTube video player error:', error);
+  const handleReady = (player: any) => {
+    console.log('YouTube player ready for video:', videoId);
+    setError(null);
   };
 
-  const { isReady, isPlaying, currentTime, duration, error, retry } = useEnhancedYouTubePlayer({
+  const { isReady, isPlaying, currentTime, duration, initializePlayer } = useYouTubePlayer({
     videoId: videoId || '',
     containerId,
     onProgress: handleProgress,
     onStateChange: handleStateChange,
-    onError: handleError
+    onReady: handleReady
   });
 
-  if (!videoId) {
-    return (
-      <div className={`bg-gray-100 rounded-lg flex items-center justify-center ${className}`}>
-        <div className="text-center p-6">
-          <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
-          <p className="text-gray-600">Invalid YouTube URL</p>
-          <p className="text-sm text-gray-500 mt-1">Please check the video URL</p>
-        </div>
-      </div>
-    );
-  }
+  const handleRetry = () => {
+    setError(null);
+    setHasCompleted(false);
+    initializePlayer();
+  };
 
-  if (error) {
+  // Set error if no video ID
+  useEffect(() => {
+    if (!videoId) {
+      setError('Invalid YouTube URL');
+    }
+  }, [videoId]);
+
+  if (!videoId || error) {
     return (
       <div className={`bg-gray-100 rounded-lg flex items-center justify-center ${className}`}>
         <div className="text-center p-6">
           <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
           <p className="text-gray-600 mb-2">Video Error</p>
-          <p className="text-sm text-gray-500 mb-4">{error}</p>
+          <p className="text-sm text-gray-500 mb-4">{error || 'Invalid YouTube URL'}</p>
           <Button 
-            onClick={retry}
+            onClick={handleRetry}
             variant="outline"
             size="sm"
             className="flex items-center space-x-2"

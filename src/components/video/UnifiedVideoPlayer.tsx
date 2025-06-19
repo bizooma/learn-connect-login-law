@@ -26,7 +26,7 @@ const UnifiedVideoPlayer = ({
   console.log('UnifiedVideoPlayer: Rendering with props:', { videoUrl, title, autoLoad });
   
   const [videoError, setVideoError] = useState(false);
-  const [isPlayerLoaded, setIsPlayerLoaded] = useState(autoLoad);
+  const [isPlayerLoaded, setIsPlayerLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -71,12 +71,13 @@ const UnifiedVideoPlayer = ({
     }, 500);
   }, [recordRetry, handleLoadPlayer, videoUrl]);
 
-  // Auto-load when autoLoad is true
+  // Auto-load when autoLoad is true and component mounts
   useEffect(() => {
     if (autoLoad && !isPlayerLoaded && !hasError) {
+      console.log('UnifiedVideoPlayer: Auto-loading player for video:', videoUrl);
       handleLoadPlayer();
     }
-  }, [autoLoad, isPlayerLoaded, hasError, handleLoadPlayer]);
+  }, [autoLoad, handleLoadPlayer, videoUrl]);
 
   if (!videoUrl) {
     console.log('UnifiedVideoPlayer: No video URL provided');
@@ -141,6 +142,7 @@ const UnifiedVideoPlayer = ({
               onEnded={onComplete}
               onError={handleVideoError}
               preload="metadata"
+              onLoadedData={handlePlayerReady}
             >
               Your browser does not support the video tag.
             </video>

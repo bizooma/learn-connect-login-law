@@ -30,7 +30,6 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
   const isYouTube = isYouTubeUrl(unit.video_url);
 
   const handleVideoProgress = (currentTime: number, duration: number, watchPercentage: number) => {
-    // This will be handled by the VideoProgressTracker through the new progress system
     console.log('Video progress:', { currentTime, duration, watchPercentage });
   };
 
