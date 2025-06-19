@@ -21,14 +21,11 @@ const UnifiedVideoPlayer = ({
   className = "aspect-video",
   autoLoad = false
 }: UnifiedVideoPlayerProps) => {
-  const [isPlaying, setIsPlaying] = useState(false);
   const [videoError, setVideoError] = useState(false);
 
   if (!videoUrl) {
     return null;
   }
-
-  const isYouTube = isYouTubeUrl(videoUrl);
 
   const handleVideoProgress = (currentTime: number, duration: number, watchPercentage: number) => {
     if (onProgress) {
@@ -36,21 +33,8 @@ const UnifiedVideoPlayer = ({
     }
   };
 
-  const handleUploadedVideoProgress = (e: React.SyntheticEvent<HTMLVideoElement>) => {
-    const video = e.currentTarget;
-    const currentTime = video.currentTime;
-    const duration = video.duration;
-    
-    if (duration > 0) {
-      const watchPercentage = (currentTime / duration) * 100;
-      handleVideoProgress(currentTime, duration, watchPercentage);
-    }
-  };
-
-  const handleUploadedVideoEnded = () => {
-    if (onComplete) {
-      onComplete();
-    }
+  const handleVideoError = () => {
+    setVideoError(true);
   };
 
   if (videoError) {
@@ -65,44 +49,15 @@ const UnifiedVideoPlayer = ({
     );
   }
 
-  if (isYouTube) {
-    return (
-      <LazyVideoPlayer
-        videoUrl={videoUrl}
-        title={title}
-        onProgress={handleVideoProgress}
-        onComplete={onComplete}
-        className={className}
-        autoLoad={autoLoad}
-      />
-    );
-  }
-
-  // Handle uploaded/direct video files with lazy loading
   return (
-    <div className={`bg-gray-100 rounded-lg overflow-hidden relative ${className}`}>
-      <video
-        src={videoUrl}
-        controls
-        className="w-full h-full object-contain"
-        onTimeUpdate={handleUploadedVideoProgress}
-        onEnded={handleUploadedVideoEnded}
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onError={() => setVideoError(true)}
-        preload="metadata"
-      >
-        Your browser does not support the video tag.
-      </video>
-      
-      {!isPlaying && (
-        <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 pointer-events-none">
-          <div className="bg-white bg-opacity-90 rounded-full p-4">
-            <Play className="h-8 w-8 text-gray-800" />
-          </div>
-        </div>
-      )}
-    </div>
+    <LazyVideoPlayer
+      videoUrl={videoUrl}
+      title={title}
+      onProgress={handleVideoProgress}
+      onComplete={onComplete}
+      className={className}
+      autoLoad={autoLoad}
+    />
   );
 };
 

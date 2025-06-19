@@ -1,8 +1,9 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 import VideoThumbnail from './VideoThumbnail';
-import UnifiedVideoPlayer from './UnifiedVideoPlayer';
+import YouTubeVideoPlayer from './YouTubeVideoPlayer';
 import { useVideoPerformance } from '@/hooks/useVideoPerformance';
+import { isYouTubeUrl } from '@/utils/youTubeUtils';
 
 interface LazyVideoPlayerProps {
   videoUrl: string;
@@ -102,16 +103,42 @@ const LazyVideoPlayer = ({
     }
   }, [onComplete]);
 
+  const isYouTube = isYouTubeUrl(videoUrl);
+
   return (
     <div ref={containerRef} className={className}>
       {isPlayerLoaded ? (
-        <UnifiedVideoPlayer
-          videoUrl={videoUrl}
-          title={title}
-          onProgress={enhancedOnProgress}
-          onComplete={enhancedOnComplete}
-          className="w-full h-full"
-        />
+        isYouTube ? (
+          <YouTubeVideoPlayer
+            videoUrl={videoUrl}
+            title={title}
+            onProgress={enhancedOnProgress}
+            onComplete={enhancedOnComplete}
+            className="w-full h-full"
+          />
+        ) : (
+          <div className="bg-gray-100 rounded-lg overflow-hidden relative w-full h-full">
+            <video
+              src={videoUrl}
+              controls
+              className="w-full h-full object-contain"
+              onTimeUpdate={(e) => {
+                const video = e.currentTarget;
+                const currentTime = video.currentTime;
+                const duration = video.duration;
+                
+                if (duration > 0) {
+                  const watchPercentage = (currentTime / duration) * 100;
+                  enhancedOnProgress(currentTime, duration, watchPercentage);
+                }
+              }}
+              onEnded={enhancedOnComplete}
+              preload="metadata"
+            >
+              Your browser does not support the video tag.
+            </video>
+          </div>
+        )
       ) : (
         <VideoThumbnail
           videoUrl={videoUrl}
