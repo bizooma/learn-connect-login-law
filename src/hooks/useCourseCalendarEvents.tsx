@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -18,7 +17,8 @@ type GlobalEvent = {
   created_by: string;
   created_at: string;
   updated_at: string;
-  is_global?: boolean; // Add flag to distinguish global events
+  is_global?: boolean;
+  course_id?: string; // Add this to make it compatible
 };
 
 type CombinedEvent = CourseCalendarEvent | GlobalEvent;
@@ -80,7 +80,8 @@ export const useCourseCalendarEvents = (courseId: string) => {
         ...(courseEvents || []),
         ...(globalEventData?.map(item => ({
           ...item.global_events,
-          is_global: true
+          is_global: true,
+          course_id: courseId // Add course_id to global events for compatibility
         })) || [])
       ];
 

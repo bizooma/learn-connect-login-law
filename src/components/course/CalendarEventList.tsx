@@ -1,13 +1,26 @@
 
-import { Tables } from "@/integrations/supabase/types";
 import { format } from "date-fns";
 import CalendarEventCard from "./CalendarEventCard";
 
-type CourseCalendarEvent = Tables<'course_calendars'>;
+// Define a union type that includes both course calendar events and global events
+type CombinedCalendarEvent = {
+  id: string;
+  title: string;
+  description?: string | null;
+  event_type: string;
+  event_date: string;
+  start_time?: string | null;
+  end_time?: string | null;
+  meeting_link?: string | null;
+  created_at: string;
+  updated_at: string;
+  course_id?: string;
+  is_global?: boolean;
+};
 
 interface CalendarEventListProps {
   selectedDate: Date | undefined;
-  selectedEvents: CourseCalendarEvent[];
+  selectedEvents: CombinedCalendarEvent[];
 }
 
 const CalendarEventList = ({ selectedDate, selectedEvents }: CalendarEventListProps) => {

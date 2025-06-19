@@ -1,15 +1,28 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { Clock } from "lucide-react";
-import { Tables } from "@/integrations/supabase/types";
+import { Clock, Globe } from "lucide-react";
 import { format, parseISO } from "date-fns";
 import MeetingLink from "@/components/calendar/MeetingLink";
 
-type CourseCalendarEvent = Tables<'course_calendars'>;
+// Define a union type that includes both course calendar events and global events
+type CombinedCalendarEvent = {
+  id: string;
+  title: string;
+  description?: string | null;
+  event_type: string;
+  event_date: string;
+  start_time?: string | null;
+  end_time?: string | null;
+  meeting_link?: string | null;
+  created_at: string;
+  updated_at: string;
+  course_id?: string;
+  is_global?: boolean;
+};
 
 interface CalendarEventCardProps {
-  event: CourseCalendarEvent;
+  event: CombinedCalendarEvent;
 }
 
 const CalendarEventCard = ({ event }: CalendarEventCardProps) => {
@@ -34,7 +47,12 @@ const CalendarEventCard = ({ event }: CalendarEventCardProps) => {
     <Card className="p-3">
       <div className="flex items-start justify-between">
         <div className="flex-1">
-          <h4 className="font-medium">{event.title}</h4>
+          <div className="flex items-center gap-2 mb-1">
+            <h4 className="font-medium">{event.title}</h4>
+            {event.is_global && (
+              <Globe className="h-4 w-4 text-blue-600" title="Global Event" />
+            )}
+          </div>
           {event.description && (
             <p className="text-sm text-gray-600 mt-1">{event.description}</p>
           )}
