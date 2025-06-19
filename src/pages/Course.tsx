@@ -20,13 +20,22 @@ const Course = () => {
   const { course, selectedUnit, setSelectedUnit, loading, error, refreshCourse } = useCourse(courseId!);
   const { updateCourseProgress } = useUserProgress(user?.id);
 
+  // Safely handle error for logging
+  const getErrorMessage = (err: unknown): string => {
+    if (typeof err === 'string') return err;
+    if (err && typeof err === 'object' && 'message' in err) {
+      return (err as Error).message;
+    }
+    return 'Unknown error';
+  };
+
   console.log('Course: Component state:', {
     courseId,
     hasUser: !!user,
     authLoading,
     courseLoading: loading,
     hasCourse: !!course,
-    error: typeof error === 'string' ? error : error?.message || 'Unknown error',
+    error: getErrorMessage(error),
     isAdmin
   });
 
@@ -120,7 +129,7 @@ const Course = () => {
   }
 
   if (error || !course) {
-    console.log('Course: Showing not found state:', { error, hasCourse: !!course });
+    console.log('Course: Showing not found state:', { error: getErrorMessage(error), hasCourse: !!course });
     return <CourseNotFound />;
   }
 
