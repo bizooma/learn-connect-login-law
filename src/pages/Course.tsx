@@ -26,7 +26,7 @@ const Course = () => {
     authLoading,
     courseLoading: loading,
     hasCourse: !!course,
-    error: error?.message || error,
+    error: typeof error === 'string' ? error : error?.message || 'Unknown error',
     isAdmin
   });
 
