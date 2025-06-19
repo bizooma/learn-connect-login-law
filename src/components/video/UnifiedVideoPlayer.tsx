@@ -1,8 +1,8 @@
 
 import { useState } from 'react';
-import { Play } from 'lucide-react';
+import { Play, AlertCircle } from 'lucide-react';
 import { isYouTubeUrl } from '@/utils/youTubeUtils';
-import YouTubeVideoPlayer from './YouTubeVideoPlayer';
+import LazyVideoPlayer from './LazyVideoPlayer';
 
 interface UnifiedVideoPlayerProps {
   videoUrl: string;
@@ -10,6 +10,7 @@ interface UnifiedVideoPlayerProps {
   onProgress?: (currentTime: number, duration: number, watchPercentage: number) => void;
   onComplete?: () => void;
   className?: string;
+  autoLoad?: boolean;
 }
 
 const UnifiedVideoPlayer = ({ 
@@ -17,7 +18,8 @@ const UnifiedVideoPlayer = ({
   title, 
   onProgress, 
   onComplete, 
-  className = "aspect-video" 
+  className = "aspect-video",
+  autoLoad = false
 }: UnifiedVideoPlayerProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [videoError, setVideoError] = useState(false);
@@ -55,6 +57,7 @@ const UnifiedVideoPlayer = ({
     return (
       <div className={`bg-gray-100 rounded-lg flex items-center justify-center ${className}`}>
         <div className="text-center p-6">
+          <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
           <p className="text-gray-600">Unable to load video</p>
           <p className="text-sm text-gray-500 mt-1">Please check the video URL or try again later</p>
         </div>
@@ -64,17 +67,18 @@ const UnifiedVideoPlayer = ({
 
   if (isYouTube) {
     return (
-      <YouTubeVideoPlayer
+      <LazyVideoPlayer
         videoUrl={videoUrl}
         title={title}
         onProgress={handleVideoProgress}
         onComplete={onComplete}
         className={className}
+        autoLoad={autoLoad}
       />
     );
   }
 
-  // Handle uploaded/direct video files
+  // Handle uploaded/direct video files with lazy loading
   return (
     <div className={`bg-gray-100 rounded-lg overflow-hidden relative ${className}`}>
       <video

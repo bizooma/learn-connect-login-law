@@ -1,11 +1,12 @@
 
-import { createRoot } from 'react-dom/client'
-import App from './App.tsx'
-import './index.css'
-import { AuthProvider } from '@/hooks/useAuth'
+import { createRoot } from 'react-dom/client';
+import App from './App.tsx';
+import './index.css';
+import { youTubeAPIService } from './services/youTubeAPIService';
 
-createRoot(document.getElementById("root")!).render(
-  <AuthProvider>
-    <App />
-  </AuthProvider>
-);
+// Initialize YouTube API service early for better performance
+youTubeAPIService.loadAPI().catch(error => {
+  console.warn('Failed to preload YouTube API:', error);
+});
+
+createRoot(document.getElementById("root")!).render(<App />);
