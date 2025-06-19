@@ -1,5 +1,5 @@
 
-import { BookOpen, Menu, LogOut, TreePine, HelpCircle, Sparkles } from "lucide-react";
+import { BookOpen, Menu, LogOut, TreePine, HelpCircle, Sparkles, Map } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -44,6 +44,10 @@ const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
     triggerDemo();
   };
 
+  const handleRoadmap = () => {
+    window.open('https://newfrontier.productlift.dev/', '_blank', 'noopener,noreferrer');
+  };
+
   return (
     <header style={{ background: '#213C82' }} className="shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
@@ -85,6 +89,10 @@ const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
                 <DropdownMenuItem onClick={handleLMSTree} className="flex items-center space-x-2">
                   <TreePine className="h-4 w-4" />
                   <span>LMS Tree</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleRoadmap} className="flex items-center space-x-2">
+                  <Map className="h-4 w-4" />
+                  <span>Roadmap</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleDemoWelcome} className="flex items-center space-x-2 text-yellow-600">
