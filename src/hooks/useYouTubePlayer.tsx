@@ -100,11 +100,17 @@ export const useYouTubePlayer = ({
           onReady: (event: any) => {
             console.log('YouTube player ready');
             playerRef.current = event.target;
+            
+            // Safely get duration on ready
+            const duration = (typeof event.target.getDuration === 'function') 
+              ? event.target.getDuration() || 0 
+              : 0;
+            
             setPlayerState(prev => ({ 
               ...prev, 
               player: event.target, 
               isReady: true,
-              duration: event.target.getDuration() || 0
+              duration
             }));
             
             if (onReady) {
@@ -115,11 +121,26 @@ export const useYouTubePlayer = ({
             const state = event.data;
             console.log('YouTube player state changed:', state);
             
+            // Safely get duration with proper checks
+            let duration = 0;
+            if (event.target && typeof event.target.getDuration === 'function') {
+              try {
+                duration = event.target.getDuration() || 0;
+              } catch (error) {
+                console.warn('Error getting YouTube video duration:', error);
+                // Fallback to stored duration
+                duration = playerState.duration;
+              }
+            } else {
+              // Fallback to stored duration if method not available
+              duration = playerState.duration;
+            }
+            
             setPlayerState(prev => ({ 
               ...prev, 
               playerState: state,
               isPlaying: state === 1, // 1 = playing
-              duration: event.target.getDuration() || prev.duration
+              duration
             }));
 
             if (onStateChange) {
@@ -135,8 +156,7 @@ export const useYouTubePlayer = ({
 
             // Handle video ended
             if (state === 0) { // Ended
-              const duration = event.target.getDuration();
-              if (onProgress && duration) {
+              if (onProgress && duration > 0) {
                 onProgress(duration, duration);
               }
             }
@@ -148,7 +168,7 @@ export const useYouTubePlayer = ({
     } catch (error) {
       console.error('Error initializing YouTube player:', error);
     }
-  }, [videoId, containerId, onReady, onStateChange]);
+  }, [videoId, containerId, onReady, onStateChange, playerState.duration]);
 
   // Progress tracking
   const startProgressTracking = useCallback(() => {
@@ -160,7 +180,9 @@ export const useYouTubePlayer = ({
       if (playerRef.current && typeof playerRef.current.getCurrentTime === 'function') {
         try {
           const currentTime = playerRef.current.getCurrentTime();
-          const duration = playerRef.current.getDuration();
+          const duration = (typeof playerRef.current.getDuration === 'function') 
+            ? playerRef.current.getDuration() 
+            : playerState.duration;
           
           setPlayerState(prev => ({ 
             ...prev, 
@@ -176,7 +198,7 @@ export const useYouTubePlayer = ({
         }
       }
     }, 2000); // Update every 2 seconds
-  }, [onProgress]);
+  }, [onProgress, playerState.duration]);
 
   const stopProgressTracking = useCallback(() => {
     if (progressIntervalRef.current) {
