@@ -321,6 +321,84 @@ export type Database = {
         }
         Relationships: []
       }
+      global_event_courses: {
+        Row: {
+          course_id: string
+          created_at: string
+          global_event_id: string
+          id: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          global_event_id: string
+          id?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          global_event_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "global_event_courses_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "global_event_courses_global_event_id_fkey"
+            columns: ["global_event_id"]
+            isOneToOne: false
+            referencedRelation: "global_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      global_events: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          end_time: string | null
+          event_date: string
+          event_type: string
+          id: string
+          meeting_link: string | null
+          start_time: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          end_time?: string | null
+          event_date: string
+          event_type?: string
+          id?: string
+          meeting_link?: string | null
+          start_time?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          end_time?: string | null
+          event_date?: string
+          event_type?: string
+          id?: string
+          meeting_link?: string | null
+          start_time?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       law_firm_calendars: {
         Row: {
           created_at: string
