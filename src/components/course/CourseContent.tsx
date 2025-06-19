@@ -29,13 +29,15 @@ interface CourseContentProps {
   lesson?: Lesson | null;
   courseId: string;
   courseTitle?: string;
+  onProgressUpdate?: () => void;
 }
 
-const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentProps) => {
+const CourseContent = ({ unit, lesson, courseId, courseTitle, onProgressUpdate }: CourseContentProps) => {
   const { user } = useAuth();
   const { isCompleted, loading, refetchCompletion } = useCourseCompletion(courseId);
   const [unitQuiz, setUnitQuiz] = useState<Quiz | null>(null);
   const [quizLoading, setQuizLoading] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   // Fetch quiz for the current unit with real-time updates
   useEffect(() => {
@@ -109,7 +111,7 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
     if (courseId) {
       refetchCompletion();
     }
-  }, [courseId, refetchCompletion]);
+  }, [courseId, refetchCompletion, refreshKey]);
 
   const handleFileDownload = (fileUrl: string) => {
     window.open(fileUrl, '_blank');
@@ -129,6 +131,15 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const handleProgressRefresh = () => {
+    console.log('COURSE CONTENT: Refreshing progress after completion');
+    setRefreshKey(prev => prev + 1);
+    refetchCompletion();
+    if (onProgressUpdate) {
+      onProgressUpdate();
+    }
+  };
+
   // Check if this unit has a quiz attached to it
   const hasQuiz = unitQuiz && unitQuiz.is_active && !unitQuiz.is_deleted;
 
@@ -139,7 +150,7 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
   } : null;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" key={refreshKey}>
       {/* Lesson Card - Display when lesson is available */}
       {lesson && (
         <LessonCard lesson={lesson} />
@@ -269,7 +280,7 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
           quiz={unitQuiz!} 
           unitTitle={unit?.title || 'Unit'} 
           courseId={courseId} 
-          onUnitComplete={refetchCompletion}
+          onUnitComplete={handleProgressRefresh}
         />
       )}
       
@@ -277,7 +288,7 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle }: CourseContentPro
         <UnitCompletionButton 
           unit={unitForDatabase} 
           courseId={courseId} 
-          onComplete={refetchCompletion}
+          onComplete={handleProgressRefresh}
         />
       )}
 

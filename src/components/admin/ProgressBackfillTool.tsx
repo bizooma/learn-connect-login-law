@@ -1,0 +1,74 @@
+
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Database, CheckCircle, AlertTriangle, Loader2 } from "lucide-react";
+import { useProgressBackfill } from "@/hooks/useProgressBackfill";
+
+const ProgressBackfillTool = () => {
+  const { backfillMissingUnitCompletions, processing } = useProgressBackfill();
+  const [results, setResults] = useState<any>(null);
+
+  const handleBackfill = async () => {
+    try {
+      const result = await backfillMissingUnitCompletions();
+      setResults(result);
+    } catch (error) {
+      console.error('Backfill failed:', error);
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center space-x-2">
+          <Database className="h-5 w-5" />
+          <span>Progress Backfill Tool</span>
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <Alert>
+          <AlertTriangle className="h-4 w-4" />
+          <AlertDescription>
+            This tool will find users who have completed quizzes but their units still show as incomplete, 
+            and fix their progress records. This is safe and will not remove any existing progress.
+          </AlertDescription>
+        </Alert>
+
+        <div className="flex items-center space-x-4">
+          <Button 
+            onClick={handleBackfill} 
+            disabled={processing}
+            className="flex items-center space-x-2"
+          >
+            {processing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <CheckCircle className="h-4 w-4" />
+            )}
+            <span>{processing ? 'Processing...' : 'Run Backfill'}</span>
+          </Button>
+        </div>
+
+        {results && (
+          <Alert>
+            <CheckCircle className="h-4 w-4" />
+            <AlertDescription>
+              <div className="space-y-1">
+                <p><strong>Backfill Results:</strong></p>
+                <p>• Total units processed: {results.totalProcessed}</p>
+                <p>• Units fixed: {results.backfilledCount}</p>
+                {results.errors.length > 0 && (
+                  <p>• Errors: {results.errors.length}</p>
+                )}
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+      </CardContent>
+    </Card>
+  );
+};
+
+export default ProgressBackfillTool;

@@ -12,28 +12,49 @@ interface SmartCompletionIndicatorProps {
   courseId: string;
   hasQuiz: boolean;
   className?: string;
+  refreshKey?: number;
 }
 
 const SmartCompletionIndicator = ({ 
   unit, 
   courseId, 
   hasQuiz, 
-  className = "" 
+  className = "",
+  refreshKey = 0
 }: SmartCompletionIndicatorProps) => {
   const { analyzeCompletionRequirements, checkCompletionStatus } = useSmartCompletion();
   const [status, setStatus] = useState<any>(null);
   const [requirements, setRequirements] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const init = async () => {
-      const reqs = analyzeCompletionRequirements(unit, hasQuiz);
-      const stat = await checkCompletionStatus(unit.id, courseId);
-      setRequirements(reqs);
-      setStatus(stat);
+      setLoading(true);
+      try {
+        const reqs = analyzeCompletionRequirements(unit, hasQuiz);
+        const stat = await checkCompletionStatus(unit.id, courseId);
+        setRequirements(reqs);
+        setStatus(stat);
+      } catch (error) {
+        console.error('Error initializing completion status:', error);
+      } finally {
+        setLoading(false);
+      }
     };
     
     init();
-  }, [unit.id, courseId, hasQuiz, analyzeCompletionRequirements, checkCompletionStatus]);
+  }, [unit.id, courseId, hasQuiz, refreshKey, analyzeCompletionRequirements, checkCompletionStatus]);
+
+  if (loading) {
+    return (
+      <div className={`flex items-center ${className}`}>
+        <Badge variant="secondary" className="flex items-center space-x-1">
+          <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-600"></div>
+          <span>Loading...</span>
+        </Badge>
+      </div>
+    );
+  }
 
   if (!status || !requirements) {
     return null;

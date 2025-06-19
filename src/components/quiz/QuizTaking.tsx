@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,6 +9,7 @@ import { Clock, CheckCircle, XCircle, ArrowLeft, ArrowRight } from "lucide-react
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useSmartCompletion } from "@/hooks/useSmartCompletion";
 import { Tables } from "@/integrations/supabase/types";
 
 type Quiz = Tables<'quizzes'>;
@@ -38,6 +40,7 @@ interface QuizAnswer {
 const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTakingProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { triggerSmartCompletion } = useSmartCompletion();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<QuizAnswer[]>([]);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
@@ -150,10 +153,11 @@ const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTak
         score: score.percentage,
         passed,
         answers: answers.length,
-        duration: durationMinutes
+        duration: durationMinutes,
+        unitId: quiz.unit_id
       });
 
-      // If quiz passed and has a unit_id, automatically mark unit as quiz completed
+      // If quiz passed and has a unit_id, mark quiz as completed
       if (passed && quiz.unit_id) {
         console.log('Quiz passed, marking unit quiz completion:', quiz.unit_id);
         
@@ -170,16 +174,6 @@ const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTak
             onConflict: 'user_id,unit_id,course_id'
           });
 
-        // Check if unit should be automatically completed
-        // (this will be enhanced in Phase 4 with hybrid completion logic)
-        const { data: unitProgress } = await supabase
-          .from('user_unit_progress')
-          .select('video_completed, quiz_completed')
-          .eq('user_id', user.id)
-          .eq('unit_id', quiz.unit_id)
-          .eq('course_id', courseId)
-          .single();
-
         // Get unit info to check if it has video
         const { data: unit } = await supabase
           .from('units')
@@ -188,30 +182,46 @@ const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTak
           .single();
 
         const hasVideo = !!unit?.video_url;
-        const shouldAutoComplete = hasVideo ? 
-          (unitProgress?.video_completed && unitProgress?.quiz_completed) : 
-          unitProgress?.quiz_completed;
 
-        if (shouldAutoComplete) {
-          console.log('Auto-completing unit based on quiz pass');
-          await supabase
-            .from('user_unit_progress')
-            .upsert({
-              user_id: user.id,
-              unit_id: quiz.unit_id,
-              course_id: courseId,
-              completed: true,
-              completed_at: new Date().toISOString(),
-              completion_method: 'auto_quiz',
-              updated_at: new Date().toISOString()
-            }, {
-              onConflict: 'user_id,unit_id,course_id'
+        // Use smart completion to determine if unit should be completed
+        try {
+          const unitCompleted = await triggerSmartCompletion(
+            unit as any, // Cast to Unit type for compatibility
+            courseId,
+            true, // hasQuiz
+            'quiz_complete'
+          );
+
+          if (unitCompleted) {
+            console.log('Smart completion triggered unit completion');
+          } else {
+            console.log('Smart completion evaluated - unit not yet complete (may need video)');
+          }
+        } catch (smartCompletionError) {
+          console.warn('Smart completion failed, falling back to legacy logic:', smartCompletionError);
+          
+          // Fallback to legacy completion logic for quiz-only units
+          if (!hasVideo) {
+            console.log('Quiz-only unit detected, marking as completed');
+            await supabase
+              .from('user_unit_progress')
+              .upsert({
+                user_id: user.id,
+                unit_id: quiz.unit_id,
+                course_id: courseId,
+                completed: true,
+                completed_at: new Date().toISOString(),
+                completion_method: 'quiz_only',
+                updated_at: new Date().toISOString()
+              }, {
+                onConflict: 'user_id,unit_id,course_id'
+              });
+
+            toast({
+              title: "Unit Completed! 🎉",
+              description: `Great job! You've completed this unit by passing the quiz.`,
             });
-
-          toast({
-            title: "Unit Completed! 🎉",
-            description: `Great job! You've completed this unit by passing the quiz.`,
-          });
+          }
         }
       }
 
