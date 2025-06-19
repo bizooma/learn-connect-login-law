@@ -2,6 +2,8 @@
 import { useState, useRef, useEffect } from "react";
 import { Tables } from "@/integrations/supabase/types";
 import VideoProgressTracker from "./VideoProgressTracker";
+import UnifiedVideoPlayer from "../video/UnifiedVideoPlayer";
+import { isYouTubeUrl } from "@/utils/youTubeUtils";
 
 type Unit = Tables<'units'>;
 
@@ -25,14 +27,15 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
     return null;
   }
 
-  const isYouTube = unit.video_url.includes('youtube.com') || unit.video_url.includes('youtu.be');
-  
-  const getYouTubeEmbedUrl = (url: string) => {
-    const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/)?.[1];
-    if (videoId) {
-      return `https://www.youtube-nocookie.com/embed/${videoId}?enablejsapi=1&origin=${window.location.origin}&modestbranding=1&rel=0&showinfo=0&controls=1&disablekb=0&fs=1&iv_load_policy=3&cc_load_policy=0&playsinline=1&widget_referrer=${window.location.origin}`;
-    }
-    return url;
+  const isYouTube = isYouTubeUrl(unit.video_url);
+
+  const handleVideoProgress = (currentTime: number, duration: number, watchPercentage: number) => {
+    // This will be handled by the VideoProgressTracker through the new progress system
+    console.log('Video progress:', { currentTime, duration, watchPercentage });
+  };
+
+  const handleVideoComplete = () => {
+    console.log('Video completed');
   };
 
   return (
@@ -48,31 +51,13 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
         videoType={isYouTube ? 'youtube' : 'upload'}
       />
       
-      <div className="aspect-video bg-gray-100 rounded-lg overflow-hidden">
-        {isYouTube ? (
-          <iframe
-            src={getYouTubeEmbedUrl(unit.video_url)}
-            className="w-full h-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
-            title={unit.title}
-            onLoad={() => {
-              // For YouTube Player API integration in future enhancement
-              console.log('YouTube video loaded');
-            }}
-          />
-        ) : (
-          <video
-            ref={videoRef}
-            src={unit.video_url}
-            controls
-            className="w-full h-full object-contain"
-            preload="metadata"
-          >
-            Your browser does not support the video tag.
-          </video>
-        )}
-      </div>
+      <UnifiedVideoPlayer
+        videoUrl={unit.video_url}
+        title={unit.title}
+        onProgress={handleVideoProgress}
+        onComplete={handleVideoComplete}
+        className="aspect-video bg-gray-100 rounded-lg overflow-hidden"
+      />
       
       {unit.description && (
         <div className="mt-4">

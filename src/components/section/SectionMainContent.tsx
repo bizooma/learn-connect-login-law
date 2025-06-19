@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Play, Clock } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
+import UnifiedVideoPlayer from "../video/UnifiedVideoPlayer";
 
 type Unit = Tables<'units'>;
 
@@ -13,31 +14,17 @@ interface SectionMainContentProps {
   onUnitSelect: (unit: Unit) => void;
 }
 
-const getYouTubeEmbedUrl = (url: string): string => {
-  if (!url) return url;
-  
-  // If it's already an embed URL, return as is
-  if (url.includes('/embed/')) return url;
-  
-  // Handle different YouTube URL formats
-  let videoId = '';
-  
-  if (url.includes('youtube.com/watch?v=')) {
-    videoId = url.split('watch?v=')[1].split('&')[0];
-  } else if (url.includes('youtu.be/')) {
-    videoId = url.split('youtu.be/')[1].split('?')[0];
-  } else if (url.includes('youtube.com/embed/')) {
-    return url; // Already in embed format
-  }
-  
-  if (videoId) {
-    return `https://www.youtube-nocookie.com/embed/${videoId}?modestbranding=1&rel=0&showinfo=0&controls=1&disablekb=0&fs=1&iv_load_policy=3&cc_load_policy=0&playsinline=1&widget_referrer=${window.location.origin}`;
-  }
-  
-  return url; // Return original if not a YouTube URL
-};
-
 const SectionMainContent = ({ units, selectedUnit, onUnitSelect }: SectionMainContentProps) => {
+  const handleVideoProgress = (currentTime: number, duration: number, watchPercentage: number) => {
+    console.log('Section video progress:', { currentTime, duration, watchPercentage });
+    // TODO: Implement section video progress tracking if needed
+  };
+
+  const handleVideoComplete = () => {
+    console.log('Section video completed');
+    // TODO: Implement section video completion tracking if needed
+  };
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
@@ -103,15 +90,13 @@ const SectionMainContent = ({ units, selectedUnit, onUnitSelect }: SectionMainCo
               <CardContent>
                 {selectedUnit.video_url && (
                   <div className="mb-6">
-                    <div className="aspect-video bg-gray-100 rounded-lg flex items-center justify-center">
-                      <iframe
-                        src={getYouTubeEmbedUrl(selectedUnit.video_url)}
-                        className="w-full h-full rounded-lg"
-                        allowFullScreen
-                        title={selectedUnit.title}
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      />
-                    </div>
+                    <UnifiedVideoPlayer
+                      videoUrl={selectedUnit.video_url}
+                      title={selectedUnit.title}
+                      onProgress={handleVideoProgress}
+                      onComplete={handleVideoComplete}
+                      className="aspect-video bg-gray-100 rounded-lg"
+                    />
                   </div>
                 )}
                 {selectedUnit.content && (

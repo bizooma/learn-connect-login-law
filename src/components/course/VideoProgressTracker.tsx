@@ -32,11 +32,11 @@ const VideoProgressTracker = ({
         if (duration > 0) {
           const watchPercentage = (currentTime / duration) * 100;
           
-          // Throttle updates to every 5 seconds
+          // Throttle updates to every 3 seconds for better performance
           clearTimeout(progressUpdateRef.current);
           progressUpdateRef.current = window.setTimeout(() => {
             updateVideoProgress(currentTime, duration, watchPercentage);
-          }, 5000);
+          }, 3000);
         }
       };
 
@@ -45,12 +45,25 @@ const VideoProgressTracker = ({
         updateVideoProgress(duration, duration, 100);
       };
 
+      const handleProgress = () => {
+        // Also update on progress events (buffering, seeking)
+        const currentTime = videoElement.currentTime;
+        const duration = videoElement.duration;
+        
+        if (duration > 0) {
+          const watchPercentage = (currentTime / duration) * 100;
+          updateVideoProgress(currentTime, duration, watchPercentage);
+        }
+      };
+
       videoElement.addEventListener('timeupdate', handleTimeUpdate);
       videoElement.addEventListener('ended', handleEnded);
+      videoElement.addEventListener('progress', handleProgress);
 
       return () => {
         videoElement.removeEventListener('timeupdate', handleTimeUpdate);
         videoElement.removeEventListener('ended', handleEnded);
+        videoElement.removeEventListener('progress', handleProgress);
         clearTimeout(progressUpdateRef.current);
       };
     }
@@ -58,30 +71,58 @@ const VideoProgressTracker = ({
 
   useEffect(() => {
     if (videoType === 'youtube' && youtubePlayer) {
+      let progressInterval: number;
+
       const handleStateChange = (event: any) => {
-        if (event.data === 0) { // Video ended
-          const duration = youtubePlayer.getDuration();
-          updateVideoProgress(duration, duration, 100);
+        const state = event.data;
+        
+        if (state === 0) { // Video ended
+          try {
+            const duration = youtubePlayer.getDuration();
+            if (duration > 0) {
+              updateVideoProgress(duration, duration, 100);
+            }
+          } catch (error) {
+            console.warn('Error handling YouTube video end:', error);
+          }
+        } else if (state === 1) { // Playing
+          // Start progress tracking
+          progressInterval = window.setInterval(() => {
+            try {
+              const currentTime = youtubePlayer.getCurrentTime();
+              const duration = youtubePlayer.getDuration();
+              
+              if (duration > 0) {
+                const watchPercentage = (currentTime / duration) * 100;
+                updateVideoProgress(currentTime, duration, watchPercentage);
+              }
+            } catch (error) {
+              console.warn('Error tracking YouTube progress:', error);
+            }
+          }, 5000); // Update every 5 seconds
+        } else {
+          // Paused or other states - stop tracking
+          if (progressInterval) {
+            clearInterval(progressInterval);
+          }
         }
       };
 
-      const intervalId = setInterval(() => {
-        if (youtubePlayer.getPlayerState() === 1) { // Playing
-          const currentTime = youtubePlayer.getCurrentTime();
-          const duration = youtubePlayer.getDuration();
-          
-          if (duration > 0) {
-            const watchPercentage = (currentTime / duration) * 100;
-            updateVideoProgress(currentTime, duration, watchPercentage);
-          }
-        }
-      }, 10000); // Update every 10 seconds for YouTube
-
-      youtubePlayer.addEventListener('onStateChange', handleStateChange);
+      try {
+        youtubePlayer.addEventListener('onStateChange', handleStateChange);
+      } catch (error) {
+        console.warn('Error setting up YouTube progress tracking:', error);
+      }
 
       return () => {
-        youtubePlayer.removeEventListener('onStateChange', handleStateChange);
-        clearInterval(intervalId);
+        try {
+          youtubePlayer.removeEventListener('onStateChange', handleStateChange);
+        } catch (error) {
+          console.warn('Error removing YouTube event listener:', error);
+        }
+        if (progressInterval) {
+          clearInterval(progressInterval);
+        }
       };
     }
   }, [youtubePlayer, videoType, updateVideoProgress]);
@@ -104,11 +145,11 @@ const VideoProgressTracker = ({
           </h3>
         </div>
         <Badge variant={videoProgress.is_completed ? "default" : "secondary"}>
-          {videoProgress.watch_percentage}%
+          {Math.round(videoProgress.watch_percentage)}%
         </Badge>
       </div>
       
-      <Progress value={videoProgress.watch_percentage} className="h-2 mb-2" />
+      <Progress value={Math.round(videoProgress.watch_percentage)} className="h-2 mb-2" />
       
       <div className="flex justify-between text-sm text-gray-600">
         <span>
