@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { useEnrollmentCounts } from "@/hooks/useEnrollmentCounts";
 
 interface GlobalEvent {
   id: string;
@@ -25,7 +26,7 @@ interface GlobalEvent {
 interface Course {
   id: string;
   title: string;
-  students_enrolled: number;
+  actual_enrollment_count: number;
 }
 
 export const useGlobalEvents = () => {
@@ -34,17 +35,25 @@ export const useGlobalEvents = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
+  const { enrollmentCounts } = useEnrollmentCounts();
 
   const fetchCourses = async () => {
     try {
       const { data, error } = await supabase
         .from('courses')
-        .select('id, title, students_enrolled')
+        .select('id, title')
         .eq('is_draft', false)
         .order('title');
 
       if (error) throw error;
-      setCourses(data || []);
+      
+      // Map courses with actual enrollment counts
+      const coursesWithEnrollment: Course[] = (data || []).map(course => ({
+        ...course,
+        actual_enrollment_count: enrollmentCounts[course.id] || 0
+      }));
+      
+      setCourses(coursesWithEnrollment);
     } catch (error) {
       console.error('Error fetching courses:', error);
       toast({
@@ -54,6 +63,17 @@ export const useGlobalEvents = () => {
       });
     }
   };
+
+  // Update courses when enrollment counts change
+  useEffect(() => {
+    if (courses.length > 0) {
+      const updatedCourses = courses.map(course => ({
+        ...course,
+        actual_enrollment_count: enrollmentCounts[course.id] || 0
+      }));
+      setCourses(updatedCourses);
+    }
+  }, [enrollmentCounts]);
 
   const fetchGlobalEvents = async () => {
     try {
@@ -200,6 +220,13 @@ export const useGlobalEvents = () => {
     fetchCourses();
     fetchGlobalEvents();
   }, []);
+
+  // Refetch courses when enrollment counts are loaded
+  useEffect(() => {
+    if (Object.keys(enrollmentCounts).length > 0) {
+      fetchCourses();
+    }
+  }, [Object.keys(enrollmentCounts).length]);
 
   return {
     events,

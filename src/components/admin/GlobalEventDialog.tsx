@@ -14,7 +14,7 @@ import { X } from "lucide-react";
 interface Course {
   id: string;
   title: string;
-  students_enrolled: number;
+  actual_enrollment_count: number;
 }
 
 interface GlobalEventDialogProps {
@@ -213,7 +213,7 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
                       onCheckedChange={() => handleCourseToggle(course.id)}
                     />
                     <Label htmlFor={course.id} className="flex-1 cursor-pointer">
-                      {course.title} ({course.students_enrolled} students)
+                      {course.title} ({course.actual_enrollment_count} students)
                     </Label>
                   </div>
                 ))}
