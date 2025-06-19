@@ -1,4 +1,3 @@
-
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Clock, Globe } from "lucide-react";
@@ -50,7 +49,7 @@ const CalendarEventCard = ({ event }: CalendarEventCardProps) => {
           <div className="flex items-center gap-2 mb-1">
             <h4 className="font-medium">{event.title}</h4>
             {event.is_global && (
-              <Globe className="h-4 w-4 text-blue-600" title="Global Event" />
+              <Globe className="h-4 w-4 text-blue-600" />
             )}
           </div>
           {event.description && (
