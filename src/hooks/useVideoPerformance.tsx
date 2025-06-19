@@ -27,8 +27,8 @@ export const useVideoPerformance = ({ videoId, onMetricsUpdate }: UseVideoPerfor
     playerState: 'unstarted'
   });
 
-  const metricsRef = useRef(metrics);
-  metricsRef.current = metrics;
+  const onMetricsUpdateRef = useRef(onMetricsUpdate);
+  onMetricsUpdateRef.current = onMetricsUpdate;
 
   const startLoadTimer = useCallback(() => {
     const startTime = performance.now();
@@ -52,13 +52,13 @@ export const useVideoPerformance = ({ videoId, onMetricsUpdate }: UseVideoPerfor
         playerState: 'ready'
       };
       
-      if (onMetricsUpdate) {
-        onMetricsUpdate(newMetrics);
+      if (onMetricsUpdateRef.current) {
+        onMetricsUpdateRef.current(newMetrics);
       }
       
       return newMetrics;
     });
-  }, [onMetricsUpdate]);
+  }, []);
 
   const recordFirstFrame = useCallback(() => {
     const frameTime = performance.now();

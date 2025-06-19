@@ -57,6 +57,7 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
         onProgress={handleVideoProgress}
         onComplete={handleVideoComplete}
         className="aspect-video bg-gray-100 rounded-lg overflow-hidden"
+        autoLoad={true}
       />
       
       {unit.description && (

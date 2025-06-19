@@ -28,7 +28,6 @@ const UnifiedVideoPlayer = ({
   const [videoError, setVideoError] = useState(false);
   const [isPlayerLoaded, setIsPlayerLoaded] = useState(autoLoad);
   const [hasError, setHasError] = useState(false);
-  const [isIntersecting, setIsIntersecting] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const { metrics, startLoadTimer, endLoadTimer, recordError, recordRetry } = useVideoPerformance({
@@ -39,22 +38,6 @@ const UnifiedVideoPlayer = ({
       }
     }
   });
-
-  // Intersection Observer for lazy loading
-  useEffect(() => {
-    if (!containerRef.current || autoLoad) return;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        setIsIntersecting(entry.isIntersecting);
-      },
-      { threshold: 0.1 }
-    );
-
-    observer.observe(containerRef.current);
-
-    return () => observer.disconnect();
-  }, [autoLoad]);
 
   const handleLoadPlayer = useCallback(() => {
     if (isPlayerLoaded) return;
@@ -88,14 +71,12 @@ const UnifiedVideoPlayer = ({
     }, 500);
   }, [recordRetry, handleLoadPlayer, videoUrl]);
 
-  // Auto-load when in view (if not already loaded)
+  // Auto-load when autoLoad is true
   useEffect(() => {
-    if (isIntersecting && !isPlayerLoaded && !hasError && !autoLoad) {
-      // Add a small delay to avoid loading too aggressively
-      const timer = setTimeout(handleLoadPlayer, 200);
-      return () => clearTimeout(timer);
+    if (autoLoad && !isPlayerLoaded && !hasError) {
+      handleLoadPlayer();
     }
-  }, [isIntersecting, isPlayerLoaded, hasError, autoLoad, handleLoadPlayer]);
+  }, [autoLoad, isPlayerLoaded, hasError, handleLoadPlayer]);
 
   if (!videoUrl) {
     console.log('UnifiedVideoPlayer: No video URL provided');
