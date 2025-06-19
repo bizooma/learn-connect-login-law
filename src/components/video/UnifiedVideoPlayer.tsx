@@ -71,13 +71,21 @@ const UnifiedVideoPlayer = ({
     }, 500);
   }, [recordRetry, handleLoadPlayer, videoUrl]);
 
-  // Auto-load when autoLoad is true and component mounts
+  // Reset player state when video URL changes
+  useEffect(() => {
+    console.log('UnifiedVideoPlayer: Video URL changed, resetting player state:', videoUrl);
+    setIsPlayerLoaded(false);
+    setHasError(false);
+    setVideoError(false);
+  }, [videoUrl]);
+
+  // Auto-load when autoLoad is true and component mounts or video URL changes
   useEffect(() => {
     if (autoLoad && !isPlayerLoaded && !hasError) {
       console.log('UnifiedVideoPlayer: Auto-loading player for video:', videoUrl);
       handleLoadPlayer();
     }
-  }, [autoLoad, handleLoadPlayer, videoUrl]);
+  }, [autoLoad, isPlayerLoaded, hasError, handleLoadPlayer, videoUrl]);
 
   if (!videoUrl) {
     console.log('UnifiedVideoPlayer: No video URL provided');
@@ -117,6 +125,7 @@ const UnifiedVideoPlayer = ({
       {isPlayerLoaded ? (
         isYouTube ? (
           <YouTubeVideoPlayer
+            key={videoUrl}
             videoUrl={videoUrl}
             title={title}
             onProgress={handleVideoProgress}
@@ -126,6 +135,7 @@ const UnifiedVideoPlayer = ({
         ) : (
           <div className="bg-gray-100 rounded-lg overflow-hidden relative w-full h-full">
             <video
+              key={videoUrl}
               src={videoUrl}
               controls
               className="w-full h-full object-contain"
