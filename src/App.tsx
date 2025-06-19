@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { useSessionTracking } from "@/hooks/useSessionTracking";
+import { AuthProvider } from "@/hooks/useAuth";
 import Index from "./pages/Index";
 import Course from "./pages/Course";
 import Courses from "./pages/Courses";
@@ -60,11 +61,13 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <ErrorBoundary>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <AppContent />
-        </BrowserRouter>
+        <AuthProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <AppContent />
+          </BrowserRouter>
+        </AuthProvider>
       </ErrorBoundary>
     </TooltipProvider>
   </QueryClientProvider>
