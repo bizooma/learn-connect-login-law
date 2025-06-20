@@ -141,16 +141,41 @@ export const useAdminTeams = () => {
 
   const getTeamMembers = async (teamId: string): Promise<AdminTeamMember[]> => {
     try {
-      const { data, error } = await supabase
+      // First get team members
+      const { data: membersData, error: membersError } = await supabase
         .from('admin_team_members')
-        .select(`
-          *,
-          user_profile:profiles(email, first_name, last_name)
-        `)
+        .select('*')
         .eq('team_id', teamId);
 
-      if (error) throw error;
-      return data || [];
+      if (membersError) throw membersError;
+
+      if (!membersData || membersData.length === 0) {
+        return [];
+      }
+
+      // Get user profiles for all members
+      const userIds = membersData.map(member => member.user_id);
+      const { data: profilesData, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, email, first_name, last_name')
+        .in('id', userIds);
+
+      if (profilesError) throw profilesError;
+
+      // Combine members with their profiles
+      const membersWithProfiles = membersData.map(member => {
+        const profile = profilesData?.find(p => p.id === member.user_id);
+        return {
+          ...member,
+          user_profile: profile ? {
+            email: profile.email,
+            first_name: profile.first_name,
+            last_name: profile.last_name
+          } : undefined
+        };
+      });
+
+      return membersWithProfiles;
     } catch (err) {
       console.error('Error fetching team members:', err);
       throw err;
