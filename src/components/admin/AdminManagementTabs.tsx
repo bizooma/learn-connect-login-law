@@ -8,12 +8,13 @@ import NotificationManagement from "./NotificationManagement";
 import UserProgressManagement from "./UserProgressManagement";
 import GlobalEventManagement from "./GlobalEventManagement";
 import AdminTeamManagement from "./team-management/AdminTeamManagement";
+import ProfileManagement from "./ProfileManagement";
 
 const AdminManagementTabs = () => {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="courses" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 bg-yellow-400">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-9 bg-yellow-400">
           <TabsTrigger value="courses" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Courses</TabsTrigger>
           <TabsTrigger value="users" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Users</TabsTrigger>
           <TabsTrigger value="teams" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Teams</TabsTrigger>
@@ -22,6 +23,7 @@ const AdminManagementTabs = () => {
           <TabsTrigger value="quizzes" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Quizzes</TabsTrigger>
           <TabsTrigger value="notifications" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Notifications</TabsTrigger>
           <TabsTrigger value="events" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Events</TabsTrigger>
+          <TabsTrigger value="profile" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Profile</TabsTrigger>
         </TabsList>
         
         <TabsContent value="courses" className="space-y-4">
@@ -54,6 +56,10 @@ const AdminManagementTabs = () => {
         
         <TabsContent value="events" className="space-y-4">
           <GlobalEventManagement />
+        </TabsContent>
+        
+        <TabsContent value="profile" className="space-y-4">
+          <ProfileManagement />
         </TabsContent>
       </Tabs>
     </div>
