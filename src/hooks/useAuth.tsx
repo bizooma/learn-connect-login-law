@@ -35,30 +35,44 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     let mounted = true;
     let initializationComplete = false;
 
+    console.log('Auth: Starting initialization');
+
     const handleAuthStateChange = (event: string, session: Session | null) => {
-      if (!mounted) return;
+      if (!mounted) {
+        console.log('Auth: Component unmounted, ignoring state change');
+        return;
+      }
       
-      console.log('Auth state changed:', event, {
-        hasSession: !!session,
+      console.log('Auth: State changed', { 
+        event, 
+        hasSession: !!session, 
         hasUser: !!session?.user,
-        userEmail: session?.user?.email
+        userEmail: session?.user?.email,
+        sessionExpiry: session?.expires_at
       });
       
       try {
         if (event === 'SIGNED_OUT' || !session) {
+          console.log('Auth: User signed out or no session');
           setSession(null);
           setUser(null);
+        } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+          console.log('Auth: User signed in or token refreshed');
+          setSession(session);
+          setUser(session?.user ?? null);
         } else {
+          console.log('Auth: Other auth event, updating session');
           setSession(session);
           setUser(session?.user ?? null);
         }
         
-        // Only set loading to false after we've processed the auth state
+        // Only set loading to false after we've processed the auth state and initialization is complete
         if (initializationComplete) {
+          console.log('Auth: Setting loading to false');
           setLoading(false);
         }
       } catch (error) {
-        console.error('Error handling auth state change:', error);
+        console.error('Auth: Error handling auth state change:', error);
         // On error, clear state and stop loading
         setSession(null);
         setUser(null);
@@ -66,34 +80,71 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       }
     };
 
-    // Set up auth state listener first
+    // Set up auth state listener FIRST (critical for session recovery)
+    console.log('Auth: Setting up auth state listener');
     const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthStateChange);
 
     // Then get initial session
     const initializeAuth = async () => {
       try {
-        console.log('Initializing auth...');
+        console.log('Auth: Getting initial session');
         const { data: { session }, error } = await supabase.auth.getSession();
         
-        if (!mounted) return;
+        if (!mounted) {
+          console.log('Auth: Component unmounted during initialization');
+          return;
+        }
         
         if (error) {
-          console.error('Error getting initial session:', error);
-          setSession(null);
-          setUser(null);
+          console.error('Auth: Error getting initial session:', error);
+          // Try to recover from session errors
+          try {
+            console.log('Auth: Attempting session recovery');
+            await supabase.auth.refreshSession();
+          } catch (recoveryError) {
+            console.error('Auth: Session recovery failed:', recoveryError);
+            setSession(null);
+            setUser(null);
+          }
         } else {
-          console.log('Initial session loaded:', {
+          console.log('Auth: Initial session loaded', {
             hasSession: !!session,
             hasUser: !!session?.user,
-            userEmail: session?.user?.email
+            userEmail: session?.user?.email,
+            sessionValid: session ? new Date(session.expires_at * 1000) > new Date() : false
           });
-          setSession(session);
-          setUser(session?.user ?? null);
+          
+          // Validate session is not expired
+          if (session && session.expires_at * 1000 > Date.now()) {
+            setSession(session);
+            setUser(session?.user ?? null);
+          } else if (session) {
+            console.log('Auth: Session expired, attempting refresh');
+            try {
+              const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
+              if (!refreshError && refreshedSession) {
+                console.log('Auth: Session refreshed successfully');
+                setSession(refreshedSession);
+                setUser(refreshedSession.user);
+              } else {
+                console.log('Auth: Session refresh failed, clearing session');
+                setSession(null);
+                setUser(null);
+              }
+            } catch (refreshError) {
+              console.error('Auth: Session refresh error:', refreshError);
+              setSession(null);
+              setUser(null);
+            }
+          } else {
+            setSession(null);
+            setUser(null);
+          }
         }
       } catch (error) {
         if (!mounted) return;
         
-        console.error('Session initialization error:', error);
+        console.error('Auth: Session initialization error:', error);
         setSession(null);
         setUser(null);
       } finally {
@@ -101,6 +152,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           initializationComplete = true;
           setIsInitialized(true);
           setLoading(false);
+          console.log('Auth: Initialization complete');
         }
       }
     };
@@ -108,6 +160,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     initializeAuth();
 
     return () => {
+      console.log('Auth: Cleaning up auth listener');
       mounted = false;
       subscription.unsubscribe();
     };
@@ -115,49 +168,57 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     try {
-      console.log('Starting sign out process');
+      console.log('Auth: Starting sign out process');
       
       // Clear local state first to prevent errors during sign out
       setUser(null);
       setSession(null);
       
-      // Sign out from Supabase
+      // Sign out from Supabase with enhanced cleanup
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       
       if (error) {
-        console.error('Error signing out:', error);
+        console.error('Auth: Error signing out:', error);
         // Don't throw error, just log it and continue with cleanup
       }
       
-      console.log('Successfully signed out from Supabase');
+      console.log('Auth: Successfully signed out from Supabase');
       
-      // Force clear all Supabase-related localStorage items
+      // Enhanced localStorage cleanup - remove all Supabase-related items
       try {
         const keysToRemove = [];
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
-          if (key && (key.startsWith('supabase.') || key.includes('auth-token'))) {
+          if (key && (
+            key.startsWith('supabase.') || 
+            key.includes('auth-token') ||
+            key.includes('sb-') ||
+            key.includes('supabase-auth-token')
+          )) {
             keysToRemove.push(key);
           }
         }
-        keysToRemove.forEach(key => localStorage.removeItem(key));
-        console.log('Cleared localStorage items:', keysToRemove);
+        keysToRemove.forEach(key => {
+          localStorage.removeItem(key);
+          console.log('Auth: Removed localStorage key:', key);
+        });
       } catch (storageError) {
-        console.error('Error clearing localStorage:', storageError);
+        console.error('Auth: Error clearing localStorage:', storageError);
       }
       
       // Navigate to home page
-      console.log('Navigating to home page');
+      console.log('Auth: Navigating to home page');
       window.location.href = '/';
       
     } catch (error) {
-      console.error('Unexpected error during sign out:', error);
+      console.error('Auth: Unexpected error during sign out:', error);
       
       // Even if there's an error, force clear everything and redirect
       try {
         setUser(null);
         setSession(null);
         
+        // Emergency cleanup
         const keysToRemove = [];
         for (let i = 0; i < localStorage.length; i++) {
           const key = localStorage.key(i);
@@ -167,7 +228,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
         keysToRemove.forEach(key => localStorage.removeItem(key));
       } catch (cleanupError) {
-        console.error('Error during cleanup:', cleanupError);
+        console.error('Auth: Error during emergency cleanup:', cleanupError);
       }
       
       // Force redirect even on error
@@ -177,6 +238,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   // Show loading until auth is properly initialized
   const actualLoading = loading || !isInitialized;
+
+  console.log('Auth: Rendering provider', { 
+    hasUser: !!user, 
+    hasSession: !!session, 
+    loading: actualLoading 
+  });
 
   return (
     <AuthContext.Provider value={{ user, session, loading: actualLoading, signOut }}>
