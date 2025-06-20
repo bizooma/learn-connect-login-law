@@ -49,7 +49,7 @@ const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
   };
 
   return (
-    <header style={{ background: '#213C82' }} className="shadow-sm">
+    <header className="bg-yellow-500 shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
@@ -66,10 +66,10 @@ const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
               />
             </a>
             <div className="flex items-center space-x-3">
-              <BookOpen className="h-8 w-8 text-white" />
+              <BookOpen className="h-8 w-8 text-black" />
               <div>
-                <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
-                <p className="text-blue-100">Manage New Frontier University Courses</p>
+                <h1 className="text-2xl font-bold text-black">Admin Dashboard</h1>
+                <p className="text-black/80">Manage New Frontier University Courses</p>
               </div>
             </div>
           </div>
@@ -77,7 +77,7 @@ const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
           <div className="flex items-center space-x-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
+                <Button variant="ghost" size="icon" className="text-black hover:bg-black/10">
                   <Menu className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
