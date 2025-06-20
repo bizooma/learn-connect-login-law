@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Clock, CheckCircle, XCircle, ArrowLeft, ArrowRight, Play, Info } from "lucide-react";
+import { Clock, CheckCircle, XCircle, ArrowLeft, ArrowRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -205,12 +205,12 @@ const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTak
     }
   };
 
-  // Separate function to handle quiz completion persistence (isolated transaction)
+  // Enhanced quiz completion persistence
   const persistQuizCompletion = async (passed: boolean, score: number) => {
     if (!user || !quiz.unit_id) return false;
 
     try {
-      console.log('Persisting quiz completion (isolated transaction):', {
+      console.log('Persisting quiz completion:', {
         userId: user.id,
         unitId: quiz.unit_id,
         courseId,
@@ -218,7 +218,7 @@ const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTak
         score
       });
 
-      // Use UPSERT with explicit conflict resolution for quiz completion
+      // Enhanced UPSERT with explicit completion data
       const { error: quizProgressError } = await supabase
         .from('user_unit_progress')
         .upsert({
@@ -235,7 +235,29 @@ const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTak
 
       if (quizProgressError) {
         console.error('Quiz completion persistence failed:', quizProgressError);
-        return false;
+        // Try a secondary approach with explicit INSERT
+        try {
+          const { error: insertError } = await supabase
+            .from('user_unit_progress')
+            .insert({
+              user_id: user.id,
+              unit_id: quiz.unit_id,
+              course_id: courseId,
+              quiz_completed: passed,
+              quiz_completed_at: passed ? new Date().toISOString() : null,
+              completed: false, // Only quiz completed, not full unit
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            });
+
+          if (insertError && insertError.code !== '23505') { // Ignore duplicate key errors
+            console.error('Insert fallback also failed:', insertError);
+            return false;
+          }
+        } catch (insertError) {
+          console.error('Insert fallback error:', insertError);
+          return false;
+        }
       }
 
       console.log('Quiz completion persisted successfully');
@@ -341,7 +363,7 @@ const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTak
       });
 
       // Step 1: Persist quiz completion first (critical - must succeed)
-      if (passed && quiz.unit_id) {
+      if (quiz.unit_id) {
         const quizPersisted = await persistQuizCompletion(passed, score.percentage);
         if (!quizPersisted) {
           console.warn('Quiz completion persistence failed, but continuing with user feedback');

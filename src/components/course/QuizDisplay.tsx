@@ -1,14 +1,14 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { BookOpen, Clock, CheckCircle, Users } from "lucide-react";
+import { BookOpen, Clock, CheckCircle, Users, XCircle } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import QuizTaking from "../quiz/QuizTaking";
 import QuizResults from "../quiz/QuizResults";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect } from "react";
+import { useAuth } from "@/hooks/useAuth";
 
 type Quiz = Tables<'quizzes'>;
 type Question = Tables<'quiz_questions'>;
@@ -37,11 +37,69 @@ interface QuizState {
   totalQuestions?: number;
 }
 
+interface QuizCompletionStatus {
+  completed: boolean;
+  passed: boolean;
+  score: number;
+  completedAt: string | null;
+}
+
 const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayProps) => {
+  const { user } = useAuth();
   const [quizState, setQuizState] = useState<QuizState>({ mode: 'preview' });
   const [quizWithQuestions, setQuizWithQuestions] = useState<QuizWithQuestions | null>(null);
   const [loading, setLoading] = useState(false);
   const [questionCount, setQuestionCount] = useState<number>(0);
+  const [completionStatus, setCompletionStatus] = useState<QuizCompletionStatus | null>(null);
+  const [statusLoading, setStatusLoading] = useState(true);
+
+  // Check quiz completion status
+  const checkQuizCompletion = async () => {
+    if (!user || !quiz.unit_id) {
+      setStatusLoading(false);
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase
+        .from('user_unit_progress')
+        .select('quiz_completed, quiz_completed_at')
+        .eq('user_id', user.id)
+        .eq('unit_id', quiz.unit_id)
+        .eq('course_id', courseId)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error checking quiz completion:', error);
+        setCompletionStatus(null);
+      } else if (data?.quiz_completed) {
+        // For now, assume they passed if quiz_completed is true
+        // In a full implementation, you might store the actual score
+        setCompletionStatus({
+          completed: true,
+          passed: true,
+          score: quiz.passing_score, // Default to passing score
+          completedAt: data.quiz_completed_at
+        });
+      } else {
+        setCompletionStatus({
+          completed: false,
+          passed: false,
+          score: 0,
+          completedAt: null
+        });
+      }
+    } catch (error) {
+      console.error('Error checking quiz completion:', error);
+      setCompletionStatus(null);
+    } finally {
+      setStatusLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    checkQuizCompletion();
+  }, [user, quiz.unit_id, courseId]);
 
   const fetchQuizQuestions = async () => {
     if (!quiz.id) return;
@@ -158,6 +216,14 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
     const totalQuestions = quizWithQuestions?.quiz_questions?.length || 0;
     const correctAnswers = Math.round((score / 100) * totalQuestions);
     
+    // Update completion status immediately
+    setCompletionStatus({
+      completed: true,
+      passed,
+      score,
+      completedAt: new Date().toISOString()
+    });
+    
     setQuizState({ 
       mode: 'results',
       score,
@@ -178,6 +244,8 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
 
   const handleBackToCourse = () => {
     setQuizState({ mode: 'preview' });
+    // Refresh completion status
+    checkQuizCompletion();
   };
 
   if (quizState.mode === 'taking') {
@@ -229,6 +297,76 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
     );
   }
 
+  if (statusLoading) {
+    return (
+      <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+        <CardContent className="p-6 text-center">
+          <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mx-auto mb-2"></div>
+          <p className="text-sm">Checking quiz status...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show completion status if quiz is already completed
+  if (completionStatus?.completed) {
+    const cardClass = completionStatus.passed 
+      ? "bg-gradient-to-r from-green-50 to-emerald-50 border-green-200" 
+      : "bg-gradient-to-r from-red-50 to-pink-50 border-red-200";
+    
+    return (
+      <Card className={cardClass}>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <BookOpen className="h-5 w-5 text-blue-600" />
+              <CardTitle className="text-lg text-blue-900">{quiz.title}</CardTitle>
+            </div>
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+              Quiz
+            </Badge>
+          </div>
+          {quiz.description && (
+            <p className="text-blue-700 text-sm">{quiz.description}</p>
+          )}
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="text-center">
+            {completionStatus.passed ? (
+              <div className="flex flex-col items-center space-y-2">
+                <CheckCircle className="h-12 w-12 text-green-600" />
+                <div className="text-lg font-semibold text-green-800">Quiz Passed!</div>
+                <div className="text-sm text-green-700">
+                  Score: {completionStatus.score}% (Passing: {quiz.passing_score}%)
+                </div>
+                {completionStatus.completedAt && (
+                  <div className="text-xs text-green-600">
+                    Completed on {new Date(completionStatus.completedAt).toLocaleDateString()}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center space-y-2">
+                <XCircle className="h-12 w-12 text-red-600" />
+                <div className="text-lg font-semibold text-red-800">Quiz Failed</div>
+                <div className="text-sm text-red-700">
+                  Score: {completionStatus.score}% (Need: {quiz.passing_score}%)
+                </div>
+                <Button 
+                  onClick={handleRetryQuiz}
+                  className="mt-2 bg-blue-600 hover:bg-blue-700"
+                >
+                  Retake Quiz
+                </Button>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  // Show normal preview for uncompleted quiz
   return (
     <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
       <CardHeader>
