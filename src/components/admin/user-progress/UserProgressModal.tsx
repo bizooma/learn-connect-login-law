@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { supabase } from "@/integrations/supabase/client";
@@ -283,8 +284,53 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
   };
 
   const handleDeleteCourse = async (courseId: string) => {
-    // Implementation for delete course functionality
-    console.log('Delete course:', courseId);
+    if (!userId) return;
+
+    try {
+      console.log('🗑️ Deleting course assignment:', { userId, courseId });
+
+      // Delete the course assignment
+      const { error: assignmentError } = await supabase
+        .from('course_assignments')
+        .delete()
+        .eq('user_id', userId)
+        .eq('course_id', courseId);
+
+      if (assignmentError) throw assignmentError;
+
+      // Delete the user course progress
+      const { error: progressError } = await supabase
+        .from('user_course_progress')
+        .delete()
+        .eq('user_id', userId)
+        .eq('course_id', courseId);
+
+      if (progressError) throw progressError;
+
+      // Delete any unit progress for this course
+      const { error: unitProgressError } = await supabase
+        .from('user_unit_progress')
+        .delete()
+        .eq('user_id', userId)
+        .eq('course_id', courseId);
+
+      if (unitProgressError) throw unitProgressError;
+
+      toast({
+        title: "Success",
+        description: "Course assignment deleted successfully",
+      });
+
+      // Refresh the data
+      handleRefresh();
+    } catch (error) {
+      console.error('❌ Error deleting course assignment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete course assignment",
+        variant: "destructive",
+      });
+    }
   };
 
   const selectedCourse = userProgress?.courses.find(c => c.course_id === selectedCourseId);
