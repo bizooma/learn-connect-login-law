@@ -90,33 +90,38 @@ export const useSmartCompletion = () => {
   ): Promise<boolean> => {
     if (!user) return false;
 
-    const requirements = analyzeCompletionRequirements(unit, hasQuiz);
-    const status = await checkCompletionStatus(unit.id, courseId);
-    
-    if (!status) return false;
+    try {
+      const requirements = analyzeCompletionRequirements(unit, hasQuiz);
+      const status = await checkCompletionStatus(unit.id, courseId);
+      
+      if (!status) return false;
 
-    console.log('Smart completion evaluation:', {
-      unitId: unit.id,
-      strategy: requirements.completionStrategy,
-      status,
-      requirements
-    });
+      console.log('Smart completion evaluation:', {
+        unitId: unit.id,
+        strategy: requirements.completionStrategy,
+        status,
+        requirements
+      });
 
-    switch (requirements.completionStrategy) {
-      case 'video_only':
-        return status.videoCompleted;
-      
-      case 'quiz_only':
-        return status.quizCompleted;
-      
-      case 'video_and_quiz':
-        return status.videoCompleted && status.quizCompleted;
-      
-      case 'manual_only':
-        return status.manualCompleted;
-      
-      default:
-        return false;
+      switch (requirements.completionStrategy) {
+        case 'video_only':
+          return status.videoCompleted;
+        
+        case 'quiz_only':
+          return status.quizCompleted;
+        
+        case 'video_and_quiz':
+          return status.videoCompleted && status.quizCompleted;
+        
+        case 'manual_only':
+          return status.manualCompleted;
+        
+        default:
+          return false;
+      }
+    } catch (error) {
+      console.error('Error evaluating smart completion:', error);
+      return false;
     }
   }, [user, analyzeCompletionRequirements, checkCompletionStatus]);
 
@@ -136,6 +141,7 @@ export const useSmartCompletion = () => {
       if (shouldComplete) {
         console.log('Smart completion triggered for unit:', unit.id);
         
+        // Use defensive UPSERT with better error handling
         const { error } = await supabase
           .from('user_unit_progress')
           .upsert({
@@ -147,12 +153,38 @@ export const useSmartCompletion = () => {
             completion_method: `auto_${triggerEvent}`,
             updated_at: new Date().toISOString()
           }, {
-            onConflict: 'user_id,unit_id,course_id'
+            onConflict: 'user_id,unit_id,course_id',
+            ignoreDuplicates: false
           });
 
         if (error) {
-          console.error('Error triggering smart completion:', error);
-          return false;
+          // Handle constraint violations gracefully
+          if (error.code === '23505' && error.message?.includes('duplicate key')) {
+            console.log('Unit progress record exists, attempting update for completion');
+            
+            // Try direct update
+            const { error: updateError } = await supabase
+              .from('user_unit_progress')
+              .update({
+                completed: true,
+                completed_at: new Date().toISOString(),
+                completion_method: `auto_${triggerEvent}`,
+                updated_at: new Date().toISOString()
+              })
+              .eq('user_id', user.id)
+              .eq('unit_id', unit.id)
+              .eq('course_id', courseId);
+
+            if (updateError) {
+              console.error('Smart completion update failed:', updateError);
+              return false;
+            }
+            
+            console.log('Smart completion updated via direct update');
+          } else {
+            console.error('Error triggering smart completion:', error);
+            return false;
+          }
         }
 
         const requirements = analyzeCompletionRequirements(unit, hasQuiz);

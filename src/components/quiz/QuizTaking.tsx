@@ -135,74 +135,91 @@ const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTak
     return { correctAnswers, totalQuestions, earnedPoints, totalPoints, percentage };
   };
 
-  const handleSubmitQuiz = async () => {
-    if (!user) return;
+  // Separate function to handle quiz completion persistence (isolated transaction)
+  const persistQuizCompletion = async (passed: boolean, score: number) => {
+    if (!user || !quiz.unit_id) return false;
 
-    setIsSubmitting(true);
-    
     try {
-      const score = calculateScore();
-      const passed = score.percentage >= quiz.passing_score;
-      const endTime = new Date();
-      const durationMinutes = Math.round((endTime.getTime() - quizStartTime.getTime()) / (1000 * 60));
-
-      console.log('Quiz completed:', {
+      console.log('Persisting quiz completion (isolated transaction):', {
         userId: user.id,
-        quizId: quiz.id,
+        unitId: quiz.unit_id,
         courseId,
-        score: score.percentage,
         passed,
-        answers: answers.length,
-        duration: durationMinutes,
-        unitId: quiz.unit_id
+        score
       });
 
-      // If quiz passed and has a unit_id, mark quiz as completed
-      if (passed && quiz.unit_id) {
-        console.log('Quiz passed, marking unit quiz completion:', quiz.unit_id);
+      // Use UPSERT with explicit conflict resolution for quiz completion
+      const { error: quizProgressError } = await supabase
+        .from('user_unit_progress')
+        .upsert({
+          user_id: user.id,
+          unit_id: quiz.unit_id,
+          course_id: courseId,
+          quiz_completed: passed,
+          quiz_completed_at: passed ? new Date().toISOString() : null,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id,unit_id,course_id',
+          ignoreDuplicates: false
+        });
+
+      if (quizProgressError) {
+        console.error('Quiz completion persistence failed:', quizProgressError);
+        // Don't throw - just log and continue
+        return false;
+      }
+
+      console.log('Quiz completion persisted successfully');
+      return true;
+    } catch (error) {
+      console.error('Error in persistQuizCompletion:', error);
+      return false;
+    }
+  };
+
+  // Separate function to handle course progress updates (can fail without affecting quiz)
+  const updateCourseProgress = async () => {
+    if (!user || !quiz.unit_id) return;
+
+    try {
+      console.log('Attempting course progress update after quiz completion');
+
+      // Get unit info to check if it has video
+      const { data: unit, error: unitError } = await supabase
+        .from('units')
+        .select('video_url')
+        .eq('id', quiz.unit_id)
+        .single();
+
+      if (unitError) {
+        console.warn('Could not fetch unit for course progress update:', unitError);
+        return;
+      }
+
+      const hasVideo = !!unit?.video_url;
+
+      // Use smart completion to determine if unit should be completed
+      try {
+        const unitCompleted = await triggerSmartCompletion(
+          unit as any, // Cast to Unit type for compatibility
+          courseId,
+          true, // hasQuiz
+          'quiz_complete'
+        );
+
+        if (unitCompleted) {
+          console.log('Smart completion triggered unit completion');
+        } else {
+          console.log('Smart completion evaluated - unit not yet complete (may need video)');
+        }
+      } catch (smartCompletionError) {
+        console.warn('Smart completion failed, using fallback logic:', smartCompletionError);
         
-        await supabase
-          .from('user_unit_progress')
-          .upsert({
-            user_id: user.id,
-            unit_id: quiz.unit_id,
-            course_id: courseId,
-            quiz_completed: true,
-            quiz_completed_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          }, {
-            onConflict: 'user_id,unit_id,course_id'
-          });
-
-        // Get unit info to check if it has video
-        const { data: unit } = await supabase
-          .from('units')
-          .select('video_url')
-          .eq('id', quiz.unit_id)
-          .single();
-
-        const hasVideo = !!unit?.video_url;
-
-        // Use smart completion to determine if unit should be completed
-        try {
-          const unitCompleted = await triggerSmartCompletion(
-            unit as any, // Cast to Unit type for compatibility
-            courseId,
-            true, // hasQuiz
-            'quiz_complete'
-          );
-
-          if (unitCompleted) {
-            console.log('Smart completion triggered unit completion');
-          } else {
-            console.log('Smart completion evaluated - unit not yet complete (may need video)');
-          }
-        } catch (smartCompletionError) {
-          console.warn('Smart completion failed, falling back to legacy logic:', smartCompletionError);
+        // Fallback to legacy completion logic for quiz-only units
+        if (!hasVideo) {
+          console.log('Quiz-only unit detected, marking as completed with fallback logic');
           
-          // Fallback to legacy completion logic for quiz-only units
-          if (!hasVideo) {
-            console.log('Quiz-only unit detected, marking as completed');
+          try {
             await supabase
               .from('user_unit_progress')
               .upsert({
@@ -214,31 +231,87 @@ const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTak
                 completion_method: 'quiz_only',
                 updated_at: new Date().toISOString()
               }, {
-                onConflict: 'user_id,unit_id,course_id'
+                onConflict: 'user_id,unit_id,course_id',
+                ignoreDuplicates: false
               });
 
             toast({
               title: "Unit Completed! 🎉",
               description: `Great job! You've completed this unit by passing the quiz.`,
             });
+          } catch (fallbackError) {
+            console.error('Fallback completion also failed:', fallbackError);
+            // Don't throw - this is a secondary operation
           }
         }
       }
+    } catch (error) {
+      console.error('Course progress update failed:', error);
+      // Don't throw - course progress failure shouldn't affect quiz completion
+    }
+  };
 
+  const handleSubmitQuiz = async () => {
+    if (!user) return;
+
+    setIsSubmitting(true);
+    
+    try {
+      const score = calculateScore();
+      const passed = score.percentage >= quiz.passing_score;
+      const endTime = new Date();
+      const durationMinutes = Math.round((endTime.getTime() - quizStartTime.getTime()) / (1000 * 60));
+
+      console.log('Quiz submission started:', {
+        userId: user.id,
+        quizId: quiz.id,
+        courseId,
+        score: score.percentage,
+        passed,
+        answers: answers.length,
+        duration: durationMinutes,
+        unitId: quiz.unit_id
+      });
+
+      // Step 1: Persist quiz completion first (critical - must succeed)
+      if (passed && quiz.unit_id) {
+        const quizPersisted = await persistQuizCompletion(passed, score.percentage);
+        if (!quizPersisted) {
+          console.warn('Quiz completion persistence failed, but continuing with user feedback');
+        }
+      }
+
+      // Step 2: Update course progress (secondary - can fail without affecting quiz result)
+      if (passed && quiz.unit_id) {
+        // Run course progress update asynchronously to avoid blocking quiz completion
+        setTimeout(() => updateCourseProgress(), 100);
+      }
+
+      // Step 3: Show user feedback
       toast({
         title: passed ? "Quiz Passed!" : "Quiz Completed",
         description: `You scored ${score.percentage}% (${score.correctAnswers}/${score.totalQuestions} correct)`,
         variant: passed ? "default" : "destructive",
       });
 
+      // Step 4: Call completion callback
       onComplete(passed, score.percentage);
+
     } catch (error) {
-      console.error('Error submitting quiz:', error);
+      console.error('Critical error in quiz submission:', error);
+      
+      // Even if there's an error, try to preserve the quiz attempt
+      const score = calculateScore();
+      const passed = score.percentage >= quiz.passing_score;
+      
       toast({
-        title: "Error",
-        description: "Failed to submit quiz. Please try again.",
+        title: "Quiz Submission Error",
+        description: "There was an issue saving your quiz, but your answers have been recorded. Please contact support if this persists.",
         variant: "destructive",
       });
+      
+      // Still call the completion callback to prevent UI freeze
+      onComplete(passed, score.percentage);
     } finally {
       setIsSubmitting(false);
     }

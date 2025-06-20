@@ -63,10 +63,10 @@ export const progressService = {
         throw coursesError;
       }
 
-      // Create progress entries for missing courses
+      // Create progress entries for missing courses with improved error handling
       for (const courseId of missingCourseIds) {
         try {
-          await supabase
+          const { error: createError } = await supabase
             .from('user_course_progress')
             .upsert({
               user_id: userId,
@@ -76,10 +76,17 @@ export const progressService = {
               started_at: new Date().toISOString(),
               last_accessed_at: new Date().toISOString()
             }, {
-              onConflict: 'user_id,course_id'
+              onConflict: 'user_id,course_id',
+              ignoreDuplicates: true
             });
+
+          if (createError) {
+            console.warn('Error creating progress entry for course:', courseId, createError);
+            // Continue with other courses even if one fails
+          }
         } catch (error) {
-          console.warn('Error creating progress entry for course:', courseId, error);
+          console.warn('Exception creating progress entry for course:', courseId, error);
+          // Continue processing other courses
         }
       }
 
@@ -104,7 +111,7 @@ export const progressService = {
     console.log('progressService: Updating course progress:', { courseId, updates });
     
     try {
-      // Use upsert to handle both insert and update cases
+      // Use defensive UPSERT with better error handling
       const { error } = await supabase
         .from('user_course_progress')
         .upsert({
@@ -113,19 +120,42 @@ export const progressService = {
           ...updates,
           updated_at: new Date().toISOString()
         }, {
-          onConflict: 'user_id,course_id'
+          onConflict: 'user_id,course_id',
+          ignoreDuplicates: false
         });
 
       if (error) {
+        // Handle constraint violations gracefully
+        if (error.code === '23505' && error.message?.includes('duplicate key')) {
+          console.log('Course progress record exists, attempting update instead of insert');
+          
+          // Try direct update
+          const { error: updateError } = await supabase
+            .from('user_course_progress')
+            .update({
+              ...updates,
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', userId)
+            .eq('course_id', courseId);
+
+          if (updateError) {
+            console.error('Direct update also failed:', updateError);
+            throw updateError;
+          }
+          
+          console.log('Course progress updated via direct update');
+          return;
+        }
+        
         console.error('Error upserting course progress:', error);
         throw error;
       }
+      
+      console.log('Course progress updated successfully');
     } catch (error) {
       console.error('Error updating course progress:', error);
-      // Only throw non-duplicate errors to prevent spam
-      if (error.code !== '23505') {
-        throw error;
-      }
+      throw error;
     }
   },
 
@@ -137,7 +167,7 @@ export const progressService = {
     }
     
     try {
-      // Use upsert to handle both insert and update cases
+      // Use defensive UPSERT with improved error handling
       const { error } = await supabase
         .from('user_unit_progress')
         .upsert({
@@ -148,10 +178,36 @@ export const progressService = {
           completed_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }, {
-          onConflict: 'user_id,unit_id,course_id'
+          onConflict: 'user_id,unit_id,course_id',
+          ignoreDuplicates: false
         });
 
       if (error) {
+        // Handle constraint violations gracefully
+        if (error.code === '23505' && error.message?.includes('duplicate key')) {
+          console.log('Unit progress record exists, attempting update instead of insert');
+          
+          // Try direct update
+          const { error: updateError } = await supabase
+            .from('user_unit_progress')
+            .update({
+              completed: true,
+              completed_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            })
+            .eq('user_id', userId)
+            .eq('unit_id', unitId)
+            .eq('course_id', courseId);
+
+          if (updateError) {
+            console.error('Direct unit progress update failed:', updateError);
+            throw updateError;
+          }
+          
+          console.log('Unit progress updated via direct update');
+          return;
+        }
+        
         console.error('Error upserting unit progress:', error);
         throw error;
       }
@@ -159,14 +215,20 @@ export const progressService = {
       console.log('progressService: Unit marked as complete successfully');
     } catch (error) {
       console.error('Error marking unit complete:', error);
-      // Only throw non-duplicate errors to prevent spam
-      if (error.code !== '23505') {
-        throw error;
-      }
+      throw error;
     }
   },
 
   async calculateCourseProgress(userId: string, courseId: string) {
-    return progressCalculator.calculateCourseProgress(userId, courseId);
+    try {
+      return await progressCalculator.calculateCourseProgress(userId, courseId);
+    } catch (error) {
+      console.error('Error in calculateCourseProgress:', error);
+      // Return safe defaults if calculation fails
+      return {
+        progressPercentage: 0,
+        status: 'not_started' as const
+      };
+    }
   }
 };
