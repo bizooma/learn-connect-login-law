@@ -17,20 +17,39 @@ const TeamLeaderDashboardTabs = () => {
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-      <TabsList className="grid w-full grid-cols-4">
-        <TabsTrigger value="overview" className="flex items-center">
+      <TabsList 
+        className="grid w-full grid-cols-4"
+        style={{ backgroundColor: '#FFDA00' }}
+      >
+        <TabsTrigger 
+          value="overview" 
+          className="flex items-center data-[state=active]:bg-white data-[state=active]:text-black"
+          style={{ color: 'black' }}
+        >
           <BarChart3 className="h-4 w-4 mr-2" />
           Overview
         </TabsTrigger>
-        <TabsTrigger value="courses" className="flex items-center">
+        <TabsTrigger 
+          value="courses" 
+          className="flex items-center data-[state=active]:bg-white data-[state=active]:text-black"
+          style={{ color: 'black' }}
+        >
           <BookOpen className="h-4 w-4 mr-2" />
           My Courses
         </TabsTrigger>
-        <TabsTrigger value="team" className="flex items-center">
+        <TabsTrigger 
+          value="team" 
+          className="flex items-center data-[state=active]:bg-white data-[state=active]:text-black"
+          style={{ color: 'black' }}
+        >
           <Users className="h-4 w-4 mr-2" />
           Team Management
         </TabsTrigger>
-        <TabsTrigger value="profile" className="flex items-center">
+        <TabsTrigger 
+          value="profile" 
+          className="flex items-center data-[state=active]:bg-white data-[state=active]:text-black"
+          style={{ color: 'black' }}
+        >
           <User className="h-4 w-4 mr-2" />
           Profile
         </TabsTrigger>
