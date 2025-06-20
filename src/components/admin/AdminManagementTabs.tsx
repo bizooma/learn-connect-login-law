@@ -1,3 +1,4 @@
+
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CourseManagement from "./CourseManagement";
 import UserManagementTabs from "./user-management/UserManagementTabs";
@@ -12,15 +13,15 @@ const AdminManagementTabs = () => {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="courses" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 bg-blue-600">
-          <TabsTrigger value="courses" className="text-white data-[state=active]:bg-blue-800 data-[state=active]:text-white">Courses</TabsTrigger>
-          <TabsTrigger value="users" className="text-white data-[state=active]:bg-blue-800 data-[state=active]:text-white">Users</TabsTrigger>
-          <TabsTrigger value="teams" className="text-white data-[state=active]:bg-blue-800 data-[state=active]:text-white">Teams</TabsTrigger>
-          <TabsTrigger value="assignments" className="text-white data-[state=active]:bg-blue-800 data-[state=active]:text-white">Assignments</TabsTrigger>
-          <TabsTrigger value="progress" className="text-white data-[state=active]:bg-blue-800 data-[state=active]:text-white">Progress</TabsTrigger>
-          <TabsTrigger value="quizzes" className="text-white data-[state=active]:bg-blue-800 data-[state=active]:text-white">Quizzes</TabsTrigger>
-          <TabsTrigger value="notifications" className="text-white data-[state=active]:bg-blue-800 data-[state=active]:text-white">Notifications</TabsTrigger>
-          <TabsTrigger value="events" className="text-white data-[state=active]:bg-blue-800 data-[state=active]:text-white">Events</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8 bg-yellow-500">
+          <TabsTrigger value="courses" className="text-black data-[state=active]:bg-yellow-600 data-[state=active]:text-black">Courses</TabsTrigger>
+          <TabsTrigger value="users" className="text-black data-[state=active]:bg-yellow-600 data-[state=active]:text-black">Users</TabsTrigger>
+          <TabsTrigger value="teams" className="text-black data-[state=active]:bg-yellow-600 data-[state=active]:text-black">Teams</TabsTrigger>
+          <TabsTrigger value="assignments" className="text-black data-[state=active]:bg-yellow-600 data-[state=active]:text-black">Assignments</TabsTrigger>
+          <TabsTrigger value="progress" className="text-black data-[state=active]:bg-yellow-600 data-[state=active]:text-black">Progress</TabsTrigger>
+          <TabsTrigger value="quizzes" className="text-black data-[state=active]:bg-yellow-600 data-[state=active]:text-black">Quizzes</TabsTrigger>
+          <TabsTrigger value="notifications" className="text-black data-[state=active]:bg-yellow-600 data-[state=active]:text-black">Notifications</TabsTrigger>
+          <TabsTrigger value="events" className="text-black data-[state=active]:bg-yellow-600 data-[state=active]:text-black">Events</TabsTrigger>
         </TabsList>
         
         <TabsContent value="courses" className="space-y-4">
