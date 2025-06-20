@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { Clock, CheckCircle, XCircle, ArrowLeft, ArrowRight } from "lucide-react";
+import { Clock, CheckCircle, XCircle, ArrowLeft, ArrowRight, Play, Info } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -40,7 +40,7 @@ interface QuizAnswer {
 const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTakingProps) => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { triggerSmartCompletion } = useSmartCompletion();
+  const { triggerSmartCompletion, analyzeCompletionRequirements, checkCompletionStatus } = useSmartCompletion();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<QuizAnswer[]>([]);
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
@@ -135,6 +135,76 @@ const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTak
     return { correctAnswers, totalQuestions, earnedPoints, totalPoints, percentage };
   };
 
+  // Enhanced completion messaging that considers unit requirements
+  const getEnhancedCompletionMessage = async (passed: boolean, score: number) => {
+    if (!passed || !quiz.unit_id) {
+      return passed ? "Quiz Passed!" : "Quiz Completed";
+    }
+
+    try {
+      // Get unit info to analyze completion requirements
+      const { data: unit } = await supabase
+        .from('units')
+        .select('video_url')
+        .eq('id', quiz.unit_id)
+        .single();
+
+      if (!unit) return "Quiz Passed!";
+
+      const requirements = analyzeCompletionRequirements(unit as any, true);
+      const status = await checkCompletionStatus(quiz.unit_id, courseId);
+
+      if (requirements.completionStrategy === 'video_and_quiz' && status) {
+        if (status.overallCompleted) {
+          return "Unit Completed! 🎉";
+        } else if (status.quizCompleted && !status.videoCompleted) {
+          return "Quiz Passed! Video Required Next";
+        }
+      }
+
+      return "Quiz Passed!";
+    } catch (error) {
+      console.error('Error getting enhanced completion message:', error);
+      return "Quiz Passed!";
+    }
+  };
+
+  // Enhanced completion description that explains next steps
+  const getCompletionDescription = async (passed: boolean, score: number) => {
+    const baseDescription = `You scored ${score}% (${calculateScore().correctAnswers}/${calculateScore().totalQuestions} correct)`;
+    
+    if (!passed || !quiz.unit_id) {
+      return baseDescription;
+    }
+
+    try {
+      // Get unit info to analyze completion requirements
+      const { data: unit } = await supabase
+        .from('units')
+        .select('video_url')
+        .eq('id', quiz.unit_id)
+        .single();
+
+      if (!unit) return baseDescription;
+
+      const requirements = analyzeCompletionRequirements(unit as any, true);
+      const status = await checkCompletionStatus(quiz.unit_id, courseId);
+
+      if (requirements.completionStrategy === 'video_and_quiz' && status) {
+        if (status.overallCompleted) {
+          return `${baseDescription}. This unit is now complete!`;
+        } else if (status.quizCompleted && !status.videoCompleted) {
+          return `${baseDescription}. To complete this unit, you also need to watch the video.`;
+        }
+      }
+
+      return baseDescription;
+    } catch (error) {
+      console.error('Error getting completion description:', error);
+      return baseDescription;
+    }
+  };
+
   // Separate function to handle quiz completion persistence (isolated transaction)
   const persistQuizCompletion = async (passed: boolean, score: number) => {
     if (!user || !quiz.unit_id) return false;
@@ -165,7 +235,6 @@ const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTak
 
       if (quizProgressError) {
         console.error('Quiz completion persistence failed:', quizProgressError);
-        // Don't throw - just log and continue
         return false;
       }
 
@@ -201,9 +270,9 @@ const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTak
       // Use smart completion to determine if unit should be completed
       try {
         const unitCompleted = await triggerSmartCompletion(
-          unit as any, // Cast to Unit type for compatibility
+          unit as any,
           courseId,
-          true, // hasQuiz
+          true,
           'quiz_complete'
         );
 
@@ -241,13 +310,11 @@ const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTak
             });
           } catch (fallbackError) {
             console.error('Fallback completion also failed:', fallbackError);
-            // Don't throw - this is a secondary operation
           }
         }
       }
     } catch (error) {
       console.error('Course progress update failed:', error);
-      // Don't throw - course progress failure shouldn't affect quiz completion
     }
   };
 
@@ -283,14 +350,16 @@ const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTak
 
       // Step 2: Update course progress (secondary - can fail without affecting quiz result)
       if (passed && quiz.unit_id) {
-        // Run course progress update asynchronously to avoid blocking quiz completion
         setTimeout(() => updateCourseProgress(), 100);
       }
 
-      // Step 3: Show user feedback
+      // Step 3: Show enhanced user feedback
+      const enhancedTitle = await getEnhancedCompletionMessage(passed, score.percentage);
+      const enhancedDescription = await getCompletionDescription(passed, score.percentage);
+      
       toast({
-        title: passed ? "Quiz Passed!" : "Quiz Completed",
-        description: `You scored ${score.percentage}% (${score.correctAnswers}/${score.totalQuestions} correct)`,
+        title: enhancedTitle,
+        description: enhancedDescription,
         variant: passed ? "default" : "destructive",
       });
 

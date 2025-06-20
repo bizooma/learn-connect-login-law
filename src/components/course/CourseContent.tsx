@@ -9,6 +9,7 @@ import QuizDisplay from "./QuizDisplay";
 import CertificateDownload from "../certificates/CertificateDownload";
 import UnitCompletionButton from "./UnitCompletionButton";
 import SmartCompletionIndicator from "./SmartCompletionIndicator";
+import UnitCompletionRequirements from "./UnitCompletionRequirements";
 import { Button } from "@/components/ui/button";
 import { Download, File } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -65,7 +66,6 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle, onProgressUpdate }
           setUnitQuiz(null);
         } else {
           console.log('COURSE CONTENT: Quiz found:', quizData ? `${quizData.title} (ID: ${quizData.id})` : 'No quiz');
-          console.log('COURSE CONTENT: Quiz deletion status:', quizData ? { is_deleted: quizData.is_deleted, deleted_at: quizData.deleted_at } : 'N/A');
           setUnitQuiz(quizData);
         }
       } catch (error) {
@@ -94,7 +94,7 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle, onProgressUpdate }
           },
           (payload) => {
             console.log('COURSE CONTENT: Quiz change detected:', payload);
-            fetchUnitQuiz(); // Refetch quiz data when changes occur
+            fetchUnitQuiz();
           }
         )
         .subscribe();
@@ -156,15 +156,26 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle, onProgressUpdate }
         <LessonCard lesson={lesson} />
       )}
 
+      {/* Unit Completion Requirements - Show requirements and progress */}
+      {unitForDatabase && (
+        <UnitCompletionRequirements 
+          unit={unitForDatabase} 
+          courseId={courseId} 
+          hasQuiz={!!hasQuiz} 
+          refreshKey={refreshKey}
+        />
+      )}
+
       {/* Smart Completion Indicator */}
       {unitForDatabase && (
         <div className="bg-white rounded-lg shadow-sm border p-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-lg font-semibold">Progress</h3>
+            <h3 className="text-lg font-semibold">Status</h3>
             <SmartCompletionIndicator 
               unit={unitForDatabase} 
               courseId={courseId} 
               hasQuiz={!!hasQuiz} 
+              refreshKey={refreshKey}
             />
           </div>
         </div>

@@ -1,7 +1,7 @@
 
 import { useEffect, useState } from "react";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle, Play, BookOpen, Clock } from "lucide-react";
+import { CheckCircle, Play, BookOpen, Clock, AlertCircle } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { useSmartCompletion } from "@/hooks/useSmartCompletion";
 
@@ -63,7 +63,7 @@ const SmartCompletionIndicator = ({
   const getCompletionBadge = () => {
     if (status.overallCompleted) {
       return (
-        <Badge variant="default" className={`flex items-center space-x-1 ${className}`}>
+        <Badge variant="default" className={`flex items-center space-x-1 bg-green-600 ${className}`}>
           <CheckCircle className="h-3 w-3" />
           <span>Completed</span>
         </Badge>
@@ -75,7 +75,7 @@ const SmartCompletionIndicator = ({
         return (
           <Badge 
             variant={status.videoCompleted ? "default" : "secondary"} 
-            className={`flex items-center space-x-1 ${className}`}
+            className={`flex items-center space-x-1 ${status.videoCompleted ? 'bg-green-600' : ''} ${className}`}
           >
             <Play className="h-3 w-3" />
             <span>{status.videoCompleted ? 'Video Complete' : 'Watch Video'}</span>
@@ -86,7 +86,7 @@ const SmartCompletionIndicator = ({
         return (
           <Badge 
             variant={status.quizCompleted ? "default" : "secondary"} 
-            className={`flex items-center space-x-1 ${className}`}
+            className={`flex items-center space-x-1 ${status.quizCompleted ? 'bg-green-600' : ''} ${className}`}
           >
             <BookOpen className="h-3 w-3" />
             <span>{status.quizCompleted ? 'Quiz Passed' : 'Take Quiz'}</span>
@@ -94,37 +94,68 @@ const SmartCompletionIndicator = ({
         );
 
       case 'video_and_quiz':
-        const bothComplete = status.videoCompleted && status.quizCompleted;
-        return (
-          <div className={`flex items-center space-x-2 ${className}`}>
-            <Badge 
-              variant={status.videoCompleted ? "default" : "secondary"} 
-              className="flex items-center space-x-1"
-            >
-              <Play className="h-3 w-3" />
-              <span>Video</span>
+        const videoComplete = status.videoCompleted;
+        const quizComplete = status.quizCompleted;
+        const bothComplete = videoComplete && quizComplete;
+        
+        // Show detailed progress for video+quiz units
+        if (bothComplete) {
+          return (
+            <Badge variant="default" className={`flex items-center space-x-1 bg-green-600 ${className}`}>
+              <CheckCircle className="h-3 w-3" />
+              <span>Complete</span>
             </Badge>
-            <Badge 
-              variant={status.quizCompleted ? "default" : "secondary"} 
-              className="flex items-center space-x-1"
-            >
-              <BookOpen className="h-3 w-3" />
-              <span>Quiz</span>
-            </Badge>
-            {bothComplete && (
-              <Badge variant="default" className="flex items-center space-x-1">
-                <CheckCircle className="h-3 w-3" />
-                <span>Complete</span>
+          );
+        } else if (videoComplete && !quizComplete) {
+          return (
+            <div className={`flex items-center space-x-2 ${className}`}>
+              <Badge variant="default" className="flex items-center space-x-1 bg-green-600">
+                <Play className="h-3 w-3" />
+                <span>Video ✓</span>
               </Badge>
-            )}
-          </div>
-        );
+              <Badge variant="secondary" className="flex items-center space-x-1">
+                <BookOpen className="h-3 w-3" />
+                <span>Take Quiz</span>
+              </Badge>
+            </div>
+          );
+        } else if (!videoComplete && quizComplete) {
+          return (
+            <div className={`flex items-center space-x-2 ${className}`}>
+              <Badge variant="secondary" className="flex items-center space-x-1">
+                <Play className="h-3 w-3" />
+                <span>Watch Video</span>
+              </Badge>
+              <Badge variant="default" className="flex items-center space-x-1 bg-green-600">
+                <BookOpen className="h-3 w-3" />
+                <span>Quiz ✓</span>
+              </Badge>
+            </div>
+          );
+        } else {
+          return (
+            <div className={`flex items-center space-x-2 ${className}`}>
+              <Badge variant="secondary" className="flex items-center space-x-1">
+                <Play className="h-3 w-3" />
+                <span>Video</span>
+              </Badge>
+              <Badge variant="secondary" className="flex items-center space-x-1">
+                <BookOpen className="h-3 w-3" />
+                <span>Quiz</span>
+              </Badge>
+              <Badge variant="outline" className="flex items-center space-x-1 text-orange-600 border-orange-300">
+                <AlertCircle className="h-3 w-3" />
+                <span>Both Required</span>
+              </Badge>
+            </div>
+          );
+        }
 
       case 'manual_only':
         return (
           <Badge 
             variant={status.manualCompleted ? "default" : "outline"} 
-            className={`flex items-center space-x-1 ${className}`}
+            className={`flex items-center space-x-1 ${status.manualCompleted ? 'bg-green-600' : ''} ${className}`}
           >
             <Clock className="h-3 w-3" />
             <span>Manual Completion</span>
