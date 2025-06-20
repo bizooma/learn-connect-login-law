@@ -54,6 +54,68 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_team_members: {
+        Row: {
+          added_at: string
+          added_by: string
+          id: string
+          team_id: string
+          user_id: string
+        }
+        Insert: {
+          added_at?: string
+          added_by: string
+          id?: string
+          team_id: string
+          user_id: string
+        }
+        Update: {
+          added_at?: string
+          added_by?: string
+          id?: string
+          team_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admin_team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "admin_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      admin_teams: {
+        Row: {
+          created_at: string
+          created_by: string
+          description: string | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       certificate_templates: {
         Row: {
           created_at: string
@@ -1583,6 +1645,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_team_member: {
+        Args: { p_team_id: string; p_user_id: string }
+        Returns: boolean
+      }
       admin_mark_unit_completed: {
         Args: {
           p_user_id: string
@@ -1609,6 +1675,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      create_admin_team: {
+        Args: { p_name: string; p_description?: string }
+        Returns: string
+      }
       diagnose_progress_inconsistencies: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -1625,6 +1695,15 @@ export type Database = {
       generate_certificate_number: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      get_team_progress_summary: {
+        Args: { p_team_id: string }
+        Returns: {
+          total_members: number
+          courses_in_progress: number
+          courses_completed: number
+          average_progress: number
+        }[]
       }
       get_user_law_firm_id: {
         Args: Record<PropertyKey, never>
@@ -1718,6 +1797,10 @@ export type Database = {
       reclassify_unit_to_section: {
         Args: { p_unit_id: string; p_module_id: string }
         Returns: string
+      }
+      remove_team_member: {
+        Args: { p_team_id: string; p_user_id: string }
+        Returns: boolean
       }
       restore_quiz: {
         Args: { quiz_id: string }
