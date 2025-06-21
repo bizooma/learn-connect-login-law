@@ -3,7 +3,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import CourseManagement from "./CourseManagement";
 import UserManagementTabs from "./user-management/UserManagementTabs";
 import QuizManagement from "./QuizManagement";
-import AssignmentManagement from "./AssignmentManagement";
 import NotificationManagement from "./NotificationManagement";
 import UserProgressManagement from "./UserProgressManagement";
 import GlobalEventManagement from "./GlobalEventManagement";
@@ -16,11 +15,10 @@ const AdminManagementTabs = () => {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="courses" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-11 bg-yellow-400">
+        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-10 bg-yellow-400">
           <TabsTrigger value="courses" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Courses</TabsTrigger>
           <TabsTrigger value="users" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Users</TabsTrigger>
           <TabsTrigger value="teams" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Teams</TabsTrigger>
-          <TabsTrigger value="assignments" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Assignments</TabsTrigger>
           <TabsTrigger value="progress" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Progress</TabsTrigger>
           <TabsTrigger value="activity" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Activity</TabsTrigger>
           <TabsTrigger value="leaderboards" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Leaderboards</TabsTrigger>
@@ -40,10 +38,6 @@ const AdminManagementTabs = () => {
         
         <TabsContent value="teams" className="space-y-4">
           <AdminTeamManagement />
-        </TabsContent>
-        
-        <TabsContent value="assignments" className="space-y-4">
-          <AssignmentManagement />
         </TabsContent>
         
         <TabsContent value="progress" className="space-y-4">
