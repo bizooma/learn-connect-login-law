@@ -22,19 +22,36 @@ interface Notification {
 
 const NotificationBanner = () => {
   const { user } = useAuth();
-  const { isAdmin, isStudent, isFree, isOwner } = useUserRole();
+  const { isAdmin, isStudent, isFree, isOwner, loading: roleLoading } = useUserRole();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [dismissedNotifications, setDismissedNotifications] = useState<string[]>([]);
 
   useEffect(() => {
-    if (user) {
+    console.log('NotificationBanner: useEffect triggered', {
+      hasUser: !!user,
+      roleLoading,
+      isAdmin,
+      isOwner,
+      isStudent,
+      isFree
+    });
+
+    if (user && !roleLoading) {
+      console.log('NotificationBanner: Fetching notifications for user with roles:', {
+        isAdmin,
+        isOwner,
+        isStudent,
+        isFree,
+        userEmail: user.email
+      });
       fetchNotifications();
       loadDismissedNotifications();
     }
-  }, [user]);
+  }, [user, roleLoading, isAdmin, isOwner, isStudent, isFree]);
 
   const fetchNotifications = async () => {
     try {
+      console.log('NotificationBanner: Starting to fetch notifications');
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
@@ -43,33 +60,56 @@ const NotificationBanner = () => {
 
       if (error) throw error;
       
+      console.log('NotificationBanner: Raw notifications from database:', data);
+      
       // Type assertion to ensure proper typing
       const typedNotifications = (data || []) as Notification[];
       
       // Filter notifications based on audience and user role/email
       const filteredNotifications = typedNotifications.filter(notification => {
+        console.log('NotificationBanner: Filtering notification:', {
+          notificationId: notification.id,
+          audience: notification.audience,
+          isAdmin,
+          isOwner,
+          isStudent,
+          isFree,
+          userEmail: user?.email
+        });
+
         // Admins see all notifications
-        if (isAdmin) return true;
+        if (isAdmin) {
+          console.log('NotificationBanner: User is admin, showing notification');
+          return true;
+        }
         
         switch (notification.audience) {
           case 'all_users':
+            console.log('NotificationBanner: Notification for all users, showing');
             return true;
           case 'new_frontier_only':
-            return user?.email?.endsWith('@newfrontier.us') || false;
+            const isNewFrontier = user?.email?.endsWith('@newfrontier.us') || false;
+            console.log('NotificationBanner: New Frontier only notification, user qualifies:', isNewFrontier);
+            return isNewFrontier;
           case 'all_students':
+            console.log('NotificationBanner: Student notification, user is student:', isStudent);
             return isStudent;
           case 'all_free':
+            console.log('NotificationBanner: Free user notification, user is free:', isFree);
             return isFree;
           case 'all_owners':
+            console.log('NotificationBanner: Owner notification, user is owner:', isOwner);
             return isOwner;
           default:
+            console.log('NotificationBanner: Unknown audience, hiding notification');
             return false;
         }
       });
       
+      console.log('NotificationBanner: Filtered notifications:', filteredNotifications);
       setNotifications(filteredNotifications);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      console.error('NotificationBanner: Error fetching notifications:', error);
     }
   };
 
@@ -99,9 +139,17 @@ const NotificationBanner = () => {
     }
   };
 
+  // Don't render if we're still loading roles
+  if (roleLoading) {
+    console.log('NotificationBanner: Still loading roles, not rendering');
+    return null;
+  }
+
   const activeNotifications = notifications.filter(
     notification => !dismissedNotifications.includes(notification.id)
   );
+
+  console.log('NotificationBanner: Active notifications after filtering dismissed:', activeNotifications);
 
   if (activeNotifications.length === 0) {
     return null;
