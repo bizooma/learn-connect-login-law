@@ -10,6 +10,7 @@ interface DashboardStats {
   completedCourses: number;
   inProgressCourses: number;
   certificatesEarned: number;
+  averageProgress: number;
   totalUsers?: number;
   activeUsers?: number;
 }
@@ -22,7 +23,8 @@ export const useDashboardStats = () => {
     assignedCourses: 0,
     completedCourses: 0,
     inProgressCourses: 0,
-    certificatesEarned: 0
+    certificatesEarned: 0,
+    averageProgress: 0
   });
   const [loading, setLoading] = useState(true);
 
@@ -40,7 +42,7 @@ export const useDashboardStats = () => {
         const [coursesResult, usersResult, progressResult] = await Promise.all([
           supabase.from('courses').select('id', { count: 'exact', head: true }),
           supabase.from('profiles').select('id', { count: 'exact', head: true }),
-          supabase.from('user_course_progress').select('status', { count: 'exact' })
+          supabase.from('user_course_progress').select('status, progress_percentage', { count: 'exact' })
         ]);
 
         const totalCourses = coursesResult.count || 0;
@@ -49,6 +51,8 @@ export const useDashboardStats = () => {
         const progressData = progressResult.data || [];
         const completedCourses = progressData.filter(p => p.status === 'completed').length;
         const inProgressCourses = progressData.filter(p => p.status === 'in_progress').length;
+        const totalProgress = progressData.reduce((sum, p) => sum + (p.progress_percentage || 0), 0);
+        const averageProgress = progressData.length > 0 ? totalProgress / progressData.length : 0;
 
         setStats({
           totalCourses,
@@ -56,6 +60,7 @@ export const useDashboardStats = () => {
           completedCourses,
           inProgressCourses,
           certificatesEarned: completedCourses, // Assuming 1 cert per completed course
+          averageProgress,
           totalUsers,
           activeUsers: totalUsers // Simplified for now
         });
@@ -70,6 +75,8 @@ export const useDashboardStats = () => {
         const assignedCourses = progressData?.length || 0;
         const completedCourses = progressData?.filter(p => p.status === 'completed').length || 0;
         const inProgressCourses = progressData?.filter(p => p.status === 'in_progress').length || 0;
+        const totalProgress = progressData?.reduce((sum, p) => sum + (p.progress_percentage || 0), 0) || 0;
+        const averageProgress = assignedCourses > 0 ? totalProgress / assignedCourses : 0;
 
         // Get total available courses
         const { count: totalCourses } = await supabase
@@ -81,7 +88,8 @@ export const useDashboardStats = () => {
           assignedCourses,
           completedCourses,
           inProgressCourses,
-          certificatesEarned: completedCourses
+          certificatesEarned: completedCourses,
+          averageProgress
         });
 
       } else {
@@ -95,7 +103,8 @@ export const useDashboardStats = () => {
           assignedCourses: 0,
           completedCourses: 0,
           inProgressCourses: 0,
-          certificatesEarned: 0
+          certificatesEarned: 0,
+          averageProgress: 0
         });
       }
 

@@ -43,8 +43,8 @@ const StreakLeaderboard = () => {
           user_id: entry.user_id,
           user_name: entry.user_name,
           user_email: entry.user_email,
-          current_streak: entry.additional_data?.current_streak || entry.score,
-          longest_streak: entry.additional_data?.longest_streak || 0,
+          current_streak: (entry.additional_data as any)?.current_streak || entry.score,
+          longest_streak: (entry.additional_data as any)?.longest_streak || 0,
           rank_position: entry.rank_position
         }));
         setEntries(formattedData);

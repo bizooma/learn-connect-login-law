@@ -50,9 +50,9 @@ const CategoryLeaderboard = ({ category }: CategoryLeaderboardProps) => {
           user_id: entry.user_id,
           user_name: entry.user_name,
           user_email: entry.user_email,
-          completion_rate: entry.additional_data?.completion_rate || entry.score,
-          courses_completed: entry.additional_data?.courses_completed || 0,
-          total_courses: entry.additional_data?.total_courses || 0,
+          completion_rate: (entry.additional_data as any)?.completion_rate || entry.score,
+          courses_completed: (entry.additional_data as any)?.courses_completed || 0,
+          total_courses: (entry.additional_data as any)?.total_courses || 0,
           rank_position: entry.rank_position
         }));
         setEntries(formattedData);
