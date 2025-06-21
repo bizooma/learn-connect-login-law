@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { X, Bell } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { Tables } from "@/integrations/supabase/types";
 
 type NotificationRow = Tables<'notifications'>;
@@ -16,10 +17,12 @@ interface Notification {
   type: 'info' | 'warning' | 'success' | 'error';
   created_at: string;
   is_active: boolean;
+  audience: string;
 }
 
 const NotificationBanner = () => {
   const { user } = useAuth();
+  const { isAdmin, isStudent, isFree, isOwner } = useUserRole();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [dismissedNotifications, setDismissedNotifications] = useState<string[]>([]);
 
@@ -42,7 +45,29 @@ const NotificationBanner = () => {
       
       // Type assertion to ensure proper typing
       const typedNotifications = (data || []) as Notification[];
-      setNotifications(typedNotifications);
+      
+      // Filter notifications based on audience and user role/email
+      const filteredNotifications = typedNotifications.filter(notification => {
+        // Admins see all notifications
+        if (isAdmin) return true;
+        
+        switch (notification.audience) {
+          case 'all_users':
+            return true;
+          case 'new_frontier_only':
+            return user?.email?.endsWith('@newfrontier.us') || false;
+          case 'all_students':
+            return isStudent;
+          case 'all_free':
+            return isFree;
+          case 'all_owners':
+            return isOwner;
+          default:
+            return false;
+        }
+      });
+      
+      setNotifications(filteredNotifications);
     } catch (error) {
       console.error('Error fetching notifications:', error);
     }

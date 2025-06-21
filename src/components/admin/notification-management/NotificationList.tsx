@@ -2,7 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Edit, Trash2, Bell } from "lucide-react";
-import { Notification } from "./types";
+import { Notification, NotificationAudience } from "./types";
 
 interface NotificationListProps {
   notifications: Notification[];
@@ -18,6 +18,28 @@ const NotificationList = ({ notifications, onEdit, onDelete, onToggleActive }: N
       case 'success': return 'text-green-600';
       case 'error': return 'text-red-600';
       default: return 'text-blue-600';
+    }
+  };
+
+  const getAudienceLabel = (audience: NotificationAudience) => {
+    switch (audience) {
+      case 'new_frontier_only': return 'New Frontier Only';
+      case 'all_students': return 'All Students';
+      case 'all_free': return 'All Free';
+      case 'all_owners': return 'All Owners';
+      case 'all_users': return 'All Users';
+      default: return 'All Users';
+    }
+  };
+
+  const getAudienceColor = (audience: NotificationAudience) => {
+    switch (audience) {
+      case 'new_frontier_only': return 'bg-purple-100 text-purple-800';
+      case 'all_students': return 'bg-blue-100 text-blue-800';
+      case 'all_free': return 'bg-gray-100 text-gray-800';
+      case 'all_owners': return 'bg-orange-100 text-orange-800';
+      case 'all_users': return 'bg-green-100 text-green-800';
+      default: return 'bg-green-100 text-green-800';
     }
   };
 
@@ -48,6 +70,9 @@ const NotificationList = ({ notifications, onEdit, onDelete, onToggleActive }: N
                     notification.is_active ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                   }`}>
                     {notification.is_active ? 'Active' : 'Inactive'}
+                  </span>
+                  <span className={`text-xs px-2 py-1 rounded-full ${getAudienceColor(notification.audience)}`}>
+                    {getAudienceLabel(notification.audience)}
                   </span>
                 </div>
                 <p className="text-sm text-gray-600 mb-2">{notification.message}</p>

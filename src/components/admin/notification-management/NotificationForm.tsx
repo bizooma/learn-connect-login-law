@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Notification, NotificationFormData } from "./types";
+import { Notification, NotificationFormData, NotificationAudience } from "./types";
 
 interface NotificationFormProps {
   editingNotification: Notification | null;
@@ -20,7 +20,8 @@ const NotificationForm = ({ editingNotification, onSubmit, onCancel }: Notificat
     title: editingNotification?.title || '',
     message: editingNotification?.message || '',
     type: editingNotification?.type || 'info',
-    is_active: editingNotification?.is_active ?? true
+    is_active: editingNotification?.is_active ?? true,
+    audience: editingNotification?.audience || 'all_users'
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,10 +29,18 @@ const NotificationForm = ({ editingNotification, onSubmit, onCancel }: Notificat
     
     const success = await onSubmit(formData);
     if (success) {
-      setFormData({ title: '', message: '', type: 'info', is_active: true });
+      setFormData({ title: '', message: '', type: 'info', is_active: true, audience: 'all_users' });
       onCancel();
     }
   };
+
+  const audienceOptions = [
+    { value: 'all_users', label: 'All Users' },
+    { value: 'new_frontier_only', label: 'New Frontier Only' },
+    { value: 'all_students', label: 'All Students' },
+    { value: 'all_free', label: 'All Free' },
+    { value: 'all_owners', label: 'All Owners' }
+  ];
 
   return (
     <Card>
@@ -81,6 +90,27 @@ const NotificationForm = ({ editingNotification, onSubmit, onCancel }: Notificat
                 <SelectItem value="warning">Warning</SelectItem>
                 <SelectItem value="success">Success</SelectItem>
                 <SelectItem value="error">Error</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="audience">Audience</Label>
+            <Select
+              value={formData.audience}
+              onValueChange={(value: NotificationAudience) => 
+                setFormData(prev => ({ ...prev, audience: value }))
+              }
+            >
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {audienceOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    {option.label}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>

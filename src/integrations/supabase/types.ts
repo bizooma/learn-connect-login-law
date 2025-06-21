@@ -748,6 +748,7 @@ export type Database = {
       }
       notifications: {
         Row: {
+          audience: Database["public"]["Enums"]["notification_audience"]
           created_at: string
           created_by: string
           id: string
@@ -757,6 +758,7 @@ export type Database = {
           type: string
         }
         Insert: {
+          audience?: Database["public"]["Enums"]["notification_audience"]
           created_at?: string
           created_by: string
           id?: string
@@ -766,6 +768,7 @@ export type Database = {
           type?: string
         }
         Update: {
+          audience?: Database["public"]["Enums"]["notification_audience"]
           created_at?: string
           created_by?: string
           id?: string
@@ -2040,6 +2043,12 @@ export type Database = {
         | "client"
         | "free"
         | "team_leader"
+      notification_audience:
+        | "new_frontier_only"
+        | "all_students"
+        | "all_free"
+        | "all_owners"
+        | "all_users"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2172,6 +2181,13 @@ export const Constants = {
         "session_timeout",
       ],
       app_role: ["admin", "owner", "student", "client", "free", "team_leader"],
+      notification_audience: [
+        "new_frontier_only",
+        "all_students",
+        "all_free",
+        "all_owners",
+        "all_users",
+      ],
     },
   },
 } as const

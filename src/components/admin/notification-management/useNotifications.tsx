@@ -43,6 +43,7 @@ export const useNotifications = () => {
           message: formData.message,
           type: formData.type,
           is_active: formData.is_active,
+          audience: formData.audience,
           created_by: user?.id
         });
 
@@ -74,7 +75,8 @@ export const useNotifications = () => {
           title: formData.title,
           message: formData.message,
           type: formData.type,
-          is_active: formData.is_active
+          is_active: formData.is_active,
+          audience: formData.audience
         })
         .eq('id', notificationId);
 
