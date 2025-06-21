@@ -544,6 +544,53 @@ export type Database = {
         }
         Relationships: []
       }
+      leaderboard_cache: {
+        Row: {
+          additional_data: Json | null
+          cached_at: string
+          expires_at: string
+          id: string
+          leaderboard_type: string
+          rank_position: number
+          score: number
+          user_email: string
+          user_id: string
+          user_name: string
+        }
+        Insert: {
+          additional_data?: Json | null
+          cached_at?: string
+          expires_at?: string
+          id?: string
+          leaderboard_type: string
+          rank_position: number
+          score: number
+          user_email: string
+          user_id: string
+          user_name: string
+        }
+        Update: {
+          additional_data?: Json | null
+          cached_at?: string
+          expires_at?: string
+          id?: string
+          leaderboard_type?: string
+          rank_position?: number
+          score?: number
+          user_email?: string
+          user_id?: string
+          user_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leaderboard_cache_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lessons: {
         Row: {
           course_id: string
@@ -1145,6 +1192,44 @@ export type Database = {
           },
         ]
       }
+      user_achievements: {
+        Row: {
+          achievement_name: string
+          achievement_type: string
+          description: string | null
+          earned_at: string
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          achievement_name: string
+          achievement_type: string
+          description?: string | null
+          earned_at?: string
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          achievement_name?: string
+          achievement_type?: string
+          description?: string | null
+          earned_at?: string
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_achievements_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_activity_log: {
         Row: {
           activity_type: Database["public"]["Enums"]["activity_type"]
@@ -1352,6 +1437,50 @@ export type Database = {
           total_rows?: number
         }
         Relationships: []
+      }
+      user_learning_streaks: {
+        Row: {
+          created_at: string
+          current_streak: number
+          id: string
+          is_active: boolean
+          last_activity_date: string | null
+          longest_streak: number
+          streak_start_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          is_active?: boolean
+          last_activity_date?: string | null
+          longest_streak?: number
+          streak_start_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          is_active?: boolean
+          last_activity_date?: string | null
+          longest_streak?: number
+          streak_start_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_learning_streaks_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_management_audit: {
         Row: {
@@ -1692,9 +1821,32 @@ export type Database = {
         Args: { p_session_id: string; p_exit_point?: string; p_metadata?: Json }
         Returns: boolean
       }
+      generate_category_leaderboard: {
+        Args: { p_category: string; p_limit?: number }
+        Returns: {
+          user_id: string
+          user_name: string
+          user_email: string
+          completion_rate: number
+          courses_completed: number
+          total_courses: number
+          rank_position: number
+        }[]
+      }
       generate_certificate_number: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      generate_learning_streak_leaderboard: {
+        Args: { p_limit?: number }
+        Returns: {
+          user_id: string
+          user_name: string
+          user_email: string
+          current_streak: number
+          longest_streak: number
+          rank_position: number
+        }[]
       }
       get_team_progress_summary: {
         Args: { p_team_id: string }
@@ -1798,6 +1950,10 @@ export type Database = {
         Args: { p_unit_id: string; p_module_id: string }
         Returns: string
       }
+      refresh_leaderboard_cache: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       remove_team_member: {
         Args: { p_team_id: string; p_user_id: string }
         Returns: boolean
@@ -1846,6 +2002,10 @@ export type Database = {
           p_metadata?: Json
         }
         Returns: string
+      }
+      update_learning_streak: {
+        Args: { p_user_id: string }
+        Returns: undefined
       }
       update_user_role_safe: {
         Args: {
