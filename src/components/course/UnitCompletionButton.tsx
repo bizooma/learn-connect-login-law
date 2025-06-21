@@ -1,14 +1,10 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { CheckCircle, Clock, Play, BookOpen } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
-import { useToast } from "@/hooks/use-toast";
-import { useUnitProgress } from "@/hooks/useUnitProgress";
-import { useVideoProgress } from "@/hooks/useVideoProgress";
-import { useSmartCompletion } from "@/hooks/useSmartCompletion";
+import { CheckCircle, Clock } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
+import { useUnitProgress } from "@/hooks/useUnitProgress";
+import { useReliableCompletion } from "@/hooks/useReliableCompletion";
 
 type Unit = Tables<'units'>;
 
@@ -19,63 +15,33 @@ interface UnitCompletionButtonProps {
 }
 
 const UnitCompletionButton = ({ unit, courseId, onComplete }: UnitCompletionButtonProps) => {
-  const { user } = useAuth();
-  const { toast } = useToast();
   const { isUnitCompleted } = useUnitProgress(courseId);
-  const { videoProgress } = useVideoProgress(unit.id, courseId);
-  const { analyzeCompletionRequirements, checkCompletionStatus } = useSmartCompletion();
+  const { markUnitComplete, updateCourseProgress, processing } = useReliableCompletion();
   const [isCompleting, setIsCompleting] = useState(false);
 
   const isCompleted = isUnitCompleted(unit.id);
-  const requirements = analyzeCompletionRequirements(unit, false); // No quiz in this context
 
   const handleManualComplete = async () => {
-    if (!user || isCompleting) return;
+    if (isCompleting || processing) return;
 
     setIsCompleting(true);
 
     try {
-      console.log('Manual completion for unit:', unit.id);
+      console.log('📝 Manual completion for unit:', unit.id);
       
-      const { error } = await supabase
-        .from('user_unit_progress')
-        .upsert({
-          user_id: user.id,
-          unit_id: unit.id,
-          course_id: courseId,
-          completed: true,
-          completed_at: new Date().toISOString(),
-          completion_method: 'manual',
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id,unit_id,course_id'
-        });
-
-      if (error) {
-        console.error('Error marking unit complete:', error);
-        toast({
-          title: "Error",
-          description: "Failed to mark unit as complete. Please try again.",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      toast({
-        title: "Unit Completed! 🎉",
-        description: "Great job! You've completed this unit.",
-      });
-
-      if (onComplete) {
-        onComplete();
+      // Use the reliable completion system
+      const success = await markUnitComplete(unit.id, courseId, 'manual');
+      
+      if (success) {
+        // Update course progress
+        await updateCourseProgress(courseId);
+        
+        if (onComplete) {
+          onComplete();
+        }
       }
     } catch (error) {
-      console.error('Error marking unit complete:', error);
-      toast({
-        title: "Error",
-        description: "Failed to mark unit as complete. Please try again.",
-        variant: "destructive",
-      });
+      console.error('❌ Error in manual completion:', error);
     } finally {
       setIsCompleting(false);
     }
@@ -91,36 +57,16 @@ const UnitCompletionButton = ({ unit, courseId, onComplete }: UnitCompletionButt
       );
     }
 
-    switch (requirements.completionStrategy) {
-      case 'video_only':
-        if (videoProgress.is_completed) {
-          return (
-            <>
-              <CheckCircle className="h-4 w-4 mr-2" />
-              Video Completed
-            </>
-          );
-        }
-        return (
-          <>
-            <Play className="h-4 w-4 mr-2" />
-            Watch Video to Complete ({videoProgress.watch_percentage}%)
-          </>
-        );
-
-      case 'manual_only':
-      default:
-        return (
-          <>
-            <Clock className="h-4 w-4 mr-2" />
-            {isCompleting ? 'Completing...' : 'Mark as Complete'}
-          </>
-        );
-    }
+    return (
+      <>
+        <Clock className="h-4 w-4 mr-2" />
+        {isCompleting ? 'Completing...' : 'Mark as Complete'}
+      </>
+    );
   };
 
   const getButtonVariant = () => {
-    if (isCompleted || (requirements.completionStrategy === 'video_only' && videoProgress.is_completed)) {
+    if (isCompleted) {
       return "default";
     }
     return "outline";
@@ -128,8 +74,7 @@ const UnitCompletionButton = ({ unit, courseId, onComplete }: UnitCompletionButt
 
   const isButtonDisabled = () => {
     if (isCompleted) return true;
-    if (isCompleting) return true;
-    if (requirements.completionStrategy === 'video_only' && !videoProgress.is_completed) return true;
+    if (isCompleting || processing) return true;
     return false;
   };
 
@@ -139,10 +84,7 @@ const UnitCompletionButton = ({ unit, courseId, onComplete }: UnitCompletionButt
         <div>
           <h3 className="text-lg font-semibold mb-2">Unit Progress</h3>
           <p className="text-gray-600 text-sm">
-            {requirements.completionStrategy === 'video_only' 
-              ? 'This unit will be completed automatically when you finish watching the video.'
-              : 'Mark this unit as complete when you\'re finished with the content.'
-            }
+            Mark this unit as complete when you're finished with the content.
           </p>
         </div>
         

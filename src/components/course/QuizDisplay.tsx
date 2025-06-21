@@ -9,6 +9,7 @@ import QuizTaking from "../quiz/QuizTaking";
 import QuizResults from "../quiz/QuizResults";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useReliableCompletion } from "@/hooks/useReliableCompletion";
 
 type Quiz = Tables<'quizzes'>;
 type Question = Tables<'quiz_questions'>;
@@ -52,6 +53,7 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
   const [questionCount, setQuestionCount] = useState<number>(0);
   const [completionStatus, setCompletionStatus] = useState<QuizCompletionStatus | null>(null);
   const [statusLoading, setStatusLoading] = useState(true);
+  const { evaluateAndCompleteUnit, updateCourseProgress } = useReliableCompletion();
 
   // Check quiz completion status
   const checkQuizCompletion = async () => {
@@ -212,9 +214,11 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
     setQuizState({ mode: 'taking' });
   };
 
-  const handleQuizComplete = (passed: boolean, score: number) => {
+  const handleQuizComplete = async (passed: boolean, score: number) => {
     const totalQuestions = quizWithQuestions?.quiz_questions?.length || 0;
     const correctAnswers = Math.round((score / 100) * totalQuestions);
+    
+    console.log('🎉 Quiz completed:', { passed, score, totalQuestions, unitId: quiz.unit_id });
     
     // Update completion status immediately
     setCompletionStatus({
@@ -232,9 +236,19 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
       totalQuestions
     });
 
-    // Trigger unit completion check if provided
-    if (onUnitComplete) {
-      onUnitComplete();
+    // If quiz passed and we have a unit, evaluate unit completion
+    if (passed && quiz.unit_id) {
+      try {
+        // We need the unit data to evaluate completion properly
+        // For now, we'll just trigger the course progress update
+        await updateCourseProgress(courseId);
+        
+        if (onUnitComplete) {
+          onUnitComplete();
+        }
+      } catch (error) {
+        console.error('❌ Error evaluating unit completion after quiz:', error);
+      }
     }
   };
 
@@ -384,44 +398,26 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
         )}
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-          <div className="flex items-center space-x-2">
-            <CheckCircle className="h-4 w-4 text-green-600" />
-            <span>Passing Score: {quiz.passing_score}%</span>
-          </div>
-          {quiz.time_limit_minutes && (
-            <div className="flex items-center space-x-2">
-              <Clock className="h-4 w-4 text-orange-600" />
-              <span>Time Limit: {quiz.time_limit_minutes} minutes</span>
-            </div>
-          )}
+        <div className="grid grid-cols-2 gap-4 text-sm">
           <div className="flex items-center space-x-2">
             <Users className="h-4 w-4 text-blue-600" />
             <span>Questions: {questionCount}</span>
           </div>
-        </div>
-        
-        <div className="pt-2">
-          <Button 
-            onClick={handleStartQuiz}
-            className="w-full bg-blue-600 hover:bg-blue-700"
-            disabled={!quiz.is_active || questionCount === 0}
-          >
-            {!quiz.is_active ? 'Quiz Not Available' : questionCount === 0 ? 'No Questions Available' : 'Start Quiz'}
-          </Button>
-        </div>
-        
-        {!quiz.is_active && (
-          <div className="text-center text-sm text-gray-600 mt-2">
-            This quiz is currently disabled.
+          <div className="flex items-center space-x-2">
+            <CheckCircle className="h-4 w-4 text-blue-600" />
+            <span>Passing Score: {quiz.passing_score}%</span>
           </div>
-        )}
-        
-        {quiz.is_active && questionCount === 0 && (
-          <div className="text-center text-sm text-gray-600 mt-2">
-            This quiz has no questions yet.
-          </div>
-        )}
+          {quiz.time_limit_minutes && (
+            <div className="flex items-center space-x-2">
+              <Clock className="h-4 w-4 text-blue-600" />
+              <span>Time Limit: {quiz.time_limit_minutes} minutes</span>
+            </div>
+          )}
+        </div>
+
+        <Button onClick={handleStartQuiz} className="w-full">
+          Start Quiz
+        </Button>
       </CardContent>
     </Card>
   );

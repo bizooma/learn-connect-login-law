@@ -146,6 +146,57 @@ export type Database = {
         }
         Relationships: []
       }
+      completion_migration_backup: {
+        Row: {
+          backup_timestamp: string | null
+          completed: boolean | null
+          completed_at: string | null
+          completion_method: string | null
+          course_id: string | null
+          created_at: string | null
+          id: string | null
+          quiz_completed: boolean | null
+          quiz_completed_at: string | null
+          unit_id: string | null
+          updated_at: string | null
+          user_id: string | null
+          video_completed: boolean | null
+          video_completed_at: string | null
+        }
+        Insert: {
+          backup_timestamp?: string | null
+          completed?: boolean | null
+          completed_at?: string | null
+          completion_method?: string | null
+          course_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          quiz_completed?: boolean | null
+          quiz_completed_at?: string | null
+          unit_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          video_completed?: boolean | null
+          video_completed_at?: string | null
+        }
+        Update: {
+          backup_timestamp?: string | null
+          completed?: boolean | null
+          completed_at?: string | null
+          completion_method?: string | null
+          course_id?: string | null
+          created_at?: string | null
+          id?: string | null
+          quiz_completed?: boolean | null
+          quiz_completed_at?: string | null
+          unit_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          video_completed?: boolean | null
+          video_completed_at?: string | null
+        }
+        Relationships: []
+      }
       course_assignments: {
         Row: {
           assigned_at: string
@@ -1803,6 +1854,15 @@ export type Database = {
           details: Json
         }[]
       }
+      calculate_reliable_course_progress: {
+        Args: { p_user_id: string; p_course_id: string }
+        Returns: {
+          total_units: number
+          completed_units: number
+          progress_percentage: number
+          status: string
+        }[]
+      }
       cleanup_old_drafts: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -1935,6 +1995,15 @@ export type Database = {
         }
         Returns: undefined
       }
+      mark_unit_complete_reliable: {
+        Args: {
+          p_user_id: string
+          p_unit_id: string
+          p_course_id: string
+          p_completion_method?: string
+        }
+        Returns: boolean
+      }
       move_content_to_level: {
         Args: {
           p_content_id: string
@@ -2005,6 +2074,10 @@ export type Database = {
           p_metadata?: Json
         }
         Returns: string
+      }
+      update_course_progress_reliable: {
+        Args: { p_user_id: string; p_course_id: string }
+        Returns: boolean
       }
       update_learning_streak: {
         Args: { p_user_id: string }
