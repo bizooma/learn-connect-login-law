@@ -3,11 +3,13 @@ import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users, Settings, Eye, TrendingUp, MoreVertical } from 'lucide-react';
+import { Users, Settings, Eye, TrendingUp, MoreVertical, BarChart3 } from 'lucide-react';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { useAdminTeams, AdminTeam, TeamProgressSummary } from '@/hooks/useAdminTeams';
 import TeamDetailsDialog from './TeamDetailsDialog';
 import EditTeamDialog from './EditTeamDialog';
+import TeamProgressDashboard from './TeamProgressDashboard';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface AdminTeamCardProps {
   team: AdminTeam;
@@ -18,6 +20,7 @@ const AdminTeamCard = ({ team }: AdminTeamCardProps) => {
   const [progressSummary, setProgressSummary] = useState<TeamProgressSummary | null>(null);
   const [showDetails, setShowDetails] = useState(false);
   const [showEdit, setShowEdit] = useState(false);
+  const [showProgress, setShowProgress] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -58,6 +61,10 @@ const AdminTeamCard = ({ team }: AdminTeamCardProps) => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => setShowProgress(true)}>
+                <BarChart3 className="w-4 h-4 mr-2" />
+                View Progress
+              </DropdownMenuItem>
               <DropdownMenuItem onClick={() => setShowDetails(true)}>
                 <Eye className="w-4 h-4 mr-2" />
                 View Details
@@ -121,16 +128,39 @@ const AdminTeamCard = ({ team }: AdminTeamCardProps) => {
             )}
           </div>
 
-          <Button 
-            variant="outline" 
-            className="w-full mt-4"
-            onClick={() => setShowDetails(true)}
-          >
-            <Eye className="w-4 h-4 mr-2" />
-            View Team
-          </Button>
+          <div className="grid grid-cols-2 gap-2 mt-4">
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowProgress(true)}
+            >
+              <BarChart3 className="w-4 h-4 mr-1" />
+              Progress
+            </Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowDetails(true)}
+            >
+              <Eye className="w-4 h-4 mr-1" />
+              Details
+            </Button>
+          </div>
         </CardContent>
       </Card>
+
+      {/* Progress Dashboard Dialog */}
+      <Dialog open={showProgress} onOpenChange={setShowProgress}>
+        <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <BarChart3 className="h-5 w-5" />
+              <span>{team.name} - Progress Dashboard</span>
+            </DialogTitle>
+          </DialogHeader>
+          <TeamProgressDashboard team={team} />
+        </DialogContent>
+      </Dialog>
 
       <TeamDetailsDialog
         team={team}
