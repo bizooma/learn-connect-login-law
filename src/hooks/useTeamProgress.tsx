@@ -40,16 +40,7 @@ export const useTeamProgress = () => {
       // Get team members
       const { data: teamMembers, error: membersError } = await supabase
         .from('admin_team_members')
-        .select(`
-          user_id,
-          profiles!inner(
-            id,
-            email,
-            first_name,
-            last_name,
-            is_deleted
-          )
-        `)
+        .select('user_id')
         .eq('team_id', teamId);
 
       if (membersError) throw membersError;
@@ -60,6 +51,15 @@ export const useTeamProgress = () => {
       }
 
       const memberIds = teamMembers.map(m => m.user_id);
+
+      // Get profiles for team members
+      const { data: profiles, error: profilesError } = await supabase
+        .from('profiles')
+        .select('id, email, first_name, last_name')
+        .in('id', memberIds)
+        .eq('is_deleted', false);
+
+      if (profilesError) throw profilesError;
 
       // Get course assignments for all team members
       const { data: assignments, error: assignmentsError } = await supabase
@@ -95,9 +95,9 @@ export const useTeamProgress = () => {
       if (progressError) throw progressError;
 
       // Process the data
-      const memberProgress: TeamMemberProgress[] = teamMembers.map(member => {
-        const memberAssignments = assignments?.filter(a => a.user_id === member.user_id) || [];
-        const memberProgressData = progress?.filter(p => p.user_id === member.user_id) || [];
+      const memberProgress: TeamMemberProgress[] = profiles?.map(profile => {
+        const memberAssignments = assignments?.filter(a => a.user_id === profile.id) || [];
+        const memberProgressData = progress?.filter(p => p.user_id === profile.id) || [];
 
         const courseProgress: CourseProgress[] = memberAssignments.map(assignment => {
           const progressData = memberProgressData.find(p => p.course_id === assignment.course_id);
@@ -123,17 +123,17 @@ export const useTeamProgress = () => {
           : 0;
 
         return {
-          user_id: member.user_id,
-          email: member.profiles?.email || '',
-          first_name: member.profiles?.first_name || null,
-          last_name: member.profiles?.last_name || null,
+          user_id: profile.id,
+          email: profile.email || '',
+          first_name: profile.first_name || null,
+          last_name: profile.last_name || null,
           total_assigned_courses: totalCourses,
           completed_courses: completedCourses,
           in_progress_courses: inProgressCourses,
           overall_progress: overallProgress,
           course_progress: courseProgress
         };
-      });
+      }) || [];
 
       setTeamProgress(memberProgress);
       console.log('✅ Team progress loaded:', memberProgress.length, 'members');
