@@ -20,7 +20,7 @@ const VideoProgressTracker = ({
   youtubePlayer,
   videoType = 'upload'
 }: VideoProgressTrackerProps) => {
-  const { videoProgress, updateVideoProgress, markVideoComplete } = useVideoProgress(unitId, courseId);
+  const { videoProgress, loading, updateVideoProgress, markVideoComplete } = useVideoProgress(unitId, courseId);
   const progressUpdateRef = useRef<number>();
 
   useEffect(() => {
@@ -121,8 +121,13 @@ const VideoProgressTracker = ({
     }
   }, [youtubePlayer, videoType, updateVideoProgress, markVideoComplete]);
 
-  if (videoProgress.watch_percentage === 0) {
-    return null; // Don't show progress until user starts watching
+  // Enhanced conditional rendering logic to prevent showing "0" during loading
+  // Only show progress when:
+  // 1. Not loading
+  // 2. Has meaningful progress (watch_percentage > 0 OR watched_duration_seconds > 0)
+  // 3. Has actual video interaction
+  if (loading || (videoProgress.watch_percentage === 0 && videoProgress.watched_duration_seconds === 0)) {
+    return null;
   }
 
   return (
