@@ -95,13 +95,14 @@ const CourseBasicInfoForm = ({ control }: CourseBasicInfoFormProps) => {
         render={({ field }) => (
           <FormItem>
             <FormLabel>Level</FormLabel>
-            <Select onValueChange={field.onChange} value={field.value}>
+            <Select onValueChange={field.onChange} value={field.value || ""}>
               <FormControl>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a level (optional)" />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
+                <SelectItem value="">No level selected</SelectItem>
                 {levels.map((level) => (
                   <SelectItem key={level.id} value={level.code}>
                     {level.name}

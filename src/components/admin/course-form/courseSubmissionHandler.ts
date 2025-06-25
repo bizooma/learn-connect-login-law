@@ -45,19 +45,24 @@ export const handleCourseSubmission = async (
     }
   }
 
-  // Create the course with optional fields
+  // Prepare course data with proper null handling
+  const courseData = {
+    title: data.title,
+    description: data.description || '',
+    instructor: data.instructor || '',
+    category: data.category || '',
+    level: data.level || '',
+    duration: data.duration || '',
+    image_url: imageUrl || null,
+    is_draft: false,
+  };
+
+  console.log('Prepared course data:', courseData);
+
+  // Create the course
   const { data: course, error: courseError } = await supabase
     .from('courses')
-    .insert({
-      title: data.title,
-      description: data.description || '',
-      instructor: data.instructor || '',
-      category: data.category || '',
-      level: data.level || '',
-      duration: data.duration || '',
-      image_url: imageUrl,
-      is_draft: false,
-    })
+    .insert(courseData)
     .select()
     .single();
 

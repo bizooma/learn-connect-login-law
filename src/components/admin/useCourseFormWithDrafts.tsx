@@ -142,8 +142,22 @@ export const useCourseFormWithDrafts = (onSuccess: () => void) => {
   const onSubmit = async (data: CourseFormData) => {
     setIsSubmitting(true);
     try {
+      console.log('Form submission data:', data);
+      
+      // Ensure all fields have proper values (empty strings instead of undefined)
+      const sanitizedData = {
+        ...data,
+        description: data.description || '',
+        instructor: data.instructor || '',
+        category: data.category || '',
+        level: data.level || '',
+        duration: data.duration || '',
+      };
+
+      console.log('Sanitized data:', sanitizedData);
+
       // Pass modules directly to the submission handler
-      await handleCourseSubmission(data, [], modules);
+      await handleCourseSubmission(sanitizedData, [], modules);
 
       // Delete current draft after successful submission
       if (currentDraft) {
@@ -162,7 +176,7 @@ export const useCourseFormWithDrafts = (onSuccess: () => void) => {
       console.error('Error creating course:', error);
       toast({
         title: "Error",
-        description: "Failed to create course",
+        description: error instanceof Error ? error.message : "Failed to create course",
         variant: "destructive",
       });
     } finally {
