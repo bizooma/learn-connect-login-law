@@ -1,7 +1,7 @@
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Play, Pause, Volume2, VolumeX, Maximize, Clock } from "lucide-react";
+import { Play, Pause, Volume2, VolumeX, Maximize, Clock, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Badge } from "@/components/ui/badge";
@@ -16,15 +16,29 @@ interface CourseVideoProps {
   courseId: string;
 }
 
+declare global {
+  interface Window {
+    YT: any;
+    onYouTubeIframeAPIReady: () => void;
+  }
+}
+
 const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const youtubePlayerRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const cleanupTimeoutRef = useRef<number>();
+  
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [volume, setVolume] = useState(100);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
-  const [youtubePlayer, setYoutubePlayer] = useState<any>(null);
   const [isYouTubeReady, setIsYouTubeReady] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [containerId] = useState(() => `youtube-player-${Math.random().toString(36).substr(2, 9)}`);
+  
   const { markVideoComplete, evaluateAndCompleteUnit } = useReliableCompletion();
 
   // Extract video ID from YouTube URL
@@ -39,73 +53,198 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
   };
 
   // Handle video completion
-  const handleVideoComplete = async () => {
+  const handleVideoComplete = useCallback(async () => {
     if (!unit) return;
 
-    console.log('🎥 Video completed for unit:', unit.id);
+    console.log('🎥 Video completed for unit:', unit.id, unit.title);
     
     try {
-      // Mark video as completed
       await markVideoComplete(unit.id, courseId);
-      
-      // Evaluate if unit should be completed (this will check if quiz is also needed)
       await evaluateAndCompleteUnit(unit, courseId, false, 'video_complete');
     } catch (error) {
       console.error('❌ Error handling video completion:', error);
     }
-  };
+  }, [unit, courseId, markVideoComplete, evaluateAndCompleteUnit]);
 
-  // YouTube player setup
-  useEffect(() => {
-    if (!unit?.video_url || !isYouTubeUrl(unit.video_url)) return;
-
-    const videoId = getYouTubeVideoId(unit.video_url);
-    if (!videoId) return;
-
-    // Load YouTube IFrame API
-    if (!window.YT) {
-      const tag = document.createElement('script');
-      tag.src = 'https://www.youtube.com/iframe_api';
-      const firstScriptTag = document.getElementsByTagName('script')[0];
-      firstScriptTag.parentNode?.insertBefore(tag, firstScriptTag);
-
-      window.onYouTubeIframeAPIReady = () => {
-        createYouTubePlayer(videoId);
-      };
-    } else {
-      createYouTubePlayer(videoId);
+  // Cleanup YouTube player
+  const cleanupYouTubePlayer = useCallback(() => {
+    console.log('🧹 Cleaning up YouTube player for unit:', unit?.id);
+    
+    if (youtubePlayerRef.current) {
+      try {
+        if (typeof youtubePlayerRef.current.destroy === 'function') {
+          youtubePlayerRef.current.destroy();
+        }
+      } catch (error) {
+        console.warn('⚠️ Error destroying YouTube player:', error);
+      }
+      youtubePlayerRef.current = null;
     }
 
-    function createYouTubePlayer(videoId: string) {
-      const player = new window.YT.Player(`youtube-player-${unit.id}`, {
-        height: '400',
+    // Clear container content
+    if (containerRef.current) {
+      containerRef.current.innerHTML = '';
+    }
+
+    // Reset states
+    setIsYouTubeReady(false);
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
+    setError(null);
+  }, [unit?.id]);
+
+  // Load YouTube API
+  const loadYouTubeAPI = useCallback(() => {
+    return new Promise<void>((resolve) => {
+      if (window.YT && window.YT.Player) {
+        resolve();
+        return;
+      }
+
+      if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
+        const script = document.createElement('script');
+        script.src = 'https://www.youtube.com/iframe_api';
+        document.head.appendChild(script);
+      }
+
+      window.onYouTubeIframeAPIReady = () => {
+        console.log('✅ YouTube API loaded successfully');
+        resolve();
+      };
+
+      // Fallback check
+      const checkAPI = () => {
+        if (window.YT && window.YT.Player) {
+          resolve();
+        } else {
+          setTimeout(checkAPI, 100);
+        }
+      };
+      setTimeout(checkAPI, 1000);
+    });
+  }, []);
+
+  // Create YouTube player
+  const createYouTubePlayer = useCallback(async (videoId: string) => {
+    if (!containerRef.current || !unit) return;
+
+    console.log('🎬 Creating YouTube player for:', videoId, 'Unit:', unit.title);
+    
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      await loadYouTubeAPI();
+
+      // Clear any existing content
+      containerRef.current.innerHTML = `<div id="${containerId}"></div>`;
+
+      const player = new window.YT.Player(containerId, {
+        height: '100%',
         width: '100%',
         videoId: videoId,
         playerVars: {
           playsinline: 1,
           rel: 0,
-          modestbranding: 1
+          modestbranding: 1,
+          enablejsapi: 1,
+          origin: window.location.origin,
+          fs: 1,
+          cc_load_policy: 0,
+          iv_load_policy: 3,
+          autohide: 0
         },
         events: {
-          onReady: () => {
+          onReady: (event: any) => {
+            console.log('✅ YouTube player ready for unit:', unit.title);
+            youtubePlayerRef.current = event.target;
             setIsYouTubeReady(true);
-            setYoutubePlayer(player);
+            setIsLoading(false);
+            
+            // Get duration
+            try {
+              const videoDuration = event.target.getDuration();
+              if (videoDuration > 0) {
+                setDuration(videoDuration);
+              }
+            } catch (error) {
+              console.warn('⚠️ Could not get video duration:', error);
+            }
           },
           onStateChange: (event: any) => {
-            if (event.data === window.YT.PlayerState.ENDED) {
+            const state = event.data;
+            console.log('🎵 YouTube player state changed:', state, 'for unit:', unit.title);
+            
+            setIsPlaying(state === 1); // 1 = playing
+            
+            if (state === 0) { // Ended
               handleVideoComplete();
             }
+          },
+          onError: (event: any) => {
+            const errorCode = event.data;
+            console.error('❌ YouTube player error:', errorCode, 'for unit:', unit.title);
+            
+            let errorMessage = 'Video playback error';
+            switch (errorCode) {
+              case 2:
+                errorMessage = 'Invalid video ID';
+                break;
+              case 5:
+                errorMessage = 'HTML5 player error';
+                break;
+              case 100:
+                errorMessage = 'Video not found or private';
+                break;
+              case 101:
+              case 150:
+                errorMessage = 'Video cannot be embedded';
+                break;
+            }
+            
+            setError(errorMessage);
+            setIsLoading(false);
           }
         },
       });
+
+      youtubePlayerRef.current = player;
+    } catch (error) {
+      console.error('❌ Error creating YouTube player:', error);
+      setError('Failed to load video player');
+      setIsLoading(false);
+    }
+  }, [containerId, unit, loadYouTubeAPI, handleVideoComplete]);
+
+  // Initialize YouTube player when unit changes
+  useEffect(() => {
+    if (!unit?.video_url || !isYouTubeUrl(unit.video_url)) {
+      cleanupYouTubePlayer();
+      return;
     }
 
+    const videoId = getYouTubeVideoId(unit.video_url);
+    if (!videoId) {
+      setError('Invalid YouTube URL');
+      return;
+    }
+
+    // Cleanup previous player first
+    cleanupYouTubePlayer();
+
+    // Small delay to ensure cleanup is complete
+    cleanupTimeoutRef.current = window.setTimeout(() => {
+      createYouTubePlayer(videoId);
+    }, 100);
+
     return () => {
-      if (youtubePlayer && typeof youtubePlayer.destroy === 'function') {
-        youtubePlayer.destroy();
+      if (cleanupTimeoutRef.current) {
+        clearTimeout(cleanupTimeoutRef.current);
       }
+      cleanupYouTubePlayer();
     };
-  }, [unit?.video_url, unit?.id]);
+  }, [unit?.video_url, unit?.id, cleanupYouTubePlayer, createYouTubePlayer]);
 
   // Regular video player event handlers
   useEffect(() => {
@@ -133,8 +272,9 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
       video.removeEventListener('loadedmetadata', handleLoadedMetadata);
       video.removeEventListener('ended', handleEnded);
     };
-  }, [unit?.video_url, unit?.id]);
+  }, [unit?.video_url, unit?.id, handleVideoComplete]);
 
+  // Regular video controls
   const togglePlay = () => {
     const video = videoRef.current;
     if (!video) return;
@@ -191,6 +331,21 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
     }
   };
 
+  const retryVideoLoad = () => {
+    if (!unit?.video_url) return;
+    
+    console.log('🔄 Retrying video load for unit:', unit.title);
+    setError(null);
+    setIsLoading(true);
+    
+    if (isYouTubeUrl(unit.video_url)) {
+      const videoId = getYouTubeVideoId(unit.video_url);
+      if (videoId) {
+        createYouTubePlayer(videoId);
+      }
+    }
+  };
+
   if (!unit?.video_url) {
     return null;
   }
@@ -203,14 +358,16 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
         unitId={unit.id}
         courseId={courseId}
         videoElement={videoType === 'upload' ? videoRef.current : null}
-        youtubePlayer={videoType === 'youtube' ? youtubePlayer : null}
+        youtubePlayer={videoType === 'youtube' ? youtubePlayerRef.current : null}
         videoType={videoType}
       />
 
       <Card className="overflow-hidden">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg">Video Content</CardTitle>
+            <CardTitle className="text-lg">
+              {unit.title} - Video Content
+            </CardTitle>
             {unit.duration_minutes && (
               <Badge variant="secondary" className="flex items-center space-x-1">
                 <Clock className="h-3 w-3" />
@@ -221,11 +378,39 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
         </CardHeader>
         <CardContent className="p-0">
           {videoType === 'youtube' ? (
-            <div className="relative w-full" style={{ paddingBottom: '56.25%' }}>
+            <div className="relative w-full bg-gray-900" style={{ paddingBottom: '56.25%' }}>
               <div
-                id={`youtube-player-${unit.id}`}
+                ref={containerRef}
                 className="absolute top-0 left-0 w-full h-full"
               />
+              
+              {/* Loading overlay */}
+              {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75">
+                  <div className="text-center text-white">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto mb-2"></div>
+                    <p>Loading video...</p>
+                  </div>
+                </div>
+              )}
+              
+              {/* Error overlay */}
+              {error && (
+                <div className="absolute inset-0 flex items-center justify-center bg-gray-900 bg-opacity-75">
+                  <div className="text-center text-white p-4">
+                    <p className="mb-2">⚠️ {error}</p>
+                    <Button
+                      onClick={retryVideoLoad}
+                      variant="outline"
+                      size="sm"
+                      className="text-white border-white hover:bg-white hover:text-gray-900"
+                    >
+                      <RefreshCw className="h-4 w-4 mr-2" />
+                      Retry
+                    </Button>
+                  </div>
+                </div>
+              )}
             </div>
           ) : (
             <div className="relative bg-black">
@@ -237,7 +422,7 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
                 onPause={() => setIsPlaying(false)}
               />
               
-              {/* Custom video controls */}
+              {/* Custom video controls for uploaded videos */}
               <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4">
                 <div className="space-y-3">
                   {/* Progress bar */}
