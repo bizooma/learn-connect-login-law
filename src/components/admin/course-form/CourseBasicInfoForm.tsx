@@ -35,9 +35,10 @@ const CourseBasicInfoForm = ({ control }: CourseBasicInfoFormProps) => {
       <FormField
         control={control}
         name="title"
+        rules={{ required: "Title is required" }}
         render={({ field }) => (
           <FormItem>
-            <FormLabel>Title</FormLabel>
+            <FormLabel>Title *</FormLabel>
             <FormControl>
               <Input placeholder="Course title" {...field} />
             </FormControl>
@@ -53,7 +54,7 @@ const CourseBasicInfoForm = ({ control }: CourseBasicInfoFormProps) => {
           <FormItem>
             <FormLabel>Description</FormLabel>
             <FormControl>
-              <Textarea placeholder="Course description" {...field} />
+              <Textarea placeholder="Course description (optional)" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -67,7 +68,7 @@ const CourseBasicInfoForm = ({ control }: CourseBasicInfoFormProps) => {
           <FormItem>
             <FormLabel>Instructor</FormLabel>
             <FormControl>
-              <Input placeholder="Instructor name" {...field} />
+              <Input placeholder="Instructor name (optional)" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -81,7 +82,7 @@ const CourseBasicInfoForm = ({ control }: CourseBasicInfoFormProps) => {
           <FormItem>
             <FormLabel>Category</FormLabel>
             <FormControl>
-              <Input placeholder="Course category" {...field} />
+              <Input placeholder="Course category (optional)" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>
@@ -97,7 +98,7 @@ const CourseBasicInfoForm = ({ control }: CourseBasicInfoFormProps) => {
             <Select onValueChange={field.onChange} value={field.value}>
               <FormControl>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a level" />
+                  <SelectValue placeholder="Select a level (optional)" />
                 </SelectTrigger>
               </FormControl>
               <SelectContent>
@@ -120,7 +121,7 @@ const CourseBasicInfoForm = ({ control }: CourseBasicInfoFormProps) => {
           <FormItem>
             <FormLabel>Duration</FormLabel>
             <FormControl>
-              <Input placeholder="e.g., 2 hours" {...field} />
+              <Input placeholder="e.g., 2 hours (optional)" {...field} />
             </FormControl>
             <FormMessage />
           </FormItem>

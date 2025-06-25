@@ -142,15 +142,8 @@ export const useCourseFormWithDrafts = (onSuccess: () => void) => {
   const onSubmit = async (data: CourseFormData) => {
     setIsSubmitting(true);
     try {
-      // Convert modules structure to sections structure for backward compatibility
-      const sections = modules.flatMap(module => 
-        module.lessons.map(lesson => ({
-          ...lesson,
-          units: lesson.units
-        }))
-      );
-
-      await handleCourseSubmission(data, sections);
+      // Pass modules directly to the submission handler
+      await handleCourseSubmission(data, [], modules);
 
       // Delete current draft after successful submission
       if (currentDraft) {

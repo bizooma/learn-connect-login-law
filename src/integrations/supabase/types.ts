@@ -341,15 +341,15 @@ export type Database = {
       }
       courses: {
         Row: {
-          category: string
+          category: string | null
           created_at: string
           description: string | null
-          duration: string
+          duration: string | null
           id: string
           image_url: string | null
-          instructor: string
+          instructor: string | null
           is_draft: boolean
-          level: string
+          level: string | null
           rating: number | null
           students_enrolled: number | null
           tags: string[] | null
@@ -357,15 +357,15 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          category: string
+          category?: string | null
           created_at?: string
           description?: string | null
-          duration: string
+          duration?: string | null
           id?: string
           image_url?: string | null
-          instructor: string
+          instructor?: string | null
           is_draft?: boolean
-          level: string
+          level?: string | null
           rating?: number | null
           students_enrolled?: number | null
           tags?: string[] | null
@@ -373,15 +373,15 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          category?: string
+          category?: string | null
           created_at?: string
           description?: string | null
-          duration?: string
+          duration?: string | null
           id?: string
           image_url?: string | null
-          instructor?: string
+          instructor?: string | null
           is_draft?: boolean
-          level?: string
+          level?: string | null
           rating?: number | null
           students_enrolled?: number | null
           tags?: string[] | null

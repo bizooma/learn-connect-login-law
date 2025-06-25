@@ -45,16 +45,16 @@ export const handleCourseSubmission = async (
     }
   }
 
-  // Create the course
+  // Create the course with optional fields
   const { data: course, error: courseError } = await supabase
     .from('courses')
     .insert({
       title: data.title,
-      description: data.description,
-      instructor: data.instructor,
-      category: data.category,
-      level: data.level,
-      duration: data.duration,
+      description: data.description || '',
+      instructor: data.instructor || '',
+      category: data.category || '',
+      level: data.level || '',
+      duration: data.duration || '',
       image_url: imageUrl,
       is_draft: false,
     })
