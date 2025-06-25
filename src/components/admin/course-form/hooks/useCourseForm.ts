@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { CourseFormData, ModuleData } from "../types";
@@ -169,7 +168,7 @@ export const useCourseForm = (courseId?: string) => {
               size: unit.file_size || 0
             }] : files;
 
-            // Preserve quiz assignment
+            // Preserve quiz assignment - FIX: Properly handle undefined values
             const preservedQuizId = unitQuizMap.get(unit.id);
             if (preservedQuizId) {
               console.log(`Preserving quiz assignment for unit "${unit.title}": Quiz ID ${preservedQuizId}`);
@@ -184,7 +183,7 @@ export const useCourseForm = (courseId?: string) => {
               video_type: (unit.video_url?.includes('youtube.com') || unit.video_url?.includes('youtu.be')) ? 'youtube' as const : 'upload' as const,
               duration_minutes: unit.duration_minutes || 0,
               sort_order: unit.sort_order !== null && unit.sort_order !== undefined ? unit.sort_order : unitIndex,
-              quiz_id: preservedQuizId || "",
+              quiz_id: preservedQuizId || undefined, // CRITICAL FIX: Use undefined instead of empty string
               image_url: "",
               file_url: unit.file_url || "",
               file_name: unit.file_name || "",

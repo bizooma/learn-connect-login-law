@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
@@ -129,7 +130,7 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
             size: unit.file_size || 0
           }] : files;
 
-          // PRESERVE quiz assignment
+          // PRESERVE quiz assignment - FIX: Properly handle undefined values
           const preservedQuizId = unitQuizMap.get(unit.id);
           if (preservedQuizId) {
             console.log(`Preserving quiz assignment for unit "${unit.title}": Quiz ID ${preservedQuizId}`);
@@ -144,7 +145,7 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
             video_type: (unit.video_url?.includes('youtube.com') || unit.video_url?.includes('youtu.be')) ? 'youtube' as const : 'upload' as const,
             duration_minutes: unit.duration_minutes || 0,
             sort_order: unit.sort_order !== null && unit.sort_order !== undefined ? unit.sort_order : unitIndex,
-            quiz_id: preservedQuizId, // CRITICAL: Preserve quiz assignment
+            quiz_id: preservedQuizId || undefined, // CRITICAL FIX: Use undefined instead of complex object
             image_url: '',
             file_url: unit.file_url || '',
             file_name: unit.file_name || '',
