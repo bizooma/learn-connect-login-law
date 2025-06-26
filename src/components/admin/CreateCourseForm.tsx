@@ -7,7 +7,7 @@ import CourseBasicInfoForm from "./course-form/CourseBasicInfoForm";
 import CourseContentForm from "./course-form/CourseContentForm";
 import DraftRecoveryDialog from "./course-form/DraftRecoveryDialog";
 import SaveStatusIndicator from "./course-form/SaveStatusIndicator";
-import { useCourseFormWithDrafts } from "./useCourseFormWithDrafts";
+import { useCourseFormWithDrafts } from "./course-form/useCourseFormWithDrafts";
 import { Save } from "lucide-react";
 
 interface CreateCourseFormProps {
