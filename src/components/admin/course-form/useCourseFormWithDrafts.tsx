@@ -141,7 +141,7 @@ export const useCourseFormWithDrafts = (onSuccess: () => void) => {
   const onSubmit = async (data: CourseFormData) => {
     setIsSubmitting(true);
     try {
-      // Pass modules directly to the submission handler
+      // Pass modules directly to the submission handler without sanitization
       await handleCourseSubmission(data, [], modules);
 
       // Delete current draft after successful submission

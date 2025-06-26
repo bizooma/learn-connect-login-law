@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { CourseFormData } from "./types";
 import { uploadImageFile } from "./fileUploadUtils";
@@ -6,6 +5,7 @@ import { createDefaultModule } from "./services/moduleCreation";
 import { createLessonsAndUnits } from "./services/sectionCreation";
 import { createWelcomeCalendarEvent } from "./services/calendarService";
 import { createCourseWithModules } from "./services/courseSubmissionService";
+import { sanitizeForDatabase } from "@/utils/databaseSanitization";
 
 interface SectionData {
   title: string;
@@ -45,17 +45,17 @@ export const handleCourseSubmission = async (
     }
   }
 
-  // Prepare course data with proper null handling
-  const courseData = {
-    title: data.title,
-    description: data.description || '',
-    instructor: data.instructor || '',
-    category: data.category || '',
-    level: data.level || '',
-    duration: data.duration || '',
+  // Prepare course data with proper null handling for optional fields
+  const courseData = sanitizeForDatabase({
+    title: data.title, // Required field
+    description: data.description,
+    instructor: data.instructor,
+    category: data.category,
+    level: data.level,
+    duration: data.duration,
     image_url: imageUrl || null,
     is_draft: false,
-  };
+  }, ['title']); // Only title is truly required
 
   console.log('Prepared course data:', courseData);
 

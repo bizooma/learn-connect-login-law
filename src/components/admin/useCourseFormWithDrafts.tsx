@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { useToast } from "@/hooks/use-toast";
@@ -144,20 +143,8 @@ export const useCourseFormWithDrafts = (onSuccess: () => void) => {
     try {
       console.log('Form submission data:', data);
       
-      // Ensure all fields have proper values (empty strings instead of undefined)
-      const sanitizedData = {
-        ...data,
-        description: data.description || '',
-        instructor: data.instructor || '',
-        category: data.category || '',
-        level: data.level || '',
-        duration: data.duration || '',
-      };
-
-      console.log('Sanitized data:', sanitizedData);
-
-      // Pass modules directly to the submission handler
-      await handleCourseSubmission(sanitizedData, [], modules);
+      // Pass the data as-is without sanitization - let the handler manage null conversion
+      await handleCourseSubmission(data, [], modules);
 
       // Delete current draft after successful submission
       if (currentDraft) {
