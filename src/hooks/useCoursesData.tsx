@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -49,29 +48,38 @@ export const useCoursesData = () => {
   }, [enrollmentCounts]);
 
   const sortCourses = (coursesToSort: CourseWithEnrollment[]) => {
-    return coursesToSort.sort((a, b) => {
-      // First, sort by category (Legal first, then Sales)
-      const categoryOrder = { 'Legal': 1, 'Sales': 2 };
-      const aCategoryOrder = categoryOrder[a.category as keyof typeof categoryOrder] || 999;
-      const bCategoryOrder = categoryOrder[b.category as keyof typeof categoryOrder] || 999;
-      
-      if (aCategoryOrder !== bCategoryOrder) {
-        return aCategoryOrder - bCategoryOrder;
-      }
-      
-      // Then sort by level (100, 200, 300)
-      const getLevelNumber = (level: string) => {
-        if (level.includes('100')) return 1;
-        if (level.includes('200')) return 2;
-        if (level.includes('300')) return 3;
-        return 999;
-      };
-      
-      const aLevelOrder = getLevelNumber(a.level);
-      const bLevelOrder = getLevelNumber(b.level);
-      
-      return aLevelOrder - bLevelOrder;
-    });
+    try {
+      return coursesToSort.sort((a, b) => {
+        // First, sort by category (Legal first, then Sales)
+        const categoryOrder = { 'Legal': 1, 'Sales': 2 };
+        const aCategoryOrder = categoryOrder[a.category as keyof typeof categoryOrder] || 999;
+        const bCategoryOrder = categoryOrder[b.category as keyof typeof categoryOrder] || 999;
+        
+        if (aCategoryOrder !== bCategoryOrder) {
+          return aCategoryOrder - bCategoryOrder;
+        }
+        
+        // Then sort by level (100, 200, 300) - now with safe null handling
+        const getLevelNumber = (level: string | null | undefined) => {
+          // Handle null, undefined, or empty values safely
+          if (!level || typeof level !== 'string') return 999;
+          
+          if (level.includes('100')) return 1;
+          if (level.includes('200')) return 2;
+          if (level.includes('300')) return 3;
+          return 999;
+        };
+        
+        const aLevelOrder = getLevelNumber(a.level);
+        const bLevelOrder = getLevelNumber(b.level);
+        
+        return aLevelOrder - bLevelOrder;
+      });
+    } catch (error) {
+      console.error('Error sorting courses:', error);
+      // Fallback to basic sorting if level-based sorting fails
+      return coursesToSort.sort((a, b) => a.title.localeCompare(b.title));
+    }
   };
 
   const fetchCourses = async () => {
