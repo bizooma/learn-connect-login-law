@@ -18,24 +18,24 @@ class ErrorBoundary extends Component<Props, State> {
   };
 
   public static getDerivedStateFromError(error: Error): State {
-    // Only catch specific auth-related errors, not all errors
-    const isAuthError = error.message?.includes('auth') || 
-                       error.message?.includes('user') ||
-                       error.message?.includes('role') ||
-                       error.message?.includes('Cannot read properties of null');
+    // Only catch specific auth-related errors, not general JavaScript errors
+    const isAuthError = error.message?.includes('JWT') || 
+                       error.message?.includes('token') ||
+                       error.message?.includes('unauthorized') ||
+                       error.message?.includes('authentication failed');
     
     if (isAuthError) {
       return { hasError: true, error };
     }
     
-    // Let other errors bubble up normally
+    // Let other errors bubble up normally (including null reference errors)
     throw error;
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error('Auth Error Boundary caught an error:', error, errorInfo);
     
-    // Auto-recover after a short delay for auth errors
+    // Auto-recover after a short delay for auth errors only
     setTimeout(() => {
       this.setState({ hasError: false, error: undefined, errorInfo: undefined });
     }, 1000);

@@ -23,3 +23,27 @@ export const sanitizeForDatabase = <T extends Record<string, any>>(
   
   return sanitized as T;
 };
+
+/**
+ * Sanitizes course data specifically, ensuring required fields have defaults
+ */
+export const sanitizeCourseData = (data: any) => {
+  const sanitized = { ...data };
+  
+  // Ensure level has a default if empty
+  if (!sanitized.level || sanitized.level.trim() === '') {
+    sanitized.level = 'Sales-100'; // Default level
+  }
+  
+  // Ensure category has a default if empty
+  if (!sanitized.category || sanitized.category.trim() === '') {
+    sanitized.category = 'General'; // Default category
+  }
+  
+  // Ensure instructor has a default if empty
+  if (!sanitized.instructor || sanitized.instructor.trim() === '') {
+    sanitized.instructor = 'New Frontier University'; // Default instructor
+  }
+  
+  return sanitized;
+};

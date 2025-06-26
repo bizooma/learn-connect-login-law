@@ -5,7 +5,7 @@ import { createDefaultModule } from "./services/moduleCreation";
 import { createLessonsAndUnits } from "./services/sectionCreation";
 import { createWelcomeCalendarEvent } from "./services/calendarService";
 import { createCourseWithModules } from "./services/courseSubmissionService";
-import { sanitizeForDatabase } from "@/utils/databaseSanitization";
+import { sanitizeCourseData } from "@/utils/databaseSanitization";
 
 interface SectionData {
   title: string;
@@ -45,8 +45,8 @@ export const handleCourseSubmission = async (
     }
   }
 
-  // Prepare course data with proper null handling for optional fields
-  const courseData = sanitizeForDatabase({
+  // Prepare course data with proper sanitization for required fields
+  const courseData = sanitizeCourseData({
     title: data.title, // Required field
     description: data.description,
     instructor: data.instructor,
@@ -55,7 +55,7 @@ export const handleCourseSubmission = async (
     duration: data.duration,
     image_url: imageUrl || null,
     is_draft: false,
-  }, ['title']); // Only title is truly required
+  });
 
   console.log('Prepared course data:', courseData);
 

@@ -1,5 +1,10 @@
 
-export const getLevelColor = (level: string) => {
+export const getLevelColor = (level: string | null | undefined) => {
+  // Handle null, undefined, or empty values
+  if (!level) {
+    return "bg-gray-100 text-gray-800"; // Default fallback
+  }
+
   // Extract the numeric part for color coding
   if (level.includes('-100')) {
     return "bg-green-100 text-green-800"; // Level 100 (entry level)
@@ -22,7 +27,12 @@ export const getLevelColor = (level: string) => {
   }
 };
 
-export const getLevelDisplayName = (level: string) => {
+export const getLevelDisplayName = (level: string | null | undefined) => {
+  // Handle null, undefined, or empty values
+  if (!level) {
+    return "Not Specified"; // Default fallback
+  }
+
   // Convert level codes to display names
   const levelMap: { [key: string]: string } = {
     'Sales-100': 'Sales Level 100',
