@@ -27,13 +27,12 @@ export const useQuizImportManager = ({
 
   const handleConfirmImport = async (finalData: any) => {
     try {
-      // Create the quiz
+      // Create the quiz without unit assignment
       const { data: quiz, error: quizError } = await supabase
         .from('quizzes')
         .insert({
           title: finalData.title,
           description: finalData.description,
-          unit_id: finalData.unit_id,
           passing_score: finalData.passing_score,
           time_limit_minutes: finalData.time_limit_minutes,
           source_type: 'powerpoint',
@@ -84,7 +83,7 @@ export const useQuizImportManager = ({
       
       toast({
         title: "Success",
-        description: `Quiz "${finalData.title}" created with ${finalData.questions.length} questions`,
+        description: `Quiz "${finalData.title}" created successfully with ${finalData.questions.length} questions. You can now assign it to units when creating or editing courses.`,
       });
 
     } catch (error) {

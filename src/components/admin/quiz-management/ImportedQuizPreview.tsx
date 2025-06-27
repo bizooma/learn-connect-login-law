@@ -4,12 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { FileText, Edit, Save, X, Presentation, CheckCircle, AlertCircle } from "lucide-react";
+import { FileText, Edit, Save, X, Presentation, CheckCircle, AlertCircle, Info } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 interface ImportedQuizPreviewProps {
   importData: any;
@@ -24,7 +24,6 @@ const ImportedQuizPreview = ({ importData, onConfirmImport, onCancel, units }: I
   const [quizData, setQuizData] = useState({
     title: importData.title || "",
     description: importData.description || "",
-    unit_id: "",
     passing_score: 70,
     time_limit_minutes: 60,
     questions: importData.questions || []
@@ -73,10 +72,6 @@ const ImportedQuizPreview = ({ importData, onConfirmImport, onCancel, units }: I
   };
 
   const handleConfirm = () => {
-    if (!quizData.unit_id) {
-      alert("Please select a unit for this quiz");
-      return;
-    }
     onConfirmImport(quizData);
   };
 
@@ -99,6 +94,8 @@ const ImportedQuizPreview = ({ importData, onConfirmImport, onCancel, units }: I
     };
   };
 
+  const validQuestionsCount = quizData.questions.filter(q => getQuestionValidation(q).isValid).length;
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -119,6 +116,14 @@ const ImportedQuizPreview = ({ importData, onConfirmImport, onCancel, units }: I
           </CardDescription>
         </CardHeader>
       </Card>
+
+      {/* Unit Assignment Info */}
+      <Alert>
+        <Info className="h-4 w-4" />
+        <AlertDescription>
+          This quiz will be created without being assigned to a specific unit. You can assign it to units later when creating or editing courses.
+        </AlertDescription>
+      </Alert>
 
       {/* Slides Analysis Summary */}
       {getSlidesAnalyzed().length > 0 && (
@@ -180,22 +185,7 @@ const ImportedQuizPreview = ({ importData, onConfirmImport, onCancel, units }: I
                   rows={3}
                 />
               </div>
-              <div className="grid grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="unit">Unit</Label>
-                  <Select value={quizData.unit_id} onValueChange={(value) => handleQuizFieldChange("unit_id", value)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select unit" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {units.map((unit) => (
-                        <SelectItem key={unit.id} value={unit.id}>
-                          {unit.title} ({unit.lesson?.course?.title})
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="passing_score">Passing Score (%)</Label>
                   <Input
@@ -227,7 +217,6 @@ const ImportedQuizPreview = ({ importData, onConfirmImport, onCancel, units }: I
             <div className="space-y-2">
               <div><strong>Title:</strong> {quizData.title}</div>
               <div><strong>Description:</strong> {quizData.description}</div>
-              <div><strong>Unit:</strong> {units.find(u => u.id === quizData.unit_id)?.title || "Not selected"}</div>
               <div className="grid grid-cols-2 gap-4">
                 <div><strong>Passing Score:</strong> {quizData.passing_score}%</div>
                 <div><strong>Time Limit:</strong> {quizData.time_limit_minutes} minutes</div>
@@ -242,7 +231,7 @@ const ImportedQuizPreview = ({ importData, onConfirmImport, onCancel, units }: I
         <div className="flex items-center justify-between">
           <h3 className="text-lg font-semibold">Generated Questions</h3>
           <Badge variant="outline">
-            {quizData.questions.filter(q => getQuestionValidation(q).isValid).length} / {quizData.questions.length} valid
+            {validQuestionsCount} / {quizData.questions.length} valid
           </Badge>
         </div>
 
@@ -349,9 +338,9 @@ const ImportedQuizPreview = ({ importData, onConfirmImport, onCancel, units }: I
         </Button>
         <Button 
           onClick={handleConfirm}
-          disabled={!quizData.unit_id || quizData.questions.filter(q => getQuestionValidation(q).isValid).length === 0}
+          disabled={validQuestionsCount === 0}
         >
-          Create Quiz ({quizData.questions.filter(q => getQuestionValidation(q).isValid).length} questions)
+          Create Quiz ({validQuestionsCount} questions)
         </Button>
       </div>
     </div>
