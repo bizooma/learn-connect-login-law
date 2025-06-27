@@ -77,7 +77,7 @@ const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
           <div className="flex items-center space-x-4">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="text-black hover:bg-black/10">
+                <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
                   <Menu className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
