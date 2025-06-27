@@ -1,4 +1,3 @@
-
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -78,7 +77,7 @@ const RecentActivity = () => {
   const getNotificationItemBackground = (type: string) => {
     switch (type) {
       case 'info':
-        return 'bg-orange-50 border-orange-200 hover:bg-orange-100';
+        return 'bg-orange-100 border-orange-300 hover:bg-orange-200';
       default:
         return 'bg-gray-50 hover:bg-gray-100';
     }
