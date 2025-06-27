@@ -1,3 +1,4 @@
+
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -74,6 +75,15 @@ const RecentActivity = () => {
     }
   };
 
+  const getNotificationItemBackground = (type: string) => {
+    switch (type) {
+      case 'info':
+        return 'bg-orange-50 border-orange-200 hover:bg-orange-100';
+      default:
+        return 'bg-gray-50 hover:bg-gray-100';
+    }
+  };
+
   if (loading) {
     return (
       <Card>
@@ -111,7 +121,7 @@ const RecentActivity = () => {
             {notifications.map((notification) => (
               <div
                 key={notification.id}
-                className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                className={`flex items-start space-x-3 p-3 rounded-lg transition-colors ${getNotificationItemBackground(notification.type)}`}
               >
                 <div className="flex-shrink-0 mt-1">
                   {getNotificationIcon(notification.title)}
