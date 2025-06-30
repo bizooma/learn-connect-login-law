@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trophy, Flame, Target, Users, RefreshCw, AlertCircle } from "lucide-react";
+import { Trophy, Flame, Target, Users, RefreshCw, AlertCircle, CheckCircle } from "lucide-react";
 import StreakLeaderboard from "@/components/leaderboards/StreakLeaderboard";
 import CategoryLeaderboard from "@/components/leaderboards/CategoryLeaderboard";
 import { useLeaderboards } from "@/hooks/useLeaderboards";
@@ -12,11 +12,13 @@ const Leaderboards = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [debugInfo, setDebugInfo] = useState<any>(null);
+  const [cacheStatus, setCacheStatus] = useState<'checking' | 'empty' | 'populated'>('checking');
   const { refreshCache } = useLeaderboards();
 
   const handleRefreshCache = async () => {
     try {
       setIsRefreshing(true);
+      setDebugInfo(null);
       console.log('Starting leaderboard refresh...');
       
       const result = await refreshCache();
@@ -24,6 +26,7 @@ const Leaderboards = () => {
       console.log('Refresh result:', result);
       setDebugInfo(result);
       setRefreshKey(prev => prev + 1);
+      setCacheStatus('populated');
     } catch (error: any) {
       console.error('Error refreshing leaderboard cache:', error);
       setDebugInfo({ error: error.message });
@@ -32,23 +35,57 @@ const Leaderboards = () => {
     }
   };
 
+  const checkCacheStatus = async () => {
+    try {
+      const { count, error } = await supabase
+        .from('leaderboard_cache')
+        .select('*', { count: 'exact', head: true })
+        .gt('expires_at', new Date().toISOString());
+
+      if (error) {
+        console.error('Error checking cache status:', error);
+        setCacheStatus('empty');
+        return;
+      }
+
+      setCacheStatus(count && count > 0 ? 'populated' : 'empty');
+      
+      if (count === 0) {
+        console.log('No valid cache data found, auto-refreshing...');
+        await handleRefreshCache();
+      }
+    } catch (error) {
+      console.error('Error checking cache status:', error);
+      setCacheStatus('empty');
+    }
+  };
+
   // Auto-refresh on page load if no data exists
   useEffect(() => {
-    const checkAndRefresh = async () => {
-      const { data, error } = await supabase
-        .from('leaderboard_cache')
-        .select('count(*)')
-        .gt('expires_at', new Date().toISOString())
-        .limit(1);
-      
-      if (!data || data.length === 0) {
-        console.log('No valid cache data found, auto-refreshing...');
-        handleRefreshCache();
-      }
-    };
-    
-    checkAndRefresh();
+    checkCacheStatus();
   }, []);
+
+  const getCacheStatusIcon = () => {
+    switch (cacheStatus) {
+      case 'checking':
+        return <RefreshCw className="h-3 w-3 animate-spin" />;
+      case 'populated':
+        return <CheckCircle className="h-3 w-3 text-green-600" />;
+      case 'empty':
+        return <AlertCircle className="h-3 w-3 text-orange-600" />;
+    }
+  };
+
+  const getCacheStatusText = () => {
+    switch (cacheStatus) {
+      case 'checking':
+        return 'Checking cache...';
+      case 'populated':
+        return `Cache active (${debugInfo?.total_cache_entries || 'unknown'} entries)`;
+      case 'empty':
+        return 'Cache empty - click refresh';
+    }
+  };
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -60,18 +97,12 @@ const Leaderboards = () => {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          {debugInfo && (
-            <div className="text-xs text-gray-500 bg-gray-100 px-3 py-2 rounded">
-              <div className="flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" />
-                {debugInfo.error ? (
-                  <span className="text-red-600">Error: {debugInfo.error}</span>
-                ) : (
-                  <span>Debug: {debugInfo?.total_cache_entries || 0} entries</span>
-                )}
-              </div>
+          <div className="text-xs text-gray-500 bg-gray-100 px-3 py-2 rounded">
+            <div className="flex items-center gap-1">
+              {getCacheStatusIcon()}
+              <span>{getCacheStatusText()}</span>
             </div>
-          )}
+          </div>
           <button
             onClick={handleRefreshCache}
             disabled={isRefreshing}

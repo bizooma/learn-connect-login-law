@@ -83,45 +83,20 @@ export const useLeaderboards = () => {
 
   const refreshCache = async () => {
     try {
-      // Try to use the RPC function with type assertion
-      const { data, error } = await supabase.rpc('debug_refresh_leaderboards' as any);
+      console.log('Starting leaderboard cache refresh...');
+      
+      // Clear existing cache first
+      const { error: deleteError } = await supabase
+        .from('leaderboard_cache')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000');
 
-      if (error) {
-        console.warn('RPC function not found, attempting manual refresh:', error);
-        return await manualRefreshCache();
+      if (deleteError) {
+        console.warn('Warning clearing cache:', deleteError);
       }
-      
-      const result = data as any;
-      
-      toast({
-        title: "Success",
-        description: `Leaderboards refreshed! Added ${result?.total_cache_entries || 0} entries`,
-      });
-      
-      return result;
-    } catch (error: any) {
-      console.error('Error refreshing leaderboard cache:', error);
-      
-      try {
-        return await manualRefreshCache();
-      } catch (fallbackError: any) {
-        toast({
-          title: "Error",
-          description: `Failed to refresh leaderboards: ${fallbackError.message}`,
-          variant: "destructive",
-        });
-        throw fallbackError;
-      }
-    }
-  };
 
-  const manualRefreshCache = async () => {
-    try {
-      // Clear existing cache
-      await supabase.from('leaderboard_cache').delete().neq('id', '00000000-0000-0000-0000-000000000000');
-
-      // Manually populate learning streak leaderboard
-      const { data: streakData } = await supabase
+      // Refresh learning streak leaderboard
+      const { data: streakData, error: streakError } = await supabase
         .from('user_learning_streaks')
         .select(`
           user_id,
@@ -134,7 +109,9 @@ export const useLeaderboards = () => {
         .order('current_streak', { ascending: false })
         .limit(50);
 
-      if (streakData) {
+      if (streakError) {
+        console.error('Error fetching streak data:', streakError);
+      } else if (streakData && streakData.length > 0) {
         const cacheEntries = streakData.map((entry: any, index: number) => ({
           leaderboard_type: 'learning_streak',
           user_id: entry.user_id,
@@ -148,57 +125,152 @@ export const useLeaderboards = () => {
           }
         }));
 
-        if (cacheEntries.length > 0) {
-          await supabase.from('leaderboard_cache').insert(cacheEntries);
+        const { error: insertError } = await supabase
+          .from('leaderboard_cache')
+          .insert(cacheEntries);
+
+        if (insertError) {
+          console.error('Error inserting streak cache:', insertError);
+        } else {
+          console.log(`Successfully cached ${cacheEntries.length} streak entries`);
         }
       }
 
+      // Refresh category leaderboards for Sales
+      await refreshCategoryLeaderboard('Sales', 'sales_training');
+      
+      // Refresh category leaderboards for Legal
+      await refreshCategoryLeaderboard('Legal', 'legal_training');
+
+      const finalCount = await getTotalCacheEntries();
+      
       toast({
         title: "Success",
-        description: "Leaderboards refreshed manually",
+        description: `Leaderboards refreshed! Total entries: ${finalCount}`,
+      });
+      
+      return { total_cache_entries: finalCount };
+    } catch (error: any) {
+      console.error('Error refreshing leaderboard cache:', error);
+      toast({
+        title: "Error",
+        description: `Failed to refresh leaderboards: ${error.message}`,
+        variant: "destructive",
+      });
+      throw error;
+    }
+  };
+
+  const refreshCategoryLeaderboard = async (category: string, leaderboardType: string) => {
+    try {
+      // Get users with course assignments in this category
+      const { data: categoryData, error: categoryError } = await supabase
+        .from('course_assignments')
+        .select(`
+          user_id,
+          course_id,
+          courses!inner(category),
+          profiles!inner(first_name, last_name, email, is_deleted),
+          user_course_progress(status)
+        `)
+        .eq('courses.category', category)
+        .eq('profiles.is_deleted', false);
+
+      if (categoryError || !categoryData) {
+        console.warn(`No data found for ${category} category:`, categoryError);
+        return;
+      }
+
+      // Group by user and calculate completion rates
+      const userStats = new Map();
+      
+      categoryData.forEach((item: any) => {
+        const userId = item.user_id;
+        if (!userStats.has(userId)) {
+          userStats.set(userId, {
+            user_id: userId,
+            user_name: `${item.profiles.first_name} ${item.profiles.last_name}`,
+            user_email: item.profiles.email,
+            total_courses: 0,
+            completed_courses: 0
+          });
+        }
+        
+        const stats = userStats.get(userId);
+        stats.total_courses++;
+        
+        if (item.user_course_progress && item.user_course_progress.length > 0) {
+          const progress = item.user_course_progress[0];
+          if (progress.status === 'completed') {
+            stats.completed_courses++;
+          }
+        }
       });
 
-      return { total_cache_entries: streakData?.length || 0 };
-    } catch (error: any) {
-      console.error('Manual refresh failed:', error);
-      throw error;
+      // Convert to array and calculate completion rates
+      const rankedUsers = Array.from(userStats.values())
+        .map((stats: any) => ({
+          ...stats,
+          completion_rate: stats.total_courses > 0 
+            ? Math.round((stats.completed_courses / stats.total_courses) * 100) 
+            : 0
+        }))
+        .sort((a, b) => {
+          if (b.completion_rate !== a.completion_rate) {
+            return b.completion_rate - a.completion_rate;
+          }
+          return b.completed_courses - a.completed_courses;
+        })
+        .slice(0, 50);
+
+      if (rankedUsers.length > 0) {
+        const cacheEntries = rankedUsers.map((user: any, index: number) => ({
+          leaderboard_type: leaderboardType,
+          user_id: user.user_id,
+          user_name: user.user_name,
+          user_email: user.user_email,
+          score: user.completion_rate,
+          rank_position: index + 1,
+          additional_data: {
+            courses_completed: user.completed_courses,
+            total_courses: user.total_courses,
+            completion_rate: user.completion_rate
+          }
+        }));
+
+        const { error: insertError } = await supabase
+          .from('leaderboard_cache')
+          .insert(cacheEntries);
+
+        if (insertError) {
+          console.error(`Error inserting ${category} cache:`, insertError);
+        } else {
+          console.log(`Successfully cached ${cacheEntries.length} ${category} entries`);
+        }
+      }
+    } catch (error) {
+      console.error(`Error refreshing ${category} leaderboard:`, error);
+    }
+  };
+
+  const getTotalCacheEntries = async () => {
+    try {
+      const { count, error } = await supabase
+        .from('leaderboard_cache')
+        .select('*', { count: 'exact', head: true })
+        .gt('expires_at', new Date().toISOString());
+
+      return count || 0;
+    } catch (error) {
+      console.error('Error getting cache count:', error);
+      return 0;
     }
   };
 
   const initializeStreaks = async () => {
     try {
-      // Try to use the RPC function with type assertion
-      const { data, error } = await supabase.rpc('initialize_learning_streaks_from_activity' as any);
-
-      if (error) {
-        console.warn('RPC function not found, creating basic streaks:', error);
-        return await createBasicStreaks();
-      }
+      console.log('Initializing learning streaks...');
       
-      toast({
-        title: "Success",
-        description: `Initialized streaks for ${data || 0} users`,
-      });
-      
-      return data;
-    } catch (error: any) {
-      console.error('Error initializing streaks:', error);
-      
-      try {
-        return await createBasicStreaks();
-      } catch (fallbackError: any) {
-        toast({
-          title: "Error",
-          description: `Failed to initialize streaks: ${fallbackError.message}`,
-          variant: "destructive",
-        });
-        throw fallbackError;
-      }
-    }
-  };
-
-  const createBasicStreaks = async () => {
-    try {
       // Get users who have completed units but don't have streak records
       const { data: usersWithProgress } = await supabase
         .from('user_unit_progress')
@@ -229,7 +301,12 @@ export const useLeaderboards = () => {
               is_active: true
             }));
 
-          await supabase.from('user_learning_streaks').insert(streakRecords);
+          const { error } = await supabase.from('user_learning_streaks').insert(streakRecords);
+          
+          if (error) {
+            console.error('Error creating streaks:', error);
+            throw error;
+          }
           
           toast({
             title: "Success",
@@ -242,7 +319,12 @@ export const useLeaderboards = () => {
 
       return 0;
     } catch (error: any) {
-      console.error('Basic streak creation failed:', error);
+      console.error('Error initializing streaks:', error);
+      toast({
+        title: "Error",
+        description: `Failed to initialize streaks: ${error.message}`,
+        variant: "destructive",
+      });
       throw error;
     }
   };

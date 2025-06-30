@@ -32,6 +32,8 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
       setLoading(true);
       setError(null);
       
+      console.log(`Fetching mini leaderboard for type: ${type}`);
+      
       // Try to fetch from cache first
       const { data, error } = await supabase
         .from('leaderboard_cache')
@@ -42,10 +44,12 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
         .limit(limit);
 
       if (error) {
-        console.error('Error fetching mini leaderboard:', error);
+        console.error(`Error fetching mini leaderboard for ${type}:`, error);
         setError(error.message);
         return;
       }
+
+      console.log(`Found ${data?.length || 0} entries for ${type}`);
 
       if (!data || data.length === 0) {
         // Try to fetch fresh data directly from tables
@@ -54,7 +58,7 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
         setEntries(data || []);
       }
     } catch (error: any) {
-      console.error('Error fetching mini leaderboard:', error);
+      console.error(`Error fetching mini leaderboard for ${type}:`, error);
       setError('Failed to load leaderboard data');
     } finally {
       setLoading(false);
@@ -63,6 +67,8 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
 
   const fetchFreshData = async () => {
     try {
+      console.log(`Fetching fresh data for ${type}`);
+      
       if (type === 'learning_streak') {
         const { data, error } = await supabase
           .from('user_learning_streaks')
@@ -77,7 +83,12 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
           .order('current_streak', { ascending: false })
           .limit(limit);
 
-        if (error) throw error;
+        if (error) {
+          console.error(`Error fetching fresh streak data:`, error);
+          throw error;
+        }
+
+        console.log(`Found ${data?.length || 0} fresh streak entries`);
 
         const formattedData = data?.map((entry: any, index: number) => ({
           user_name: `${entry.profiles.first_name} ${entry.profiles.last_name}`,
@@ -92,10 +103,11 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
         setEntries(formattedData);
       } else {
         // For category leaderboards, show a message that data needs to be populated
+        console.log(`No fresh data available for ${type}`);
         setError(`No ${type.replace('_', ' ')} data available. Please refresh the leaderboards.`);
       }
     } catch (error: any) {
-      console.error('Error fetching fresh data:', error);
+      console.error(`Error fetching fresh data for ${type}:`, error);
       setError(`Failed to load ${type.replace('_', ' ')} data`);
     }
   };
