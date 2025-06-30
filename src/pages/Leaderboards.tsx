@@ -19,7 +19,8 @@ const Leaderboards = () => {
       setIsRefreshing(true);
       console.log('Starting leaderboard refresh...');
       
-      const { data: result, error } = await supabase.rpc('debug_refresh_leaderboards');
+      // Use a direct call with type assertion to avoid TypeScript issues
+      const { data: result, error } = await supabase.rpc('debug_refresh_leaderboards' as any);
       
       if (error) {
         console.error('Error refreshing leaderboards:', error);
@@ -30,9 +31,10 @@ const Leaderboards = () => {
       setDebugInfo(result);
       setRefreshKey(prev => prev + 1);
       
+      const resultData = result as any;
       toast({
         title: "Success",
-        description: `Leaderboards refreshed! Added ${result?.total_cache_entries || 0} entries`,
+        description: `Leaderboards refreshed! Added ${resultData?.total_cache_entries || 0} entries`,
       });
     } catch (error: any) {
       console.error('Error refreshing leaderboard cache:', error);
@@ -78,7 +80,7 @@ const Leaderboards = () => {
             <div className="text-xs text-gray-500 bg-gray-100 px-3 py-2 rounded">
               <div className="flex items-center gap-1">
                 <AlertCircle className="h-3 w-3" />
-                Debug: {debugInfo.total_cache_entries} entries
+                Debug: {(debugInfo as any)?.total_cache_entries || 0} entries
               </div>
             </div>
           )}

@@ -60,29 +60,35 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
       // If no cached data or expired, try to refresh automatically
       if (!data || data.length === 0) {
         console.log(`[${type}] No cached data found, attempting refresh...`);
-        const { data: refreshResult, error: refreshError } = await supabase
-          .rpc('debug_refresh_leaderboards');
         
-        if (refreshError) {
-          console.error('Error refreshing leaderboards:', refreshError);
-          setError(`No data available. Refresh failed: ${refreshError.message}`);
-        } else {
-          console.log('Refresh result:', refreshResult);
-          setDebugInfo(refreshResult);
-          // Try fetching again after refresh
-          const { data: retryData, error: retryError } = await supabase
-            .from('leaderboard_cache')
-            .select('user_name, score, rank_position, additional_data')
-            .eq('leaderboard_type', type)
-            .gt('expires_at', new Date().toISOString())
-            .order('rank_position', { ascending: true })
-            .limit(limit);
+        try {
+          // Use type assertion to avoid TypeScript issues
+          const { data: refreshResult, error: refreshError } = await supabase.rpc('debug_refresh_leaderboards' as any);
           
-          if (retryData && retryData.length > 0) {
-            setEntries(retryData);
+          if (refreshError) {
+            console.error('Error refreshing leaderboards:', refreshError);
+            setError(`No data available. Refresh failed: ${refreshError.message}`);
           } else {
-            setError(`No ${type.replace('_', ' ')} data available after refresh`);
+            console.log('Refresh result:', refreshResult);
+            setDebugInfo(refreshResult);
+            // Try fetching again after refresh
+            const { data: retryData, error: retryError } = await supabase
+              .from('leaderboard_cache')
+              .select('user_name, score, rank_position, additional_data')
+              .eq('leaderboard_type', type)
+              .gt('expires_at', new Date().toISOString())
+              .order('rank_position', { ascending: true })
+              .limit(limit);
+            
+            if (retryData && retryData.length > 0) {
+              setEntries(retryData);
+            } else {
+              setError(`No ${type.replace('_', ' ')} data available after refresh`);
+            }
           }
+        } catch (refreshError: any) {
+          console.error('Error calling refresh function:', refreshError);
+          setError(`Refresh failed: ${refreshError.message}`);
         }
       } else {
         setEntries(data || []);
