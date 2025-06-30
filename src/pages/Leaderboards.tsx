@@ -6,6 +6,7 @@ import { Trophy, Flame, Target, Users, RefreshCw, AlertCircle } from "lucide-rea
 import StreakLeaderboard from "@/components/leaderboards/StreakLeaderboard";
 import CategoryLeaderboard from "@/components/leaderboards/CategoryLeaderboard";
 import { useLeaderboards } from "@/hooks/useLeaderboards";
+import { supabase } from "@/integrations/supabase/client";
 
 const Leaderboards = () => {
   const [refreshKey, setRefreshKey] = useState(0);

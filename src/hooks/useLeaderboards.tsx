@@ -83,25 +83,25 @@ export const useLeaderboards = () => {
 
   const refreshCache = async () => {
     try {
-      // First try to use the function directly
-      const { data, error } = await supabase.rpc('debug_refresh_leaderboards');
+      // Try to use the RPC function with type assertion
+      const { data, error } = await supabase.rpc('debug_refresh_leaderboards' as any);
 
       if (error) {
-        // If function doesn't exist, fall back to manual refresh
-        console.warn('Function not found, attempting manual refresh:', error);
+        console.warn('RPC function not found, attempting manual refresh:', error);
         return await manualRefreshCache();
       }
       
+      const result = data as any;
+      
       toast({
         title: "Success",
-        description: `Leaderboards refreshed! Added ${data?.total_cache_entries || 0} entries`,
+        description: `Leaderboards refreshed! Added ${result?.total_cache_entries || 0} entries`,
       });
       
-      return data;
+      return result;
     } catch (error: any) {
       console.error('Error refreshing leaderboard cache:', error);
       
-      // Try manual refresh as fallback
       try {
         return await manualRefreshCache();
       } catch (fallbackError: any) {
@@ -167,12 +167,11 @@ export const useLeaderboards = () => {
 
   const initializeStreaks = async () => {
     try {
-      // Try to use the function first
-      const { data, error } = await supabase.rpc('initialize_learning_streaks_from_activity');
+      // Try to use the RPC function with type assertion
+      const { data, error } = await supabase.rpc('initialize_learning_streaks_from_activity' as any);
 
       if (error) {
-        // If function doesn't exist, create basic streak records
-        console.warn('Function not found, creating basic streaks:', error);
+        console.warn('RPC function not found, creating basic streaks:', error);
         return await createBasicStreaks();
       }
       
@@ -204,34 +203,41 @@ export const useLeaderboards = () => {
       const { data: usersWithProgress } = await supabase
         .from('user_unit_progress')
         .select('user_id')
-        .eq('completed', true)
-        .not('user_id', 'in', `(${
-          await supabase
-            .from('user_learning_streaks')
-            .select('user_id')
-            .then(({ data }) => data?.map(d => `'${d.user_id}'`).join(',') || "''")
-        })`);
+        .eq('completed', true);
 
       if (usersWithProgress && usersWithProgress.length > 0) {
-        const streakRecords = usersWithProgress
-          .slice(0, 50) // Limit to prevent timeouts
-          .map((user: any) => ({
-            user_id: user.user_id,
-            current_streak: 1,
-            longest_streak: 1,
-            last_activity_date: new Date().toISOString().split('T')[0],
-            streak_start_date: new Date().toISOString().split('T')[0],
-            is_active: true
-          }));
-
-        await supabase.from('user_learning_streaks').upsert(streakRecords);
+        // Get unique user IDs and check which ones don't have streaks
+        const uniqueUserIds = [...new Set(usersWithProgress.map(u => u.user_id))];
         
-        toast({
-          title: "Success",
-          description: `Created basic streaks for ${streakRecords.length} users`,
-        });
+        const { data: existingStreaks } = await supabase
+          .from('user_learning_streaks')
+          .select('user_id')
+          .in('user_id', uniqueUserIds);
 
-        return streakRecords.length;
+        const existingUserIds = new Set(existingStreaks?.map(s => s.user_id) || []);
+        const newUserIds = uniqueUserIds.filter(id => !existingUserIds.has(id));
+
+        if (newUserIds.length > 0) {
+          const streakRecords = newUserIds
+            .slice(0, 50)
+            .map((userId) => ({
+              user_id: userId,
+              current_streak: 1,
+              longest_streak: 1,
+              last_activity_date: new Date().toISOString().split('T')[0],
+              streak_start_date: new Date().toISOString().split('T')[0],
+              is_active: true
+            }));
+
+          await supabase.from('user_learning_streaks').insert(streakRecords);
+          
+          toast({
+            title: "Success",
+            description: `Created basic streaks for ${streakRecords.length} users`,
+          });
+
+          return streakRecords.length;
+        }
       }
 
       return 0;
