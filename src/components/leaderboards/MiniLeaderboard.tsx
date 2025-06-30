@@ -22,7 +22,6 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
   const [entries, setEntries] = useState<MiniLeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [debugInfo, setDebugInfo] = useState<any>(null);
 
   useEffect(() => {
     fetchMiniLeaderboard();
@@ -33,23 +32,14 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
       setLoading(true);
       setError(null);
       
-      // First check if we have any cached data at all
-      const { data: allCacheData, error: cacheCheckError } = await supabase
-        .from('leaderboard_cache')
-        .select('leaderboard_type, count(*)')
-        .eq('leaderboard_type', type);
-
-      console.log(`[${type}] Cache check:`, allCacheData, cacheCheckError);
-      
+      // Try to fetch from cache first
       const { data, error } = await supabase
         .from('leaderboard_cache')
-        .select('user_name, score, rank_position, additional_data, expires_at, cached_at')
+        .select('user_name, score, rank_position, additional_data')
         .eq('leaderboard_type', type)
         .gt('expires_at', new Date().toISOString())
         .order('rank_position', { ascending: true })
         .limit(limit);
-
-      console.log(`[${type}] Leaderboard data:`, data, error);
 
       if (error) {
         console.error('Error fetching mini leaderboard:', error);
@@ -57,47 +47,56 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
         return;
       }
 
-      // If no cached data or expired, try to refresh automatically
       if (!data || data.length === 0) {
-        console.log(`[${type}] No cached data found, attempting refresh...`);
-        
-        try {
-          // Use type assertion to avoid TypeScript issues
-          const { data: refreshResult, error: refreshError } = await supabase.rpc('debug_refresh_leaderboards' as any);
-          
-          if (refreshError) {
-            console.error('Error refreshing leaderboards:', refreshError);
-            setError(`No data available. Refresh failed: ${refreshError.message}`);
-          } else {
-            console.log('Refresh result:', refreshResult);
-            setDebugInfo(refreshResult);
-            // Try fetching again after refresh
-            const { data: retryData, error: retryError } = await supabase
-              .from('leaderboard_cache')
-              .select('user_name, score, rank_position, additional_data')
-              .eq('leaderboard_type', type)
-              .gt('expires_at', new Date().toISOString())
-              .order('rank_position', { ascending: true })
-              .limit(limit);
-            
-            if (retryData && retryData.length > 0) {
-              setEntries(retryData);
-            } else {
-              setError(`No ${type.replace('_', ' ')} data available after refresh`);
-            }
-          }
-        } catch (refreshError: any) {
-          console.error('Error calling refresh function:', refreshError);
-          setError(`Refresh failed: ${refreshError.message}`);
-        }
+        // Try to fetch fresh data directly from tables
+        await fetchFreshData();
       } else {
         setEntries(data || []);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching mini leaderboard:', error);
       setError('Failed to load leaderboard data');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchFreshData = async () => {
+    try {
+      if (type === 'learning_streak') {
+        const { data, error } = await supabase
+          .from('user_learning_streaks')
+          .select(`
+            user_id,
+            current_streak,
+            longest_streak,
+            profiles!inner(first_name, last_name, email, is_deleted)
+          `)
+          .eq('profiles.is_deleted', false)
+          .gte('current_streak', 1)
+          .order('current_streak', { ascending: false })
+          .limit(limit);
+
+        if (error) throw error;
+
+        const formattedData = data?.map((entry: any, index: number) => ({
+          user_name: `${entry.profiles.first_name} ${entry.profiles.last_name}`,
+          score: entry.current_streak,
+          rank_position: index + 1,
+          additional_data: {
+            current_streak: entry.current_streak,
+            longest_streak: entry.longest_streak
+          }
+        })) || [];
+
+        setEntries(formattedData);
+      } else {
+        // For category leaderboards, show a message that data needs to be populated
+        setError(`No ${type.replace('_', ' ')} data available. Please refresh the leaderboards.`);
+      }
+    } catch (error: any) {
+      console.error('Error fetching fresh data:', error);
+      setError(`Failed to load ${type.replace('_', ' ')} data`);
     }
   };
 
@@ -144,14 +143,9 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
             <AlertCircle className="h-4 w-4" />
             {error}
           </div>
-          {debugInfo && (
-            <div className="text-xs text-gray-500 mt-2">
-              Debug: {JSON.stringify(debugInfo, null, 2)}
-            </div>
-          )}
           <button
             onClick={fetchMiniLeaderboard}
-            className="text-xs text-blue-600 hover:text-blue-800 mt-2"
+            className="text-xs text-blue-600 hover:text-blue-800 mt-2 w-full text-center"
           >
             Try Again
           </button>

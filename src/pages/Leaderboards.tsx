@@ -5,44 +5,27 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trophy, Flame, Target, Users, RefreshCw, AlertCircle } from "lucide-react";
 import StreakLeaderboard from "@/components/leaderboards/StreakLeaderboard";
 import CategoryLeaderboard from "@/components/leaderboards/CategoryLeaderboard";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { useLeaderboards } from "@/hooks/useLeaderboards";
 
 const Leaderboards = () => {
   const [refreshKey, setRefreshKey] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [debugInfo, setDebugInfo] = useState<any>(null);
-  const { toast } = useToast();
+  const { refreshCache } = useLeaderboards();
 
   const handleRefreshCache = async () => {
     try {
       setIsRefreshing(true);
       console.log('Starting leaderboard refresh...');
       
-      // Use a direct call with type assertion to avoid TypeScript issues
-      const { data: result, error } = await supabase.rpc('debug_refresh_leaderboards' as any);
-      
-      if (error) {
-        console.error('Error refreshing leaderboards:', error);
-        throw error;
-      }
+      const result = await refreshCache();
       
       console.log('Refresh result:', result);
       setDebugInfo(result);
       setRefreshKey(prev => prev + 1);
-      
-      const resultData = result as any;
-      toast({
-        title: "Success",
-        description: `Leaderboards refreshed! Added ${resultData?.total_cache_entries || 0} entries`,
-      });
     } catch (error: any) {
       console.error('Error refreshing leaderboard cache:', error);
-      toast({
-        title: "Error",
-        description: `Failed to refresh leaderboards: ${error.message}`,
-        variant: "destructive",
-      });
+      setDebugInfo({ error: error.message });
     } finally {
       setIsRefreshing(false);
     }
@@ -80,7 +63,11 @@ const Leaderboards = () => {
             <div className="text-xs text-gray-500 bg-gray-100 px-3 py-2 rounded">
               <div className="flex items-center gap-1">
                 <AlertCircle className="h-3 w-3" />
-                Debug: {(debugInfo as any)?.total_cache_entries || 0} entries
+                {debugInfo.error ? (
+                  <span className="text-red-600">Error: {debugInfo.error}</span>
+                ) : (
+                  <span>Debug: {debugInfo?.total_cache_entries || 0} entries</span>
+                )}
               </div>
             </div>
           )}
