@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { Trophy, TrendingUp } from "lucide-react";
+import { Trophy, TrendingUp, AlertCircle } from "lucide-react";
 
 interface MiniLeaderboardProps {
   type: 'learning_streak' | 'sales_training' | 'legal_training';
@@ -21,6 +21,8 @@ interface MiniLeaderboardEntry {
 const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps) => {
   const [entries, setEntries] = useState<MiniLeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = useState<any>(null);
 
   useEffect(() => {
     fetchMiniLeaderboard();
@@ -29,23 +31,65 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
   const fetchMiniLeaderboard = async () => {
     try {
       setLoading(true);
+      setError(null);
+      
+      // First check if we have any cached data at all
+      const { data: allCacheData, error: cacheCheckError } = await supabase
+        .from('leaderboard_cache')
+        .select('leaderboard_type, count(*)')
+        .eq('leaderboard_type', type);
+
+      console.log(`[${type}] Cache check:`, allCacheData, cacheCheckError);
       
       const { data, error } = await supabase
         .from('leaderboard_cache')
-        .select('user_name, score, rank_position, additional_data')
+        .select('user_name, score, rank_position, additional_data, expires_at, cached_at')
         .eq('leaderboard_type', type)
         .gt('expires_at', new Date().toISOString())
         .order('rank_position', { ascending: true })
         .limit(limit);
 
+      console.log(`[${type}] Leaderboard data:`, data, error);
+
       if (error) {
         console.error('Error fetching mini leaderboard:', error);
+        setError(error.message);
         return;
       }
 
-      setEntries(data || []);
+      // If no cached data or expired, try to refresh automatically
+      if (!data || data.length === 0) {
+        console.log(`[${type}] No cached data found, attempting refresh...`);
+        const { data: refreshResult, error: refreshError } = await supabase
+          .rpc('debug_refresh_leaderboards');
+        
+        if (refreshError) {
+          console.error('Error refreshing leaderboards:', refreshError);
+          setError(`No data available. Refresh failed: ${refreshError.message}`);
+        } else {
+          console.log('Refresh result:', refreshResult);
+          setDebugInfo(refreshResult);
+          // Try fetching again after refresh
+          const { data: retryData, error: retryError } = await supabase
+            .from('leaderboard_cache')
+            .select('user_name, score, rank_position, additional_data')
+            .eq('leaderboard_type', type)
+            .gt('expires_at', new Date().toISOString())
+            .order('rank_position', { ascending: true })
+            .limit(limit);
+          
+          if (retryData && retryData.length > 0) {
+            setEntries(retryData);
+          } else {
+            setError(`No ${type.replace('_', ' ')} data available after refresh`);
+          }
+        }
+      } else {
+        setEntries(data || []);
+      }
     } catch (error) {
       console.error('Error fetching mini leaderboard:', error);
+      setError('Failed to load leaderboard data');
     } finally {
       setLoading(false);
     }
@@ -80,6 +124,36 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
     );
   }
 
+  if (error) {
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2">
+            {icon || <Trophy className="h-4 w-4" />}
+            {title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-sm text-red-500 text-center py-2 flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />
+            {error}
+          </div>
+          {debugInfo && (
+            <div className="text-xs text-gray-500 mt-2">
+              Debug: {JSON.stringify(debugInfo, null, 2)}
+            </div>
+          )}
+          <button
+            onClick={fetchMiniLeaderboard}
+            className="text-xs text-blue-600 hover:text-blue-800 mt-2"
+          >
+            Try Again
+          </button>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (entries.length === 0) {
     return (
       <Card>
@@ -92,6 +166,12 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
         <CardContent>
           <div className="text-sm text-gray-500 text-center py-4">
             No data available
+            <button
+              onClick={fetchMiniLeaderboard}
+              className="block text-xs text-blue-600 hover:text-blue-800 mt-2 mx-auto"
+            >
+              Refresh Data
+            </button>
           </div>
         </CardContent>
       </Card>
@@ -129,6 +209,12 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
             </div>
           ))}
         </div>
+        <button
+          onClick={fetchMiniLeaderboard}
+          className="text-xs text-gray-500 hover:text-gray-700 mt-2 w-full text-center"
+        >
+          Refresh
+        </button>
       </CardContent>
     </Card>
   );

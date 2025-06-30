@@ -83,20 +83,45 @@ export const useLeaderboards = () => {
 
   const refreshCache = async () => {
     try {
-      const { error } = await supabase.rpc('refresh_leaderboard_cache');
+      const { data, error } = await supabase.rpc('debug_refresh_leaderboards');
       if (error) throw error;
       
       toast({
         title: "Success",
-        description: "Leaderboards refreshed successfully",
+        description: `Leaderboards refreshed! Added ${data?.total_cache_entries || 0} entries`,
       });
-    } catch (error) {
+      
+      return data;
+    } catch (error: any) {
       console.error('Error refreshing leaderboard cache:', error);
       toast({
         title: "Error",
-        description: "Failed to refresh leaderboards",
+        description: `Failed to refresh leaderboards: ${error.message}`,
         variant: "destructive",
       });
+      throw error;
+    }
+  };
+
+  const initializeStreaks = async () => {
+    try {
+      const { data, error } = await supabase.rpc('initialize_learning_streaks_from_activity');
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: `Initialized streaks for ${data || 0} users`,
+      });
+      
+      return data;
+    } catch (error: any) {
+      console.error('Error initializing streaks:', error);
+      toast({
+        title: "Error",
+        description: `Failed to initialize streaks: ${error.message}`,
+        variant: "destructive",
+      });
+      throw error;
     }
   };
 
@@ -108,5 +133,6 @@ export const useLeaderboards = () => {
     fetchUserAchievements,
     getUserRank,
     refreshCache,
+    initializeStreaks,
   };
 };
