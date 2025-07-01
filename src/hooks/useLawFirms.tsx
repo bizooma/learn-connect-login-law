@@ -24,43 +24,73 @@ export const useLawFirms = () => {
       setLoading(true);
       setError(null);
       
-      // Fetch law firms with owner details and employee count
+      console.log('useLawFirms: Starting to fetch law firms');
+      
+      // First, fetch law firms without the problematic join
       const { data: lawFirmsData, error: lawFirmsError } = await supabase
         .from('law_firms')
-        .select(`
-          *,
-          owner:profiles!law_firms_owner_id_fkey (
-            email,
-            first_name,
-            last_name
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (lawFirmsError) {
+        console.error('useLawFirms: Error fetching law firms:', lawFirmsError);
         throw lawFirmsError;
       }
 
-      // Get employee counts for each law firm and fix owner type
-      const lawFirmsWithCounts = await Promise.all(
-        (lawFirmsData || []).map(async (lawFirm) => {
-          const { count } = await supabase
-            .from('profiles')
-            .select('*', { count: 'exact', head: true })
-            .eq('law_firm_id', lawFirm.id)
-            .eq('is_deleted', false);
-          
-          return {
-            ...lawFirm,
-            owner: Array.isArray(lawFirm.owner) ? lawFirm.owner[0] : lawFirm.owner,
-            employee_count: count || 0
-          };
+      console.log('useLawFirms: Law firms data:', lawFirmsData);
+
+      if (!lawFirmsData || lawFirmsData.length === 0) {
+        console.log('useLawFirms: No law firms found');
+        setLawFirms([]);
+        return;
+      }
+
+      // Get owner details and employee counts separately
+      const lawFirmsWithDetails = await Promise.all(
+        lawFirmsData.map(async (lawFirm) => {
+          try {
+            // Get owner details
+            const { data: ownerData, error: ownerError } = await supabase
+              .from('profiles')
+              .select('email, first_name, last_name')
+              .eq('id', lawFirm.owner_id)
+              .single();
+
+            if (ownerError) {
+              console.warn('useLawFirms: Error fetching owner for law firm:', lawFirm.id, ownerError);
+            }
+
+            // Get employee count
+            const { count: employeeCount, error: countError } = await supabase
+              .from('profiles')
+              .select('*', { count: 'exact', head: true })
+              .eq('law_firm_id', lawFirm.id)
+              .eq('is_deleted', false);
+            
+            if (countError) {
+              console.warn('useLawFirms: Error counting employees for law firm:', lawFirm.id, countError);
+            }
+
+            return {
+              ...lawFirm,
+              owner: ownerData || undefined,
+              employee_count: employeeCount || 0
+            };
+          } catch (error) {
+            console.error('useLawFirms: Error processing law firm:', lawFirm.id, error);
+            return {
+              ...lawFirm,
+              owner: undefined,
+              employee_count: 0
+            };
+          }
         })
       );
 
-      setLawFirms(lawFirmsWithCounts);
+      console.log('useLawFirms: Law firms with details:', lawFirmsWithDetails);
+      setLawFirms(lawFirmsWithDetails);
     } catch (error: any) {
-      console.error('Error fetching law firms:', error);
+      console.error('useLawFirms: Error in fetchLawFirms:', error);
       setError(error.message);
       toast({
         title: "Error",
