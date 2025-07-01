@@ -37,38 +37,31 @@ export const useUserRole = () => {
       setLoading(true);
       console.log('useUserRole: Fetching role for user:', user.id);
       
-      // Use a more robust query that handles RLS policy issues
+      // Use direct query with proper error handling for RLS issues
       const { data, error } = await supabase
-        .rpc('get_user_role', { user_id: user.id })
-        .single();
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-      console.log('useUserRole: RPC result:', { data, error, userId: user.id });
+      console.log('useUserRole: Query result:', { data, error, userId: user.id });
 
       if (error) {
-        console.error('useUserRole: Error from RPC:', error);
+        console.error('useUserRole: Error fetching user role:', error);
+        console.log('useUserRole: Database error, defaulting to student');
+        setRole('student');
         
-        // Fallback to direct query if RPC fails
-        const { data: fallbackData, error: fallbackError } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .maybeSingle();
-
-        console.log('useUserRole: Fallback query result:', { fallbackData, fallbackError });
-
-        if (fallbackError) {
-          console.error('useUserRole: Fallback query also failed:', fallbackError);
-          // Default to student role if both queries fail
-          console.log('useUserRole: Both queries failed, defaulting to student');
-          setRole('student');
-        } else {
-          const userRole = fallbackData?.role || 'student';
-          console.log('useUserRole: Setting role from fallback to:', userRole);
-          setRole(userRole);
+        // Retry logic for transient errors
+        if (retryCount < 2) {
+          console.log(`useUserRole: Retrying in 1 second (attempt ${retryCount + 1}/2)`);
+          setTimeout(() => {
+            setRetryCount(prev => prev + 1);
+          }, 1000);
+          return;
         }
       } else {
         const userRole = data?.role || 'student';
-        console.log('useUserRole: Setting role from RPC to:', userRole);
+        console.log('useUserRole: Setting role to:', userRole);
         setRole(userRole);
         setRetryCount(0); // Reset retry count on success
       }
