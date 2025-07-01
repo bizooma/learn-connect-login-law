@@ -41,7 +41,7 @@ export const useLawFirms = () => {
         throw lawFirmsError;
       }
 
-      // Get employee counts for each law firm
+      // Get employee counts for each law firm and fix owner type
       const lawFirmsWithCounts = await Promise.all(
         (lawFirmsData || []).map(async (lawFirm) => {
           const { count } = await supabase
@@ -52,6 +52,7 @@ export const useLawFirms = () => {
           
           return {
             ...lawFirm,
+            owner: Array.isArray(lawFirm.owner) ? lawFirm.owner[0] : lawFirm.owner,
             employee_count: count || 0
           };
         })
