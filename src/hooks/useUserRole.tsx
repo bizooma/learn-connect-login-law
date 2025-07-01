@@ -17,6 +17,12 @@ export const useUserRole = () => {
     authLoading
   });
 
+  // Direct admin check function
+  const isDirectAdmin = useCallback((email: string | undefined) => {
+    if (!email) return false;
+    return ['joe@bizooma.com', 'admin@newfrontieruniversity.com'].includes(email);
+  }, []);
+
   const fetchUserRole = useCallback(async () => {
     // Don't fetch if auth is still loading or user is null
     if (authLoading || !user?.id) {
@@ -30,6 +36,14 @@ export const useUserRole = () => {
         setRole(null);
         setLoading(false);
       }
+      return;
+    }
+
+    // Check if user is a direct admin first
+    if (isDirectAdmin(user.email)) {
+      console.log('useUserRole: User is direct admin:', user.email);
+      setRole('admin');
+      setLoading(false);
       return;
     }
 
@@ -82,7 +96,7 @@ export const useUserRole = () => {
       console.log('useUserRole: Setting loading to false');
       setLoading(false);
     }
-  }, [user?.id, authLoading, retryCount]);
+  }, [user?.id, user?.email, authLoading, retryCount, isDirectAdmin]);
 
   useEffect(() => {
     console.log('useUserRole: useEffect triggered', {
@@ -128,7 +142,8 @@ export const useUserRole = () => {
     loading: actualLoading,
     userId: user?.id,
     userExists: !!user,
-    authLoading
+    authLoading,
+    isDirectAdminCheck: isDirectAdmin(user?.email)
   });
 
   return { 
