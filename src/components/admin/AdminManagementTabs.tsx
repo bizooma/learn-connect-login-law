@@ -10,14 +10,16 @@ import AdminTeamManagement from "./team-management/AdminTeamManagement";
 import ProfileManagement from "./ProfileManagement";
 import UserActivityManagement from "./activity-tracking/UserActivityManagement";
 import Leaderboards from "../../pages/Leaderboards";
+import LawFirmManagement from "./LawFirmManagement";
 
 const AdminManagementTabs = () => {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="courses" className="w-full">
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-10 bg-yellow-400">
+        <TabsList className="grid w-full grid-cols-5 lg:grid-cols-11 bg-yellow-400">
           <TabsTrigger value="courses" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Courses</TabsTrigger>
           <TabsTrigger value="users" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Users</TabsTrigger>
+          <TabsTrigger value="lawfirms" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Law Firms</TabsTrigger>
           <TabsTrigger value="teams" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Teams</TabsTrigger>
           <TabsTrigger value="progress" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Progress</TabsTrigger>
           <TabsTrigger value="activity" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Activity</TabsTrigger>
@@ -34,6 +36,10 @@ const AdminManagementTabs = () => {
         
         <TabsContent value="users" className="space-y-4">
           <UserManagementTabs />
+        </TabsContent>
+        
+        <TabsContent value="lawfirms" className="space-y-4">
+          <LawFirmManagement />
         </TabsContent>
         
         <TabsContent value="teams" className="space-y-4">
