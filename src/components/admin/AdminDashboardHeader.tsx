@@ -50,9 +50,9 @@ const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
 
   return (
     <header style={{ background: '#213C82' }} className="shadow-sm">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-6">
             <a 
               href="https://newfrontieruniversity.com" 
               target="_blank" 
@@ -65,23 +65,32 @@ const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
                 className="h-12 w-auto"
               />
             </a>
-            <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-4">
               <BookOpen className="h-8 w-8 text-white" />
               <div>
                 <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
-                <p className="text-white/80">Manage New Frontier University Courses</p>
+                <p className="text-white/80 text-sm">Manage New Frontier University Courses</p>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center space-x-4">
+          <div className="flex items-center space-x-3">
+            <Button
+              variant="ghost"
+              onClick={handleDemoWelcome}
+              className="text-white hover:bg-white/10 text-sm px-3 py-2"
+            >
+              <Sparkles className="h-4 w-4 mr-2" />
+              Demo
+            </Button>
+            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
                   <Menu className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
+              <DropdownMenuContent align="end" className="w-56 bg-white z-50">
                 <DropdownMenuItem onClick={handleKnowledgeBase} className="flex items-center space-x-2">
                   <HelpCircle className="h-4 w-4" />
                   <span>Admin Help & Knowledge Base</span>
@@ -93,11 +102,6 @@ const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
                 <DropdownMenuItem onClick={handleRoadmap} className="flex items-center space-x-2">
                   <Map className="h-4 w-4" />
                   <span>Roadmap</span>
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={handleDemoWelcome} className="flex items-center space-x-2 text-yellow-600">
-                  <Sparkles className="h-4 w-4" />
-                  <span>Demo Welcome</span>
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="flex items-center space-x-2 text-red-600">
