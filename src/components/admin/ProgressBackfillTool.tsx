@@ -7,8 +7,9 @@ import { Database, CheckCircle, AlertTriangle, Loader2 } from "lucide-react";
 import { useProgressBackfill } from "@/hooks/useProgressBackfill";
 
 const ProgressBackfillTool = () => {
-  const { backfillMissingUnitCompletions, processing } = useProgressBackfill();
+  const { backfillMissingUnitCompletions, fixVideoCompletionIssues, processing } = useProgressBackfill();
   const [results, setResults] = useState<any>(null);
+  const [videoResults, setVideoResults] = useState<any>(null);
 
   const handleBackfill = async () => {
     try {
@@ -16,6 +17,15 @@ const ProgressBackfillTool = () => {
       setResults(result);
     } catch (error) {
       console.error('Backfill failed:', error);
+    }
+  };
+
+  const handleVideoFix = async () => {
+    try {
+      const result = await fixVideoCompletionIssues();
+      setVideoResults(result);
+    } catch (error) {
+      console.error('Video fix failed:', error);
     }
   };
 
@@ -47,7 +57,21 @@ const ProgressBackfillTool = () => {
             ) : (
               <CheckCircle className="h-4 w-4" />
             )}
-            <span>{processing ? 'Processing...' : 'Run Backfill'}</span>
+            <span>{processing ? 'Processing...' : 'Fix Unit Completions'}</span>
+          </Button>
+          
+          <Button 
+            onClick={handleVideoFix} 
+            disabled={processing}
+            variant="outline"
+            className="flex items-center space-x-2"
+          >
+            {processing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <CheckCircle className="h-4 w-4" />
+            )}
+            <span>{processing ? 'Processing...' : 'Fix Video Completions'}</span>
           </Button>
         </div>
 
@@ -56,11 +80,27 @@ const ProgressBackfillTool = () => {
             <CheckCircle className="h-4 w-4" />
             <AlertDescription>
               <div className="space-y-1">
-                <p><strong>Backfill Results:</strong></p>
+                <p><strong>Unit Completion Results:</strong></p>
                 <p>• Total units processed: {results.totalProcessed}</p>
                 <p>• Units fixed: {results.backfilledCount}</p>
                 {results.errors.length > 0 && (
                   <p>• Errors: {results.errors.length}</p>
+                )}
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {videoResults && (
+          <Alert>
+            <CheckCircle className="h-4 w-4" />
+            <AlertDescription>
+              <div className="space-y-1">
+                <p><strong>Video Completion Results:</strong></p>
+                <p>• Total videos processed: {videoResults.totalProcessed}</p>
+                <p>• Videos fixed: {videoResults.fixedCount}</p>
+                {videoResults.errors.length > 0 && (
+                  <p>• Errors: {videoResults.errors.length}</p>
                 )}
               </div>
             </AlertDescription>
