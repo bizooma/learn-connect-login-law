@@ -19,18 +19,8 @@ export const useAvailableOwners = () => {
     try {
       setLoading(true);
       
-      // First get all existing owner_ids from law_firms
-      const { data: existingOwners, error: ownersError } = await supabase
-        .from('law_firms')
-        .select('owner_id')
-        .not('owner_id', 'is', null);
-
-      if (ownersError) throw ownersError;
-
-      const existingOwnerIds = existingOwners?.map(o => o.owner_id) || [];
-
-      // Get users with owner role who don't already own a law firm
-      let query = supabase
+      // Get all users with owner role first
+      const { data: allOwners, error: ownersError } = await supabase
         .from('profiles')
         .select(`
           id,
@@ -42,16 +32,21 @@ export const useAvailableOwners = () => {
         .eq('user_roles.role', 'owner')
         .eq('is_deleted', false);
 
-      // Filter out existing owners if any exist
-      if (existingOwnerIds.length > 0) {
-        query = query.not('id', 'in', `(${existingOwnerIds.map(id => `'${id}'`).join(',')})`);
-      }
+      if (ownersError) throw ownersError;
 
-      const { data: owners, error } = await query;
+      // Get existing law firm owners
+      const { data: existingOwners, error: lawFirmsError } = await supabase
+        .from('law_firms')
+        .select('owner_id')
+        .not('owner_id', 'is', null);
 
-      if (error) throw error;
+      if (lawFirmsError) throw lawFirmsError;
 
-      setAvailableOwners(owners || []);
+      // Filter out owners who already have law firms
+      const existingOwnerIds = new Set(existingOwners?.map(o => o.owner_id) || []);
+      const availableOwnersList = allOwners?.filter(owner => !existingOwnerIds.has(owner.id)) || [];
+
+      setAvailableOwners(availableOwnersList);
     } catch (error: any) {
       console.error('Error fetching available owners:', error);
       toast({
