@@ -19,8 +19,18 @@ export const useAvailableOwners = () => {
     try {
       setLoading(true);
       
+      // First get all existing owner_ids from law_firms
+      const { data: existingOwners, error: ownersError } = await supabase
+        .from('law_firms')
+        .select('owner_id')
+        .not('owner_id', 'is', null);
+
+      if (ownersError) throw ownersError;
+
+      const existingOwnerIds = existingOwners?.map(o => o.owner_id) || [];
+
       // Get users with owner role who don't already own a law firm
-      const { data: owners, error } = await supabase
+      let query = supabase
         .from('profiles')
         .select(`
           id,
@@ -30,10 +40,14 @@ export const useAvailableOwners = () => {
           user_roles!inner (role)
         `)
         .eq('user_roles.role', 'owner')
-        .eq('is_deleted', false)
-        .not('id', 'in', `(
-          SELECT owner_id FROM law_firms WHERE owner_id IS NOT NULL
-        )`);
+        .eq('is_deleted', false);
+
+      // Filter out existing owners if any exist
+      if (existingOwnerIds.length > 0) {
+        query = query.not('id', 'in', `(${existingOwnerIds.map(id => `'${id}'`).join(',')})`);
+      }
+
+      const { data: owners, error } = await query;
 
       if (error) throw error;
 
