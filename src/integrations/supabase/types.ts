@@ -2079,9 +2079,18 @@ export type Database = {
         }
         Returns: string
       }
+      sync_video_completion_safe: {
+        Args: {
+          p_user_id: string
+          p_unit_id: string
+          p_course_id: string
+          p_watch_percentage?: number
+        }
+        Returns: boolean
+      }
       update_course_progress_reliable: {
         Args: { p_user_id: string; p_course_id: string }
-        Returns: boolean
+        Returns: Json
       }
       update_learning_streak: {
         Args: { p_user_id: string }

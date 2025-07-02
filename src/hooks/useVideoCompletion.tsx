@@ -3,6 +3,7 @@ import { useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { useUnifiedCompletion } from "@/hooks/useUnifiedCompletion";
 
 interface VideoCompletionState {
   isCompleted: boolean;
@@ -14,6 +15,7 @@ interface VideoCompletionState {
 export const useVideoCompletion = (unitId: string, courseId: string) => {
   const { user } = useAuth();
   const { toast } = useToast();
+  const { markVideoComplete: unifiedMarkVideoComplete } = useUnifiedCompletion();
   const [completionState, setCompletionState] = useState<VideoCompletionState>({
     isCompleted: false,
     watchPercentage: 0,
@@ -34,6 +36,40 @@ export const useVideoCompletion = (unitId: string, courseId: string) => {
         completionAttempts: prev.completionAttempts + 1 
       }));
 
+      // Try unified completion system first (safer and more reliable)
+      const unifiedSuccess = await unifiedMarkVideoComplete(
+        unitId, 
+        courseId, 
+        Math.max(completionState.watchPercentage, 95)
+      );
+
+      if (unifiedSuccess) {
+        setCompletionState(prev => ({ 
+          ...prev, 
+          isCompleted: true,
+          watchPercentage: Math.max(prev.watchPercentage, 95)
+        }));
+
+        console.log('✅ Video completion successful via unified system');
+        return true;
+      } else {
+        // Fallback to old system if unified fails
+        console.log('⚠️ Unified system failed, trying fallback...');
+        return await fallbackVideoCompletion(forceComplete);
+      }
+
+    } catch (error) {
+      console.error('❌ Video completion failed:', error);
+      
+      // Try fallback system
+      console.log('⚠️ Trying fallback completion system...');
+      return await fallbackVideoCompletion(forceComplete);
+    }
+  }, [user, unitId, courseId, completionState.completionAttempts, completionState.watchPercentage, unifiedMarkVideoComplete]);
+
+  // Fallback completion method (preserves existing functionality)
+  const fallbackVideoCompletion = useCallback(async (forceComplete: boolean = false) => {
+    try {
       // Multiple completion strategies
       const completionPromises = [];
 
@@ -90,14 +126,14 @@ export const useVideoCompletion = (unitId: string, courseId: string) => {
           description: "Your progress has been saved successfully.",
         });
 
-        console.log('✅ Video completion successful');
+        console.log('✅ Fallback video completion successful');
         return true;
       } else {
         throw new Error('All completion strategies failed');
       }
 
     } catch (error) {
-      console.error('❌ Video completion failed:', error);
+      console.error('❌ Fallback video completion failed:', error);
       
       // Show user-friendly error
       toast({
@@ -108,7 +144,7 @@ export const useVideoCompletion = (unitId: string, courseId: string) => {
 
       return false;
     }
-  }, [user, unitId, courseId, completionState.completionAttempts, completionState.watchPercentage, toast]);
+  }, [user, unitId, courseId, completionState.watchPercentage, toast]);
 
   const handleVideoProgress = useCallback((currentTime: number, duration: number) => {
     if (duration <= 0) return;
