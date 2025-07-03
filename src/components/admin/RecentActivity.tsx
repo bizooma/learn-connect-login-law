@@ -77,10 +77,12 @@ const RecentActivity = () => {
 
   const getNotificationItemBackground = (type: string) => {
     switch (type) {
-      case 'info':
-        return 'bg-orange-200 border-orange-300 hover:bg-orange-100';
+      case 'success':
+        return 'bg-green-50 hover:bg-green-100';
+      case 'error':
+        return 'bg-red-50 hover:bg-red-100';
       default:
-        return 'bg-gray-50 hover:bg-gray-100';
+        return 'bg-[#FFF7ED] hover:bg-orange-50';
     }
   };
 

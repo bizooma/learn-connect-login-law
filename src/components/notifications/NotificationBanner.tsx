@@ -129,13 +129,13 @@ const NotificationBanner = () => {
   const getTypeStyles = (type: string) => {
     switch (type) {
       case 'warning':
-        return 'border-yellow-200 bg-yellow-50 text-yellow-800';
+        return 'border-orange-200 text-orange-800' + ' ' + 'bg-[#FFF7ED]';
       case 'success':
         return 'border-green-200 bg-green-50 text-green-800';
       case 'error':
         return 'border-red-200 bg-red-50 text-red-800';
       default:
-        return 'border-blue-200 bg-blue-50 text-blue-800';
+        return 'border-orange-200 text-blue-800' + ' ' + 'bg-[#FFF7ED]';
     }
   };
 

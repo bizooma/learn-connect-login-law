@@ -57,7 +57,7 @@ const NotificationList = ({ notifications, onEdit, onDelete, onToggleActive }: N
   return (
     <div className="space-y-4">
       {notifications.map((notification) => (
-        <Card key={notification.id}>
+        <Card key={notification.id} className="bg-[#FFF7ED]">
           <CardContent className="p-4">
             <div className="flex items-start justify-between">
               <div className="flex-1">
