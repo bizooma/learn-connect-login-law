@@ -116,6 +116,22 @@ const Index = () => {
     }
   }, [user?.id, isOwner, isTeamLeader, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate, location.pathname]);
 
+  // Add timeout fallback to prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (authLoading || (user && roleLoading)) {
+        console.warn('Index: Loading timeout reached, forcing navigation decisions');
+        // Force a decision after 10 seconds to prevent infinite loading
+        if (user && !hasRedirected.current) {
+          console.log('Index: Timeout fallback - defaulting to main dashboard');
+          hasRedirected.current = true;
+        }
+      }
+    }, 10000);
+
+    return () => clearTimeout(timeout);
+  }, [authLoading, roleLoading, user]);
+
   // Show loading while auth or roles are being determined
   if (authLoading || (user && roleLoading)) {
     console.log('Index: Showing loading state', { authLoading, roleLoading, hasUser: !!user });

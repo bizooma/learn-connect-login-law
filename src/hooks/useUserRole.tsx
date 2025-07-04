@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -47,6 +47,12 @@ export const useUserRole = () => {
       return;
     }
 
+    // Prevent multiple simultaneous fetches
+    if (loading && retryCount === 0) {
+      console.log('useUserRole: Already fetching, skipping duplicate request');
+      return;
+    }
+
     try {
       setLoading(true);
       console.log('useUserRole: Fetching role for user:', user.id);
@@ -64,6 +70,7 @@ export const useUserRole = () => {
         console.error('useUserRole: Error fetching user role:', error);
         console.log('useUserRole: Database error, defaulting to student');
         setRole('student');
+        setLoading(false);
         
         // Retry logic for transient errors
         if (retryCount < 2) {
@@ -77,12 +84,14 @@ export const useUserRole = () => {
         const userRole = data?.role || 'student';
         console.log('useUserRole: Setting role to:', userRole);
         setRole(userRole);
+        setLoading(false);
         setRetryCount(0); // Reset retry count on success
       }
     } catch (error) {
       console.error('useUserRole: Catch block error:', error);
       console.log('useUserRole: Exception occurred, defaulting to student');
       setRole('student');
+      setLoading(false);
       
       // Retry logic for exceptions
       if (retryCount < 2) {
@@ -92,11 +101,8 @@ export const useUserRole = () => {
         }, 1000);
         return;
       }
-    } finally {
-      console.log('useUserRole: Setting loading to false');
-      setLoading(false);
     }
-  }, [user?.id, user?.email, authLoading, retryCount, isDirectAdmin]);
+  }, [user?.id, user?.email, authLoading, retryCount, loading, isDirectAdmin]);
 
   useEffect(() => {
     console.log('useUserRole: useEffect triggered', {
@@ -117,14 +123,14 @@ export const useUserRole = () => {
     }
   }, [user?.id, authLoading, fetchUserRole]);
 
-  // Compute derived values safely
-  const isAdmin = role === 'admin';
-  const isOwner = role === 'owner';
-  const isTeamLeader = role === 'team_leader';
-  const isStudent = role === 'student';
-  const isClient = role === 'client';
-  const isFree = role === 'free';
-  const hasAdminPrivileges = isAdmin || isOwner;
+  // Compute derived values safely - use memoization to prevent constant recalculation
+  const isAdmin = useMemo(() => role === 'admin', [role]);
+  const isOwner = useMemo(() => role === 'owner', [role]);
+  const isTeamLeader = useMemo(() => role === 'team_leader', [role]);
+  const isStudent = useMemo(() => role === 'student', [role]);
+  const isClient = useMemo(() => role === 'client', [role]);
+  const isFree = useMemo(() => role === 'free', [role]);
+  const hasAdminPrivileges = useMemo(() => isAdmin || isOwner, [isAdmin, isOwner]);
 
   // Only show loading if auth is loading OR we're loading roles for an authenticated user
   const actualLoading = authLoading || (!!user && loading);
