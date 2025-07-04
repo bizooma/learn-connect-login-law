@@ -13,12 +13,13 @@ import Leaderboards from "../../pages/Leaderboards";
 import LawFirmManagement from "./LawFirmManagement";
 import CompletionMonitoringDashboard from "./CompletionMonitoringDashboard";
 import BadgeManagement from "./BadgeManagement";
+import CertificateTemplateManagement from "./CertificateTemplateManagement";
 
 const AdminManagementTabs = () => {
   return (
     <div className="space-y-6">
       <Tabs defaultValue="courses" className="w-full">
-        <TabsList className="grid w-full grid-cols-5 lg:grid-cols-13 bg-yellow-400">
+        <TabsList className="grid w-full grid-cols-5 lg:grid-cols-14 bg-yellow-400">
           <TabsTrigger value="courses" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Courses</TabsTrigger>
           <TabsTrigger value="users" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Users</TabsTrigger>
           <TabsTrigger value="lawfirms" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Law Firms</TabsTrigger>
@@ -28,6 +29,7 @@ const AdminManagementTabs = () => {
           <TabsTrigger value="activity" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Activity</TabsTrigger>
           <TabsTrigger value="leaderboards" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Leaderboards</TabsTrigger>
           <TabsTrigger value="badges" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Badges</TabsTrigger>
+          <TabsTrigger value="certificates" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Certificates</TabsTrigger>
           <TabsTrigger value="quizzes" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Quizzes</TabsTrigger>
           <TabsTrigger value="notifications" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Notifications</TabsTrigger>
           <TabsTrigger value="events" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Events</TabsTrigger>
@@ -68,6 +70,10 @@ const AdminManagementTabs = () => {
         
         <TabsContent value="badges" className="space-y-4">
           <BadgeManagement />
+        </TabsContent>
+        
+        <TabsContent value="certificates" className="space-y-4">
+          <CertificateTemplateManagement />
         </TabsContent>
         
         <TabsContent value="quizzes" className="space-y-4">

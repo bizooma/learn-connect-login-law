@@ -65,21 +65,30 @@ serve(async (req) => {
     });
 
     // Load template image and generate certificate
-    const templateImageData = await loadTemplateImage(template.template_image_url);
+    const templateImageData = await loadTemplateImage(
+      template.template_image_url,
+      supabaseClient,
+      template.storage_path
+    );
     const certificateBlob = await createCertificateCanvas(templateImageData, certificateRecord);
     
     const arrayBuffer = await certificateBlob.arrayBuffer();
 
     console.log('Certificate generated successfully:', {
       certificateNumber: certificateRecord.certificate_number,
-      fileSize: arrayBuffer.byteLength
+      fileSize: arrayBuffer.byteLength,
+      contentType: certificateBlob.type
     });
+
+    // Return appropriate content type
+    const contentType = certificateBlob.type === 'image/svg+xml' ? 'image/svg+xml' : 'image/png';
+    const fileExtension = certificateBlob.type === 'image/svg+xml' ? 'svg' : 'png';
 
     return new Response(arrayBuffer, {
       headers: {
         ...corsHeaders,
-        'Content-Type': 'image/png',
-        'Content-Disposition': `attachment; filename="certificate-${certificateRecord.certificate_number}.png"`
+        'Content-Type': contentType,
+        'Content-Disposition': `attachment; filename="certificate-${certificateRecord.certificate_number}.${fileExtension}"`
       }
     });
 

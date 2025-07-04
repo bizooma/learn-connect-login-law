@@ -154,29 +154,38 @@ export type Database = {
       }
       certificate_templates: {
         Row: {
+          content_type: string | null
           created_at: string
           description: string | null
+          file_size: number | null
           id: string
           is_active: boolean
           name: string
+          storage_path: string | null
           template_image_url: string
           updated_at: string
         }
         Insert: {
+          content_type?: string | null
           created_at?: string
           description?: string | null
+          file_size?: number | null
           id?: string
           is_active?: boolean
           name: string
+          storage_path?: string | null
           template_image_url: string
           updated_at?: string
         }
         Update: {
+          content_type?: string | null
           created_at?: string
           description?: string | null
+          file_size?: number | null
           id?: string
           is_active?: boolean
           name?: string
+          storage_path?: string | null
           template_image_url?: string
           updated_at?: string
         }

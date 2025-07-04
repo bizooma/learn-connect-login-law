@@ -41,8 +41,8 @@ export async function getCertificateTemplate(supabaseClient: any): Promise<Certi
     throw new Error('Certificate template not found');
   }
 
-  if (!template.template_image_url) {
-    throw new Error('Template image URL not found');
+  if (!template.template_image_url && !template.storage_path) {
+    throw new Error('Template image not found');
   }
 
   return template;
