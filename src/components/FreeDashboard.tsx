@@ -66,10 +66,10 @@ const FreeDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-emerald-50 to-teal-100">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-100">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -85,29 +85,29 @@ const FreeDashboard = () => {
       value: "Coming Soon",
       description: "Free learning materials",
       icon: Gift,
-      color: "text-emerald-600",
+      color: "text-blue-600",
     },
     {
       title: "Profile Status",
       value: "Free User",
       description: "Current membership",
       icon: User,
-      color: "text-blue-600",
+      color: "text-green-600",
     },
     {
       title: "Available Content",
       value: "Limited",
       description: "Access level",
       icon: BookOpen,
-      color: "text-orange-600",
+      color: "text-purple-600",
     },
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-100 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 flex flex-col">
       <div className="flex-1">
         {/* Header */}
-        <div className="bg-white shadow-sm border-b">
+        <div className="bg-card shadow-sm border-b border-border">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-4">
@@ -124,10 +124,10 @@ const FreeDashboard = () => {
                   />
                 </a>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">
+                  <h1 className="text-3xl font-bold text-foreground">
                     Free Dashboard
                   </h1>
-                  <p className="text-gray-600 mt-1">
+                  <p className="text-muted-foreground mt-1">
                     Welcome, {profile.first_name || "User"}! Explore our free resources.
                   </p>
                 </div>
@@ -135,7 +135,7 @@ const FreeDashboard = () => {
               <div className="flex items-center space-x-4">
                 <button
                   onClick={signOut}
-                  className="flex items-center text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md hover:bg-gray-100 transition-colors"
+                  className="flex items-center text-muted-foreground hover:text-foreground px-3 py-2 rounded-md hover:bg-muted transition-colors"
                 >
                   <LogOut className="h-4 w-4 mr-2" />
                   Sign Out
