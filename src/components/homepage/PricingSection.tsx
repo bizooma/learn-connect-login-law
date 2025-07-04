@@ -10,7 +10,6 @@ const PricingSection = () => {
       period: "Per Month",
       features: [
         "Requires 12 month subscription",
-        "Discounts for multi-year subscriptions",
         "1 Live Coaching Session Per Month"
       ],
       buttonText: "Click Here",
@@ -24,7 +23,6 @@ const PricingSection = () => {
       period: "Per Month",
       features: [
         "Requires 12 month subscription",
-        "Discounts for multi-year subscriptions",
         "1 Live Coaching Session Per Month"
       ],
       buttonText: "Click Here",
@@ -38,7 +36,6 @@ const PricingSection = () => {
       period: "Per Month",
       features: [
         "Requires 12 month subscription",
-        "Discounts for multi-year subscriptions",
         "1 Live Coaching Session Per Month"
       ],
       buttonText: "Click Here",
