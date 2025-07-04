@@ -11,7 +11,7 @@ import FreeDashboardContent from "./free/FreeDashboardContent";
 
 const FreeDashboard = () => {
   const { user, signOut } = useAuth();
-  const { isFree } = useUserRole();
+  const { isFree, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("resources");
   const [profile, setProfile] = useState({
@@ -22,14 +22,14 @@ const FreeDashboard = () => {
     job_title: "",
     profile_image_url: ""
   });
-  const [loading, setLoading] = useState(true);
+  const [profileLoading, setProfileLoading] = useState(true);
 
-  // Redirect if not a free user
+  // Redirect if not a free user (only when role is determined)
   useEffect(() => {
-    if (!loading && !isFree) {
+    if (!roleLoading && !isFree) {
       navigate("/");
     }
-  }, [isFree, loading, navigate]);
+  }, [isFree, roleLoading, navigate]);
 
   useEffect(() => {
     if (user) {
@@ -60,11 +60,12 @@ const FreeDashboard = () => {
     } catch (error) {
       console.error('Error fetching profile:', error);
     } finally {
-      setLoading(false);
+      setProfileLoading(false);
     }
   };
 
-  if (loading) {
+  // Show loading while role is being determined or profile is loading
+  if (roleLoading || profileLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100">
         <div className="text-center">
@@ -75,8 +76,9 @@ const FreeDashboard = () => {
     );
   }
 
+  // If role is determined but user is not free, don't render (will redirect)
   if (!isFree) {
-    return null; // Will redirect in useEffect
+    return null;
   }
 
   const stats = [
@@ -154,7 +156,7 @@ const FreeDashboard = () => {
             onTabChange={setActiveTab}
             profile={profile}
             setProfile={setProfile}
-            userId={user.id}
+            userId={user?.id || ""}
           />
         </div>
       </div>

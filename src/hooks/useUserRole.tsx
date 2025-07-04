@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -7,7 +7,8 @@ export const useUserRole = () => {
   const { user, loading: authLoading } = useAuth();
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const [retryCount, setRetryCount] = useState(0);
+  const retryCountRef = useRef(0);
+  const fetchingRef = useRef(false);
 
   console.log('useUserRole: Hook called with user:', {
     user: user,
@@ -24,15 +25,12 @@ export const useUserRole = () => {
   }, []);
 
   const fetchUserRole = useCallback(async () => {
+    // Prevent concurrent fetches
+    if (fetchingRef.current) return;
+    
     // Don't fetch if auth is still loading or user is null
     if (authLoading || !user?.id) {
-      console.log('useUserRole: Skipping fetch - auth loading or no user ID', {
-        authLoading,
-        userId: user?.id,
-        userExists: !!user
-      });
       if (!authLoading && !user) {
-        // Auth is done loading but no user - set defaults
         setRole(null);
         setLoading(false);
       }
@@ -41,62 +39,59 @@ export const useUserRole = () => {
 
     // Check if user is a direct admin first
     if (isDirectAdmin(user.email)) {
-      console.log('useUserRole: User is direct admin:', user.email);
       setRole('admin');
       setLoading(false);
       return;
     }
 
+    fetchingRef.current = true;
+    
     try {
       setLoading(true);
-      console.log('useUserRole: Fetching role for user:', user.id);
       
-      // Use direct query with proper error handling for RLS issues
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
         .eq('user_id', user.id)
         .maybeSingle();
 
-      console.log('useUserRole: Query result:', { data, error, userId: user.id });
-
       if (error) {
         console.error('useUserRole: Error fetching user role:', error);
-        console.log('useUserRole: Database error, defaulting to student');
         setRole('student');
         setLoading(false);
         
         // Retry logic for transient errors
-        if (retryCount < 2) {
-          console.log(`useUserRole: Retrying in 1 second (attempt ${retryCount + 1}/2)`);
+        if (retryCountRef.current < 2) {
+          retryCountRef.current += 1;
           setTimeout(() => {
-            setRetryCount(prev => prev + 1);
+            fetchingRef.current = false;
+            fetchUserRole();
           }, 1000);
           return;
         }
       } else {
         const userRole = data?.role || 'student';
-        console.log('useUserRole: Setting role to:', userRole);
         setRole(userRole);
         setLoading(false);
-        setRetryCount(0); // Reset retry count on success
+        retryCountRef.current = 0;
       }
     } catch (error) {
-      console.error('useUserRole: Catch block error:', error);
-      console.log('useUserRole: Exception occurred, defaulting to student');
+      console.error('useUserRole: Exception occurred:', error);
       setRole('student');
       setLoading(false);
       
-      // Retry logic for exceptions
-      if (retryCount < 2) {
-        console.log(`useUserRole: Retrying in 1 second (attempt ${retryCount + 1}/2)`);
+      if (retryCountRef.current < 2) {
+        retryCountRef.current += 1;
         setTimeout(() => {
-          setRetryCount(prev => prev + 1);
+          fetchingRef.current = false;
+          fetchUserRole();
         }, 1000);
         return;
       }
     }
-  }, [user?.id, user?.email, authLoading, retryCount, isDirectAdmin]);
+    
+    fetchingRef.current = false;
+  }, [user?.id, user?.email, authLoading, isDirectAdmin]);
 
   useEffect(() => {
     console.log('useUserRole: useEffect triggered', {
@@ -110,8 +105,8 @@ export const useUserRole = () => {
   }, [fetchUserRole]);
 
   const refreshRole = useCallback(() => {
-    console.log('useUserRole: refreshRole called');
-    setRetryCount(0);
+    retryCountRef.current = 0;
+    fetchingRef.current = false;
     if (user?.id && !authLoading) {
       fetchUserRole();
     }
@@ -129,22 +124,7 @@ export const useUserRole = () => {
   // Only show loading if auth is loading OR we're loading roles for an authenticated user
   const actualLoading = authLoading || (!!user && loading);
 
-  // Log every computation
-  console.log('useUserRole: Computing values:', { 
-    role,
-    isAdmin,
-    isOwner,
-    isTeamLeader,
-    isStudent,
-    isClient,
-    isFree,
-    hasAdminPrivileges,
-    loading: actualLoading,
-    userId: user?.id,
-    userExists: !!user,
-    authLoading,
-    isDirectAdminCheck: isDirectAdmin(user?.email)
-  });
+  // Reduce logging to prevent performance issues
 
   return { 
     role, 
