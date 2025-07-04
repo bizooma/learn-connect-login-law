@@ -1,5 +1,6 @@
 
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useState } from "react";
+import AdminNavigationDropdown from "./AdminNavigationDropdown";
 import CourseManagement from "./CourseManagement";
 import UserManagementTabs from "./user-management/UserManagementTabs";
 import QuizManagement from "./QuizManagement";
@@ -16,82 +17,53 @@ import BadgeManagement from "./BadgeManagement";
 import CertificateTemplateManagement from "./CertificateTemplateManagement";
 
 const AdminManagementTabs = () => {
+  const [activeTab, setActiveTab] = useState("courses");
+
+  const renderContent = () => {
+    switch (activeTab) {
+      case "courses":
+        return <CourseManagement />;
+      case "users":
+        return <UserManagementTabs />;
+      case "lawfirms":
+        return <LawFirmManagement />;
+      case "teams":
+        return <AdminTeamManagement />;
+      case "progress":
+        return <UserProgressManagement />;
+      case "completion":
+        return <CompletionMonitoringDashboard />;
+      case "activity":
+        return <UserActivityManagement />;
+      case "leaderboards":
+        return <Leaderboards />;
+      case "badges":
+        return <BadgeManagement />;
+      case "certificates":
+        return <CertificateTemplateManagement />;
+      case "quizzes":
+        return <QuizManagement />;
+      case "notifications":
+        return <NotificationManagement />;
+      case "events":
+        return <GlobalEventManagement />;
+      case "profile":
+        return <ProfileManagement />;
+      default:
+        return <CourseManagement />;
+    }
+  };
+
   return (
     <div className="space-y-6">
-      <Tabs defaultValue="courses" className="w-full">
-        <TabsList className="grid w-full grid-cols-5 lg:grid-cols-14 bg-yellow-400">
-          <TabsTrigger value="courses" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Courses</TabsTrigger>
-          <TabsTrigger value="users" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Users</TabsTrigger>
-          <TabsTrigger value="lawfirms" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Law Firms</TabsTrigger>
-          <TabsTrigger value="teams" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Teams</TabsTrigger>
-          <TabsTrigger value="progress" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Progress</TabsTrigger>
-          <TabsTrigger value="completion" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Completion</TabsTrigger>
-          <TabsTrigger value="activity" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Activity</TabsTrigger>
-          <TabsTrigger value="leaderboards" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Leaderboards</TabsTrigger>
-          <TabsTrigger value="badges" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Badges</TabsTrigger>
-          <TabsTrigger value="certificates" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Certificates</TabsTrigger>
-          <TabsTrigger value="quizzes" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Quizzes</TabsTrigger>
-          <TabsTrigger value="notifications" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Notifications</TabsTrigger>
-          <TabsTrigger value="events" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Events</TabsTrigger>
-          <TabsTrigger value="profile" className="text-black data-[state=active]:bg-white data-[state=active]:text-black">Profile</TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="courses" className="space-y-4">
-          <CourseManagement />
-        </TabsContent>
-        
-        <TabsContent value="users" className="space-y-4">
-          <UserManagementTabs />
-        </TabsContent>
-        
-        <TabsContent value="lawfirms" className="space-y-4">
-          <LawFirmManagement />
-        </TabsContent>
-        
-        <TabsContent value="teams" className="space-y-4">
-          <AdminTeamManagement />
-        </TabsContent>
-        
-        <TabsContent value="progress" className="space-y-4">
-          <UserProgressManagement />
-        </TabsContent>
-        
-        <TabsContent value="completion" className="space-y-4">
-          <CompletionMonitoringDashboard />
-        </TabsContent>
-        
-        <TabsContent value="activity" className="space-y-4">
-          <UserActivityManagement />
-        </TabsContent>
-        
-        <TabsContent value="leaderboards" className="space-y-4">
-          <Leaderboards />
-        </TabsContent>
-        
-        <TabsContent value="badges" className="space-y-4">
-          <BadgeManagement />
-        </TabsContent>
-        
-        <TabsContent value="certificates" className="space-y-4">
-          <CertificateTemplateManagement />
-        </TabsContent>
-        
-        <TabsContent value="quizzes" className="space-y-4">
-          <QuizManagement />
-        </TabsContent>
-        
-        <TabsContent value="notifications" className="space-y-4">
-          <NotificationManagement />
-        </TabsContent>
-        
-        <TabsContent value="events" className="space-y-4">
-          <GlobalEventManagement />
-        </TabsContent>
-        
-        <TabsContent value="profile" className="space-y-4">
-          <ProfileManagement />
-        </TabsContent>
-      </Tabs>
+      <AdminNavigationDropdown 
+        activeTab={activeTab} 
+        onTabChange={setActiveTab}
+      />
+      
+      <div className="space-y-4">
+        {renderContent()}
+      </div>
     </div>
   );
 };
