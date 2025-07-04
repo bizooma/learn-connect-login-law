@@ -47,12 +47,6 @@ export const useUserRole = () => {
       return;
     }
 
-    // Prevent multiple simultaneous fetches
-    if (loading && retryCount === 0) {
-      console.log('useUserRole: Already fetching, skipping duplicate request');
-      return;
-    }
-
     try {
       setLoading(true);
       console.log('useUserRole: Fetching role for user:', user.id);
@@ -102,7 +96,7 @@ export const useUserRole = () => {
         return;
       }
     }
-  }, [user?.id, user?.email, authLoading, retryCount, loading, isDirectAdmin]);
+  }, [user?.id, user?.email, authLoading, retryCount, isDirectAdmin]);
 
   useEffect(() => {
     console.log('useUserRole: useEffect triggered', {
