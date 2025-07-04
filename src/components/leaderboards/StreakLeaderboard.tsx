@@ -112,6 +112,7 @@ const StreakLeaderboard = () => {
             value: `${entry.longest_streak} days`
           }}
           isTopThree={index < 3}
+          userId={entry.user_id}
         />
       ))}
     </div>

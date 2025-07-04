@@ -13,6 +13,7 @@ import StudentProfileTab from "./student/StudentProfileTab";
 import StudentCertificatesTab from "./student/StudentCertificatesTab";
 import StudentMainHeader from "./student/StudentMainHeader";
 import StudentDashboardHeader from "./student/StudentDashboardHeader";
+import StudentBadgesSection from "./badges/StudentBadgesSection";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import Confetti from "./ui/confetti";
 import WelcomeModal from "./modals/WelcomeModal";
@@ -162,6 +163,7 @@ const StudentDashboard = () => {
 
             <TabsContent value="dashboard" className="space-y-8">
               <DashboardStats stats={studentStats} />
+              <StudentBadgesSection />
 
               <DashboardContent
                 activeTab={activeTab}

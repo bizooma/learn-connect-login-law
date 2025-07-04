@@ -123,6 +123,7 @@ const CategoryLeaderboard = ({ category }: CategoryLeaderboardProps) => {
             value: `${entry.courses_completed}/${entry.total_courses}`
           }}
           isTopThree={index < 3}
+          userId={entry.user_id}
         />
       ))}
     </div>

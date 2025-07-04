@@ -1,5 +1,6 @@
 
 import { Crown, Medal, Award } from "lucide-react";
+import BadgeDisplay from "../badges/BadgeDisplay";
 
 interface LeaderboardCardProps {
   rank: number;
@@ -15,6 +16,7 @@ interface LeaderboardCardProps {
     value: string;
   };
   isTopThree?: boolean;
+  userId?: string;
 }
 
 const LeaderboardCard = ({
@@ -23,7 +25,8 @@ const LeaderboardCard = ({
   email,
   primaryStat,
   secondaryStat,
-  isTopThree = false
+  isTopThree = false,
+  userId
 }: LeaderboardCardProps) => {
   const getRankIcon = () => {
     switch (rank) {
@@ -61,7 +64,10 @@ const LeaderboardCard = ({
         </div>
         
         <div className="flex-1">
-          <div className="font-medium text-gray-900">{name}</div>
+          <div className="flex items-center space-x-2">
+            <div className="font-medium text-gray-900">{name}</div>
+            {userId && <BadgeDisplay userId={userId} className="flex-shrink-0" />}
+          </div>
           <div className="text-sm text-gray-500">{email}</div>
         </div>
       </div>

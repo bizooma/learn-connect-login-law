@@ -1250,27 +1250,42 @@ export type Database = {
         Row: {
           achievement_name: string
           achievement_type: string
+          assigned_by: string | null
+          badge_color: string | null
+          badge_image_url: string | null
+          badge_name: string | null
           description: string | null
           earned_at: string
           id: string
+          is_badge: boolean | null
           metadata: Json | null
           user_id: string
         }
         Insert: {
           achievement_name: string
           achievement_type: string
+          assigned_by?: string | null
+          badge_color?: string | null
+          badge_image_url?: string | null
+          badge_name?: string | null
           description?: string | null
           earned_at?: string
           id?: string
+          is_badge?: boolean | null
           metadata?: Json | null
           user_id: string
         }
         Update: {
           achievement_name?: string
           achievement_type?: string
+          assigned_by?: string | null
+          badge_color?: string | null
+          badge_image_url?: string | null
+          badge_name?: string | null
           description?: string | null
           earned_at?: string
           id?: string
+          is_badge?: boolean | null
           metadata?: Json | null
           user_id?: string
         }
@@ -1845,6 +1860,17 @@ export type Database = {
       admin_recalculate_all_progress: {
         Args: { p_reason?: string }
         Returns: Json
+      }
+      assign_badge_to_user: {
+        Args: {
+          p_user_id: string
+          p_badge_name: string
+          p_description: string
+          p_badge_image_url?: string
+          p_badge_color?: string
+          p_assigned_by?: string
+        }
+        Returns: string
       }
       bulk_recalculate_course_progress: {
         Args: { p_audit_reason?: string }
