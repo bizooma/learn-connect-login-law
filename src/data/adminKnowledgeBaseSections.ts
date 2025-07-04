@@ -1,5 +1,5 @@
 
-import { BookOpen, Users, ClipboardList, Shield, BarChart3, Settings, Brain } from "lucide-react";
+import { BookOpen, Users, ClipboardList, Shield, BarChart3, Settings, Brain, Award, Building, UserCheck, Activity, Trophy, Calendar, FileText, TrendingUp } from "lucide-react";
 
 export interface AdminKnowledgeBaseItem {
   title: string;
@@ -17,10 +17,18 @@ export interface AdminKnowledgeBaseSection {
 export const adminKnowledgeBaseSections: AdminKnowledgeBaseSection[] = [
   {
     id: "dashboard-overview",
-    title: "Dashboard Overview",
+    title: "Dashboard Overview & Navigation",
     icon: BarChart3,
     color: "text-blue-600",
     items: [
+      {
+        title: "Understanding the New Hierarchical Navigation",
+        content: "The admin dashboard now features a hierarchical navigation system with 4 main categories: Content Management, User Management, Analytics & Monitoring, and System Administration. Each category contains related functions in dropdown menus, making it easier to find specific tools and reducing cognitive load compared to the previous 14-tab system."
+      },
+      {
+        title: "Navigating Admin Categories Efficiently",
+        content: "Click on any main category in the yellow navigation bar to see its dropdown menu. The active category is highlighted, and the current section is clearly marked. Use keyboard navigation (Tab and Arrow keys) to navigate through menus efficiently. The hierarchical structure follows modern enterprise software patterns for intuitive use."
+      },
       {
         title: "Understanding Admin Dashboard Statistics",
         content: "Your admin dashboard displays key metrics including total courses, users, active enrollments, and completed courses. The stats cards show real-time data about platform usage. Use these metrics to track growth, identify trends, and make data-driven decisions about course offerings and user engagement."
@@ -236,6 +244,178 @@ export const adminKnowledgeBaseSections: AdminKnowledgeBaseSection[] = [
       {
         title: "Backup and Data Management",
         content: "Ensure regular backups of user data, course content, progress records, and smart completion data. Maintain data retention policies in accordance with organizational requirements and regulations. The enhanced tracking system generates more data points, so ensure backup strategies account for increased data volume."
+      }
+    ]
+  },
+  {
+    id: "badge-management",
+    title: "Badge Management System",
+    icon: Award,
+    color: "text-yellow-600",
+    items: [
+      {
+        title: "Creating Badge Templates",
+        content: "Design reusable badge templates in the Badge Templates section. Set the badge name, description, image URL, and color scheme. Templates can be used multiple times to award the same badge to different users. Consider creating badges for milestones, achievements, course completions, and special recognitions."
+      },
+      {
+        title: "Assigning Badges to Users",
+        content: "Award badges to users either from templates or create custom one-time badges. Use the Badge Assignment interface to select users and choose appropriate badges. Include meaningful descriptions that explain why the badge was earned. Track badge assignments and monitor their impact on user motivation."
+      },
+      {
+        title: "Badge Display and User Profiles",
+        content: "Badges appear prominently on user profiles and dashboards, providing visual recognition of achievements. Users can view their badge collection and see progress toward earning additional badges. Consider using badges as part of gamification strategies to increase engagement and course completion rates."
+      },
+      {
+        title: "Badge Analytics and Impact",
+        content: "Monitor badge distribution and effectiveness through analytics. Track which badges motivate users most effectively and adjust your recognition strategy accordingly. Use badges to celebrate both completion milestones and engagement behaviors to foster a positive learning culture."
+      }
+    ]
+  },
+  {
+    id: "team-management",
+    title: "Administrative Team Management",
+    icon: UserCheck,
+    color: "text-green-600",
+    items: [
+      {
+        title: "Creating and Managing Admin Teams",
+        content: "Create teams to organize users for management and reporting purposes. Teams can represent departments, law firms, project groups, or any organizational structure. Set team names, descriptions, and assign team leaders as needed. Teams help streamline course assignments and progress monitoring."
+      },
+      {
+        title: "Adding and Managing Team Members",
+        content: "Add users to teams using the team management interface. Users can belong to multiple teams if needed. Remove team members when they change roles or leave the organization. Team membership affects reporting, analytics, and course assignment workflows."
+      },
+      {
+        title: "Team Progress Monitoring",
+        content: "Monitor collective team progress across assigned courses. View team-wide completion rates, average progress, and identify team members who may need additional support. Use team analytics to understand learning patterns and optimize training approaches for different groups."
+      },
+      {
+        title: "Team-Based Course Assignments",
+        content: "Assign courses to entire teams simultaneously for efficient training rollouts. Use team assignments for mandatory training, onboarding programs, and department-specific courses. Track team completion rates and send targeted reminders to teams that are falling behind."
+      }
+    ]
+  },
+  {
+    id: "law-firm-management",
+    title: "Law Firm Administration",
+    icon: Building,
+    color: "text-blue-700",
+    items: [
+      {
+        title: "Setting Up Law Firm Profiles",
+        content: "Create comprehensive law firm profiles including firm name, owner assignment, logo upload, and seat management. Configure firm-specific settings and branding elements. Law firm profiles serve as the organizational hub for managing employees and tracking firm-wide training progress."
+      },
+      {
+        title: "Employee Management and Seat Allocation",
+        content: "Manage law firm employees including adding new team members, updating roles, and tracking seat usage. Monitor seat allocation to ensure compliance with licensing agreements. Remove employees who leave the firm and reassign their seats to new team members as needed."
+      },
+      {
+        title: "Law Firm Calendar and Events",
+        content: "Create and manage law firm-specific calendar events including training sessions, firm meetings, and deadlines. Events are visible to all firm employees and integrate with course schedules. Use the calendar to coordinate firm-wide training initiatives and important dates."
+      },
+      {
+        title: "Firm-Wide Progress Reporting",
+        content: "Generate reports on law firm training progress including completion rates, compliance status, and individual employee performance. Use these reports for regulatory compliance, performance reviews, and identifying training needs. Export reports for external audits and client requirements."
+      },
+      {
+        title: "Owner Dashboard Management",
+        content: "Law firm owners have access to dedicated dashboards showing their firm's training status, employee progress, and resource usage. Owners can assign courses to their employees, monitor compliance, and manage firm settings independently while maintaining admin oversight capabilities."
+      }
+    ]
+  },
+  {
+    id: "certificate-management",
+    title: "Certificate Template Management",
+    icon: FileText,
+    color: "text-purple-700",
+    items: [
+      {
+        title: "Creating Certificate Templates",
+        content: "Design professional certificate templates for course completions. Upload template images, set positioning for dynamic text elements (user name, course title, date), and configure template settings. Templates ensure consistent branding and professional appearance for all issued certificates."
+      },
+      {
+        title: "Automatic Certificate Generation",
+        content: "Certificates are automatically generated when users complete courses with all smart completion requirements met. The system populates templates with user-specific information including name, course title, completion date, and unique certificate numbers. No manual intervention required for standard completions."
+      },
+      {
+        title: "Certificate Verification and Security",
+        content: "Each certificate includes a unique verification number for authenticity confirmation. Maintain secure records of all issued certificates for compliance and verification purposes. Certificates include completion dates, course details, and digital signatures for legal validity."
+      },
+      {
+        title: "Certificate History and Reissuance",
+        content: "Track certificate issuance history and provide reissuance capabilities when needed. Users can download their certificates from their profiles, and administrators can access certificate records for auditing purposes. Maintain long-term certificate archives for compliance requirements."
+      }
+    ]
+  },
+  {
+    id: "activity-monitoring",
+    title: "Enhanced Activity Monitoring",
+    icon: Activity,
+    color: "text-red-600",
+    items: [
+      {
+        title: "User Session Tracking",
+        content: "Monitor detailed user session data including login/logout times, course access patterns, and session duration. Track which courses users access most frequently and identify optimal learning times. Use session data to understand user engagement patterns and platform usage trends."
+      },
+      {
+        title: "Real-Time Activity Dashboard",
+        content: "View live activity feeds showing current user sessions, active course access, and real-time engagement metrics. Monitor which users are currently online and what content they're accessing. Use real-time data to provide immediate support and identify system issues."
+      },
+      {
+        title: "Activity Analytics and Reporting",
+        content: "Generate comprehensive activity reports including session statistics, user engagement patterns, and platform usage analytics. Export activity data for analysis, compliance reporting, and strategic planning. Use analytics to optimize content delivery and improve user experience."
+      },
+      {
+        title: "Session Management and Troubleshooting",
+        content: "Monitor session quality, identify connection issues, and troubleshoot user access problems. Track session interruptions, timeout issues, and technical difficulties. Use session data to improve platform reliability and user experience."
+      }
+    ]
+  },
+  {
+    id: "leaderboard-management",
+    title: "Leaderboard Administration",
+    icon: Trophy,
+    color: "text-yellow-700",
+    items: [
+      {
+        title: "Managing Learning Streak Leaderboards",
+        content: "Monitor and manage learning streak competitions that motivate consistent daily learning. Leaderboards track consecutive days of course engagement and recognize top performers. Use streak leaderboards to encourage regular study habits and increase course completion rates."
+      },
+      {
+        title: "Category-Based Competition Management",
+        content: "Create and manage leaderboards for specific course categories (Legal, Sales, etc.). Track completion rates and recognize top performers within each category. Category leaderboards encourage expertise development and create healthy competition within specialized areas."
+      },
+      {
+        title: "Leaderboard Cache and Performance",
+        content: "Leaderboards are automatically cached and refreshed regularly for optimal performance. Monitor cache effectiveness and refresh schedules to ensure accurate, up-to-date rankings. The system handles large user bases efficiently while maintaining real-time accuracy for competitive elements."
+      },
+      {
+        title: "Gamification Strategy and Motivation",
+        content: "Use leaderboards as part of broader gamification strategies to increase engagement. Balance competition with collaboration by creating team-based leaderboards and individual recognition. Monitor the impact of leaderboards on user motivation and course completion rates."
+      }
+    ]
+  },
+  {
+    id: "completion-monitoring",
+    title: "Completion Monitoring Dashboard",
+    icon: TrendingUp,
+    color: "text-emerald-600",
+    items: [
+      {
+        title: "Advanced Progress Diagnostics",
+        content: "Use the Completion Monitoring Dashboard to identify users with progress inconsistencies, stalled courses, and completion anomalies. The system automatically detects patterns that may indicate technical issues or user difficulties. Proactively address completion problems before they impact compliance."
+      },
+      {
+        title: "Automated Progress Recalculation",
+        content: "Run bulk progress recalculation operations when data inconsistencies are detected. The system can automatically correct progress calculations across multiple users and courses. Use this feature after system updates or when migrating data to ensure accuracy."
+      },
+      {
+        title: "Completion Rate Analytics",
+        content: "Monitor course completion rates across different user groups, courses, and time periods. Identify courses with unusually low completion rates that may need content revision. Track completion trends to understand seasonal patterns and optimize training schedules."
+      },
+      {
+        title: "Intervention and Support Strategies",
+        content: "Identify users who may need additional support based on completion patterns and engagement metrics. Use the monitoring dashboard to trigger automated reminders, assign additional resources, or escalate issues to human trainers. Implement data-driven intervention strategies to improve success rates."
       }
     ]
   }
