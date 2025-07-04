@@ -116,6 +116,42 @@ export type Database = {
         }
         Relationships: []
       }
+      badge_templates: {
+        Row: {
+          badge_color: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          id: string
+          image_url: string
+          is_active: boolean | null
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          badge_color?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          image_url: string
+          is_active?: boolean | null
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          badge_color?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          image_url?: string
+          is_active?: boolean | null
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       certificate_templates: {
         Row: {
           created_at: string
@@ -1259,6 +1295,7 @@ export type Database = {
           id: string
           is_badge: boolean | null
           metadata: Json | null
+          template_id: string | null
           user_id: string
         }
         Insert: {
@@ -1273,6 +1310,7 @@ export type Database = {
           id?: string
           is_badge?: boolean | null
           metadata?: Json | null
+          template_id?: string | null
           user_id: string
         }
         Update: {
@@ -1287,9 +1325,17 @@ export type Database = {
           id?: string
           is_badge?: boolean | null
           metadata?: Json | null
+          template_id?: string | null
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "user_achievements_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "badge_templates"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "user_achievements_user_id_fkey"
             columns: ["user_id"]
@@ -1860,6 +1906,14 @@ export type Database = {
       admin_recalculate_all_progress: {
         Args: { p_reason?: string }
         Returns: Json
+      }
+      assign_badge_from_template: {
+        Args: {
+          p_user_id: string
+          p_template_id: string
+          p_assigned_by?: string
+        }
+        Returns: string
       }
       assign_badge_to_user: {
         Args: {
