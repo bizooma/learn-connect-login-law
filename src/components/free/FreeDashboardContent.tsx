@@ -38,9 +38,24 @@ const FreeDashboardContent = ({
       </CardHeader>
       <CardContent>
         <Tabs value={activeTab} onValueChange={onTabChange}>
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="resources">Free Resources</TabsTrigger>
-            <TabsTrigger value="profile">My Profile</TabsTrigger>
+          <TabsList 
+            className="grid w-full grid-cols-2"
+            style={{ backgroundColor: '#FFDA00' }}
+          >
+            <TabsTrigger 
+              value="resources"
+              className="flex items-center data-[state=active]:bg-white data-[state=active]:text-black"
+              style={{ color: 'black' }}
+            >
+              Free Resources
+            </TabsTrigger>
+            <TabsTrigger 
+              value="profile"
+              className="flex items-center data-[state=active]:bg-white data-[state=active]:text-black"
+              style={{ color: 'black' }}
+            >
+              My Profile
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="resources" className="mt-6">

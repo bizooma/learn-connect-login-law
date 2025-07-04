@@ -66,7 +66,7 @@ const FreeDashboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-blue-100">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 to-gray-100">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-muted-foreground">Loading...</p>
@@ -104,13 +104,13 @@ const FreeDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 flex flex-col">
       <div className="flex-1">
         {/* Header */}
-        <div className="bg-card shadow-sm border-b border-border">
+        <header style={{ background: '#213C82' }} className="shadow-sm">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
             <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-6">
                 <a 
                   href="https://newfrontieruniversity.com" 
                   target="_blank" 
@@ -123,19 +123,18 @@ const FreeDashboard = () => {
                     className="h-12 w-auto"
                   />
                 </a>
-                <div>
-                  <h1 className="text-3xl font-bold text-foreground">
-                    Free Dashboard
-                  </h1>
-                  <p className="text-muted-foreground mt-1">
-                    Welcome, {profile.first_name || "User"}! Explore our free resources.
-                  </p>
+                <div className="flex items-center space-x-4">
+                  <Gift className="h-8 w-8 text-white" />
+                  <div>
+                    <h1 className="text-2xl font-bold text-white">Free Dashboard</h1>
+                    <p className="text-white/80 text-sm">Welcome, {profile.first_name || "User"}! Explore our free resources.</p>
+                  </div>
                 </div>
               </div>
               <div className="flex items-center space-x-4">
                 <button
                   onClick={signOut}
-                  className="flex items-center text-muted-foreground hover:text-foreground px-3 py-2 rounded-md hover:bg-muted transition-colors"
+                  className="flex items-center text-white hover:bg-white/10 px-3 py-2 rounded-md transition-colors"
                 >
                   <LogOut className="h-4 w-4 mr-2" />
                   Sign Out
@@ -143,7 +142,7 @@ const FreeDashboard = () => {
               </div>
             </div>
           </div>
-        </div>
+        </header>
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <NotificationBanner />
