@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Upload, FileText, CheckCircle, AlertCircle, Loader2, Presentation } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { logger } from "@/utils/logger";
 
 interface PowerPointImportProps {
   onImportComplete: (importData: any) => void;
@@ -112,7 +113,7 @@ const PowerPointImport = ({ onImportComplete }: PowerPointImportProps) => {
       }
 
     } catch (error) {
-      console.error('Import error:', error);
+      logger.error('Import error:', error);
       toast({
         title: "Import failed",
         description: error instanceof Error ? error.message : "Unknown error occurred",

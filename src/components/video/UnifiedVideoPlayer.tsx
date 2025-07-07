@@ -5,6 +5,7 @@ import { isYouTubeUrl } from '@/utils/youTubeUtils';
 import YouTubeVideoPlayer from './YouTubeVideoPlayer';
 import VideoThumbnail from './VideoThumbnail';
 import { useVideoPerformance } from '@/hooks/useVideoPerformance';
+import { logger } from '@/utils/logger';
 
 interface UnifiedVideoPlayerProps {
   videoUrl: string;
@@ -23,7 +24,7 @@ const UnifiedVideoPlayer = ({
   className = "aspect-video",
   autoLoad = false
 }: UnifiedVideoPlayerProps) => {
-  console.log('UnifiedVideoPlayer: Rendering with props:', { videoUrl, title, autoLoad });
+  logger.log('UnifiedVideoPlayer: Rendering with props:', { videoUrl, title, autoLoad });
   
   const [videoError, setVideoError] = useState(false);
   const [isPlayerLoaded, setIsPlayerLoaded] = useState(false);
@@ -34,7 +35,7 @@ const UnifiedVideoPlayer = ({
     videoId: videoUrl,
     onMetricsUpdate: (metrics) => {
       if (metrics.loadDuration && metrics.loadDuration > 5000) {
-        console.warn('Slow video loading detected:', metrics);
+        logger.warn('Slow video loading detected:', metrics);
       }
     }
   });
@@ -42,26 +43,26 @@ const UnifiedVideoPlayer = ({
   const handleLoadPlayer = useCallback(() => {
     if (isPlayerLoaded) return;
 
-    console.log('UnifiedVideoPlayer: Loading player for video:', videoUrl);
+    logger.log('UnifiedVideoPlayer: Loading player for video:', videoUrl);
     startLoadTimer();
     setIsPlayerLoaded(true);
     setHasError(false);
   }, [isPlayerLoaded, startLoadTimer, videoUrl]);
 
   const handlePlayerReady = useCallback(() => {
-    console.log('UnifiedVideoPlayer: Player ready for video:', videoUrl);
+    logger.log('UnifiedVideoPlayer: Player ready for video:', videoUrl);
     endLoadTimer();
   }, [endLoadTimer, videoUrl]);
 
   const handlePlayerError = useCallback(() => {
-    console.error('UnifiedVideoPlayer: Player error for video:', videoUrl);
+    logger.error('UnifiedVideoPlayer: Player error for video:', videoUrl);
     recordError();
     setHasError(true);
     setIsPlayerLoaded(false);
   }, [recordError, videoUrl]);
 
   const handleRetry = useCallback(() => {
-    console.log('UnifiedVideoPlayer: Retrying player for video:', videoUrl);
+    logger.log('UnifiedVideoPlayer: Retrying player for video:', videoUrl);
     recordRetry();
     setHasError(false);
     setIsPlayerLoaded(false);
@@ -73,7 +74,7 @@ const UnifiedVideoPlayer = ({
 
   // Reset player state when video URL changes
   useEffect(() => {
-    console.log('UnifiedVideoPlayer: Video URL changed, resetting player state:', videoUrl);
+    logger.log('UnifiedVideoPlayer: Video URL changed, resetting player state:', videoUrl);
     setIsPlayerLoaded(false);
     setHasError(false);
     setVideoError(false);
@@ -82,13 +83,13 @@ const UnifiedVideoPlayer = ({
   // Auto-load when autoLoad is true and component mounts or video URL changes
   useEffect(() => {
     if (autoLoad && !isPlayerLoaded && !hasError) {
-      console.log('UnifiedVideoPlayer: Auto-loading player for video:', videoUrl);
+      logger.log('UnifiedVideoPlayer: Auto-loading player for video:', videoUrl);
       handleLoadPlayer();
     }
   }, [autoLoad, isPlayerLoaded, hasError, handleLoadPlayer, videoUrl]);
 
   if (!videoUrl) {
-    console.log('UnifiedVideoPlayer: No video URL provided');
+    logger.log('UnifiedVideoPlayer: No video URL provided');
     return null;
   }
 
@@ -99,13 +100,13 @@ const UnifiedVideoPlayer = ({
   };
 
   const handleVideoError = () => {
-    console.error('UnifiedVideoPlayer: Video error for URL:', videoUrl);
+    logger.error('UnifiedVideoPlayer: Video error for URL:', videoUrl);
     setVideoError(true);
     handlePlayerError();
   };
 
   if (videoError || hasError) {
-    console.log('UnifiedVideoPlayer: Showing error state for video:', videoUrl);
+    logger.log('UnifiedVideoPlayer: Showing error state for video:', videoUrl);
     return (
       <div className={`bg-gray-100 rounded-lg flex items-center justify-center ${className}`}>
         <div className="text-center p-6">
@@ -118,7 +119,7 @@ const UnifiedVideoPlayer = ({
   }
 
   const isYouTube = isYouTubeUrl(videoUrl);
-  console.log('UnifiedVideoPlayer: Video type determined:', { isYouTube, videoUrl });
+  logger.log('UnifiedVideoPlayer: Video type determined:', { isYouTube, videoUrl });
 
   return (
     <div ref={containerRef} className={className}>

@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Plus, Trash2 } from "lucide-react";
 import { Option } from "./questionFormValidation";
+import { logger } from "@/utils/logger";
 
 interface QuestionOptionsManagerProps {
   options: Option[];
@@ -15,28 +16,28 @@ const QuestionOptionsManager = ({ options, onOptionsChange }: QuestionOptionsMan
   const addOption = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Adding new option');
+    logger.log('Adding new option');
     onOptionsChange([...options, { text: "", isCorrect: false }]);
   };
 
   const removeOption = (index: number, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('Removing option at index:', index);
+    logger.log('Removing option at index:', index);
     if (options.length > 2) {
       onOptionsChange(options.filter((_, i) => i !== index));
     }
   };
 
   const updateOption = (index: number, field: keyof Option, value: string | boolean) => {
-    console.log('Updating option:', index, field, value);
+    logger.log('Updating option:', index, field, value);
     const newOptions = [...options];
     newOptions[index] = { ...newOptions[index], [field]: value };
     onOptionsChange(newOptions);
   };
 
   const handleCheckboxChange = (index: number, checked: boolean | string) => {
-    console.log('Checkbox change:', index, checked);
+    logger.log('Checkbox change:', index, checked);
     updateOption(index, 'isCorrect', checked as boolean);
   };
 

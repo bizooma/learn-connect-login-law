@@ -8,6 +8,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 
 const CertificateHistory = () => {
   const { certificates, loading, error } = useCertificates();
@@ -20,7 +21,7 @@ const CertificateHistory = () => {
 
     setDownloadingId(courseId);
     try {
-      console.log('Downloading certificate for:', { courseId, userId: user.id });
+      logger.log('Downloading certificate for:', { courseId, userId: user.id });
 
       const { data, error } = await supabase.functions.invoke('generate-certificate', {
         body: { courseId, userId: user.id }
@@ -45,7 +46,7 @@ const CertificateHistory = () => {
       });
 
     } catch (error) {
-      console.error('Error downloading certificate:', error);
+      logger.error('Error downloading certificate:', error);
       toast({
         title: "Download Failed",
         description: "Failed to download certificate. Please try again.",

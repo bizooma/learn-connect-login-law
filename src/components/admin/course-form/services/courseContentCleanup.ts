@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
+import { logger } from "@/utils/logger";
 
 type Module = Tables<'modules'>;
 type Lesson = Tables<'lessons'>;
@@ -33,7 +34,7 @@ export const cleanupExistingCourseContent = async (courseId: string) => {
     .delete()
     .in('module_id', existingModules?.map(m => m.id) || []);
 
-  if (deleteError) console.error('Error deleting lessons:', deleteError);
+  if (deleteError) logger.error('Error deleting lessons:', deleteError);
 
   // Delete existing modules
   const { error: deleteModulesError } = await supabase
@@ -41,5 +42,5 @@ export const cleanupExistingCourseContent = async (courseId: string) => {
     .delete()
     .eq('course_id', courseId);
 
-  if (deleteModulesError) console.error('Error deleting modules:', deleteModulesError);
+  if (deleteModulesError) logger.error('Error deleting modules:', deleteModulesError);
 };

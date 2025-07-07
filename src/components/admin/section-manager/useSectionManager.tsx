@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { UnitData, SectionData } from "./types";
+import { logger } from "@/utils/logger";
 
 interface UseSectionManagerProps {
   sections: SectionData[];
@@ -55,7 +56,7 @@ export const useSectionManager = ({ sections, onSectionsChange }: UseSectionMana
   };
 
   const updateUnit = (sectionIndex: number, unitIndex: number, field: keyof UnitData, value: any) => {
-    console.log('Updating unit:', sectionIndex, unitIndex, field, value);
+    logger.log('Updating unit:', sectionIndex, unitIndex, field, value);
     
     const updatedSections = sections.map((section, i) => 
       i === sectionIndex 
@@ -68,7 +69,7 @@ export const useSectionManager = ({ sections, onSectionsChange }: UseSectionMana
         : section
     );
     
-    console.log('Updated sections:', updatedSections);
+    logger.log('Updated sections:', updatedSections);
     onSectionsChange(updatedSections);
   };
 
@@ -99,7 +100,7 @@ export const useSectionManager = ({ sections, onSectionsChange }: UseSectionMana
   };
 
   const handleVideoFileChange = (sectionIndex: number, unitIndex: number, file: File | null) => {
-    console.log('Video file changed:', sectionIndex, unitIndex, file?.name);
+    logger.log('Video file changed:', sectionIndex, unitIndex, file?.name);
     
     if (file) {
       // Store the actual file object

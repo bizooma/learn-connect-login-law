@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useSmartCompletion } from "@/hooks/useSmartCompletion";
+import { logger } from "@/utils/logger";
 
 interface VideoProgressData {
   watch_percentage: number;
@@ -55,7 +56,7 @@ export const useVideoProgress = (unitId: string, courseId: string) => {
       const unitData = unitProgressResult.data;
 
       if (videoProgressResult.error && videoProgressResult.error.code !== 'PGRST116') {
-        console.error('Error fetching video progress:', videoProgressResult.error);
+        logger.error('Error fetching video progress:', videoProgressResult.error);
         return;
       }
 
@@ -74,18 +75,18 @@ export const useVideoProgress = (unitId: string, courseId: string) => {
 
         // If there's a data inconsistency, fix it
         if (videoData && unitData && videoData.is_completed !== unitData.video_completed) {
-          console.log('🔧 Fixing video completion data inconsistency');
+          logger.log('🔧 Fixing video completion data inconsistency');
           await syncVideoCompletionData(isCompleted);
         }
       }
     } catch (error) {
-      console.error('Error fetching video progress:', error);
+      logger.error('Error fetching video progress:', error);
       toast({
         title: "Progress Loading Issue",
         description: "Having trouble loading your video progress. Please refresh if needed.",
         variant: "destructive",
       });
-    } finally {
+    }finally {
       setLoading(false);
     }
   }, [user, unitId, courseId, toast]);
@@ -124,9 +125,9 @@ export const useVideoProgress = (unitId: string, courseId: string) => {
           })
       ]);
 
-      console.log('✅ Video completion data synchronized');
+      logger.log('✅ Video completion data synchronized');
     } catch (error) {
-      console.error('❌ Error syncing video completion data:', error);
+      logger.error('❌ Error syncing video completion data:', error);
     }
   }, [user, unitId, courseId]);
 
@@ -156,7 +157,7 @@ export const useVideoProgress = (unitId: string, courseId: string) => {
         });
 
       if (error) {
-        console.error('Error updating video progress:', error);
+        logger.error('Error updating video progress:', error);
         return;
       }
 
@@ -169,7 +170,7 @@ export const useVideoProgress = (unitId: string, courseId: string) => {
       }));
 
     } catch (error) {
-      console.error('Error updating video progress:', error);
+      logger.error('Error updating video progress:', error);
     }
   }, [user, unitId, courseId]);
 
@@ -177,7 +178,7 @@ export const useVideoProgress = (unitId: string, courseId: string) => {
     if (!user || !unitId || !courseId) return;
 
     try {
-      console.log('🎯 Enhanced video completion for unit:', unitId);
+      logger.log('🎯 Enhanced video completion for unit:', unitId);
 
       const completedAt = new Date().toISOString();
 
@@ -248,7 +249,7 @@ export const useVideoProgress = (unitId: string, courseId: string) => {
       }
 
     } catch (error) {
-      console.error('❌ Enhanced video completion failed:', error);
+      logger.error('❌ Enhanced video completion failed:', error);
       toast({
         title: "Completion Issue",
         description: "We're having trouble saving your progress. Please try again or refresh the page.",

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 
 interface CompletionIssue {
   type: 'unit_completion' | 'video_completion' | 'progress_sync';
@@ -33,7 +34,7 @@ export const useCompletionMonitoring = (enableAutoRepair: boolean = false) => {
 
   const scanForCompletionIssues = async () => {
     try {
-      console.log('🔍 Scanning for completion issues...');
+      logger.log('🔍 Scanning for completion issues...');
       const detectedIssues: CompletionIssue[] = [];
 
       // 1. Check for quiz completed but unit not complete
@@ -120,19 +121,19 @@ export const useCompletionMonitoring = (enableAutoRepair: boolean = false) => {
       }
 
       if (detectedIssues.length > 0) {
-        console.log(`⚠️ Found ${detectedIssues.length} completion issues`);
+        logger.log(`⚠️ Found ${detectedIssues.length} completion issues`);
       } else {
-        console.log('✅ No completion issues detected');
+        logger.log('✅ No completion issues detected');
       }
 
     } catch (error) {
-      console.error('❌ Error scanning for completion issues:', error);
+      logger.error('❌ Error scanning for completion issues:', error);
     }
   };
 
   const performAutoRepair = async (criticalIssues: CompletionIssue[]) => {
     try {
-      console.log('🔧 Performing auto-repair for critical issues...');
+      logger.log('🔧 Performing auto-repair for critical issues...');
       
       for (const issue of criticalIssues) {
         if (issue.type === 'progress_sync' && issue.courseId) {
@@ -150,7 +151,7 @@ export const useCompletionMonitoring = (enableAutoRepair: boolean = false) => {
       });
 
     } catch (error) {
-      console.error('❌ Auto-repair failed:', error);
+      logger.error('❌ Auto-repair failed:', error);
       toast({
         title: "Auto-Repair Failed",
         description: "Could not automatically fix completion issues. Manual intervention required.",
@@ -161,12 +162,12 @@ export const useCompletionMonitoring = (enableAutoRepair: boolean = false) => {
 
   const startMonitoring = () => {
     setIsMonitoring(true);
-    console.log('🟢 Completion monitoring started');
+    logger.log('🟢 Completion monitoring started');
   };
 
   const stopMonitoring = () => {
     setIsMonitoring(false);
-    console.log('🔴 Completion monitoring stopped');
+    logger.log('🔴 Completion monitoring stopped');
   };
 
   const manualScan = () => {

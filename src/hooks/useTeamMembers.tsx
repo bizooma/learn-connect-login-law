@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { logger } from "@/utils/logger";
 
 export interface TeamMember {
   id: string;
@@ -23,14 +24,14 @@ export const useTeamMembers = () => {
 
   const fetchTeamMembers = async () => {
     if (!user?.id) {
-      console.log('useTeamMembers: No user ID available');
+      logger.log('useTeamMembers: No user ID available');
       setLoading(false);
       return;
     }
 
     try {
       setLoading(true);
-      console.log('useTeamMembers: Fetching team members for team leader:', user.id);
+      logger.log('useTeamMembers: Fetching team members for team leader:', user.id);
       
       // First, fetch users assigned to this team leader
       const { data: profiles, error: profilesError } = await supabase
@@ -48,7 +49,7 @@ export const useTeamMembers = () => {
         .eq('is_deleted', false);
 
       if (profilesError) {
-        console.error('Error fetching team member profiles:', profilesError);
+        logger.error('Error fetching team member profiles:', profilesError);
         toast({
           title: "Error",
           description: "Failed to fetch team members",
@@ -57,10 +58,10 @@ export const useTeamMembers = () => {
         return;
       }
 
-      console.log('useTeamMembers: Raw profiles data:', profiles);
+      logger.log('useTeamMembers: Raw profiles data:', profiles);
 
       if (!profiles || profiles.length === 0) {
-        console.log('useTeamMembers: No profiles found for team leader:', user.id);
+        logger.log('useTeamMembers: No profiles found for team leader:', user.id);
         setTeamMembers([]);
         return;
       }
@@ -73,11 +74,11 @@ export const useTeamMembers = () => {
         .in('user_id', userIds);
 
       if (rolesError) {
-        console.error('Error fetching user roles:', rolesError);
+        logger.error('Error fetching user roles:', rolesError);
         // Continue without roles rather than failing completely
       }
 
-      console.log('useTeamMembers: Roles data:', roles);
+      logger.log('useTeamMembers: Roles data:', roles);
 
       // Combine profiles with their roles, defaulting to 'student' if no role is found
       const formattedMembers = profiles.map(profile => ({
@@ -91,10 +92,10 @@ export const useTeamMembers = () => {
         roles: roles?.filter(r => r.user_id === profile.id).map(r => r.role) || ['student'] // Default to student role
       }));
 
-      console.log('useTeamMembers: Formatted members:', formattedMembers);
+      logger.log('useTeamMembers: Formatted members:', formattedMembers);
       setTeamMembers(formattedMembers);
     } catch (error) {
-      console.error('Error in fetchTeamMembers:', error);
+      logger.error('Error in fetchTeamMembers:', error);
       toast({
         title: "Error",
         description: "Failed to fetch team members",
@@ -124,7 +125,7 @@ export const useTeamMembers = () => {
       // Refresh the list
       fetchTeamMembers();
     } catch (error) {
-      console.error('Error removing team member:', error);
+      logger.error('Error removing team member:', error);
       toast({
         title: "Error",
         description: "Failed to remove team member",

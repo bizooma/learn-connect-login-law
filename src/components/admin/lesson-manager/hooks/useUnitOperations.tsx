@@ -1,5 +1,6 @@
 
 import { UnitData, SectionData } from "../types";
+import { logger } from "@/utils/logger";
 
 interface UseUnitOperationsProps {
   lessons: SectionData[];
@@ -8,11 +9,11 @@ interface UseUnitOperationsProps {
 
 export const useUnitOperations = ({ lessons, onLessonsChange }: UseUnitOperationsProps) => {
   const addUnit = (lessonIndex: number) => {
-    console.log('useUnitOperations: Adding unit to lesson index:', lessonIndex);
-    console.log('Current lessons:', lessons);
+    logger.log('useUnitOperations: Adding unit to lesson index:', lessonIndex);
+    logger.log('Current lessons:', lessons);
     
     if (lessonIndex < 0 || lessonIndex >= lessons.length) {
-      console.error('Invalid lesson index:', lessonIndex);
+      logger.error('Invalid lesson index:', lessonIndex);
       return;
     }
 
@@ -33,12 +34,12 @@ export const useUnitOperations = ({ lessons, onLessonsChange }: UseUnitOperation
         : lesson
     );
     
-    console.log('Updated lessons after adding unit:', updatedLessons);
+    logger.log('Updated lessons after adding unit:', updatedLessons);
     onLessonsChange(updatedLessons);
   };
 
   const updateUnit = (lessonIndex: number, unitIndex: number, field: keyof UnitData, value: any) => {
-    console.log('Updating unit:', lessonIndex, unitIndex, field, value);
+    logger.log('Updating unit:', lessonIndex, unitIndex, field, value);
     
     const updatedLessons = lessons.map((lesson, i) => 
       i === lessonIndex 
@@ -51,7 +52,7 @@ export const useUnitOperations = ({ lessons, onLessonsChange }: UseUnitOperation
         : lesson
     );
     
-    console.log('Updated lessons:', updatedLessons);
+    logger.log('Updated lessons:', updatedLessons);
     onLessonsChange(updatedLessons);
   };
 
@@ -72,7 +73,7 @@ export const useUnitOperations = ({ lessons, onLessonsChange }: UseUnitOperation
   };
 
   const handleVideoFileChange = (lessonIndex: number, unitIndex: number, file: File | null) => {
-    console.log('Video file changed:', lessonIndex, unitIndex, file?.name);
+    logger.log('Video file changed:', lessonIndex, unitIndex, file?.name);
     
     if (file) {
       // Store the actual file object

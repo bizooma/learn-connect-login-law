@@ -5,6 +5,7 @@ import { createCourseBackup, validateCourseIntegrity, CourseBackupData } from ".
 import { preserveQuizAssignmentsEnhanced, restoreQuizAssignmentsEnhanced, QuizAssignmentData } from "./enhancedQuizPreservation";
 import { createCourseWithModules } from "./courseSubmissionService";
 import { cleanupExistingCourseContent } from "./courseContentCleanup";
+import { logger } from "@/utils/logger";
 
 export interface TransactionResult {
   success: boolean;
@@ -31,10 +32,10 @@ export const performTransactionalCourseUpdate = async (
   let preservedQuizzes: QuizAssignmentData[] = [];
 
   try {
-    console.log('Starting transactional course update for:', courseId);
+    logger.log('Starting transactional course update for:', courseId);
 
     // Phase 1: Pre-update validation and backup
-    console.log('Phase 1: Validation and backup');
+    logger.log('Phase 1: Validation and backup');
     
     const preValidation = await validateCourseIntegrity(courseId);
     if (!preValidation.isValid) {
@@ -49,10 +50,10 @@ export const performTransactionalCourseUpdate = async (
 
     backupData = backupResult.backupData!;
     result.backupId = backupData.backupId;
-    console.log('Backup completed:', result.backupId);
+    logger.log('Backup completed:', result.backupId);
 
     // Phase 2: Enhanced quiz preservation
-    console.log('Phase 2: Quiz preservation');
+    logger.log('Phase 2: Quiz preservation');
     
     const quizPreservation = await preserveQuizAssignmentsEnhanced(courseId);
     if (!quizPreservation.success) {
@@ -62,10 +63,10 @@ export const performTransactionalCourseUpdate = async (
     }
 
     preservedQuizzes = quizPreservation.preservedAssignments;
-    console.log(`Preserved ${preservedQuizzes.length} quiz assignments`);
+    logger.log(`Preserved ${preservedQuizzes.length} quiz assignments`);
 
     // Phase 3: Course basic info update
-    console.log('Phase 3: Course basic info update');
+    logger.log('Phase 3: Course basic info update');
     
     const courseUpdateData: any = {
       title: courseData.title,
@@ -98,7 +99,7 @@ export const performTransactionalCourseUpdate = async (
     }
 
     // Phase 4: Content cleanup and recreation
-    console.log('Phase 4: Content cleanup and recreation');
+    logger.log('Phase 4: Content cleanup and recreation');
     
     await cleanupExistingCourseContent(courseId);
     
@@ -107,7 +108,7 @@ export const performTransactionalCourseUpdate = async (
     }
 
     // Phase 5: Quiz assignment restoration
-    console.log('Phase 5: Quiz assignment restoration');
+    logger.log('Phase 5: Quiz assignment restoration');
     
     const quizRestoration = await restoreQuizAssignmentsEnhanced(courseId, preservedQuizzes, modules);
     if (!quizRestoration.success) {
@@ -115,11 +116,11 @@ export const performTransactionalCourseUpdate = async (
       result.warnings.push(...quizRestoration.warnings);
     } else {
       result.quizAssignmentsRestored = quizRestoration.preservedAssignments.length;
-      console.log(`Restored ${result.quizAssignmentsRestored} quiz assignments`);
+      logger.log(`Restored ${result.quizAssignmentsRestored} quiz assignments`);
     }
 
     // Phase 6: Post-update validation
-    console.log('Phase 6: Post-update validation');
+    logger.log('Phase 6: Post-update validation');
     
     const postValidation = await validateCourseIntegrity(courseId);
     result.validationSummary = postValidation.summary;
@@ -131,7 +132,7 @@ export const performTransactionalCourseUpdate = async (
     result.success = true;
     result.courseId = courseId;
     
-    console.log('Transactional course update completed successfully:', {
+    logger.log('Transactional course update completed successfully:', {
       courseId,
       modulesCreated: modules.length,
       quizAssignmentsRestored: result.quizAssignmentsRestored,

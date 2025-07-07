@@ -4,6 +4,7 @@ import { CourseFormData, ModuleData } from "../types";
 import { supabase } from "@/integrations/supabase/client";
 import { performSafeCourseUpdate } from "../services/safeCourseUpdateService";
 import { createCourseWithContent } from "../services/createCourseWithContent";
+import { logger } from "@/utils/logger";
 
 export const useCourseForm = (courseId?: string) => {
   const [courseData, setCourseData] = useState<CourseFormData>({
@@ -46,7 +47,7 @@ export const useCourseForm = (courseId?: string) => {
 
       if (courseError) throw courseError;
 
-      console.log('Loaded course data:', course);
+      logger.log('Loaded course data:', course);
 
       // Set course data with all required properties
       setCourseData({
@@ -64,7 +65,7 @@ export const useCourseForm = (courseId?: string) => {
         rating: course.rating || 0,
       });
 
-      console.log('Set course data with level:', course.level);
+      logger.log('Set course data with level:', course.level);
 
       // Fetch course structure with quiz assignments - FIXED: Added explicit ordering
       const { data: modulesData, error: modulesError } = await supabase
@@ -105,7 +106,7 @@ export const useCourseForm = (courseId?: string) => {
         .eq('is_deleted', false);
 
       if (quizzesError) {
-        console.error('Error fetching quiz assignments:', quizzesError);
+        logger.error('Error fetching quiz assignments:', quizzesError);
       }
 
       // Create a map of unit_id to quiz_id
@@ -113,7 +114,7 @@ export const useCourseForm = (courseId?: string) => {
       quizzesData?.forEach(quiz => {
         if (quiz.unit_id) {
           unitQuizMap.set(quiz.unit_id, quiz.id);
-          console.log(`Preserving quiz assignment: Unit ${quiz.unit_id} -> Quiz ${quiz.id} (${quiz.title})`);
+          logger.log(`Preserving quiz assignment: Unit ${quiz.unit_id} -> Quiz ${quiz.id} (${quiz.title})`);
         }
       });
 
@@ -133,7 +134,7 @@ export const useCourseForm = (courseId?: string) => {
           
           return [];
         } catch (error) {
-          console.error('Error parsing files data:', error, filesData);
+          logger.error('Error parsing files data:', error, filesData);
           return [];
         }
       };
@@ -160,7 +161,7 @@ export const useCourseForm = (courseId?: string) => {
           units: lesson.units?.map((unit, unitIndex) => {
             const files = parseFilesFromDatabase(unit.files);
             
-            console.log('Unit files parsed:', unit.title, 'Files:', files);
+            logger.log('Unit files parsed:', unit.title, 'Files:', files);
             
             const finalFiles = files.length === 0 && unit.file_url ? [{
               url: unit.file_url,
@@ -171,7 +172,7 @@ export const useCourseForm = (courseId?: string) => {
             // Preserve quiz assignment - FIX: Properly handle undefined values
             const preservedQuizId = unitQuizMap.get(unit.id);
             if (preservedQuizId) {
-              console.log(`Preserving quiz assignment for unit "${unit.title}": Quiz ID ${preservedQuizId}`);
+              logger.log(`Preserving quiz assignment for unit "${unit.title}": Quiz ID ${preservedQuizId}`);
             }
 
             return {
@@ -197,7 +198,7 @@ export const useCourseForm = (courseId?: string) => {
       setModules(transformedModules);
 
     } catch (error: any) {
-      console.error('Error loading course data:', error);
+      logger.error('Error loading course data:', error);
       toast({
         title: "Error",
         description: `Failed to load course data: ${error.message}`,
@@ -212,12 +213,12 @@ export const useCourseForm = (courseId?: string) => {
     try {
       setSaving(true);
       
-      console.log('Saving course with data:', courseData);
-      console.log('Course level being saved:', courseData.level);
+      logger.log('Saving course with data:', courseData);
+      logger.log('Course level being saved:', courseData.level);
       
       if (courseId) {
         // Update existing course using safe update service
-        console.log('🔄 Updating existing course with quiz preservation...');
+        logger.log('🔄 Updating existing course with quiz preservation...');
         
         const result = await performSafeCourseUpdate(courseId, courseData, modules);
         

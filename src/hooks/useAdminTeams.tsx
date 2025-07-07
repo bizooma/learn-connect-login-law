@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { logger } from '@/utils/logger';
 
 export interface AdminTeam {
   id: string;
@@ -50,7 +51,7 @@ export const useAdminTeams = () => {
       if (error) throw error;
       setTeams(data || []);
     } catch (err) {
-      console.error('Error fetching teams:', err);
+      logger.error('Error fetching teams:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch teams');
     } finally {
       setLoading(false);
@@ -74,7 +75,7 @@ export const useAdminTeams = () => {
       await fetchTeams();
       return data;
     } catch (err) {
-      console.error('Error creating team:', err);
+      logger.error('Error creating team:', err);
       toast({
         title: "Error",
         description: err instanceof Error ? err.message : "Failed to create team",
@@ -103,7 +104,7 @@ export const useAdminTeams = () => {
 
       await fetchTeams();
     } catch (err) {
-      console.error('Error updating team:', err);
+      logger.error('Error updating team:', err);
       toast({
         title: "Error",
         description: err instanceof Error ? err.message : "Failed to update team",
@@ -129,7 +130,7 @@ export const useAdminTeams = () => {
 
       await fetchTeams();
     } catch (err) {
-      console.error('Error deleting team:', err);
+      logger.error('Error deleting team:', err);
       toast({
         title: "Error",
         description: err instanceof Error ? err.message : "Failed to delete team",
@@ -177,7 +178,7 @@ export const useAdminTeams = () => {
 
       return membersWithProfiles;
     } catch (err) {
-      console.error('Error fetching team members:', err);
+      logger.error('Error fetching team members:', err);
       throw err;
     }
   };
@@ -198,7 +199,7 @@ export const useAdminTeams = () => {
 
       return data;
     } catch (err) {
-      console.error('Error adding team member:', err);
+      logger.error('Error adding team member:', err);
       toast({
         title: "Error",
         description: err instanceof Error ? err.message : "Failed to add team member",
@@ -224,7 +225,7 @@ export const useAdminTeams = () => {
 
       return data;
     } catch (err) {
-      console.error('Error removing team member:', err);
+      logger.error('Error removing team member:', err);
       toast({
         title: "Error",
         description: err instanceof Error ? err.message : "Failed to remove team member",
@@ -243,7 +244,7 @@ export const useAdminTeams = () => {
       if (error) throw error;
       return data?.[0] || null;
     } catch (err) {
-      console.error('Error fetching team progress:', err);
+      logger.error('Error fetching team progress:', err);
       throw err;
     }
   };

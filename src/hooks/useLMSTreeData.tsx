@@ -2,6 +2,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
+import { logger } from "@/utils/logger";
 
 type Course = Tables<'courses'>;
 type Module = Tables<'modules'>;
@@ -23,7 +24,7 @@ export const useLMSTreeData = () => {
   const { data: courses = [], isLoading, refetch } = useQuery({
     queryKey: ['lms-tree-courses'],
     queryFn: async () => {
-      console.log('Fetching courses and restructuring hierarchy...');
+      logger.log('Fetching courses and restructuring hierarchy...');
       
       // First, get courses with their current structure
       const { data: coursesData, error: coursesError } = await supabase
@@ -44,13 +45,13 @@ export const useLMSTreeData = () => {
         .order('created_at', { ascending: true });
 
       if (coursesError) {
-        console.error('Error fetching courses:', coursesError);
+        logger.error('Error fetching courses:', coursesError);
         throw coursesError;
       }
 
       // Transform the data to handle the migration case and improve display
       const transformedCourses = coursesData?.map(course => {
-        console.log('Processing course:', course.title, 'with modules:', course.modules?.length);
+        logger.log('Processing course:', course.title, 'with modules:', course.modules?.length);
         
         // Check if we have a "Main Module" situation (migration case)
         const mainModule = course.modules?.find(m => 
@@ -60,7 +61,7 @@ export const useLMSTreeData = () => {
         );
 
         if (mainModule && mainModule.lessons && mainModule.lessons.length > 0) {
-          console.log('Found Main Module with lessons, converting to proper hierarchy...');
+          logger.log('Found Main Module with lessons, converting to proper hierarchy...');
           
           // Convert ALL lessons under Main Module to be modules themselves
           const newModules = mainModule.lessons.map((lesson, index) => ({
@@ -100,7 +101,7 @@ export const useLMSTreeData = () => {
           // Filter out Main Module and add the transformed modules
           const otherModules = course.modules?.filter(m => m.id !== mainModule.id) || [];
           
-          console.log('Converted', newModules.length, 'lessons to modules for course:', course.title);
+          logger.log('Converted', newModules.length, 'lessons to modules for course:', course.title);
           
           return {
             ...course,
@@ -128,7 +129,7 @@ export const useLMSTreeData = () => {
         };
       }) || [];
 
-      console.log('Final transformed courses:', transformedCourses);
+      logger.log('Final transformed courses:', transformedCourses);
       return transformedCourses as CourseWithContent[];
     },
   });

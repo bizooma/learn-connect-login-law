@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
+import { logger } from "@/utils/logger";
 
 type Lesson = Tables<'lessons'>;
 type Unit = Tables<'units'>;
@@ -24,7 +25,7 @@ export const useSection = (id: string | undefined) => {
     }
 
     try {
-      console.log('Fetching lesson:', id);
+      logger.log('Fetching lesson:', id);
       
       // Fetch lesson with units
       const { data: lessonData, error: lessonError } = await supabase
@@ -34,11 +35,11 @@ export const useSection = (id: string | undefined) => {
         .single();
 
       if (lessonError) {
-        console.error('Error fetching lesson:', lessonError);
+        logger.error('Error fetching lesson:', lessonError);
         throw lessonError;
       }
 
-      console.log('Lesson data fetched:', lessonData);
+      logger.log('Lesson data fetched:', lessonData);
 
       // Fetch units for this lesson - exclude draft units
       const { data: unitsData, error: unitsError } = await supabase
@@ -49,11 +50,11 @@ export const useSection = (id: string | undefined) => {
         .order('sort_order', { ascending: true });
 
       if (unitsError) {
-        console.error('Error fetching units:', unitsError);
+        logger.error('Error fetching units:', unitsError);
         throw unitsError;
       }
 
-      console.log('Units data fetched (excluding drafts):', unitsData);
+      logger.log('Units data fetched (excluding drafts):', unitsData);
 
       const lessonWithUnits: LessonWithUnits = {
         ...lessonData,
@@ -67,7 +68,7 @@ export const useSection = (id: string | undefined) => {
         setSelectedUnit(unitsData[0]);
       }
     } catch (error) {
-      console.error('Error fetching lesson:', error);
+      logger.error('Error fetching lesson:', error);
       toast({
         title: "Error",
         description: "Failed to load lesson",
@@ -81,10 +82,10 @@ export const useSection = (id: string | undefined) => {
 
   useEffect(() => {
     if (id) {
-      console.log('useSection: Starting to fetch lesson:', id);
+      logger.log('useSection: Starting to fetch lesson:', id);
       fetchSection();
     } else {
-      console.log('useSection: No lesson ID provided');
+      logger.log('useSection: No lesson ID provided');
       setLoading(false);
     }
   }, [id]);

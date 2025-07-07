@@ -8,6 +8,7 @@ import { Plus, Edit, Trash2 } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import CreateQuestionForm from "./CreateQuestionForm";
 import EditQuestionForm from "./EditQuestionForm";
+import { logger } from "@/utils/logger";
 
 type QuizQuestion = Tables<'quiz_questions'>;
 type QuizQuestionOption = Tables<'quiz_question_options'>;
@@ -34,7 +35,7 @@ const QuestionManagement = ({ quizId, quizTitle }: QuestionManagementProps) => {
   }, [quizId]);
 
   const fetchQuestions = async () => {
-    console.log('QUESTION MANAGEMENT: Fetching questions for quiz:', quizId);
+    logger.log('QUESTION MANAGEMENT: Fetching questions for quiz:', quizId);
     try {
       setLoading(true);
       
@@ -47,14 +48,14 @@ const QuestionManagement = ({ quizId, quizTitle }: QuestionManagementProps) => {
         .order('sort_order', { ascending: true });
 
       if (questionsError) {
-        console.error('QUESTION MANAGEMENT: Error fetching questions:', questionsError);
+        logger.error('QUESTION MANAGEMENT: Error fetching questions:', questionsError);
         throw questionsError;
       }
 
-      console.log('QUESTION MANAGEMENT: Raw questions fetched:', questionsData?.length || 0);
+      logger.log('QUESTION MANAGEMENT: Raw questions fetched:', questionsData?.length || 0);
 
       if (!questionsData || questionsData.length === 0) {
-        console.log('QUESTION MANAGEMENT: No questions found for quiz');
+        logger.log('QUESTION MANAGEMENT: No questions found for quiz');
         setQuestions([]);
         return;
       }
@@ -70,14 +71,14 @@ const QuestionManagement = ({ quizId, quizTitle }: QuestionManagementProps) => {
             .order('sort_order', { ascending: true });
 
           if (optionsError) {
-            console.warn(`QUESTION MANAGEMENT: Error fetching options for question ${question.id}:`, optionsError);
+            logger.warn(`QUESTION MANAGEMENT: Error fetching options for question ${question.id}:`, optionsError);
             return {
               ...question,
               quiz_question_options: []
             };
           }
 
-          console.log(`QUESTION MANAGEMENT: Found ${optionsData?.length || 0} options for question ${question.id}`);
+          logger.log(`QUESTION MANAGEMENT: Found ${optionsData?.length || 0} options for question ${question.id}`);
 
           return {
             ...question,
@@ -86,10 +87,10 @@ const QuestionManagement = ({ quizId, quizTitle }: QuestionManagementProps) => {
         })
       );
 
-      console.log('QUESTION MANAGEMENT: Final questions with options:', questionsWithOptions.length);
+      logger.log('QUESTION MANAGEMENT: Final questions with options:', questionsWithOptions.length);
       setQuestions(questionsWithOptions);
     } catch (error) {
-      console.error('QUESTION MANAGEMENT: Error in fetchQuestions:', error);
+      logger.error('QUESTION MANAGEMENT: Error in fetchQuestions:', error);
       toast({
         title: "Error",
         description: "Failed to fetch questions. Please check the console for details.",
@@ -101,7 +102,7 @@ const QuestionManagement = ({ quizId, quizTitle }: QuestionManagementProps) => {
   };
 
   const deleteQuestion = async (questionId: string) => {
-    console.log('QUESTION MANAGEMENT: Deleting question:', questionId);
+    logger.log('QUESTION MANAGEMENT: Deleting question:', questionId);
     try {
       const { error } = await supabase
         .from('quiz_questions')
@@ -118,7 +119,7 @@ const QuestionManagement = ({ quizId, quizTitle }: QuestionManagementProps) => {
         description: "Question deleted successfully",
       });
     } catch (error) {
-      console.error('QUESTION MANAGEMENT: Error deleting question:', error);
+      logger.error('QUESTION MANAGEMENT: Error deleting question:', error);
       toast({
         title: "Error",
         description: "Failed to delete question",

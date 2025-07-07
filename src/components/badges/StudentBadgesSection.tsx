@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Award, Trophy } from "lucide-react";
+import { logger } from "@/utils/logger";
 
 interface Badge {
   id: string;
@@ -37,7 +38,7 @@ const StudentBadgesSection = () => {
       if (error) throw error;
       setBadges(data || []);
     } catch (error) {
-      console.error('Error fetching badges:', error);
+      logger.error('Error fetching badges:', error);
     } finally {
       setLoading(false);
     }

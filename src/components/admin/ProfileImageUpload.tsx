@@ -8,6 +8,7 @@ import { Camera, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
+import { logger } from "@/utils/logger";
 
 interface ProfileImageUploadProps {
   currentImageUrl?: string;
@@ -52,7 +53,7 @@ const ProfileImageUpload = ({ currentImageUrl, onImageUpdate }: ProfileImageUplo
         .getPublicUrl(fileName);
 
       const imageUrl = data.publicUrl;
-      console.log('Uploaded image URL:', imageUrl);
+      logger.log('Uploaded image URL:', imageUrl);
       
       // Update the preview immediately
       setPreviewUrl(imageUrl);
@@ -78,7 +79,7 @@ const ProfileImageUpload = ({ currentImageUrl, onImageUpdate }: ProfileImageUplo
         description: "Profile image updated successfully",
       });
     } catch (error) {
-      console.error('Error uploading image:', error);
+      logger.error('Error uploading image:', error);
       toast({
         title: "Error",
         description: "Failed to upload profile image",
@@ -126,7 +127,7 @@ const ProfileImageUpload = ({ currentImageUrl, onImageUpdate }: ProfileImageUplo
         description: "Profile image removed successfully",
       });
     } catch (error) {
-      console.error('Error removing image:', error);
+      logger.error('Error removing image:', error);
       toast({
         title: "Error",
         description: "Failed to remove profile image",

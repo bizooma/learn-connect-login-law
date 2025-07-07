@@ -7,6 +7,7 @@ import { User, BookOpen, Trophy, Clock, Eye } from "lucide-react";
 import { TeamMember } from "@/hooks/useTeamMembers";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 
 interface TeamMemberProgressCardProps {
   member: TeamMember;
@@ -33,7 +34,7 @@ const TeamMemberProgressCard = ({ member, onViewProgress }: TeamMemberProgressCa
     const fetchMemberProgress = async () => {
       try {
         setLoading(true);
-        console.log('📊 Fetching progress for member:', member.email);
+        logger.log('📊 Fetching progress for member:', member.email);
 
         // Get course assignments and progress for this member
         const { data: assignments, error: assignmentsError } = await supabase
@@ -42,12 +43,12 @@ const TeamMemberProgressCard = ({ member, onViewProgress }: TeamMemberProgressCa
           .eq('user_id', member.id);
 
         if (assignmentsError) {
-          console.error('❌ Error fetching assignments:', assignmentsError);
+          logger.error('❌ Error fetching assignments:', assignmentsError);
           return;
         }
 
         if (!assignments || assignments.length === 0) {
-          console.log('📝 No assignments found for member:', member.email);
+          logger.log('📝 No assignments found for member:', member.email);
           setProgress({
             totalCourses: 0,
             completedCourses: 0,
@@ -67,7 +68,7 @@ const TeamMemberProgressCard = ({ member, onViewProgress }: TeamMemberProgressCa
           .in('course_id', courseIds);
 
         if (progressError) {
-          console.error('❌ Error fetching progress:', progressError);
+          logger.error('❌ Error fetching progress:', progressError);
           return;
         }
 
@@ -80,7 +81,7 @@ const TeamMemberProgressCard = ({ member, onViewProgress }: TeamMemberProgressCa
           ? Math.round(courseProgress.reduce((sum, p) => sum + (p.progress_percentage || 0), 0) / courseProgress.length)
           : 0;
 
-        console.log('📈 Member progress calculated:', {
+        logger.log('📈 Member progress calculated:', {
           member: member.email,
           totalCourses,
           completedCourses,
@@ -96,7 +97,7 @@ const TeamMemberProgressCard = ({ member, onViewProgress }: TeamMemberProgressCa
         });
 
       } catch (error) {
-        console.error('❌ Error calculating member progress:', error);
+        logger.error('❌ Error calculating member progress:', error);
       } finally {
         setLoading(false);
       }

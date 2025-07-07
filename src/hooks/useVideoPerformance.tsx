@@ -1,5 +1,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { logger } from '@/utils/logger';
 
 interface VideoPerformanceMetrics {
   loadStartTime: number | null;
@@ -107,7 +108,7 @@ export const useVideoPerformance = ({ videoId, onMetricsUpdate }: UseVideoPerfor
   // Log performance data for debugging
   useEffect(() => {
     if (metrics.loadDuration && metrics.loadDuration > 3000) {
-      console.warn(`Slow video load detected for ${videoId}:`, {
+      logger.warn(`Slow video load detected for ${videoId}:`, {
         duration: `${metrics.loadDuration}ms`,
         errorCount: metrics.errorCount,
         retryCount: metrics.retryCount

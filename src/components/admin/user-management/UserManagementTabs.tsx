@@ -4,12 +4,13 @@ import UserManagement from "./UserManagement";
 import InactiveUsersTab from "./InactiveUsersTab";
 import UserAuditTab from "./UserAuditTab";
 import BulkStudentPasswordUpdate from "../BulkStudentPasswordUpdate";
+import { logger } from "@/utils/logger";
 
 const UserManagementTabs = () => {
   const handleUserRestored = () => {
     // This will trigger a refresh of the active users list
     // The individual components handle their own data fetching
-    console.log('User restored - components will refresh their data');
+    logger.log('User restored - components will refresh their data');
   };
 
   return (

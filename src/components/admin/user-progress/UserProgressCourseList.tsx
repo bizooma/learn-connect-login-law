@@ -6,6 +6,7 @@ import { BookOpen, Calendar, Trash2, Award } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 
 interface CourseProgressData {
   course_id: string;
@@ -79,7 +80,7 @@ const UserProgressCourseList = ({
       }
 
     } catch (error) {
-      console.error('Error marking course as completed:', error);
+      logger.error('Error marking course as completed:', error);
       toast({
         title: "Error",
         description: "Failed to mark course as completed",

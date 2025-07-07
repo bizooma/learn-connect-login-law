@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { updateUserRoleSafe, softDeleteUserSafe, restoreUserSafe } from "../updatedUserManagementService";
+import { logger } from "@/utils/logger";
 
 export interface UserOperationResult {
   success: boolean;
@@ -23,7 +24,7 @@ export interface UserBackupData {
 
 export const createUserBackup = async (userId: string): Promise<UserOperationResult> => {
   try {
-    console.log('Creating comprehensive user backup for:', userId);
+    logger.log('Creating comprehensive user backup for:', userId);
     
     // Fetch all user-related data
     const [profileResult, rolesResult, assignmentsResult, progressResult] = await Promise.all([
@@ -44,7 +45,7 @@ export const createUserBackup = async (userId: string): Promise<UserOperationRes
       auditTrail: []
     };
 
-    console.log('User backup created:', {
+    logger.log('User backup created:', {
       backupId: backupData.backupId,
       dataSize: {
         roles: backupData.roles.length,
@@ -61,7 +62,7 @@ export const createUserBackup = async (userId: string): Promise<UserOperationRes
     };
 
   } catch (error) {
-    console.error('Error creating user backup:', error);
+    logger.error('Error creating user backup:', error);
     return {
       success: false,
       errors: [`Backup failed: ${error.message}`],
@@ -76,7 +77,7 @@ export const safeRoleUpdate = async (
   reason?: string
 ): Promise<UserOperationResult> => {
   try {
-    console.log('Starting safe role update for:', userId, 'to:', newRole);
+    logger.log('Starting safe role update for:', userId, 'to:', newRole);
     
     // Create backup first
     const backupResult = await createUserBackup(userId);
@@ -101,7 +102,7 @@ export const safeRoleUpdate = async (
     };
 
   } catch (error) {
-    console.error('Error in safe role update:', error);
+    logger.error('Error in safe role update:', error);
     return {
       success: false,
       errors: [`Role update failed: ${error.message}`],
@@ -115,7 +116,7 @@ export const safeUserDeactivation = async (
   reason: string
 ): Promise<UserOperationResult> => {
   try {
-    console.log('Starting safe user deactivation for:', userId);
+    logger.log('Starting safe user deactivation for:', userId);
     
     // Create comprehensive backup
     const backupResult = await createUserBackup(userId);
@@ -140,7 +141,7 @@ export const safeUserDeactivation = async (
     };
 
   } catch (error) {
-    console.error('Error in safe user deactivation:', error);
+    logger.error('Error in safe user deactivation:', error);
     return {
       success: false,
       errors: [`Deactivation failed: ${error.message}`],
@@ -154,7 +155,7 @@ export const safeUserRestoration = async (
   reason: string
 ): Promise<UserOperationResult> => {
   try {
-    console.log('Starting safe user restoration for:', userId);
+    logger.log('Starting safe user restoration for:', userId);
     
     // Create backup of current state
     const backupResult = await createUserBackup(userId);
@@ -172,7 +173,7 @@ export const safeUserRestoration = async (
     };
 
   } catch (error) {
-    console.error('Error in safe user restoration:', error);
+    logger.error('Error in safe user restoration:', error);
     return {
       success: false,
       errors: [`Restoration failed: ${error.message}`],
@@ -183,7 +184,7 @@ export const safeUserRestoration = async (
 
 export const validateUserDataIntegrity = async (userId: string) => {
   try {
-    console.log('Validating user data integrity for:', userId);
+    logger.log('Validating user data integrity for:', userId);
     
     const issues: string[] = [];
     const warnings: string[] = [];
@@ -251,7 +252,7 @@ export const validateUserDataIntegrity = async (userId: string) => {
       }
     }
     
-    console.log('User data integrity check completed:', {
+    logger.log('User data integrity check completed:', {
       userId,
       isValid: issues.length === 0,
       issueCount: issues.length,

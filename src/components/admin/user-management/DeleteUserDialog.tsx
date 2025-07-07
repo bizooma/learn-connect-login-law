@@ -6,6 +6,7 @@ import { Trash2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { UserProfile } from "./types";
+import { logger } from "@/utils/logger";
 
 interface DeleteUserDialogProps {
   user: UserProfile;
@@ -20,27 +21,27 @@ const DeleteUserDialog = ({ user, onUserDeleted }: DeleteUserDialogProps) => {
     setLoading(true);
 
     try {
-      console.log('Attempting to delete user:', user.id);
-      console.log('Current session:', await supabase.auth.getSession());
+      logger.log('Attempting to delete user:', user.id);
+      logger.log('Current session:', await supabase.auth.getSession());
       
       // Call the edge function to delete the user
       const { data, error } = await supabase.functions.invoke('delete-user', {
         body: { userId: user.id }
       });
 
-      console.log('Edge function response:', { data, error });
+      logger.log('Edge function response:', { data, error });
 
       if (error) {
-        console.error('Edge function error:', error);
+        logger.error('Edge function error:', error);
         throw new Error(error.message || 'Failed to delete user');
       }
 
       if (data?.error) {
-        console.error('Server error:', data.error);
+        logger.error('Server error:', data.error);
         throw new Error(data.error);
       }
 
-      console.log('User deletion successful:', data);
+      logger.log('User deletion successful:', data);
 
       toast({
         title: "Success",
@@ -50,7 +51,7 @@ const DeleteUserDialog = ({ user, onUserDeleted }: DeleteUserDialogProps) => {
       onUserDeleted();
 
     } catch (error: any) {
-      console.error('Error deleting user:', error);
+      logger.error('Error deleting user:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to delete user",

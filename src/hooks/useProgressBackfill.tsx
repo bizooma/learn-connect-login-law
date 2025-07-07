@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 
 export const useProgressBackfill = () => {
   const { toast } = useToast();
@@ -11,7 +12,7 @@ export const useProgressBackfill = () => {
     setProcessing(true);
     
     try {
-      console.log('Starting video completion repair...');
+      logger.log('Starting video completion repair...');
       
       // Find videos watched 95%+ but not marked complete
       const { data: incompleteVideos, error } = await supabase
@@ -24,7 +25,7 @@ export const useProgressBackfill = () => {
         throw error;
       }
 
-      console.log(`Found ${incompleteVideos?.length || 0} videos to mark as complete`);
+      logger.log(`Found ${incompleteVideos?.length || 0} videos to mark as complete`);
 
       if (!incompleteVideos || incompleteVideos.length === 0) {
         toast({
@@ -55,7 +56,7 @@ export const useProgressBackfill = () => {
             errors.push(`Failed to update video for unit ${video.unit_id}: ${updateError.message}`);
           } else {
             fixedCount++;
-            console.log(`Fixed video completion for unit: ${video.unit_id}`);
+            logger.log(`Fixed video completion for unit: ${video.unit_id}`);
           }
         } catch (videoError) {
           errors.push(`Error processing video for unit ${video.unit_id}: ${videoError.message}`);
@@ -76,7 +77,7 @@ export const useProgressBackfill = () => {
       };
 
     } catch (error) {
-      console.error('Error during video completion repair:', error);
+      logger.error('Error during video completion repair:', error);
       toast({
         title: "Video Repair Error",
         description: "Failed to repair video completions. Please try again.",
@@ -92,7 +93,7 @@ export const useProgressBackfill = () => {
     setProcessing(true);
     
     try {
-      console.log('Starting backfill of missing unit completions...');
+      logger.log('Starting backfill of missing unit completions...');
       
       // Query to find users with completed quizzes but incomplete units
       const { data: incompleteUnits, error } = await supabase
@@ -113,7 +114,7 @@ export const useProgressBackfill = () => {
         throw error;
       }
 
-      console.log(`Found ${incompleteUnits?.length || 0} units with completed quizzes but incomplete status`);
+      logger.log(`Found ${incompleteUnits?.length || 0} units with completed quizzes but incomplete status`);
 
       if (!incompleteUnits || incompleteUnits.length === 0) {
         toast({
@@ -149,7 +150,7 @@ export const useProgressBackfill = () => {
               errors.push(`Failed to update unit ${unitProgress.unit_id}: ${updateError.message}`);
             } else {
               backfilledCount++;
-              console.log(`Backfilled completion for quiz-only unit: ${unitProgress.unit_id}`);
+              logger.log(`Backfilled completion for quiz-only unit: ${unitProgress.unit_id}`);
             }
           } else {
             // For units with video, quiz completion is sufficient for unit completion
@@ -170,7 +171,7 @@ export const useProgressBackfill = () => {
               errors.push(`Failed to update unit ${unitProgress.unit_id}: ${updateError.message}`);
             } else {
               backfilledCount++;
-              console.log(`Backfilled completion for unit with video: ${unitProgress.unit_id}`);
+              logger.log(`Backfilled completion for unit with video: ${unitProgress.unit_id}`);
             }
           }
         } catch (unitError) {
@@ -186,7 +187,7 @@ export const useProgressBackfill = () => {
       }
 
       if (errors.length > 0) {
-        console.error('Backfill errors:', errors);
+        logger.error('Backfill errors:', errors);
       }
 
       return {
@@ -196,7 +197,7 @@ export const useProgressBackfill = () => {
       };
 
     } catch (error) {
-      console.error('Error during backfill:', error);
+      logger.error('Error during backfill:', error);
       toast({
         title: "Backfill Error",
         description: "Failed to backfill missing unit completions. Please try again.",

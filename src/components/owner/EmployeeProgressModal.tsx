@@ -9,6 +9,7 @@ import { User, BookOpen, Award, Clock, Calendar, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
+import { logger } from "@/utils/logger";
 
 type Profile = Tables<'profiles'>;
 
@@ -132,7 +133,7 @@ const EmployeeProgressModal = ({ employee, isOpen, onClose }: EmployeeProgressMo
       });
 
     } catch (error) {
-      console.error('Error fetching employee progress:', error);
+      logger.error('Error fetching employee progress:', error);
       toast({
         title: "Error",
         description: "Failed to fetch employee progress details",

@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { QuizWithDetails } from "./types";
+import { logger } from "@/utils/logger";
 
 interface Unit {
   id: string;
@@ -34,7 +35,7 @@ export const useQuizManagement = () => {
   const { data: quizzes, isLoading, refetch } = useQuery({
     queryKey: ['quizzes'],
     queryFn: async () => {
-      console.log('QUIZ MANAGEMENT: Fetching active quizzes...');
+      logger.log('QUIZ MANAGEMENT: Fetching active quizzes...');
       
       // Fetch only non-deleted quizzes
       const { data: quizzesData, error: quizzesError } = await supabase
@@ -45,12 +46,12 @@ export const useQuizManagement = () => {
         .order('updated_at', { ascending: false });
 
       if (quizzesError) {
-        console.error('QUIZ MANAGEMENT: Error fetching quizzes:', quizzesError);
+        logger.error('QUIZ MANAGEMENT: Error fetching quizzes:', quizzesError);
         throw quizzesError;
       }
 
-      console.log('QUIZ MANAGEMENT: Fetched active quizzes:', quizzesData?.length || 0);
-      console.log('QUIZ MANAGEMENT: Quiz details:', quizzesData?.map(q => ({ id: q.id, title: q.title, is_deleted: q.is_deleted })));
+      logger.log('QUIZ MANAGEMENT: Fetched active quizzes:', quizzesData?.length || 0);
+      logger.log('QUIZ MANAGEMENT: Quiz details:', quizzesData?.map(q => ({ id: q.id, title: q.title, is_deleted: q.is_deleted })));
 
       // Remove duplicates by id and fetch question counts
       const uniqueQuizzes = quizzesData ? quizzesData.filter((quiz, index, self) => 
@@ -66,7 +67,7 @@ export const useQuizManagement = () => {
             .eq('is_deleted', false);
 
           if (countError) {
-            console.warn(`QUIZ MANAGEMENT: Error counting questions for quiz ${quiz.id}:`, countError);
+            logger.warn(`QUIZ MANAGEMENT: Error counting questions for quiz ${quiz.id}:`, countError);
           }
 
           return {
@@ -76,7 +77,7 @@ export const useQuizManagement = () => {
         })
       );
 
-      console.log('QUIZ MANAGEMENT: Quizzes with question counts:', quizzesWithQuestions.length);
+      logger.log('QUIZ MANAGEMENT: Quizzes with question counts:', quizzesWithQuestions.length);
       return quizzesWithQuestions as QuizWithDetails[];
     }
   });
@@ -137,16 +138,16 @@ export const useQuizManagement = () => {
 
   const handleQuizDeleted = async (quizId: string, title: string) => {
     try {
-      console.log('QUIZ MANAGEMENT: Attempting to delete quiz:', quizId, title);
+      logger.log('QUIZ MANAGEMENT: Attempting to delete quiz:', quizId, title);
       
       const { data, error } = await supabase.rpc('soft_delete_quiz', { 
         quiz_id: quizId 
       });
 
-      console.log('QUIZ MANAGEMENT: Soft delete response:', { data, error });
+      logger.log('QUIZ MANAGEMENT: Soft delete response:', { data, error });
 
       if (error) {
-        console.error('QUIZ MANAGEMENT: Error from soft_delete_quiz function:', error);
+        logger.error('QUIZ MANAGEMENT: Error from soft_delete_quiz function:', error);
         throw error;
       }
 
@@ -154,7 +155,7 @@ export const useQuizManagement = () => {
         throw new Error('Quiz not found or could not be deleted');
       }
 
-      console.log('QUIZ MANAGEMENT: Quiz successfully soft deleted');
+      logger.log('QUIZ MANAGEMENT: Quiz successfully soft deleted');
       
       // Force invalidate all quiz-related cache entries
       await queryClient.invalidateQueries({ queryKey: ['quizzes'] });
@@ -169,7 +170,7 @@ export const useQuizManagement = () => {
         description: `"${title}" has been moved to trash. You can restore it from the Deleted Quizzes tab.`,
       });
     } catch (error: any) {
-      console.error('QUIZ MANAGEMENT: Error soft deleting quiz:', error);
+      logger.error('QUIZ MANAGEMENT: Error soft deleting quiz:', error);
       
       let errorMessage = "Failed to delete quiz";
       if (error.message) {

@@ -6,13 +6,14 @@ import { useTeamMembers } from "@/hooks/useTeamMembers";
 import TeamMemberProgressCard from "./TeamMemberProgressCard";
 import UserProgressModal from "../admin/user-progress/UserProgressModal";
 import { useState } from "react";
+import { logger } from "@/utils/logger";
 
 const TeamMemberManagement = () => {
   const { teamMembers, loading, fetchTeamMembers } = useTeamMembers();
   const [selectedUserForProgress, setSelectedUserForProgress] = useState<string | null>(null);
 
   const handleViewProgress = (userId: string) => {
-    console.log('👀 Opening progress modal for user:', userId);
+    logger.log('👀 Opening progress modal for user:', userId);
     setSelectedUserForProgress(userId);
   };
 

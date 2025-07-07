@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useAvailableOwners } from '@/hooks/useAvailableOwners';
+import { logger } from '@/utils/logger';
 
 interface CreateLawFirmDialogProps {
   open: boolean;
@@ -62,7 +63,7 @@ const CreateLawFirmDialog = ({ open, onOpenChange }: CreateLawFirmDialogProps) =
       // Refresh the page to show the new law firm
       window.location.reload();
     } catch (error: any) {
-      console.error('Error creating law firm:', error);
+      logger.error('Error creating law firm:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to create law firm",

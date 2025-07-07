@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { UnitData } from "../types";
 import { uploadVideoFile } from "../fileUploadUtils";
+import { logger } from "@/utils/logger";
 
 export const createUnit = async (lessonId: string, unit: UnitData) => {
   let videoUrl = unit.video_url;
@@ -9,10 +10,10 @@ export const createUnit = async (lessonId: string, unit: UnitData) => {
   // Upload video file if it's an upload type and has a file
   if (unit.video_type === 'upload' && unit.video_file) {
     try {
-      console.log('Uploading video for unit:', unit.title);
+      logger.log('Uploading video for unit:', unit.title);
       videoUrl = await uploadVideoFile(unit.video_file);
     } catch (error) {
-      console.error('Error uploading video:', error);
+      logger.error('Error uploading video:', error);
       throw new Error(`Failed to upload video for unit "${unit.title}": ${error.message}`);
     }
   }
@@ -21,7 +22,7 @@ export const createUnit = async (lessonId: string, unit: UnitData) => {
   let filesData = null;
   if (unit.files && Array.isArray(unit.files) && unit.files.length > 0) {
     filesData = JSON.stringify(unit.files);
-    console.log('Saving files data for unit:', unit.title, 'Files:', filesData);
+    logger.log('Saving files data for unit:', unit.title, 'Files:', filesData);
   }
 
   const { data: unitData, error: unitError } = await supabase
@@ -43,7 +44,7 @@ export const createUnit = async (lessonId: string, unit: UnitData) => {
     .single();
 
   if (unitError) {
-    console.error('Error creating unit:', unitError);
+    logger.error('Error creating unit:', unitError);
     throw new Error(`Failed to create unit: ${unitError.message}`);
   }
 
@@ -61,10 +62,10 @@ export const updateUnit = async (unitId: string, unit: UnitData) => {
   // Upload video file if it's an upload type and has a file
   if (unit.video_type === 'upload' && unit.video_file) {
     try {
-      console.log('Uploading video for unit:', unit.title);
+      logger.log('Uploading video for unit:', unit.title);
       videoUrl = await uploadVideoFile(unit.video_file);
     } catch (error) {
-      console.error('Error uploading video:', error);
+      logger.error('Error uploading video:', error);
       throw new Error(`Failed to upload video for unit "${unit.title}": ${error.message}`);
     }
   }
@@ -73,7 +74,7 @@ export const updateUnit = async (unitId: string, unit: UnitData) => {
   let filesData = null;
   if (unit.files && Array.isArray(unit.files) && unit.files.length > 0) {
     filesData = JSON.stringify(unit.files);
-    console.log('Updating files data for unit:', unit.title, 'Files:', filesData);
+    logger.log('Updating files data for unit:', unit.title, 'Files:', filesData);
   } else {
     // If no files, explicitly set to null
     filesData = null;
@@ -98,7 +99,7 @@ export const updateUnit = async (unitId: string, unit: UnitData) => {
     .single();
 
   if (unitError) {
-    console.error('Error updating unit:', unitError);
+    logger.error('Error updating unit:', unitError);
     throw new Error(`Failed to update unit: ${unitError.message}`);
   }
 
@@ -113,7 +114,7 @@ export const updateUnit = async (unitId: string, unit: UnitData) => {
 };
 
 export const linkQuizToUnit = async (unitId: string, quizId: string) => {
-  console.log('Linking quiz to unit. Quiz ID:', quizId, 'Unit ID:', unitId);
+  logger.log('Linking quiz to unit. Quiz ID:', quizId, 'Unit ID:', unitId);
   
   const { error: quizUpdateError } = await supabase
     .from('quizzes')
@@ -121,15 +122,15 @@ export const linkQuizToUnit = async (unitId: string, quizId: string) => {
     .eq('id', quizId);
 
   if (quizUpdateError) {
-    console.error('Error linking quiz to unit:', quizUpdateError);
+    logger.error('Error linking quiz to unit:', quizUpdateError);
     throw new Error(`Failed to link quiz to unit: ${quizUpdateError.message}`);
   }
   
-  console.log('Quiz successfully linked to unit');
+  logger.log('Quiz successfully linked to unit');
 };
 
 export const unlinkQuizFromUnit = async (unitId: string) => {
-  console.log('Unlinking quizzes from unit:', unitId);
+  logger.log('Unlinking quizzes from unit:', unitId);
   
   const { error: quizUpdateError } = await supabase
     .from('quizzes')
@@ -137,9 +138,9 @@ export const unlinkQuizFromUnit = async (unitId: string) => {
     .eq('unit_id', unitId);
 
   if (quizUpdateError) {
-    console.error('Error unlinking quizzes from unit:', quizUpdateError);
+    logger.error('Error unlinking quizzes from unit:', quizUpdateError);
     throw new Error(`Failed to unlink quizzes from unit: ${quizUpdateError.message}`);
   }
   
-  console.log('Quizzes successfully unlinked from unit');
+  logger.log('Quizzes successfully unlinked from unit');
 };

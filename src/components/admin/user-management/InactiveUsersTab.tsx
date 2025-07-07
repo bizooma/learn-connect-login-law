@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { UserProfile } from "./types";
 import { format } from "date-fns";
+import { logger } from "@/utils/logger";
 
 interface InactiveUsersTabProps {
   onUserRestored: () => void;
@@ -67,7 +68,7 @@ const InactiveUsersTab = ({ onUserRestored }: InactiveUsersTabProps) => {
 
       setInactiveUsers(usersWithRoles);
     } catch (error: any) {
-      console.error('Error fetching inactive users:', error);
+      logger.error('Error fetching inactive users:', error);
       toast({
         title: "Error",
         description: "Failed to fetch inactive users",
@@ -114,7 +115,7 @@ const InactiveUsersTab = ({ onUserRestored }: InactiveUsersTabProps) => {
       fetchInactiveUsers();
 
     } catch (error: any) {
-      console.error('Error restoring user:', error);
+      logger.error('Error restoring user:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to restore user",

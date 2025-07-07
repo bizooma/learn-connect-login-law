@@ -2,6 +2,7 @@
 import { supabase } from "@/integrations/supabase/client";
 import { SectionData } from "../types";
 import { Tables } from "@/integrations/supabase/types";
+import { logger } from "@/utils/logger";
 
 type Unit = Tables<'units'>;
 type Lesson = Tables<'lessons'>;
@@ -30,14 +31,14 @@ const parseFilesFromDatabase = (filesData: any): Array<{ url: string; name: stri
     
     return [];
   } catch (error) {
-    console.error('Error parsing files data:', error, filesData);
+    logger.error('Error parsing files data:', error, filesData);
     return [];
   }
 };
 
 export const fetchCourseContent = async (courseId: string): Promise<SectionData[]> => {
   try {
-    console.log('Fetching course content for course:', courseId);
+    logger.log('Fetching course content for course:', courseId);
     
     // Fetch modules with their lessons and units
     const { data: modulesData, error: modulesError } = await supabase
@@ -53,11 +54,11 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
       .order('sort_order', { ascending: true });
 
     if (modulesError) {
-      console.error('Error fetching modules:', modulesError);
+      logger.error('Error fetching modules:', modulesError);
       throw modulesError;
     }
 
-    console.log('Modules data fetched:', modulesData);
+    logger.log('Modules data fetched:', modulesData);
 
     // Collect all units from all lessons to fetch quizzes - exclude draft units
     const allUnits = modulesData?.flatMap(m => 
@@ -72,18 +73,18 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
       .eq('is_deleted', false);
 
     if (quizzesError) {
-      console.error('Error fetching quiz assignments:', quizzesError);
+      logger.error('Error fetching quiz assignments:', quizzesError);
       throw quizzesError;
     }
 
-    console.log('Quiz assignments fetched:', quizzesData?.length || 0);
+    logger.log('Quiz assignments fetched:', quizzesData?.length || 0);
 
     // Create a map of unit_id to quiz_id for preserving assignments
     const unitQuizMap = new Map();
     quizzesData?.forEach(quiz => {
       if (quiz.unit_id) {
         unitQuizMap.set(quiz.unit_id, quiz.id);
-        console.log(`Preserving quiz assignment: Unit ${quiz.unit_id} -> Quiz ${quiz.id} (${quiz.title})`);
+        logger.log(`Preserving quiz assignment: Unit ${quiz.unit_id} -> Quiz ${quiz.id} (${quiz.title})`);
       }
     });
 
@@ -106,7 +107,7 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
         // Parse files from the database
         const files = parseFilesFromDatabase(unit.files);
         
-        console.log('Unit files parsed:', unit.title, 'Files:', files);
+        logger.log('Unit files parsed:', unit.title, 'Files:', files);
         
         // Fallback to legacy single file format if no files array
         const finalFiles = files.length === 0 && unit.file_url ? [{
@@ -118,7 +119,7 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
         // PRESERVE quiz assignment from the database
         const preservedQuizId = unitQuizMap.get(unit.id);
         if (preservedQuizId) {
-          console.log(`Preserving quiz assignment for unit "${unit.title}": Quiz ID ${preservedQuizId}`);
+          logger.log(`Preserving quiz assignment for unit "${unit.title}": Quiz ID ${preservedQuizId}`);
         }
 
         return {
@@ -140,10 +141,10 @@ export const fetchCourseContent = async (courseId: string): Promise<SectionData[
       }).sort((a, b) => a.sort_order - b.sort_order)
     })).sort((a, b) => a.sort_order - b.sort_order) || [];
 
-    console.log('Formatted lessons with preserved quiz assignments and filtered draft units:', formattedLessons);
+    logger.log('Formatted lessons with preserved quiz assignments and filtered draft units:', formattedLessons);
     return formattedLessons;
   } catch (error) {
-    console.error('Error fetching course content:', error);
+    logger.error('Error fetching course content:', error);
     return [];
   }
 };

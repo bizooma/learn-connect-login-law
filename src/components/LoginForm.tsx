@@ -8,6 +8,7 @@ import { Mail, Lock, Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import ForgotPasswordDialog from "./ForgotPasswordDialog";
+import { logger } from "@/utils/logger";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -18,7 +19,7 @@ const LoginForm = () => {
   const navigate = useNavigate();
 
   const getDetailedErrorMessage = (error: any) => {
-    console.error('Login error details:', error);
+    logger.error('Login error details:', error);
     
     if (!error) return "An unexpected error occurred";
     
@@ -58,7 +59,7 @@ const LoginForm = () => {
     }
 
     setIsLoading(true);
-    console.log('LoginForm: Starting login attempt for:', email);
+    logger.log('LoginForm: Starting login attempt for:', email);
 
     try {
       // Add retry logic for network issues
@@ -68,7 +69,7 @@ const LoginForm = () => {
 
       while (retryCount <= maxRetries) {
         try {
-          console.log(`LoginForm: Login attempt ${retryCount + 1} for:`, email);
+          logger.log(`LoginForm: Login attempt ${retryCount + 1} for:`, email);
           
           const { data, error } = await supabase.auth.signInWithPassword({
             email: email.trim(),
@@ -77,7 +78,7 @@ const LoginForm = () => {
 
           if (error) {
             lastError = error;
-            console.error(`LoginForm: Login attempt ${retryCount + 1} failed:`, error);
+            logger.error(`LoginForm: Login attempt ${retryCount + 1} failed:`, error);
             
             // Don't retry for credential errors
             if (error.message === 'Invalid login credentials' || 
@@ -92,7 +93,7 @@ const LoginForm = () => {
                  error.message?.includes('network') ||
                  error.message?.includes('timeout'))) {
               retryCount++;
-              console.log(`LoginForm: Retrying login (attempt ${retryCount + 1})`);
+              logger.log(`LoginForm: Retrying login (attempt ${retryCount + 1})`);
               await new Promise(resolve => setTimeout(resolve, 1000 * retryCount)); // Progressive delay
               continue;
             }
@@ -101,7 +102,7 @@ const LoginForm = () => {
           }
 
           // Success
-          console.log('LoginForm: Login successful', {
+          logger.log('LoginForm: Login successful', {
             hasUser: !!data.user,
             hasSession: !!data.session,
             userEmail: data.user?.email
@@ -113,12 +114,12 @@ const LoginForm = () => {
           });
           
           // Navigate to dashboard where role-based routing will handle the redirect
-          console.log('LoginForm: Login successful, navigating to dashboard');
+          logger.log('LoginForm: Login successful, navigating to dashboard');
           navigate("/dashboard");
           return;
 
         } catch (networkError) {
-          console.error(`LoginForm: Network error on attempt ${retryCount + 1}:`, networkError);
+          logger.error(`LoginForm: Network error on attempt ${retryCount + 1}:`, networkError);
           lastError = networkError;
           
           if (retryCount < maxRetries) {

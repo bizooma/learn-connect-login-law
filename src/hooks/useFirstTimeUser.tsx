@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/utils/logger';
 
 export const useFirstTimeUser = () => {
   const { user } = useAuth();
@@ -17,16 +18,16 @@ export const useFirstTimeUser = () => {
       return;
     }
 
-    console.log('useFirstTimeUser: Checking first time status for user:', user.id);
+    logger.log('useFirstTimeUser: Checking first time status for user:', user.id);
     
     // Check if this is the user's first login
     const firstTimeKey = `first_time_${user.id}`;
     const hasSeenWelcome = localStorage.getItem(firstTimeKey);
     
-    console.log('useFirstTimeUser: hasSeenWelcome =', hasSeenWelcome);
+    logger.log('useFirstTimeUser: hasSeenWelcome =', hasSeenWelcome);
 
     if (!hasSeenWelcome) {
-      console.log('useFirstTimeUser: First time user detected, showing welcome');
+      logger.log('useFirstTimeUser: First time user detected, showing welcome');
       setIsFirstTime(true);
       // Small delay to let the page load before showing effects
       setTimeout(() => {
@@ -34,7 +35,7 @@ export const useFirstTimeUser = () => {
         setShowWelcome(true);
       }, 500);
     } else {
-      console.log('useFirstTimeUser: User has already seen welcome');
+      logger.log('useFirstTimeUser: User has already seen welcome');
       setIsFirstTime(false);
       setShowWelcome(false);
       setShowConfetti(false);
@@ -42,7 +43,7 @@ export const useFirstTimeUser = () => {
   }, [user?.id]); // Use user.id as dependency to ensure it re-runs when user changes
 
   const markWelcomeAsSeen = () => {
-    console.log('useFirstTimeUser: Marking welcome as seen for user:', user?.id);
+    logger.log('useFirstTimeUser: Marking welcome as seen for user:', user?.id);
     if (user) {
       const firstTimeKey = `first_time_${user.id}`;
       localStorage.setItem(firstTimeKey, 'seen');
@@ -53,7 +54,7 @@ export const useFirstTimeUser = () => {
   };
 
   const triggerDemo = () => {
-    console.log('useFirstTimeUser: triggerDemo called');
+    logger.log('useFirstTimeUser: triggerDemo called');
     setShowConfetti(true);
     setShowWelcome(true);
     setIsFirstTime(true); // Set this to true to ensure proper state

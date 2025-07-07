@@ -10,6 +10,7 @@ import { LessonNode } from './nodes/LessonNode';
 import { UnitNode } from './nodes/UnitNode';
 import { QuizNode } from './nodes/QuizNode';
 import { ResourceNode } from './nodes/ResourceNode';
+import { logger } from '@/utils/logger';
 
 const nodeTypes = {
   course: CourseNode,
@@ -37,7 +38,7 @@ const FlowchartCanvas: React.FC = () => {
     (event: React.DragEvent) => {
       event.preventDefault();
       
-      console.log('Drop event triggered');
+      logger.log('Drop event triggered');
       
       const reactFlowBounds = (event.currentTarget as Element).getBoundingClientRect();
       const position = {
@@ -45,23 +46,23 @@ const FlowchartCanvas: React.FC = () => {
         y: event.clientY - reactFlowBounds.top,
       };
       
-      console.log('Drop position:', position);
+      logger.log('Drop position:', position);
       
       try {
         const dragData = event.dataTransfer.getData('application/json');
-        console.log('Drag data received:', dragData);
+        logger.log('Drag data received:', dragData);
         
         if (!dragData) {
-          console.error('No drag data found');
+          logger.error('No drag data found');
           return;
         }
         
         const item = JSON.parse(dragData);
-        console.log('Parsed item:', item);
+        logger.log('Parsed item:', item);
         
         addNodeToCanvas(item, position);
       } catch (error) {
-        console.error('Error parsing dropped item:', error);
+        logger.error('Error parsing dropped item:', error);
       }
     },
     [addNodeToCanvas]

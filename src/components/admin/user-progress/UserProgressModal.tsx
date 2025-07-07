@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import UserProgressCourseList from "./UserProgressCourseList";
 import UserProgressUnitActions from "./UserProgressUnitActions";
+import { logger } from "@/utils/logger";
 
 interface UserProgressModalProps {
   isOpen: boolean;
@@ -59,7 +60,7 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
 
     setLoading(true);
     try {
-      console.log('🔄 Fetching user progress for user:', userId);
+      logger.log('🔄 Fetching user progress for user:', userId);
 
       // Fetch user profile
       const { data: profile, error: profileError } = await supabase
@@ -69,11 +70,11 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
         .single();
 
       if (profileError) {
-        console.error('❌ Profile fetch error:', profileError);
+        logger.error('❌ Profile fetch error:', profileError);
         throw new Error(`Failed to fetch user profile: ${profileError.message}`);
       }
 
-      console.log('👤 Profile data:', profile);
+      logger.log('👤 Profile data:', profile);
 
       // First, get course assignments for this user
       const { data: courseAssignments, error: assignmentsError } = await supabase
@@ -82,14 +83,14 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
         .eq('user_id', userId);
 
       if (assignmentsError) {
-        console.error('❌ Course assignments fetch error:', assignmentsError);
+        logger.error('❌ Course assignments fetch error:', assignmentsError);
         throw new Error(`Failed to fetch course assignments: ${assignmentsError.message}`);
       }
 
-      console.log('📋 Course assignments:', courseAssignments);
+      logger.log('📋 Course assignments:', courseAssignments);
 
       if (!courseAssignments || courseAssignments.length === 0) {
-        console.log('⚠️ No course assignments found for user');
+        logger.log('⚠️ No course assignments found for user');
         setUserProgress({
           user_id: userId,
           user_email: profile.email,
@@ -100,7 +101,7 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
       }
 
       const assignedCourseIds = courseAssignments.map(a => a.course_id);
-      console.log('📚 Assigned course IDs:', assignedCourseIds);
+      logger.log('📚 Assigned course IDs:', assignedCourseIds);
 
       // Fetch course progress with left join to courses table to handle missing course data
       const { data: courseProgress, error: progressError } = await supabase
@@ -113,17 +114,17 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
         .in('course_id', assignedCourseIds);
 
       if (progressError) {
-        console.error('❌ Course progress fetch error:', progressError);
+        logger.error('❌ Course progress fetch error:', progressError);
         throw new Error(`Failed to fetch course progress: ${progressError.message}`);
       }
 
-      console.log('📊 Raw course progress data from DB:', courseProgress);
+      logger.log('📊 Raw course progress data from DB:', courseProgress);
 
       // For courses that have assignments but no progress records, create entries
       const existingCourseIds = courseProgress?.map(p => p.course_id) || [];
       const missingCourseIds = assignedCourseIds.filter(id => !existingCourseIds.includes(id));
 
-      console.log('📝 Missing course progress for:', missingCourseIds);
+      logger.log('📝 Missing course progress for:', missingCourseIds);
 
       if (missingCourseIds.length > 0) {
         // Get course details for missing courses
@@ -133,9 +134,9 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
           .in('id', missingCourseIds);
 
         if (coursesError) {
-          console.error('❌ Missing courses fetch error:', coursesError);
+          logger.error('❌ Missing courses fetch error:', coursesError);
         } else {
-          console.log('📚 Missing courses details:', missingCourses);
+          logger.log('📚 Missing courses details:', missingCourses);
           
           // Add missing courses to progress data with default values
           const missingProgressEntries = missingCourses?.map(course => ({

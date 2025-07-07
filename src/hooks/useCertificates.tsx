@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/utils/logger';
 
 interface Certificate {
   id: string;
@@ -37,7 +38,7 @@ export const useCertificates = () => {
 
         setCertificates(data || []);
       } catch (err) {
-        console.error('Error fetching certificates:', err);
+        logger.error('Error fetching certificates:', err);
         setError('Failed to load certificates');
       } finally {
         setLoading(false);

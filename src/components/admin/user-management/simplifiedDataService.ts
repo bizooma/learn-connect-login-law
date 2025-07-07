@@ -1,6 +1,7 @@
 
 import { UserProfile } from "./types";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 
 export interface SimplifiedUserStats {
   totalUsers: number;
@@ -11,12 +12,12 @@ export const fetchUsersWithStats = async (): Promise<{
   users: UserProfile[];
   stats: SimplifiedUserStats;
 }> => {
-  console.log('Fetching users and basic stats...');
+  logger.log('Fetching users and basic stats...');
   
   try {
     // Check current user's permissions
     const { data: { user } } = await supabase.auth.getUser();
-    console.log('Current user ID:', user?.id);
+    logger.log('Current user ID:', user?.id);
 
     // Check if current user has admin privileges
     const { data: currentUserRoles } = await supabase
@@ -24,7 +25,7 @@ export const fetchUsersWithStats = async (): Promise<{
       .select('role')
       .eq('user_id', user?.id);
 
-    console.log('Current user roles:', currentUserRoles);
+    logger.log('Current user roles:', currentUserRoles);
 
     // Fetch all profiles
     const { data: profiles, error: profilesError } = await supabase
@@ -33,11 +34,11 @@ export const fetchUsersWithStats = async (): Promise<{
       .order('created_at', { ascending: false });
 
     if (profilesError) {
-      console.error('Error fetching profiles:', profilesError);
+      logger.error('Error fetching profiles:', profilesError);
       throw profilesError;
     }
 
-    console.log(`Successfully fetched ${profiles?.length || 0} profiles`);
+    logger.log(`Successfully fetched ${profiles?.length || 0} profiles`);
 
     if (!profiles || profiles.length === 0) {
       return {
@@ -55,11 +56,11 @@ export const fetchUsersWithStats = async (): Promise<{
       .select('user_id, role');
 
     if (rolesError) {
-      console.error('Error fetching user roles:', rolesError);
+      logger.error('Error fetching user roles:', rolesError);
       throw rolesError;
     }
 
-    console.log(`Fetched ${userRoles?.length || 0} user roles`);
+    logger.log(`Fetched ${userRoles?.length || 0} user roles`);
 
     // Create a map of user_id to roles
     const rolesMap = new Map<string, string[]>();
@@ -90,8 +91,8 @@ export const fetchUsersWithStats = async (): Promise<{
       };
     });
 
-    console.log(`Returning ${userProfiles.length} user profiles`);
-    console.log('Role distribution:', roleCounts);
+    logger.log(`Returning ${userProfiles.length} user profiles`);
+    logger.log('Role distribution:', roleCounts);
     
     return {
       users: userProfiles,
@@ -102,7 +103,7 @@ export const fetchUsersWithStats = async (): Promise<{
     };
     
   } catch (error) {
-    console.error('Error in fetchUsersWithStats:', error);
+    logger.error('Error in fetchUsersWithStats:', error);
     throw error;
   }
 };

@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -79,7 +80,7 @@ const CreateQuizForm = ({ open, onOpenChange, onQuizCreated }: CreateQuizFormPro
       onQuizCreated();
       onOpenChange(false);
     } catch (error: any) {
-      console.error("Error creating quiz:", error);
+      logger.error("Error creating quiz:", error);
       toast({
         title: "Error",
         description: error.message,

@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 
 export interface UpdateMetrics {
   updateId: string;
@@ -64,7 +65,7 @@ class UpdateMonitoringService implements UpdatePerformanceMonitor {
     this.activeUpdates.set(updateId, metrics);
     this.phaseTimers.set(updateId, new Map());
 
-    console.log(`📊 Update monitoring started: ${updateId}`);
+    logger.log(`📊 Update monitoring started: ${updateId}`);
     return updateId;
   }
 
@@ -97,7 +98,7 @@ class UpdateMonitoringService implements UpdatePerformanceMonitor {
         break;
     }
 
-    console.log(`⏱️ Phase '${phase}' completed in ${durationMs}ms`);
+    logger.log(`⏱️ Phase '${phase}' completed in ${durationMs}ms`);
   }
 
   recordMetric(updateId: string, metric: string, value: number): void {
@@ -122,7 +123,7 @@ class UpdateMonitoringService implements UpdatePerformanceMonitor {
         break;
     }
 
-    console.log(`📈 Metric '${metric}': ${value}`);
+    logger.log(`📈 Metric '${metric}': ${value}`);
   }
 
   recordError(updateId: string, error: string, phase?: string): void {
@@ -131,7 +132,7 @@ class UpdateMonitoringService implements UpdatePerformanceMonitor {
 
     const errorMsg = phase ? `[${phase}] ${error}` : error;
     metrics.errors.push(errorMsg);
-    console.error(`❌ Update error: ${errorMsg}`);
+    logger.error(`❌ Update error: ${errorMsg}`);
   }
 
   recordWarning(updateId: string, warning: string, phase?: string): void {
@@ -140,7 +141,7 @@ class UpdateMonitoringService implements UpdatePerformanceMonitor {
 
     const warningMsg = phase ? `[${phase}] ${warning}` : warning;
     metrics.warnings.push(warningMsg);
-    console.warn(`⚠️ Update warning: ${warningMsg}`);
+    logger.warn(`⚠️ Update warning: ${warningMsg}`);
   }
 
   completeUpdate(updateId: string, success: boolean): UpdateMetrics {

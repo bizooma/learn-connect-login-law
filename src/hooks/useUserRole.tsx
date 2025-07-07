@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/utils/logger';
 
 export const useUserRole = () => {
   const { user, loading: authLoading } = useAuth();
@@ -10,7 +11,7 @@ export const useUserRole = () => {
   const retryCountRef = useRef(0);
   const fetchingRef = useRef(false);
 
-  console.log('useUserRole: Hook called with user:', {
+  logger.log('useUserRole: Hook called with user:', {
     user: user,
     userId: user?.id,
     userEmail: user?.email,
@@ -56,7 +57,7 @@ export const useUserRole = () => {
         .maybeSingle();
 
       if (error) {
-        console.error('useUserRole: Error fetching user role:', error);
+        logger.error('useUserRole: Error fetching user role:', error);
         setRole('student');
         setLoading(false);
         
@@ -76,7 +77,7 @@ export const useUserRole = () => {
         retryCountRef.current = 0;
       }
     } catch (error) {
-      console.error('useUserRole: Exception occurred:', error);
+      logger.error('useUserRole: Exception occurred:', error);
       setRole('student');
       setLoading(false);
       
@@ -94,7 +95,7 @@ export const useUserRole = () => {
   }, [user?.id, user?.email, authLoading, isDirectAdmin]);
 
   useEffect(() => {
-    console.log('useUserRole: useEffect triggered', {
+    logger.log('useUserRole: useEffect triggered', {
       user: user,
       userId: user?.id,
       userExists: !!user,

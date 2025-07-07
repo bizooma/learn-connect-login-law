@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { uploadVideoFile } from "../fileUploadUtils";
+import { logger } from "@/utils/logger";
 
 interface UnitData {
   id?: string;
@@ -37,23 +38,23 @@ interface SectionData {
 }
 
 export const createLessonsAndUnits = async (courseId: string, sections: SectionData[], moduleId?: string) => {
-  console.log('Creating lessons and units:', { courseId, sections, moduleId });
+  logger.log('Creating lessons and units:', { courseId, sections, moduleId });
   
   for (let sectionIndex = 0; sectionIndex < sections.length; sectionIndex++) {
     const section = sections[sectionIndex];
     
-    console.log('Creating lesson:', section.title);
+    logger.log('Creating lesson:', section.title);
     
     let finalVideoUrl = section.video_url || '';
     
     // Handle lesson video file upload if present
     if (section.video_file && section.video_type === 'upload') {
       try {
-        console.log('Uploading video file for lesson:', section.title);
+        logger.log('Uploading video file for lesson:', section.title);
         finalVideoUrl = await uploadVideoFile(section.video_file);
-        console.log('Lesson video uploaded successfully:', finalVideoUrl);
+        logger.log('Lesson video uploaded successfully:', finalVideoUrl);
       } catch (error) {
-        console.error('Error uploading lesson video:', error);
+        logger.error('Error uploading lesson video:', error);
         // Continue with empty video URL if upload fails
         finalVideoUrl = '';
       }
@@ -79,11 +80,11 @@ export const createLessonsAndUnits = async (courseId: string, sections: SectionD
       .single();
 
     if (lessonError) {
-      console.error('Error creating lesson:', lessonError);
+      logger.error('Error creating lesson:', lessonError);
       throw new Error(`Failed to create lesson: ${lessonError.message}`);
     }
 
-    console.log('Lesson created:', lesson);
+    logger.log('Lesson created:', lesson);
 
     // Create units for this lesson
     if (section.units && section.units.length > 0) {
@@ -93,23 +94,23 @@ export const createLessonsAndUnits = async (courseId: string, sections: SectionD
 };
 
 const createUnitsForLesson = async (lessonId: string, units: UnitData[]) => {
-  console.log('Creating units for lesson:', lessonId);
+  logger.log('Creating units for lesson:', lessonId);
   
   for (let unitIndex = 0; unitIndex < units.length; unitIndex++) {
     const unit = units[unitIndex];
     
-    console.log('Creating unit:', unit.title);
+    logger.log('Creating unit:', unit.title);
     
     let finalVideoUrl = unit.video_url;
     
     // Handle video file upload if present
     if (unit.video_file && unit.video_type === 'upload') {
       try {
-        console.log('Uploading video file for unit:', unit.title);
+        logger.log('Uploading video file for unit:', unit.title);
         finalVideoUrl = await uploadVideoFile(unit.video_file);
-        console.log('Video uploaded successfully:', finalVideoUrl);
+        logger.log('Video uploaded successfully:', finalVideoUrl);
       } catch (error) {
-        console.error('Error uploading video:', error);
+        logger.error('Error uploading video:', error);
         // Continue with empty video URL if upload fails
         finalVideoUrl = '';
       }
@@ -119,7 +120,7 @@ const createUnitsForLesson = async (lessonId: string, units: UnitData[]) => {
     let filesData = null;
     if (unit.files && Array.isArray(unit.files) && unit.files.length > 0) {
       filesData = JSON.stringify(unit.files);
-      console.log('Unit files to save:', unit.title, 'Files:', filesData);
+      logger.log('Unit files to save:', unit.title, 'Files:', filesData);
     }
 
     const { data: createdUnit, error: unitError } = await supabase
@@ -141,7 +142,7 @@ const createUnitsForLesson = async (lessonId: string, units: UnitData[]) => {
       .single();
 
     if (unitError) {
-      console.error('Error creating unit:', unitError);
+      logger.error('Error creating unit:', unitError);
       throw new Error(`Failed to create unit: ${unitError.message}`);
     }
 

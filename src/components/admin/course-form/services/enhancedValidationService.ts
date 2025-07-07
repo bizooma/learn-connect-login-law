@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { ModuleData } from "../types";
+import { logger } from "@/utils/logger";
 
 export interface ValidationResult {
   isValid: boolean;
@@ -32,7 +33,7 @@ export const validateCourseStructure = async (
   };
 
   try {
-    console.log('Enhanced course structure validation started');
+    logger.log('Enhanced course structure validation started');
 
     // Validate basic structure requirements
     if (proposedModules.length === 0) {
@@ -88,7 +89,7 @@ export const validateCourseStructure = async (
 
     result.isValid = result.errors.length === 0 && result.integrityScore >= 60;
 
-    console.log('Enhanced validation completed:', {
+    logger.log('Enhanced validation completed:', {
       isValid: result.isValid,
       integrityScore: result.integrityScore,
       errors: result.errors.length,
@@ -98,7 +99,7 @@ export const validateCourseStructure = async (
 
     return result;
   } catch (error) {
-    console.error('Error in enhanced course validation:', error);
+    logger.error('Error in enhanced course validation:', error);
     result.errors.push(`Validation failed: ${error.message}`);
     result.isValid = false;
     return result;

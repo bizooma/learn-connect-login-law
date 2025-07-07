@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 
 export interface StreakData {
   user_id: string;
@@ -38,7 +39,7 @@ export const useLeaderboards = () => {
 
       setUserStreak(data);
     } catch (error) {
-      console.error('Error fetching user streak:', error);
+      logger.error('Error fetching user streak:', error);
     }
   };
 
@@ -56,7 +57,7 @@ export const useLeaderboards = () => {
 
       setUserAchievements(data || []);
     } catch (error) {
-      console.error('Error fetching user achievements:', error);
+      logger.error('Error fetching user achievements:', error);
     }
   };
 
@@ -76,14 +77,14 @@ export const useLeaderboards = () => {
 
       return data?.rank_position || null;
     } catch (error) {
-      console.error('Error fetching user rank:', error);
+      logger.error('Error fetching user rank:', error);
       return null;
     }
   };
 
   const refreshCache = async () => {
     try {
-      console.log('Starting leaderboard cache refresh...');
+      logger.log('Starting leaderboard cache refresh...');
       
       // Clear existing cache first
       const { error: deleteError } = await supabase
@@ -92,7 +93,7 @@ export const useLeaderboards = () => {
         .neq('id', '00000000-0000-0000-0000-000000000000');
 
       if (deleteError) {
-        console.warn('Warning clearing cache:', deleteError);
+        logger.warn('Warning clearing cache:', deleteError);
       }
 
       // Refresh learning streak leaderboard
@@ -110,7 +111,7 @@ export const useLeaderboards = () => {
         .limit(50);
 
       if (streakError) {
-        console.error('Error fetching streak data:', streakError);
+        logger.error('Error fetching streak data:', streakError);
       } else if (streakData && streakData.length > 0) {
         const cacheEntries = streakData.map((entry: any, index: number) => ({
           leaderboard_type: 'learning_streak',
@@ -130,9 +131,9 @@ export const useLeaderboards = () => {
           .insert(cacheEntries);
 
         if (insertError) {
-          console.error('Error inserting streak cache:', insertError);
+          logger.error('Error inserting streak cache:', insertError);
         } else {
-          console.log(`Successfully cached ${cacheEntries.length} streak entries`);
+          logger.log(`Successfully cached ${cacheEntries.length} streak entries`);
         }
       }
 
@@ -151,7 +152,7 @@ export const useLeaderboards = () => {
       
       return { total_cache_entries: finalCount };
     } catch (error: any) {
-      console.error('Error refreshing leaderboard cache:', error);
+      logger.error('Error refreshing leaderboard cache:', error);
       toast({
         title: "Error",
         description: `Failed to refresh leaderboards: ${error.message}`,
@@ -177,7 +178,7 @@ export const useLeaderboards = () => {
         .eq('profiles.is_deleted', false);
 
       if (categoryError || !categoryData) {
-        console.warn(`No data found for ${category} category:`, categoryError);
+        logger.warn(`No data found for ${category} category:`, categoryError);
         return;
       }
 
@@ -243,13 +244,13 @@ export const useLeaderboards = () => {
           .insert(cacheEntries);
 
         if (insertError) {
-          console.error(`Error inserting ${category} cache:`, insertError);
+          logger.error(`Error inserting ${category} cache:`, insertError);
         } else {
-          console.log(`Successfully cached ${cacheEntries.length} ${category} entries`);
+          logger.log(`Successfully cached ${cacheEntries.length} ${category} entries`);
         }
       }
     } catch (error) {
-      console.error(`Error refreshing ${category} leaderboard:`, error);
+      logger.error(`Error refreshing ${category} leaderboard:`, error);
     }
   };
 
@@ -262,14 +263,14 @@ export const useLeaderboards = () => {
 
       return count || 0;
     } catch (error) {
-      console.error('Error getting cache count:', error);
+      logger.error('Error getting cache count:', error);
       return 0;
     }
   };
 
   const initializeStreaks = async () => {
     try {
-      console.log('Initializing learning streaks...');
+      logger.log('Initializing learning streaks...');
       
       // Get users who have completed units but don't have streak records
       const { data: usersWithProgress } = await supabase
@@ -304,7 +305,7 @@ export const useLeaderboards = () => {
           const { error } = await supabase.from('user_learning_streaks').insert(streakRecords);
           
           if (error) {
-            console.error('Error creating streaks:', error);
+            logger.error('Error creating streaks:', error);
             throw error;
           }
           
@@ -319,7 +320,7 @@ export const useLeaderboards = () => {
 
       return 0;
     } catch (error: any) {
-      console.error('Error initializing streaks:', error);
+      logger.error('Error initializing streaks:', error);
       toast({
         title: "Error",
         description: `Failed to initialize streaks: ${error.message}`,

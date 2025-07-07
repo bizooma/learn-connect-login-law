@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 
 export const debugLessonOrder = async () => {
   try {
@@ -10,11 +11,11 @@ export const debugLessonOrder = async () => {
       .or('title.ilike.%5 Characteristics%,title.ilike.%4 Steps%');
     
     if (error) {
-      console.error('Error fetching lessons:', error);
+      logger.error('Error fetching lessons:', error);
       return;
     }
     
-    console.log('Found lessons:', lessons);
+    logger.log('Found lessons:', lessons);
     
     // Group by course_id
     const courseGroups = lessons?.reduce((acc, lesson) => {
@@ -25,10 +26,10 @@ export const debugLessonOrder = async () => {
       return acc;
     }, {} as Record<string, any[]>) || {};
     
-    console.log('Lessons grouped by course:', courseGroups);
+    logger.log('Lessons grouped by course:', courseGroups);
     
     return courseGroups;
   } catch (error) {
-    console.error('Error in debugLessonOrder:', error);
+    logger.error('Error in debugLessonOrder:', error);
   }
 };

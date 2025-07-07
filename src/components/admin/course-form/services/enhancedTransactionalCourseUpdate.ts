@@ -3,6 +3,7 @@ import { CourseFormData, ModuleData } from "../types";
 import { uploadImageFile } from "../fileUploadUtils";
 import { updateUnitsEnhanced, cleanupOrphanedUnits } from "./enhancedUnitUpdateService";
 import { ensureSafeProgressCreation, validateProgressConsistency } from "./safeProgressService";
+import { logger } from "@/utils/logger";
 
 export interface UpdateResult {
   success: boolean;
@@ -55,11 +56,11 @@ export const performEnhancedTransactionalCourseUpdate = async (
   };
 
   try {
-    console.log('🚀 Starting enhanced transactional course update for:', courseId);
+    logger.log('🚀 Starting enhanced transactional course update for:', courseId);
 
     // Phase 1: Pre-update validation and safety checks
     const phase1Start = Date.now();
-    console.log('🔍 Phase 1: Pre-update validation and safety checks');
+    logger.log('🔍 Phase 1: Pre-update validation and safety checks');
     
     const progressValidation = await validateProgressConsistency(courseId);
     if (!progressValidation.isConsistent) {
@@ -69,26 +70,26 @@ export const performEnhancedTransactionalCourseUpdate = async (
     const existingStructure = await fetchExistingCourseStructure(courseId);
     const quizMappings = await createQuizMappings(existingStructure, modules);
     
-    console.log('Quiz mappings to preserve:', quizMappings.length);
+    logger.log('Quiz mappings to preserve:', quizMappings.length);
     phaseTimings.phase1_validation = Date.now() - phase1Start;
 
     // Phase 2: Update course metadata safely
     const phase2Start = Date.now();
-    console.log('📝 Phase 2: Updating course metadata safely');
+    logger.log('📝 Phase 2: Updating course metadata safely');
     
     await updateCourseMetadataSafely(courseId, courseData);
     phaseTimings.phase2_metadata = Date.now() - phase2Start;
 
     // Phase 3: Perform safe content replacement with transaction safety
     const phase3Start = Date.now();
-    console.log('🔧 Phase 3: Performing safe content replacement with enhanced unit handling');
+    logger.log('🔧 Phase 3: Performing safe content replacement with enhanced unit handling');
     
     await performSafeContentReplacementEnhanced(courseId, modules);
     phaseTimings.phase3_content = Date.now() - phase3Start;
 
     // Phase 4: Restore quiz assignments using enhanced matching
     const phase4Start = Date.now();
-    console.log('🎯 Phase 4: Restoring quiz assignments with enhanced matching');
+    logger.log('🎯 Phase 4: Restoring quiz assignments with enhanced matching');
     
     const quizRestoreCount = await restoreQuizAssignmentsByTitleEnhanced(quizMappings);
     result.quizAssignmentsRestored = quizRestoreCount;
@@ -97,7 +98,7 @@ export const performEnhancedTransactionalCourseUpdate = async (
 
     // Phase 5: Ensure safe progress creation and final validation
     const phase5Start = Date.now();
-    console.log('🛡️ Phase 5: Ensuring safe progress creation and final validation');
+    logger.log('🛡️ Phase 5: Ensuring safe progress creation and final validation');
     
     // Get all users who should have access to this course
     const { data: assignedUsers } = await supabase
@@ -135,7 +136,7 @@ export const performEnhancedTransactionalCourseUpdate = async (
       phaseTimings
     };
 
-    console.log('✨ Enhanced course update completed successfully!', {
+    logger.log('✨ Enhanced course update completed successfully!', {
       totalTime: `${totalTime}ms`,
       quizAssignmentsRestored: result.quizAssignmentsRestored,
       integrityScore: result.integrityScore,
@@ -145,7 +146,7 @@ export const performEnhancedTransactionalCourseUpdate = async (
     return result;
 
   } catch (error) {
-    console.error('💥 Enhanced course update failed:', error);
+    logger.error('💥 Enhanced course update failed:', error);
     result.errors.push(`Update failed: ${error.message}`);
     return result;
   }

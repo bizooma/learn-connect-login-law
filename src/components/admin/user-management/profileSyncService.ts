@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 
 export interface ProfileSyncResult {
   success: boolean;
@@ -15,22 +16,22 @@ export interface ProfileSyncResult {
 }
 
 export const syncUserProfiles = async (): Promise<ProfileSyncResult> => {
-  console.log('Calling sync-user-profiles edge function...');
+  logger.log('Calling sync-user-profiles edge function...');
   
   const { data, error } = await supabase.functions.invoke('sync-user-profiles', {
     method: 'POST'
   });
 
   if (error) {
-    console.error('Error calling sync-user-profiles function:', error);
+    logger.error('Error calling sync-user-profiles function:', error);
     throw new Error(`Failed to sync profiles: ${error.message}`);
   }
 
   if (!data.success) {
-    console.error('Profile sync failed:', data.error);
+    logger.error('Profile sync failed:', data.error);
     throw new Error(data.error || 'Profile sync failed');
   }
 
-  console.log('Profile sync completed:', data);
+  logger.log('Profile sync completed:', data);
   return data;
 };

@@ -1,11 +1,13 @@
 
+import { logger } from '@/utils/logger';
+
 export interface CSVExportData {
   [key: string]: string | number | null | undefined;
 }
 
 export const exportToCSV = (data: CSVExportData[], filename: string) => {
   if (data.length === 0) {
-    console.warn('No data to export');
+    logger.warn('No data to export');
     return;
   }
 

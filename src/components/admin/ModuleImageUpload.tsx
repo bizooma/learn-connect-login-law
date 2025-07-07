@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Upload, X, Image } from 'lucide-react';
 import { toast } from 'sonner';
 import { uploadImageFile } from './course-form/fileUploadUtils';
+import { logger } from '@/utils/logger';
 
 interface ModuleImageUploadProps {
   currentImageUrl?: string;
@@ -52,7 +53,7 @@ const ModuleImageUpload: React.FC<ModuleImageUploadProps> = ({
       onImageUpdate(imageUrl);
       toast.success('Module image uploaded successfully');
     } catch (error) {
-      console.error('Error uploading module image:', error);
+      logger.error('Error uploading module image:', error);
       toast.error('Failed to upload image');
       setPreviewUrl(currentImageUrl || null);
     } finally {

@@ -1,5 +1,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { logger } from '@/utils/logger';
 
 declare global {
   interface Window {
@@ -98,7 +99,7 @@ export const useYouTubePlayer = ({
         },
         events: {
           onReady: (event: any) => {
-            console.log('YouTube player ready');
+            logger.log('YouTube player ready');
             playerRef.current = event.target;
             
             // Safely get duration on ready
@@ -119,7 +120,7 @@ export const useYouTubePlayer = ({
           },
           onStateChange: (event: any) => {
             const state = event.data;
-            console.log('YouTube player state changed:', state);
+            logger.log('YouTube player state changed:', state);
             
             // Safely get duration with proper checks
             let duration = 0;
@@ -127,7 +128,7 @@ export const useYouTubePlayer = ({
               try {
                 duration = event.target.getDuration() || 0;
               } catch (error) {
-                console.warn('Error getting YouTube video duration:', error);
+                logger.warn('Error getting YouTube video duration:', error);
                 // Fallback to stored duration
                 duration = playerState.duration;
               }
@@ -166,7 +167,7 @@ export const useYouTubePlayer = ({
 
       playerRef.current = player;
     } catch (error) {
-      console.error('Error initializing YouTube player:', error);
+      logger.error('Error initializing YouTube player:', error);
     }
   }, [videoId, containerId, onReady, onStateChange, playerState.duration]);
 
@@ -194,7 +195,7 @@ export const useYouTubePlayer = ({
             onProgress(currentTime, duration);
           }
         } catch (error) {
-          console.warn('Error getting YouTube player time:', error);
+          logger.warn('Error getting YouTube player time:', error);
         }
       }
     }, 2000); // Update every 2 seconds
@@ -222,7 +223,7 @@ export const useYouTubePlayer = ({
         try {
           playerRef.current.destroy();
         } catch (error) {
-          console.warn('Error destroying YouTube player:', error);
+          logger.warn('Error destroying YouTube player:', error);
         }
       }
     };

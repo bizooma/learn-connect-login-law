@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 
 export const checkQuizNameExists = async (name: string, excludeId?: string): Promise<boolean> => {
   const trimmedName = name.trim();
@@ -22,7 +23,7 @@ export const checkQuizNameExists = async (name: string, excludeId?: string): Pro
   const { data, error } = await query;
 
   if (error) {
-    console.error('Error checking quiz name:', error);
+    logger.error('Error checking quiz name:', error);
     return false;
   }
 

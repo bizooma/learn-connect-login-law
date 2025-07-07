@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { UserPlus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 
 interface AddUserDialogProps {
   onUserAdded: () => void;
@@ -29,7 +30,7 @@ const AddUserDialog = ({ onUserAdded }: AddUserDialogProps) => {
     setLoading(true);
 
     try {
-      console.log('Attempting to create user via edge function:', formData);
+      logger.log('Attempting to create user via edge function:', formData);
 
       // Get the current session to ensure we have an auth token
       const { data: { session } } = await supabase.auth.getSession();
@@ -50,7 +51,7 @@ const AddUserDialog = ({ onUserAdded }: AddUserDialogProps) => {
         }
       });
 
-      console.log('Edge function response:', { data, error });
+      logger.log('Edge function response:', { data, error });
 
       if (error) {
         throw new Error(error.message || 'Failed to create user');
@@ -76,7 +77,7 @@ const AddUserDialog = ({ onUserAdded }: AddUserDialogProps) => {
       onUserAdded();
 
     } catch (error: any) {
-      console.error('Error creating user:', error);
+      logger.error('Error creating user:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to create user",

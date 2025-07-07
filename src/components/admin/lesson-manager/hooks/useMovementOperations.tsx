@@ -1,4 +1,5 @@
 
+import { logger } from "@/utils/logger";
 import { SectionData } from "../types";
 
 interface UseMovementOperationsProps {
@@ -20,8 +21,8 @@ export const useMovementOperations = ({ lessons, onLessonsChange }: UseMovementO
       sort_order: index
     }));
     
-    console.log('Moving lesson from', fromIndex, 'to', toIndex);
-    console.log('Reordered lessons:', reorderedLessons.map(l => ({ title: l.title, sort_order: l.sort_order })));
+    logger.log('Moving lesson from', fromIndex, 'to', toIndex);
+    logger.log('Reordered lessons:', reorderedLessons.map(l => ({ title: l.title, sort_order: l.sort_order })));
     
     onLessonsChange(reorderedLessons);
   };

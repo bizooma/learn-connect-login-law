@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 
 export const createCourseNotification = async (courseTitle: string) => {
   try {
@@ -13,11 +14,11 @@ export const createCourseNotification = async (courseTitle: string) => {
       });
 
     if (notificationError) {
-      console.error('Error creating notification:', notificationError);
+      logger.error('Error creating notification:', notificationError);
     } else {
-      console.log('Notification created for new course');
+      logger.log('Notification created for new course');
     }
   } catch (error) {
-    console.error('Error creating notification:', error);
+    logger.error('Error creating notification:', error);
   }
 };

@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { ModuleData } from "../types";
+import { logger } from "@/utils/logger";
 
 interface QuizAssignment {
   quizId: string;
@@ -10,7 +11,7 @@ interface QuizAssignment {
 
 export const preserveQuizAssignments = async (courseId: string): Promise<QuizAssignment[]> => {
   try {
-    console.log('Preserving quiz assignments for course:', courseId);
+    logger.log('Preserving quiz assignments for course:', courseId);
     
     // Get all units in the course
     const { data: modules, error: modulesError } = await supabase
@@ -23,7 +24,7 @@ export const preserveQuizAssignments = async (courseId: string): Promise<QuizAss
       .eq('course_id', courseId);
 
     if (modulesError) {
-      console.error('Error fetching modules for quiz preservation:', modulesError);
+      logger.error('Error fetching modules for quiz preservation:', modulesError);
       return [];
     }
 
@@ -32,7 +33,7 @@ export const preserveQuizAssignments = async (courseId: string): Promise<QuizAss
     ) || [];
 
     if (allUnitIds.length === 0) {
-      console.log('No units found for quiz preservation');
+      logger.log('No units found for quiz preservation');
       return [];
     }
 
@@ -45,7 +46,7 @@ export const preserveQuizAssignments = async (courseId: string): Promise<QuizAss
       .not('unit_id', 'is', null);
 
     if (quizzesError) {
-      console.error('Error fetching quiz assignments for preservation:', quizzesError);
+      logger.error('Error fetching quiz assignments for preservation:', quizzesError);
       return [];
     }
 
@@ -55,10 +56,10 @@ export const preserveQuizAssignments = async (courseId: string): Promise<QuizAss
       quizTitle: quiz.title
     })) || [];
 
-    console.log('Preserved quiz assignments:', assignments);
+    logger.log('Preserved quiz assignments:', assignments);
     return assignments;
   } catch (error) {
-    console.error('Error in preserveQuizAssignments:', error);
+    logger.error('Error in preserveQuizAssignments:', error);
     return [];
   }
 };
@@ -69,10 +70,10 @@ export const restoreQuizAssignments = async (
   modules: ModuleData[]
 ) => {
   try {
-    console.log('Restoring quiz assignments for course:', courseId, 'Assignments:', preservedAssignments);
+    logger.log('Restoring quiz assignments for course:', courseId, 'Assignments:', preservedAssignments);
     
     if (preservedAssignments.length === 0) {
-      console.log('No quiz assignments to restore');
+      logger.log('No quiz assignments to restore');
       return;
     }
 
@@ -90,7 +91,7 @@ export const restoreQuizAssignments = async (
       .eq('course_id', courseId);
 
     if (currentModulesError) {
-      console.error('Error fetching current modules for restoration:', currentModulesError);
+      logger.error('Error fetching current modules for restoration:', currentModulesError);
       return;
     }
 
@@ -106,7 +107,7 @@ export const restoreQuizAssignments = async (
         const newUnit = currentUnits.find(u => u.title === unitTitle);
         if (newUnit) {
           unitIdMap.set(assignment.unitId, newUnit.id);
-          console.log(`Mapped unit "${unitTitle}": ${assignment.unitId} -> ${newUnit.id}`);
+          logger.log(`Mapped unit "${unitTitle}": ${assignment.unitId} -> ${newUnit.id}`);
         }
       }
     }
@@ -115,7 +116,7 @@ export const restoreQuizAssignments = async (
     for (const assignment of preservedAssignments) {
       const newUnitId = unitIdMap.get(assignment.unitId);
       if (newUnitId) {
-        console.log(`Restoring quiz assignment: Quiz "${assignment.quizTitle}" (${assignment.quizId}) -> Unit ${newUnitId}`);
+        logger.log(`Restoring quiz assignment: Quiz "${assignment.quizTitle}" (${assignment.quizId}) -> Unit ${newUnitId}`);
         
         const { error: updateError } = await supabase
           .from('quizzes')
@@ -123,7 +124,7 @@ export const restoreQuizAssignments = async (
           .eq('id', assignment.quizId);
 
         if (updateError) {
-          console.error(`Error restoring quiz assignment for ${assignment.quizId}:`, updateError);
+          logger.error(`Error restoring quiz assignment for ${assignment.quizId}:`, updateError);
         } else {
           console.log(`Successfully restored quiz assignment: ${assignment.quizId} -> ${newUnitId}`);
         }

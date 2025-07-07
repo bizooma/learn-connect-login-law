@@ -9,6 +9,7 @@ import { Search, RefreshCw, Eye, Calendar, User, UserCog, UserX, UserPlus } from
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
+import { logger } from "@/utils/logger";
 
 interface AuditEntry {
   id: string;
@@ -44,7 +45,7 @@ const UserAuditTab = () => {
 
       setAuditEntries(data || []);
     } catch (error: any) {
-      console.error('Error fetching audit entries:', error);
+      logger.error('Error fetching audit entries:', error);
       toast({
         title: "Error",
         description: "Failed to fetch audit history",

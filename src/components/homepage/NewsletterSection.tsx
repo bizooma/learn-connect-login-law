@@ -2,6 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useState } from "react";
+import { logger } from "@/utils/logger";
 
 const NewsletterSection = () => {
   const [name, setName] = useState("");
@@ -10,7 +11,7 @@ const NewsletterSection = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     // Handle newsletter subscription logic here
-    console.log("Newsletter subscription:", { name, email });
+    logger.log("Newsletter subscription:", { name, email });
   };
 
   return (

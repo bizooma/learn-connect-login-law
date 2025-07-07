@@ -12,6 +12,7 @@ import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { validateMeetingUrl } from "@/utils/meetingUtils";
+import { logger } from "@/utils/logger";
 
 interface OwnerCalendarEventDialogProps {
   lawFirmId: string;
@@ -90,7 +91,7 @@ const OwnerCalendarEventDialog = ({ lawFirmId, onEventAdded }: OwnerCalendarEven
       setOpen(false);
       onEventAdded();
     } catch (error) {
-      console.error('Error creating event:', error);
+      logger.error('Error creating event:', error);
       toast({
         title: "Error",
         description: "Failed to create event",

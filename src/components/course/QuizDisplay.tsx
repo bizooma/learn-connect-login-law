@@ -10,6 +10,7 @@ import QuizResults from "../quiz/QuizResults";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useReliableCompletion } from "@/hooks/useReliableCompletion";
+import { logger } from "@/utils/logger";
 
 type Quiz = Tables<'quizzes'>;
 type Question = Tables<'quiz_questions'>;
@@ -72,7 +73,7 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
         .maybeSingle();
 
       if (error) {
-        console.error('Error checking quiz completion:', error);
+        logger.error('Error checking quiz completion:', error);
         setCompletionStatus(null);
       } else if (data?.quiz_completed) {
         // For now, assume they passed if quiz_completed is true
@@ -92,7 +93,7 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
         });
       }
     } catch (error) {
-      console.error('Error checking quiz completion:', error);
+      logger.error('Error checking quiz completion:', error);
       setCompletionStatus(null);
     } finally {
       setStatusLoading(false);
@@ -106,7 +107,7 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
   const fetchQuizQuestions = async () => {
     if (!quiz.id) return;
     
-    console.log('QUIZ DISPLAY: Fetching questions for quiz:', quiz.id);
+    logger.log('QUIZ DISPLAY: Fetching questions for quiz:', quiz.id);
     setLoading(true);
     try {
       // First fetch questions without deleted ones
@@ -118,14 +119,14 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
         .order('sort_order', { ascending: true });
 
       if (questionsError) {
-        console.error('QUIZ DISPLAY: Error fetching questions:', questionsError);
+        logger.error('QUIZ DISPLAY: Error fetching questions:', questionsError);
         throw questionsError;
       }
 
-      console.log('QUIZ DISPLAY: Raw questions fetched:', questionsData?.length || 0);
+      logger.log('QUIZ DISPLAY: Raw questions fetched:', questionsData?.length || 0);
 
       if (!questionsData || questionsData.length === 0) {
-        console.log('QUIZ DISPLAY: No questions found for quiz');
+        logger.log('QUIZ DISPLAY: No questions found for quiz');
         setQuizWithQuestions({
           ...quiz,
           quiz_questions: []
@@ -144,14 +145,14 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
             .order('sort_order', { ascending: true });
 
           if (optionsError) {
-            console.warn(`QUIZ DISPLAY: Error fetching options for question ${question.id}:`, optionsError);
+            logger.warn(`QUIZ DISPLAY: Error fetching options for question ${question.id}:`, optionsError);
             return {
               ...question,
               quiz_question_options: []
             };
           }
 
-          console.log(`QUIZ DISPLAY: Found ${optionsData?.length || 0} options for question ${question.id}`);
+          logger.log(`QUIZ DISPLAY: Found ${optionsData?.length || 0} options for question ${question.id}`);
 
           return {
             ...question,
@@ -165,7 +166,7 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
         quiz_questions: questionsWithOptions
       };
 
-      console.log('QUIZ DISPLAY: Final questions with options:', questionsWithOptions.length);
+      logger.log('QUIZ DISPLAY: Final questions with options:', questionsWithOptions.length);
       setQuizWithQuestions(quizData);
     } catch (error) {
       console.error('QUIZ DISPLAY: Error in fetchQuizQuestions:', error);

@@ -1,10 +1,11 @@
 
 import { CourseWithProgress } from "./types";
+import { logger } from "@/utils/logger";
 
 export const transformProgressData = (progressData: any[]): CourseWithProgress[] => {
   return progressData?.map(progress => {
     if (!progress.courses) {
-      console.warn('Course data missing for progress:', progress);
+      logger.warn('Course data missing for progress:', progress);
       return null;
     }
     

@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Tables } from "@/integrations/supabase/types";
+import { logger } from "@/utils/logger";
 
 type Profile = Tables<'profiles'>;
 type LawFirm = Tables<'law_firms'>;
@@ -67,7 +68,7 @@ const RemoveEmployeeDialog = ({
         });
 
       if (notificationError) {
-        console.error('Failed to create notification:', notificationError);
+        logger.error('Failed to create notification:', notificationError);
         // Don't throw here as the main operation succeeded
       }
 
@@ -79,7 +80,7 @@ const RemoveEmployeeDialog = ({
       onEmployeeRemoved();
       onOpenChange(false);
     } catch (error: any) {
-      console.error('Error removing employee:', error);
+      logger.error('Error removing employee:', error);
       toast({
         title: "Error",
         description: `Failed to remove employee: ${error.message}`,

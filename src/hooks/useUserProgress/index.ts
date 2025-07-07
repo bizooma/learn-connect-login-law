@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { useCourseProgress } from "./useCourseProgress";
 import { useUnitProgress } from "./useUnitProgress";
 import { useProgressStates } from "./useProgressStates";
+import { logger } from "@/utils/logger";
 
 export const useUserProgress = (userId?: string) => {
   const {
@@ -26,10 +27,10 @@ export const useUserProgress = (userId?: string) => {
 
   useEffect(() => {
     if (userId) {
-      console.log('useUserProgress: Starting to fetch progress for user:', userId);
+      logger.log('useUserProgress: Starting to fetch progress for user:', userId);
       fetchUserProgress();
     } else {
-      console.log('useUserProgress: No user ID provided');
+      logger.log('useUserProgress: No user ID provided');
     }
   }, [userId, fetchUserProgress]);
 

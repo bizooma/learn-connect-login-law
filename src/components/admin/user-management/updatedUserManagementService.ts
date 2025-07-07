@@ -1,8 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
 import { UserProfile } from "./types";
+import { logger } from "@/utils/logger";
 
 export const fetchUsersWithStatsSafe = async () => {
-  console.log('Fetching users with safe filters...');
+  logger.log('Fetching users with safe filters...');
   
   try {
     // Fetch only active users (non-deleted)
@@ -46,11 +47,11 @@ export const fetchUsersWithStatsSafe = async () => {
       }, {} as Record<string, number>)
     };
 
-    console.log('Fetched users safely:', { userCount: users.length, stats });
+    logger.log('Fetched users safely:', { userCount: users.length, stats });
     
     return { users, stats };
   } catch (error) {
-    console.error('Error in fetchUsersWithStatsSafe:', error);
+    logger.error('Error in fetchUsersWithStatsSafe:', error);
     throw error;
   }
 };
@@ -67,7 +68,7 @@ export const updateUserRoleSafe = async (
   });
 
   if (error) {
-    console.error('Error updating user role:', error);
+    logger.error('Error updating user role:', error);
     throw new Error(error.message || 'Failed to update user role');
   }
 
@@ -76,7 +77,7 @@ export const updateUserRoleSafe = async (
 
 export const softDeleteUserSafe = async (userId: string, reason: string) => {
   try {
-    console.log(`Safely soft deleting user ${userId}`);
+    logger.log(`Safely soft deleting user ${userId}`);
     
     const { data, error } = await supabase.rpc('soft_delete_user', {
       p_user_id: userId,
@@ -84,21 +85,21 @@ export const softDeleteUserSafe = async (userId: string, reason: string) => {
     });
 
     if (error) {
-      console.error('Error in safe soft delete:', error);
+      logger.error('Error in safe soft delete:', error);
       throw error;
     }
 
-    console.log('Safe soft delete successful:', data);
+    logger.log('Safe soft delete successful:', data);
     return data;
   } catch (error) {
-    console.error('Error in softDeleteUserSafe:', error);
+    logger.error('Error in softDeleteUserSafe:', error);
     throw error;
   }
 };
 
 export const restoreUserSafe = async (userId: string, reason: string) => {
   try {
-    console.log(`Safely restoring user ${userId}`);
+    logger.log(`Safely restoring user ${userId}`);
     
     const { data, error } = await supabase.rpc('restore_user', {
       p_user_id: userId,
@@ -106,14 +107,14 @@ export const restoreUserSafe = async (userId: string, reason: string) => {
     });
 
     if (error) {
-      console.error('Error in safe restore:', error);
+      logger.error('Error in safe restore:', error);
       throw error;
     }
 
-    console.log('Safe restore successful:', data);
+    logger.log('Safe restore successful:', data);
     return data;
   } catch (error) {
-    console.error('Error in restoreUserSafe:', error);
+    logger.error('Error in restoreUserSafe:', error);
     throw error;
   }
 };

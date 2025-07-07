@@ -7,6 +7,7 @@ import TeamLeaderDashboardTabs from "@/components/team-leader/TeamLeaderDashboar
 import NotificationBanner from "@/components/notifications/NotificationBanner";
 import LMSTreeFooter from "@/components/lms-tree/LMSTreeFooter";
 import { useEffect } from "react";
+import { logger } from "@/utils/logger";
 
 const TeamLeaderDashboard = () => {
   const navigate = useNavigate();
@@ -16,14 +17,14 @@ const TeamLeaderDashboard = () => {
   useEffect(() => {
     // If no user, redirect immediately
     if (!user) {
-      console.log('TeamLeaderDashboard: No user found, redirecting to home');
+      logger.log('TeamLeaderDashboard: No user found, redirecting to home');
       navigate("/", { replace: true });
       return;
     }
 
     // Only redirect if role loading is complete AND user is definitely not a team leader
     if (!roleLoading && user && !isTeamLeader) {
-      console.log('TeamLeaderDashboard: User is not a team leader, redirecting to main dashboard');
+      logger.log('TeamLeaderDashboard: User is not a team leader, redirecting to main dashboard');
       navigate("/", { replace: true });
       return;
     }

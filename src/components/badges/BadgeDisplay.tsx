@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { logger } from "@/utils/logger";
 import { Award } from "lucide-react";
 
 interface Badge {
@@ -44,7 +45,7 @@ const BadgeDisplay = ({ userId, showAll = false, className = "" }: BadgeDisplayP
       if (error) throw error;
       setBadges(data || []);
     } catch (error) {
-      console.error('Error fetching badges:', error);
+      logger.error('Error fetching badges:', error);
     } finally {
       setLoading(false);
     }

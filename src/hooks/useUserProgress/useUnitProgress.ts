@@ -2,6 +2,7 @@
 import { useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { progressService } from "./progressService";
+import { logger } from "@/utils/logger";
 
 export const useUnitProgress = (
   userId?: string,
@@ -13,18 +14,18 @@ export const useUnitProgress = (
 
   const markUnitComplete = useCallback(async (unitId: string, courseId: string) => {
     if (!userId) {
-      console.warn('Cannot mark unit complete: no user ID');
+      logger.warn('Cannot mark unit complete: no user ID');
       return;
     }
 
     if (!pendingOperations || !setPendingOperations) {
-      console.warn('Pending operations management not available');
+      logger.warn('Pending operations management not available');
       return;
     }
 
     const operationKey = `unit-${unitId}`;
     if (pendingOperations.has(operationKey)) {
-      console.log('Unit complete operation already pending for unit:', unitId);
+      logger.log('Unit complete operation already pending for unit:', unitId);
       return;
     }
 
@@ -35,7 +36,7 @@ export const useUnitProgress = (
         await calculateCourseProgress(courseId);
       }
     } catch (error) {
-      console.error('Error marking unit complete:', error);
+      logger.error('Error marking unit complete:', error);
       if (error.code !== '23505') {
         toast({
           title: "Error",

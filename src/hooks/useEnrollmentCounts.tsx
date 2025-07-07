@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 
 interface EnrollmentCount {
   course_id: string;
@@ -56,7 +57,7 @@ export const useEnrollmentCounts = () => {
 
       setEnrollmentCounts(enrollmentMap);
     } catch (error) {
-      console.error('Error fetching enrollment counts:', error);
+      logger.error('Error fetching enrollment counts:', error);
       toast({
         title: "Error",
         description: "Failed to fetch enrollment counts",

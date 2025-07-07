@@ -4,6 +4,7 @@ import { BookOpen, Package, FileText, Video, HelpCircle, Download, Link, Users }
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { FlowchartItem } from './FlowchartContext';
+import { logger } from '@/utils/logger';
 
 interface SidebarItemProps {
   item: FlowchartItem;
@@ -35,7 +36,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ item }) => {
   };
 
   const onDragStart = (event: React.DragEvent) => {
-    console.log('Starting drag for item:', item);
+    logger.log('Starting drag for item:', item);
     
     // Set the drag data as a JSON string
     event.dataTransfer.setData('application/json', JSON.stringify(item));
@@ -46,7 +47,7 @@ const SidebarItem: React.FC<SidebarItemProps> = ({ item }) => {
   };
 
   const onDragEnd = (event: React.DragEvent) => {
-    console.log('Drag ended for item:', item);
+    logger.log('Drag ended for item:', item);
   };
 
   return (

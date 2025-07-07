@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Upload, File, Trash2, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { logger } from "@/utils/logger";
 
 interface FileData {
   url: string;
@@ -31,14 +32,14 @@ const MultipleFileUpload = ({
 }: MultipleFileUploadProps) => {
   const [isUploading, setIsUploading] = useState(false);
 
-  console.log('MultipleFileUpload render:', { currentFiles, label, contentType, contentIndex });
+  logger.log('MultipleFileUpload render:', { currentFiles, label, contentType, contentIndex });
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
     if (!files || files.length === 0) return;
 
     setIsUploading(true);
-    console.log('Starting file upload for', files.length, 'files');
+    logger.log('Starting file upload for', files.length, 'files');
 
     try {
       const uploadPromises = Array.from(files).map(async (file) => {
@@ -51,14 +52,14 @@ const MultipleFileUpload = ({
         const fileName = `${contentType}-${contentIndex}-${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
         const filePath = `${contentType}-files/${fileName}`;
 
-        console.log('Uploading file:', file.name, 'to path:', filePath);
+        logger.log('Uploading file:', file.name, 'to path:', filePath);
 
         const { error: uploadError } = await supabase.storage
           .from('course-files')
           .upload(filePath, file);
 
         if (uploadError) {
-          console.error('Upload error:', uploadError);
+          logger.error('Upload error:', uploadError);
           throw uploadError;
         }
 
@@ -66,7 +67,7 @@ const MultipleFileUpload = ({
           .from('course-files')
           .getPublicUrl(filePath);
 
-        console.log('File uploaded successfully:', publicUrl);
+        logger.log('File uploaded successfully:', publicUrl);
 
         return {
           url: publicUrl,
@@ -78,7 +79,7 @@ const MultipleFileUpload = ({
       const uploadedFiles = await Promise.all(uploadPromises);
       const updatedFiles = [...currentFiles, ...uploadedFiles];
       
-      console.log('All files uploaded, calling onFilesUpdate with:', updatedFiles);
+      logger.log('All files uploaded, calling onFilesUpdate with:', updatedFiles);
       onFilesUpdate(updatedFiles);
       
       toast.success(`${uploadedFiles.length} file(s) uploaded successfully`);
@@ -86,7 +87,7 @@ const MultipleFileUpload = ({
       // Clear the input
       event.target.value = '';
     } catch (error) {
-      console.error('Error uploading files:', error);
+      logger.error('Error uploading files:', error);
       toast.error(`Failed to upload files: ${error.message}`);
     } finally {
       setIsUploading(false);
@@ -94,9 +95,9 @@ const MultipleFileUpload = ({
   };
 
   const handleRemoveFile = (indexToRemove: number) => {
-    console.log('Removing file at index:', indexToRemove, 'from:', currentFiles);
+    logger.log('Removing file at index:', indexToRemove, 'from:', currentFiles);
     const updatedFiles = currentFiles.filter((_, index) => index !== indexToRemove);
-    console.log('Updated files after removal:', updatedFiles);
+    logger.log('Updated files after removal:', updatedFiles);
     onFilesUpdate(updatedFiles);
     toast.success('File removed');
   };

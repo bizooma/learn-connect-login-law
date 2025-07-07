@@ -7,6 +7,7 @@ import { useCourseForm } from "./useCourseForm";
 import { createWelcomeCalendarEvent } from "./services/calendarService";
 import { supabase } from "@/integrations/supabase/client";
 import { performSafeCourseUpdate } from "./services/safeCourseUpdateService";
+import { logger } from "@/utils/logger";
 
 type Course = Tables<'courses'>;
 
@@ -14,13 +15,13 @@ const ensureCalendarExists = async (courseId: string) => {
   try {
     await createWelcomeCalendarEvent(courseId, 'Course Updated');
   } catch (error) {
-    console.error('Error ensuring calendar exists:', error);
+    logger.error('Error ensuring calendar exists:', error);
   }
 };
 
 const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => {
   try {
-    console.log('Fetching existing modules for course:', courseId);
+    logger.log('Fetching existing modules for course:', courseId);
     
     const { data: modulesData, error: modulesError } = await supabase
       .from('modules')
@@ -35,11 +36,11 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
       .order('sort_order', { ascending: true });
 
     if (modulesError) {
-      console.error('Error fetching modules:', modulesError);
+      logger.error('Error fetching modules:', modulesError);
       return [];
     }
 
-    console.log('Modules data fetched:', modulesData);
+    logger.log('Modules data fetched:', modulesData);
 
     // Apply ordering to nested relations since Supabase doesn't support nested ordering in select
     const orderedModulesData = modulesData?.map(module => ({
@@ -67,7 +68,7 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
       .eq('is_deleted', false);
 
     if (quizzesError) {
-      console.error('Error fetching quiz assignments:', quizzesError);
+      logger.error('Error fetching quiz assignments:', quizzesError);
     }
 
     // Create a map of unit_id to quiz_id
@@ -75,7 +76,7 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
     quizzesData?.forEach(quiz => {
       if (quiz.unit_id) {
         unitQuizMap.set(quiz.unit_id, quiz.id);
-        console.log(`Preserving quiz assignment in edit form: Unit ${quiz.unit_id} -> Quiz ${quiz.id} (${quiz.title})`);
+        logger.log(`Preserving quiz assignment in edit form: Unit ${quiz.unit_id} -> Quiz ${quiz.id} (${quiz.title})`);
       }
     });
 
@@ -95,7 +96,7 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
         
         return [];
       } catch (error) {
-        console.error('Error parsing files data:', error, filesData);
+        logger.error('Error parsing files data:', error, filesData);
         return [];
       }
     };
@@ -122,7 +123,7 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
         units: lesson.units?.map((unit, unitIndex) => {
           const files = parseFilesFromDatabase(unit.files);
           
-          console.log('Unit files parsed in edit form:', unit.title, 'Files:', files);
+          logger.log('Unit files parsed in edit form:', unit.title, 'Files:', files);
           
           const finalFiles = files.length === 0 && unit.file_url ? [{
             url: unit.file_url,
@@ -133,7 +134,7 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
           // PRESERVE quiz assignment - FIX: Properly handle undefined values
           const preservedQuizId = unitQuizMap.get(unit.id);
           if (preservedQuizId) {
-            console.log(`Preserving quiz assignment for unit "${unit.title}": Quiz ID ${preservedQuizId}`);
+            logger.log(`Preserving quiz assignment for unit "${unit.title}": Quiz ID ${preservedQuizId}`);
           }
 
           return {
@@ -156,10 +157,10 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
       } as LessonData)) || []
     } as ModuleData)) || [];
 
-    console.log('Modules with preserved quiz assignments:', modules);
+    logger.log('Modules with preserved quiz assignments:', modules);
     return modules;
   } catch (error) {
-    console.error('Error fetching existing modules:', error);
+    logger.error('Error fetching existing modules:', error);
     return [];
   }
 };

@@ -10,6 +10,7 @@ import QuestionManagement from "./QuestionManagement";
 import { QuizWithDetails } from "./types";
 import { supabase } from "@/integrations/supabase/client";
 import { validateQuizName } from "./quizValidation";
+import { logger } from "@/utils/logger";
 
 interface EditQuizFormProps {
   open: boolean;
@@ -88,7 +89,7 @@ const EditQuizForm = ({ open, onOpenChange, quiz, onQuizUpdated }: EditQuizFormP
       onQuizUpdated();
       onOpenChange(false);
     } catch (error) {
-      console.error('Error updating quiz:', error);
+      logger.error('Error updating quiz:', error);
       toast({
         title: "Error",
         description: "Failed to update quiz",

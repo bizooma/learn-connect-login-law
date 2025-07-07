@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useLocation } from "react-router-dom";
+import { logger } from "@/utils/logger";
 
 export const useSessionTracking = () => {
   const { user } = useAuth();
@@ -29,7 +30,7 @@ export const useSessionTracking = () => {
       const sessionType = courseId ? 'course' : 'general';
       sessionStartTimeRef.current = new Date();
       
-      console.log(`Starting ${sessionType} session`, { courseId, userId: user.id, entryPoint: location.pathname });
+      logger.log(`Starting ${sessionType} session`, { courseId, userId: user.id, entryPoint: location.pathname });
 
       const { data, error } = await supabase.rpc('start_user_session', {
         p_user_id: user.id,
@@ -46,16 +47,16 @@ export const useSessionTracking = () => {
       });
 
       if (error) {
-        console.error('Error starting session:', error);
+        logger.error('Error starting session:', error);
         return;
       }
 
       sessionIdRef.current = data;
       currentCourseIdRef.current = courseId || null;
       
-      console.log(`${sessionType} session started:`, { sessionId: data, courseId, duration_tracking: 'enabled' });
+      logger.log(`${sessionType} session started:`, { sessionId: data, courseId, duration_tracking: 'enabled' });
     } catch (error) {
-      console.error('Error starting session:', error);
+      logger.error('Error starting session:', error);
     }
   };
 
@@ -67,7 +68,7 @@ export const useSessionTracking = () => {
         ? Math.floor((new Date().getTime() - sessionStartTimeRef.current.getTime()) / 1000)
         : 0;
 
-      console.log('Ending session:', { 
+      logger.log('Ending session:', { 
         sessionId: sessionIdRef.current, 
         courseId: currentCourseIdRef.current,
         duration: `${sessionDuration} seconds`,
@@ -86,11 +87,11 @@ export const useSessionTracking = () => {
       });
 
       if (error) {
-        console.error('Error ending session:', error);
+        logger.error('Error ending session:', error);
         return;
       }
 
-      console.log('Session ended successfully:', {
+      logger.log('Session ended successfully:', {
         previousSessionId: sessionIdRef.current,
         totalDuration: `${sessionDuration} seconds`
       });
@@ -99,7 +100,7 @@ export const useSessionTracking = () => {
       currentCourseIdRef.current = null;
       sessionStartTimeRef.current = null;
     } catch (error) {
-      console.error('Error ending session:', error);
+      logger.error('Error ending session:', error);
     }
   };
 
@@ -108,7 +109,7 @@ export const useSessionTracking = () => {
     
     // If we're moving from one context to another, end current and start new
     if (previousCourseId !== newCourseId) {
-      console.log('Course context changed:', { 
+      logger.log('Course context changed:', { 
         from: previousCourseId || 'general', 
         to: newCourseId || 'general' 
       });
@@ -126,7 +127,7 @@ export const useSessionTracking = () => {
   useEffect(() => {
     if (user?.id && !sessionIdRef.current) {
       const courseId = getCurrentCourseId();
-      console.log('User authenticated, initializing session tracking:', { 
+      logger.log('User authenticated, initializing session tracking:', { 
         userId: user.id, 
         courseId: courseId || 'none',
         route: location.pathname 
@@ -147,7 +148,7 @@ export const useSessionTracking = () => {
   useEffect(() => {
     return () => {
       if (sessionIdRef.current) {
-        console.log('Component unmounting, ending session');
+        logger.log('Component unmounting, ending session');
         endSession();
       }
     };
@@ -157,7 +158,7 @@ export const useSessionTracking = () => {
   useEffect(() => {
     const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (sessionIdRef.current) {
-        console.log('Page unloading, attempting to end session');
+        logger.log('Page unloading, attempting to end session');
         // Use sendBeacon for better reliability during page unload
         const sessionData = {
           sessionId: sessionIdRef.current,

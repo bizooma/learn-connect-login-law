@@ -10,6 +10,7 @@ import { Building2, Users, Settings } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
+import { logger } from '@/utils/logger';
 import LawFirmEmployeesList from './LawFirmEmployeesList';
 
 type LawFirm = Tables<'law_firms'> & {
@@ -68,7 +69,7 @@ const LawFirmDetailsDialog = ({ lawFirm, open, onOpenChange }: LawFirmDetailsDia
       // Refresh the page to show updated data
       window.location.reload();
     } catch (error: any) {
-      console.error('Error updating law firm:', error);
+      logger.error('Error updating law firm:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update law firm",

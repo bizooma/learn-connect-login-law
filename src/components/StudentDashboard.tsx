@@ -18,6 +18,7 @@ import { useDashboardStats } from "@/hooks/useDashboardStats";
 import Confetti from "./ui/confetti";
 import WelcomeModal from "./modals/WelcomeModal";
 import { useFirstTimeUser } from "@/hooks/useFirstTimeUser";
+import { logger } from "@/utils/logger";
 
 const StudentDashboard = () => {
   const { user, signOut } = useAuth();
@@ -35,7 +36,7 @@ const StudentDashboard = () => {
   } = useFirstTimeUser();
 
   useEffect(() => {
-    console.log('StudentDashboard: useEffect triggered with:', {
+    logger.log('StudentDashboard: useEffect triggered with:', {
       user: !!user,
       isStudent,
       roleLoading,
@@ -44,14 +45,14 @@ const StudentDashboard = () => {
 
     // If no user, redirect immediately
     if (!user) {
-      console.log('StudentDashboard: No user found, redirecting to home');
+      logger.log('StudentDashboard: No user found, redirecting to home');
       navigate("/", { replace: true });
       return;
     }
 
     // Only redirect if role loading is complete AND user is definitely not a student
     if (!roleLoading && user && !isStudent) {
-      console.log('StudentDashboard: User is not a student, redirecting to main dashboard');
+      logger.log('StudentDashboard: User is not a student, redirecting to main dashboard');
       navigate("/", { replace: true });
       return;
     }

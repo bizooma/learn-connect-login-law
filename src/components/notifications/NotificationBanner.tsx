@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { Tables } from "@/integrations/supabase/types";
+import { logger } from "@/utils/logger";
 
 type NotificationRow = Tables<'notifications'>;
 
@@ -27,7 +28,7 @@ const NotificationBanner = () => {
   const [dismissedNotifications, setDismissedNotifications] = useState<string[]>([]);
 
   useEffect(() => {
-    console.log('NotificationBanner: useEffect triggered', {
+    logger.log('NotificationBanner: useEffect triggered', {
       hasUser: !!user,
       roleLoading,
       isAdmin,
@@ -37,7 +38,7 @@ const NotificationBanner = () => {
     });
 
     if (user && !roleLoading) {
-      console.log('NotificationBanner: Fetching notifications for user with roles:', {
+      logger.log('NotificationBanner: Fetching notifications for user with roles:', {
         isAdmin,
         isOwner,
         isStudent,

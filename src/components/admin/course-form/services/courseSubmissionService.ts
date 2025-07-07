@@ -2,13 +2,14 @@ import { supabase } from "@/integrations/supabase/client";
 import { CourseFormData, ModuleData } from "../types";
 import { uploadImageFile, uploadVideoFile } from "../fileUploadUtils";
 import { createMultipleFileUpload } from "./fileUploadService";
+import { logger } from "@/utils/logger";
 
 export const createCourseWithModules = async (
   courseId: string,
   courseData: CourseFormData,
   modules: ModuleData[]
 ) => {
-  console.log('Creating course with modules structure, preserving quiz assignments');
+  logger.log('Creating course with modules structure, preserving quiz assignments');
 
   for (let moduleIndex = 0; moduleIndex < modules.length; moduleIndex++) {
     const module = modules[moduleIndex];
@@ -23,7 +24,7 @@ export const createCourseWithModules = async (
       try {
         moduleImageUrl = await uploadImageFile(module.image_file);
       } catch (error) {
-        console.error('Error uploading module image:', error);
+        logger.error('Error uploading module image:', error);
       }
     }
 
@@ -34,7 +35,7 @@ export const createCourseWithModules = async (
         moduleFileName = module.file.name;
         moduleFileSize = module.file.size;
       } catch (error) {
-        console.error('Error uploading module file:', error);
+        logger.error('Error uploading module file:', error);
       }
     }
 
@@ -55,11 +56,11 @@ export const createCourseWithModules = async (
       .single();
 
     if (moduleError) {
-      console.error('Error creating module:', moduleError);
+      logger.error('Error creating module:', moduleError);
       throw new Error(`Failed to create module: ${moduleError.message}`);
     }
 
-    console.log('Module created:', createdModule);
+    logger.log('Module created:', createdModule);
 
     // Create lessons for this module
     for (let lessonIndex = 0; lessonIndex < module.lessons.length; lessonIndex++) {
@@ -75,7 +76,7 @@ export const createCourseWithModules = async (
         try {
           lessonImageUrl = await uploadImageFile(lesson.image_file);
         } catch (error) {
-          console.error('Error uploading lesson image:', error);
+          logger.error('Error uploading lesson image:', error);
         }
       }
 
@@ -86,7 +87,7 @@ export const createCourseWithModules = async (
           lessonFileName = lesson.file.name;
           lessonFileSize = lesson.file.size;
         } catch (error) {
-          console.error('Error uploading lesson file:', error);
+          logger.error('Error uploading lesson file:', error);
         }
       }
 
@@ -108,11 +109,11 @@ export const createCourseWithModules = async (
         .single();
 
       if (lessonError) {
-        console.error('Error creating lesson:', lessonError);
+        logger.error('Error creating lesson:', lessonError);
         throw new Error(`Failed to create lesson: ${lessonError.message}`);
       }
 
-      console.log('Lesson created:', createdLesson);
+      logger.log('Lesson created:', createdLesson);
 
       // Create units for this lesson
       for (let unitIndex = 0; unitIndex < lesson.units.length; unitIndex++) {
@@ -128,7 +129,7 @@ export const createCourseWithModules = async (
           try {
             unitVideoUrl = await uploadVideoFile(unit.video_file);
           } catch (error) {
-            console.error('Error uploading unit video:', error);
+            logger.error('Error uploading unit video:', error);
           }
         }
 
@@ -139,7 +140,7 @@ export const createCourseWithModules = async (
             unitFileName = unit.file.name;
             unitFileSize = unit.file.size;
           } catch (error) {
-            console.error('Error uploading unit file:', error);
+            logger.error('Error uploading unit file:', error);
           }
         }
 
@@ -150,7 +151,7 @@ export const createCourseWithModules = async (
             const uploadedFiles = await createMultipleFileUpload(unit.newFiles, 'unit', unitIndex);
             processedFiles = [...processedFiles, ...uploadedFiles];
           } catch (error) {
-            console.error('Error uploading multiple unit files:', error);
+            logger.error('Error uploading multiple unit files:', error);
           }
         }
 
@@ -174,7 +175,7 @@ export const createCourseWithModules = async (
           .single();
 
         if (unitError) {
-          console.error('Error creating unit:', unitError);
+          logger.error('Error creating unit:', unitError);
           throw new Error(`Failed to create unit: ${unitError.message}`);
         }
 

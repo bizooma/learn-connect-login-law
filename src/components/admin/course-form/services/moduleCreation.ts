@@ -1,15 +1,16 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { ModuleData } from "../types";
+import { logger } from "@/utils/logger";
 
 export const createModulesFromData = async (courseId: string, modules: ModuleData[]) => {
-  console.log('Creating modules for course:', courseId, 'Modules:', modules);
+  logger.log('Creating modules for course:', courseId, 'Modules:', modules);
   
   const createdModules = [];
   
   for (let i = 0; i < modules.length; i++) {
     const module = modules[i];
-    console.log('Creating module:', module.title, 'with sort_order:', i);
+    logger.log('Creating module:', module.title, 'with sort_order:', i);
     
     const { data: moduleData, error: moduleError } = await supabase
       .from('modules')
@@ -27,11 +28,11 @@ export const createModulesFromData = async (courseId: string, modules: ModuleDat
       .single();
 
     if (moduleError) {
-      console.error('Error creating module:', moduleError);
+      logger.error('Error creating module:', moduleError);
       throw new Error(`Failed to create module: ${moduleError.message}`);
     }
 
-    console.log('Module created:', moduleData);
+    logger.log('Module created:', moduleData);
     
     // Attach the lessons data for later processing
     createdModules.push({
@@ -44,7 +45,7 @@ export const createModulesFromData = async (courseId: string, modules: ModuleDat
 };
 
 export const createDefaultModule = async (courseId: string) => {
-  console.log('Creating default module for course:', courseId);
+  logger.log('Creating default module for course:', courseId);
   
   const { data: moduleData, error: moduleError } = await supabase
     .from('modules')
@@ -58,10 +59,10 @@ export const createDefaultModule = async (courseId: string) => {
     .single();
 
   if (moduleError) {
-    console.error('Error creating default module:', moduleError);
+    logger.error('Error creating default module:', moduleError);
     throw new Error(`Failed to create default module: ${moduleError.message}`);
   }
 
-  console.log('Default module created:', moduleData);
+  logger.log('Default module created:', moduleData);
   return moduleData;
 };

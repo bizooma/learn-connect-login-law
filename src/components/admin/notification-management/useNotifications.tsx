@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Notification, NotificationFormData } from "./types";
+import { logger } from "@/utils/logger";
 
 export const useNotifications = () => {
   const { user } = useAuth();
@@ -23,7 +24,7 @@ export const useNotifications = () => {
       const typedNotifications = (data || []) as Notification[];
       setNotifications(typedNotifications);
     } catch (error) {
-      console.error('Error fetching notifications:', error);
+      logger.error('Error fetching notifications:', error);
       toast({
         title: "Error",
         description: "Failed to fetch notifications",
@@ -57,7 +58,7 @@ export const useNotifications = () => {
       await fetchNotifications();
       return true;
     } catch (error) {
-      console.error('Error creating notification:', error);
+      logger.error('Error creating notification:', error);
       toast({
         title: "Error",
         description: "Failed to create notification",
@@ -90,7 +91,7 @@ export const useNotifications = () => {
       await fetchNotifications();
       return true;
     } catch (error) {
-      console.error('Error updating notification:', error);
+      logger.error('Error updating notification:', error);
       toast({
         title: "Error",
         description: "Failed to update notification",
@@ -119,7 +120,7 @@ export const useNotifications = () => {
       await fetchNotifications();
       return true;
     } catch (error) {
-      console.error('Error deleting notification:', error);
+      logger.error('Error deleting notification:', error);
       toast({
         title: "Error",
         description: "Failed to delete notification",
@@ -146,7 +147,7 @@ export const useNotifications = () => {
       await fetchNotifications();
       return true;
     } catch (error) {
-      console.error('Error updating notification status:', error);
+      logger.error('Error updating notification status:', error);
       toast({
         title: "Error",
         description: "Failed to update notification status",

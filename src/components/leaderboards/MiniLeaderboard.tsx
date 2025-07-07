@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Trophy, TrendingUp, AlertCircle } from "lucide-react";
+import { logger } from "@/utils/logger";
 
 interface MiniLeaderboardProps {
   type: 'learning_streak' | 'sales_training' | 'legal_training';
@@ -32,7 +33,7 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
       setLoading(true);
       setError(null);
       
-      console.log(`Fetching mini leaderboard for type: ${type}`);
+      logger.log(`Fetching mini leaderboard for type: ${type}`);
       
       // Try to fetch from cache first
       const { data, error } = await supabase
@@ -44,12 +45,12 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
         .limit(limit);
 
       if (error) {
-        console.error(`Error fetching mini leaderboard for ${type}:`, error);
+        logger.error(`Error fetching mini leaderboard for ${type}:`, error);
         setError(error.message);
         return;
       }
 
-      console.log(`Found ${data?.length || 0} entries for ${type}`);
+      logger.log(`Found ${data?.length || 0} entries for ${type}`);
 
       if (!data || data.length === 0) {
         // Try to fetch fresh data directly from tables
@@ -58,7 +59,7 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
         setEntries(data || []);
       }
     } catch (error: any) {
-      console.error(`Error fetching mini leaderboard for ${type}:`, error);
+      logger.error(`Error fetching mini leaderboard for ${type}:`, error);
       setError('Failed to load leaderboard data');
     } finally {
       setLoading(false);
@@ -67,7 +68,7 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
 
   const fetchFreshData = async () => {
     try {
-      console.log(`Fetching fresh data for ${type}`);
+      logger.log(`Fetching fresh data for ${type}`);
       
       if (type === 'learning_streak') {
         const { data, error } = await supabase
@@ -84,11 +85,11 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
           .limit(limit);
 
         if (error) {
-          console.error(`Error fetching fresh streak data:`, error);
+          logger.error(`Error fetching fresh streak data:`, error);
           throw error;
         }
 
-        console.log(`Found ${data?.length || 0} fresh streak entries`);
+        logger.log(`Found ${data?.length || 0} fresh streak entries`);
 
         const formattedData = data?.map((entry: any, index: number) => ({
           user_name: `${entry.profiles.first_name} ${entry.profiles.last_name}`,
@@ -103,11 +104,11 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
         setEntries(formattedData);
       } else {
         // For category leaderboards, show a message that data needs to be populated
-        console.log(`No fresh data available for ${type}`);
+        logger.log(`No fresh data available for ${type}`);
         setError(`No ${type.replace('_', ' ')} data available. Please refresh the leaderboards.`);
       }
     } catch (error: any) {
-      console.error(`Error fetching fresh data for ${type}:`, error);
+      logger.error(`Error fetching fresh data for ${type}:`, error);
       setError(`Failed to load ${type.replace('_', ' ')} data`);
     }
   };

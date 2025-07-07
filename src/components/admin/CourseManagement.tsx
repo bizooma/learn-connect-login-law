@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import AdminCourseCard from "./AdminCourseCard";
@@ -39,7 +40,7 @@ const CourseManagement = () => {
 
       setCourses(data || []);
     } catch (error) {
-      console.error('Error fetching courses:', error);
+      logger.error('Error fetching courses:', error);
       toast({
         title: "Error",
         description: "Failed to fetch courses",
@@ -67,7 +68,7 @@ const CourseManagement = () => {
         description: "Course deleted successfully",
       });
     } catch (error) {
-      console.error('Error deleting course:', error);
+      logger.error('Error deleting course:', error);
       toast({
         title: "Error",
         description: "Failed to delete course",

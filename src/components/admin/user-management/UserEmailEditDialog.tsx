@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { UserProfile } from "./types";
+import { logger } from "@/utils/logger";
 
 interface UserEmailEditDialogProps {
   user: UserProfile;
@@ -48,7 +49,7 @@ const UserEmailEditDialog = ({ user, open, onOpenChange, onEmailUpdated }: UserE
       onEmailUpdated();
       onOpenChange(false);
     } catch (error: any) {
-      console.error('Error updating email:', error);
+      logger.error('Error updating email:', error);
       toast({
         title: "Error",
         description: `Failed to update email: ${error.message}`,

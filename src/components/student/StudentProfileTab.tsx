@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import ProfileImageUpload from "../admin/ProfileImageUpload";
 import StudentPasswordChange from "./StudentPasswordChange";
+import { logger } from "@/utils/logger";
 
 interface ProfileData {
   first_name: string;
@@ -60,13 +61,13 @@ const StudentProfileTab = () => {
         profile_image_url: data.profile_image_url || ''
       });
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      logger.error('Error fetching profile:', error);
       toast({
         title: "Error",
         description: "Failed to load profile",
         variant: "destructive",
       });
-    } finally {
+    }finally {
       setLoading(false);
     }
   };
@@ -91,13 +92,13 @@ const StudentProfileTab = () => {
         description: "Profile updated successfully",
       });
     } catch (error) {
-      console.error('Error updating profile:', error);
+      logger.error('Error updating profile:', error);
       toast({
         title: "Error",
         description: "Failed to update profile",
         variant: "destructive",
       });
-    } finally {
+    }finally {
       setSaving(false);
     }
   };

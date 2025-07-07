@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import LeaderboardCard from "./LeaderboardCard";
+import { logger } from "@/utils/logger";
 
 interface StreakLeaderboardEntry {
   user_id: string;
@@ -35,7 +36,7 @@ const StreakLeaderboard = () => {
         .order('rank_position', { ascending: true });
 
       if (cacheError) {
-        console.error('Error fetching cached leaderboard:', cacheError);
+        logger.error('Error fetching cached leaderboard:', cacheError);
       }
 
       if (cachedData && cachedData.length > 0) {
@@ -60,7 +61,7 @@ const StreakLeaderboard = () => {
         setEntries(freshData || []);
       }
     } catch (error) {
-      console.error('Error fetching streak leaderboard:', error);
+      logger.error('Error fetching streak leaderboard:', error);
       toast({
         title: "Error",
         description: "Failed to load streak leaderboard",

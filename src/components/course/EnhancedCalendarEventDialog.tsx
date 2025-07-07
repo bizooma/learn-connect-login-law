@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { validateMeetingUrl } from "@/utils/meetingUtils";
+import { logger } from "@/utils/logger";
 
 interface Participant {
   id: string;
@@ -83,7 +84,7 @@ const EnhancedCalendarEventDialog = ({ courseId, onEventAdded }: EnhancedCalenda
 
       setParticipants(participantList);
     } catch (error) {
-      console.error('Error fetching participants:', error);
+      logger.error('Error fetching participants:', error);
     }
   };
 
@@ -160,7 +161,7 @@ const EnhancedCalendarEventDialog = ({ courseId, onEventAdded }: EnhancedCalenda
       setOpen(false);
       onEventAdded();
     } catch (error) {
-      console.error('Error creating event:', error);
+      logger.error('Error creating event:', error);
       toast({
         title: "Error",
         description: "Failed to schedule meeting",

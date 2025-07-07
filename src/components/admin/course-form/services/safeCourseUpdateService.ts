@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CourseFormData, ModuleData } from "../types";
 import { uploadImageFile } from "../fileUploadUtils";
 import { preserveQuizAssignmentsEnhanced, restoreQuizAssignmentsEnhanced, QuizAssignmentData } from "./enhancedQuizPreservation";
+import { logger } from "@/utils/logger";
 
 export interface SafeUpdateResult {
   success: boolean;
@@ -42,23 +43,23 @@ export const performSafeCourseUpdate = async (
   let preservedQuizAssignments: QuizAssignmentData[] = [];
 
   try {
-    console.log('🛡️ Starting SAFE course update for:', courseId);
+    logger.log('🛡️ Starting SAFE course update for:', courseId);
 
     // Phase 0: Preserve quiz assignments BEFORE any modifications
     const phase0Start = Date.now();
-    console.log('🎯 Phase 0: Preserving quiz assignments before update');
+    logger.log('🎯 Phase 0: Preserving quiz assignments before update');
     
     const preservationResult = await preserveQuizAssignmentsEnhanced(courseId);
     if (preservationResult.success) {
       preservedQuizAssignments = preservationResult.preservedAssignments;
       result.quizAssignmentsPreserved = preservedQuizAssignments.length;
-      console.log(`✅ Preserved ${preservedQuizAssignments.length} quiz assignments`);
+      logger.log(`✅ Preserved ${preservedQuizAssignments.length} quiz assignments`);
       
       if (preservationResult.warnings.length > 0) {
         result.warnings.push(...preservationResult.warnings);
       }
     } else {
-      console.error('❌ Quiz preservation failed:', preservationResult.errors);
+      logger.error('❌ Quiz preservation failed:', preservationResult.errors);
       result.warnings.push(...preservationResult.errors.map(err => `Quiz preservation warning: ${err}`));
     }
     
@@ -66,14 +67,14 @@ export const performSafeCourseUpdate = async (
 
     // Phase 1: Update course metadata only
     const phase1Start = Date.now();
-    console.log('📝 Phase 1: Updating course metadata safely');
+    logger.log('📝 Phase 1: Updating course metadata safely');
     
     await updateCourseMetadataSafely(courseId, courseData);
     phaseTimings.phase1_metadata = Date.now() - phase1Start;
 
     // Phase 2: Enhanced incremental content updates with quiz preservation
     const phase2Start = Date.now();
-    console.log('🔧 Phase 2: Performing enhanced incremental content updates with quiz preservation');
+    logger.log('🔧 Phase 2: Performing enhanced incremental content updates with quiz preservation');
     
     const updateStats = await performEnhancedIncrementalUpdate(courseId, modules, preservedQuizAssignments);
     result.itemsUpdated = updateStats.updated;
@@ -84,7 +85,7 @@ export const performSafeCourseUpdate = async (
 
     // Phase 3: Final quiz assignment verification
     const phase3Start = Date.now();
-    console.log('🔄 Phase 3: Verifying quiz assignments after content update');
+    logger.log('🔄 Phase 3: Verifying quiz assignments after content update');
     
     const verificationResult = await verifyQuizAssignments(courseId, modules);
     result.quizAssignmentsRestored = verificationResult.restored;
@@ -97,7 +98,7 @@ export const performSafeCourseUpdate = async (
 
     // Phase 4: Validation (non-destructive)
     const phase4Start = Date.now();
-    console.log('✅ Phase 4: Validating course integrity and quiz assignments');
+    logger.log('✅ Phase 4: Validating course integrity and quiz assignments');
     
     const validation = await validateCourseIntegrityWithQuizzes(courseId, preservedQuizAssignments);
     if (validation.issues.length > 0) {
@@ -115,7 +116,7 @@ export const performSafeCourseUpdate = async (
       phaseTimings
     };
 
-    console.log('✨ SAFE course update completed successfully!', {
+    logger.log('✨ SAFE course update completed successfully!', {
       totalTime: `${totalTime}ms`,
       itemsUpdated: result.itemsUpdated,
       itemsCreated: result.itemsCreated,

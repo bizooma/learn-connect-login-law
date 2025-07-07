@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAdminTeams, AdminTeam } from '@/hooks/useAdminTeams';
+import { logger } from '@/utils/logger';
 
 interface EditTeamDialogProps {
   team: AdminTeam;
@@ -37,7 +38,7 @@ const EditTeamDialog = ({ team, open, onOpenChange }: EditTeamDialogProps) => {
       });
       onOpenChange(false);
     } catch (error) {
-      console.error('Error updating team:', error);
+      logger.error('Error updating team:', error);
     } finally {
       setLoading(false);
     }

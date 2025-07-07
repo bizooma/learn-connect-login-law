@@ -3,19 +3,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { CourseFormData, ModuleData } from "../types";
 import { uploadImageFile } from "../fileUploadUtils";
 import { createMultipleFileUpload } from "./fileUploadService";
+import { logger } from "@/utils/logger";
 
 export const createCourseWithContent = async (
   courseData: CourseFormData, 
   modules: ModuleData[], 
   isDraft: boolean = false
 ) => {
-  console.log('🆕 Creating course with content...', { courseData, modulesCount: modules.length });
+  logger.log('🆕 Creating course with content...', { courseData, modulesCount: modules.length });
 
   try {
     // Upload course image if provided
     let imageUrl = courseData.image_url || '';
     if (courseData.image_file) {
-      console.log('Uploading course image...');
+      logger.log('Uploading course image...');
       imageUrl = await uploadImageFile(courseData.image_file);
     }
 
@@ -28,12 +29,12 @@ export const createCourseWithContent = async (
         .maybeSingle();
 
       if (levelError) {
-        console.error('Error checking level:', levelError);
+        logger.error('Error checking level:', levelError);
         throw new Error(`Failed to validate level: ${levelError.message}`);
       }
 
       if (!levelExists) {
-        console.error('Level not found:', courseData.level);
+        logger.error('Level not found:', courseData.level);
         throw new Error(`Level "${courseData.level}" does not exist in the database. Please select a valid level.`);
       }
     }
@@ -55,11 +56,11 @@ export const createCourseWithContent = async (
       .single();
 
     if (courseError) {
-      console.error('Error creating course:', courseError);
+      logger.error('Error creating course:', courseError);
       throw courseError;
     }
 
-    console.log('✅ Course created:', course.id);
+    logger.log('✅ Course created:', course.id);
 
     // Create modules, lessons, and units if provided
     if (modules && modules.length > 0) {
@@ -68,13 +69,13 @@ export const createCourseWithContent = async (
 
     return course;
   } catch (error) {
-    console.error('Error in createCourseWithContent:', error);
+    logger.error('Error in createCourseWithContent:', error);
     throw error;
   }
 };
 
 const createModulesWithContent = async (courseId: string, modules: ModuleData[]) => {
-  console.log('Creating modules with content for course:', courseId);
+  logger.log('Creating modules with content for course:', courseId);
 
   for (let moduleIndex = 0; moduleIndex < modules.length; moduleIndex++) {
     const module = modules[moduleIndex];
@@ -100,25 +101,25 @@ const createModulesWithContent = async (courseId: string, modules: ModuleData[])
         .single();
 
       if (moduleError) {
-        console.error('Error creating module:', moduleError);
+        logger.error('Error creating module:', moduleError);
         throw moduleError;
       }
 
-      console.log('✅ Module created:', createdModule.id, createdModule.title);
+      logger.log('✅ Module created:', createdModule.id, createdModule.title);
 
       // Create lessons for this module
       if (module.lessons && module.lessons.length > 0) {
         await createLessonsWithContent(courseId, createdModule.id, module.lessons);
       }
     } catch (error) {
-      console.error('Error creating module:', module.title, error);
+      logger.error('Error creating module:', module.title, error);
       throw error;
     }
   }
 };
 
 const createLessonsWithContent = async (courseId: string, moduleId: string, lessons: any[]) => {
-  console.log('Creating lessons for module:', moduleId);
+  logger.log('Creating lessons for module:', moduleId);
 
   for (let lessonIndex = 0; lessonIndex < lessons.length; lessonIndex++) {
     const lesson = lessons[lessonIndex];
@@ -145,7 +146,7 @@ const createLessonsWithContent = async (courseId: string, moduleId: string, less
         .single();
 
       if (lessonError) {
-        console.error('Error creating lesson:', lessonError);
+        logger.error('Error creating lesson:', lessonError);
         throw lessonError;
       }
 

@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { logger } from "@/utils/logger";
 
 interface UnitProgressData {
   unit_id: string;
@@ -28,7 +29,7 @@ export const useUnitProgress = (courseId: string) => {
         .eq('course_id', courseId);
 
       if (error) {
-        console.error('Error fetching unit progress:', error);
+        logger.error('Error fetching unit progress:', error);
         return;
       }
 
@@ -44,7 +45,7 @@ export const useUnitProgress = (courseId: string) => {
 
       setUnitProgress(progressMap);
     } catch (error) {
-      console.error('Error fetching unit progress:', error);
+      logger.error('Error fetching unit progress:', error);
     } finally {
       setLoading(false);
     }

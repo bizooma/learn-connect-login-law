@@ -9,6 +9,7 @@ import ProfileImageUpload from "../admin/ProfileImageUpload";
 import { User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 
 const PersonalProfileSection = () => {
   const { user } = useAuth();
@@ -37,7 +38,7 @@ const PersonalProfileSection = () => {
         setLastName(data.last_name || '');
         setProfileImageUrl(data.profile_image_url || '');
       } catch (error) {
-        console.error('Error loading profile:', error);
+        logger.error('Error loading profile:', error);
       } finally {
         setLoadingProfile(false);
       }
@@ -73,7 +74,7 @@ const PersonalProfileSection = () => {
         description: "Personal information updated successfully",
       });
     } catch (error) {
-      console.error('Error updating personal info:', error);
+      logger.error('Error updating personal info:', error);
       toast({
         title: "Error",
         description: "Failed to update personal information",

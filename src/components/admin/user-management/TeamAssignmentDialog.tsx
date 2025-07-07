@@ -8,6 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { UserProfile } from "./types";
 import { useQuery } from "@tanstack/react-query";
+import { logger } from "@/utils/logger";
 
 interface TeamAssignmentDialogProps {
   user: UserProfile;
@@ -75,7 +76,7 @@ const TeamAssignmentDialog = ({ user, onAssignmentComplete }: TeamAssignmentDial
       onAssignmentComplete();
 
     } catch (error: any) {
-      console.error('Error assigning team member:', error);
+      logger.error('Error assigning team member:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to assign team member",

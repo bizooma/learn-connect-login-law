@@ -4,6 +4,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Tables } from '@/integrations/supabase/types';
+import { logger } from '@/utils/logger';
 
 type LawFirm = Tables<'law_firms'>;
 
@@ -20,7 +21,7 @@ export const useLawFirm = () => {
     }
 
     try {
-      console.log('Fetching law firm for owner:', user.id);
+      logger.log('Fetching law firm for owner:', user.id);
       
       // First try to fetch existing law firm
       const { data, error } = await supabase
@@ -30,16 +31,16 @@ export const useLawFirm = () => {
         .maybeSingle();
 
       if (error) {
-        console.error('Error fetching law firm:', error);
+        logger.error('Error fetching law firm:', error);
         throw error;
       }
 
       if (data) {
-        console.log('Existing law firm found:', data);
+        logger.log('Existing law firm found:', data);
         setLawFirm(data);
       } else {
         // No law firm exists, create a default one automatically
-        console.log('No law firm found, creating default law firm for owner:', user.id);
+        logger.log('No law firm found, creating default law firm for owner:', user.id);
         
         const { data: newLawFirm, error: createError } = await supabase
           .from('law_firms')
@@ -53,11 +54,11 @@ export const useLawFirm = () => {
           .single();
 
         if (createError) {
-          console.error('Error creating default law firm:', createError);
+          logger.error('Error creating default law firm:', createError);
           throw createError;
         }
 
-        console.log('Default law firm created:', newLawFirm);
+        logger.log('Default law firm created:', newLawFirm);
         setLawFirm(newLawFirm);
         
         toast({
@@ -66,7 +67,7 @@ export const useLawFirm = () => {
         });
       }
     } catch (error) {
-      console.error('Error in fetchOrCreateLawFirm:', error);
+      logger.error('Error in fetchOrCreateLawFirm:', error);
       toast({
         title: "Error",
         description: "Failed to initialize dashboard",
@@ -81,7 +82,7 @@ export const useLawFirm = () => {
     if (!user?.id) return null;
 
     try {
-      console.log('Creating law firm:', { name, totalSeats, ownerId: user.id });
+      logger.log('Creating law firm:', { name, totalSeats, ownerId: user.id });
 
       const { data, error } = await supabase
         .from('law_firms')
@@ -95,11 +96,11 @@ export const useLawFirm = () => {
         .single();
 
       if (error) {
-        console.error('Error creating law firm:', error);
+        logger.error('Error creating law firm:', error);
         throw error;
       }
 
-      console.log('Law firm created:', data);
+      logger.log('Law firm created:', data);
       setLawFirm(data);
       
       toast({
@@ -109,7 +110,7 @@ export const useLawFirm = () => {
 
       return data;
     } catch (error) {
-      console.error('Error creating law firm:', error);
+      logger.error('Error creating law firm:', error);
       toast({
         title: "Error",
         description: "Failed to create law firm",
@@ -123,7 +124,7 @@ export const useLawFirm = () => {
     if (!lawFirm?.id) return null;
 
     try {
-      console.log('Updating law firm:', updates);
+      logger.log('Updating law firm:', updates);
 
       const { data, error } = await supabase
         .from('law_firms')
@@ -133,11 +134,11 @@ export const useLawFirm = () => {
         .single();
 
       if (error) {
-        console.error('Error updating law firm:', error);
+        logger.error('Error updating law firm:', error);
         throw error;
       }
 
-      console.log('Law firm updated:', data);
+      logger.log('Law firm updated:', data);
       setLawFirm(data);
       
       toast({
@@ -147,7 +148,7 @@ export const useLawFirm = () => {
 
       return data;
     } catch (error) {
-      console.error('Error updating law firm:', error);
+      logger.error('Error updating law firm:', error);
       toast({
         title: "Error",
         description: "Failed to update law firm",

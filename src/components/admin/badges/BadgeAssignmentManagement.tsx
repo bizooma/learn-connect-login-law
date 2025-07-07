@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -65,7 +66,7 @@ const BadgeAssignmentManagement = () => {
       if (error) throw error;
       setUsers(data || []);
     } catch (error: any) {
-      console.error('Error fetching users:', error);
+      logger.error('Error fetching users:', error);
       toast({
         title: "Error",
         description: "Failed to load users",
@@ -85,7 +86,7 @@ const BadgeAssignmentManagement = () => {
       if (error) throw error;
       setTemplates(data || []);
     } catch (error: any) {
-      console.error('Error fetching templates:', error);
+      logger.error('Error fetching templates:', error);
       toast({
         title: "Error",
         description: "Failed to load badge templates",
@@ -122,7 +123,7 @@ const BadgeAssignmentManagement = () => {
 
       setUserBadges(formattedBadges);
     } catch (error: any) {
-      console.error('Error fetching user badges:', error);
+      logger.error('Error fetching user badges:', error);
       toast({
         title: "Error",
         description: "Failed to load user badges",
@@ -160,7 +161,7 @@ const BadgeAssignmentManagement = () => {
       setDialogOpen(false);
       fetchUserBadges();
     } catch (error: any) {
-      console.error('Error assigning badge:', error);
+      logger.error('Error assigning badge:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to assign badge",

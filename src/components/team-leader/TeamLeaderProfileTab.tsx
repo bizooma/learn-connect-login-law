@@ -10,6 +10,7 @@ import { useToast } from "@/hooks/use-toast";
 import { User, Mail, Calendar } from "lucide-react";
 import ProfileImageUpload from "../admin/ProfileImageUpload";
 import PasswordChangeSection from "../shared/PasswordChangeSection";
+import { logger } from "@/utils/logger";
 
 const TeamLeaderProfileTab = () => {
   const { user } = useAuth();
@@ -51,7 +52,7 @@ const TeamLeaderProfileTab = () => {
         profile_image_url: data.profile_image_url || '',
       });
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      logger.error('Error fetching profile:', error);
       toast({
         title: "Error",
         description: "Failed to fetch profile",
@@ -85,7 +86,7 @@ const TeamLeaderProfileTab = () => {
         description: "Profile updated successfully",
       });
     } catch (error) {
-      console.error('Error updating profile:', error);
+      logger.error('Error updating profile:', error);
       toast({
         title: "Error",
         description: "Failed to update profile",
@@ -105,7 +106,7 @@ const TeamLeaderProfileTab = () => {
   };
 
   const handleImageUpdate = (imageUrl: string | null) => {
-    console.log('Image updated:', imageUrl);
+    logger.log('Image updated:', imageUrl);
     setFormData(prev => ({
       ...prev,
       profile_image_url: imageUrl || ''

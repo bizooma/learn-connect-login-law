@@ -6,6 +6,7 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 
 interface StudentDashboardHeaderProps {
   onSignOut: () => void;
@@ -40,7 +41,7 @@ const StudentDashboardHeader = ({ onSignOut }: StudentDashboardHeaderProps) => {
         setProfile(data);
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      logger.error('Error fetching profile:', error);
     }
   };
 

@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 
 export interface ProgressSafetyResult {
   success: boolean;
@@ -11,7 +12,7 @@ export const ensureSafeProgressCreation = async (
   courseId: string,
   userIds: string[]
 ): Promise<ProgressSafetyResult> => {
-  console.log('🛡️ Ensuring safe progress creation for course:', courseId);
+  logger.log('🛡️ Ensuring safe progress creation for course:', courseId);
   
   const result: ProgressSafetyResult = {
     success: true,
@@ -31,7 +32,7 @@ export const ensureSafeProgressCreation = async (
     const newUserIds = userIds.filter(id => !existingUserIds.includes(id));
     
     if (newUserIds.length === 0) {
-      console.log('ℹ️ No new users to create assignments for');
+      logger.log('ℹ️ No new users to create assignments for');
       return result;
     }
     
@@ -58,7 +59,7 @@ export const ensureSafeProgressCreation = async (
             result.errors.push(`Failed to create assignment for user ${userId}: ${error.message}`);
           }
         } else {
-          console.log('✅ Course assignment created for user:', userId);
+          logger.log('✅ Course assignment created for user:', userId);
         }
       } catch (error) {
         result.errors.push(`Unexpected error creating assignment for user ${userId}: ${error.message}`);
@@ -81,7 +82,7 @@ export const ensureSafeProgressCreation = async (
     }
     
   } catch (error) {
-    console.error('❌ Error in safe progress creation:', error);
+    logger.error('❌ Error in safe progress creation:', error);
     result.success = false;
     result.errors.push(`Progress creation failed: ${error.message}`);
   }
@@ -93,7 +94,7 @@ export const validateProgressConsistency = async (courseId: string): Promise<{
   isConsistent: boolean;
   issues: string[];
 }> => {
-  console.log('🔍 Validating progress consistency for course:', courseId);
+  logger.log('🔍 Validating progress consistency for course:', courseId);
   
   const issues: string[] = [];
   
@@ -128,7 +129,7 @@ export const validateProgressConsistency = async (courseId: string): Promise<{
     }
     
   } catch (error) {
-    console.error('❌ Progress validation failed:', error);
+    logger.error('❌ Progress validation failed:', error);
     issues.push(`Validation failed: ${error.message}`);
   }
   

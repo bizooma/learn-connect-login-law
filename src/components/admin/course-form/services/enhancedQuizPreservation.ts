@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { ModuleData } from "../types";
+import { logger } from "@/utils/logger";
 
 export interface QuizAssignmentData {
   quizId: string;
@@ -27,7 +28,7 @@ export const preserveQuizAssignmentsEnhanced = async (courseId: string): Promise
   };
 
   try {
-    console.log('🎯 Starting enhanced quiz assignment preservation for course:', courseId);
+    logger.log('🎯 Starting enhanced quiz assignment preservation for course:', courseId);
     
     // Fetch complete course structure with quiz assignments
     const { data: modules, error: modulesError } = await supabase
@@ -63,7 +64,7 @@ export const preserveQuizAssignmentsEnhanced = async (courseId: string): Promise
       });
     });
 
-    console.log(`Found ${unitHierarchy.size} units in course hierarchy`);
+    logger.log(`Found ${unitHierarchy.size} units in course hierarchy`);
 
     // Fetch all quiz assignments for these units
     const unitIds = Array.from(unitHierarchy.keys());
@@ -86,7 +87,7 @@ export const preserveQuizAssignmentsEnhanced = async (courseId: string): Promise
       return result;
     }
 
-    console.log(`Found ${quizzes?.length || 0} active quiz assignments`);
+    logger.log(`Found ${quizzes?.length || 0} active quiz assignments`);
 
     // Create enhanced preservation data
     const preservedAssignments: QuizAssignmentData[] = [];
@@ -103,7 +104,7 @@ export const preserveQuizAssignmentsEnhanced = async (courseId: string): Promise
           lessonTitle: hierarchy.lesson.title
         });
         
-        console.log(`✅ Preserved: Quiz "${quiz.title}" -> Unit "${hierarchy.unit.title}" in Module "${hierarchy.module.title}"`);
+        logger.log(`✅ Preserved: Quiz "${quiz.title}" -> Unit "${hierarchy.unit.title}" in Module "${hierarchy.module.title}"`);
       } else {
         result.warnings.push(`Could not find hierarchy for quiz "${quiz.title}" (unit_id: ${quiz.unit_id})`);
       }
@@ -112,12 +113,12 @@ export const preserveQuizAssignmentsEnhanced = async (courseId: string): Promise
     result.preservedAssignments = preservedAssignments;
     result.success = true;
     
-    console.log(`🎯 Enhanced quiz preservation completed: ${preservedAssignments.length} assignments preserved`);
+    logger.log(`🎯 Enhanced quiz preservation completed: ${preservedAssignments.length} assignments preserved`);
     
     return result;
 
   } catch (error) {
-    console.error('💥 Error in enhanced quiz preservation:', error);
+    logger.error('💥 Error in enhanced quiz preservation:', error);
     result.errors.push(`Preservation failed: ${error.message}`);
     return result;
   }
@@ -136,12 +137,12 @@ export const restoreQuizAssignmentsEnhanced = async (
   };
 
   try {
-    console.log('🔄 Starting enhanced quiz assignment restoration for course:', courseId);
-    console.log(`Attempting to restore ${preservedAssignments.length} quiz assignments`);
+    logger.log('🔄 Starting enhanced quiz assignment restoration for course:', courseId);
+    logger.log(`Attempting to restore ${preservedAssignments.length} quiz assignments`);
 
     if (preservedAssignments.length === 0) {
       result.success = true;
-      console.log('No quiz assignments to restore');
+      logger.log('No quiz assignments to restore');
       return result;
     }
 
@@ -194,10 +195,10 @@ export const restoreQuizAssignmentsEnhanced = async (
       }
 
       unitMapping.set(preserved.unitId, matchingUnit.id);
-      console.log(`📍 Mapped unit: "${preserved.unitTitle}" (${preserved.unitId} -> ${matchingUnit.id})`);
+      logger.log(`📍 Mapped unit: "${preserved.unitTitle}" (${preserved.unitId} -> ${matchingUnit.id})`);
     });
 
-    console.log(`Successfully mapped ${unitMapping.size} out of ${preservedAssignments.length} units`);
+    logger.log(`Successfully mapped ${unitMapping.size} out of ${preservedAssignments.length} units`);
 
     // Restore quiz assignments
     let restoredCount = 0;
@@ -222,7 +223,7 @@ export const restoreQuizAssignmentsEnhanced = async (
         if (updateError) {
           result.errors.push(`Failed to restore quiz "${preserved.quizTitle}": ${updateError.message}`);
         } else {
-          console.log(`✅ Restored quiz assignment: "${preserved.quizTitle}" -> "${preserved.unitTitle}"`);
+          logger.log(`✅ Restored quiz assignment: "${preserved.quizTitle}" -> "${preserved.unitTitle}"`);
           restoredCount++;
           result.preservedAssignments.push(preserved);
         }

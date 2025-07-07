@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Camera, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 
 interface SectionImageUploadProps {
   currentImageUrl?: string;
@@ -46,7 +47,7 @@ const SectionImageUpload = ({ currentImageUrl, onImageUpdate, sectionIndex }: Se
         description: "Section image uploaded successfully",
       });
     } catch (error) {
-      console.error('Error uploading image:', error);
+      logger.error('Error uploading image:', error);
       toast({
         title: "Error",
         description: "Failed to upload section image",

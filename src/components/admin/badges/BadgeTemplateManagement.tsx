@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -47,7 +48,7 @@ const BadgeTemplateManagement = () => {
       if (error) throw error;
       setTemplates(data || []);
     } catch (error: any) {
-      console.error('Error fetching templates:', error);
+      logger.error('Error fetching templates:', error);
       toast({
         title: "Error",
         description: "Failed to load badge templates",
@@ -115,7 +116,7 @@ const BadgeTemplateManagement = () => {
       setDialogOpen(false);
       fetchTemplates();
     } catch (error: any) {
-      console.error('Error creating template:', error);
+      logger.error('Error creating template:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to create badge template",
@@ -143,7 +144,7 @@ const BadgeTemplateManagement = () => {
       });
       fetchTemplates();
     } catch (error: any) {
-      console.error('Error deleting template:', error);
+      logger.error('Error deleting template:', error);
       toast({
         title: "Error",
         description: "Failed to delete badge template",

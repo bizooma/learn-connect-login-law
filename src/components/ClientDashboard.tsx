@@ -10,6 +10,7 @@ import DashboardHeader from "./dashboard/DashboardHeader";
 import DashboardStats from "./dashboard/DashboardStats";
 import DashboardContent from "./dashboard/DashboardContent";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { logger } from "@/utils/logger";
 
 const ClientDashboard = () => {
   const { user, signOut } = useAuth();
@@ -19,7 +20,7 @@ const ClientDashboard = () => {
   const { stats, loading: statsLoading } = useDashboardStats();
 
   useEffect(() => {
-    console.log('ClientDashboard: useEffect triggered with:', {
+    logger.log('ClientDashboard: useEffect triggered with:', {
       user: !!user,
       isClient,
       roleLoading,
@@ -28,20 +29,20 @@ const ClientDashboard = () => {
 
     // If no user, redirect immediately
     if (!user) {
-      console.log('ClientDashboard: No user found, redirecting to home');
+      logger.log('ClientDashboard: No user found, redirecting to home');
       navigate("/", { replace: true });
       return;
     }
 
     // Don't redirect if we're still loading roles
     if (roleLoading) {
-      console.log('ClientDashboard: Still loading roles, waiting...');
+      logger.log('ClientDashboard: Still loading roles, waiting...');
       return;
     }
 
     // If user exists but is not a client, redirect
     if (user && !isClient) {
-      console.log('ClientDashboard: User is not a client, redirecting to main dashboard');
+      logger.log('ClientDashboard: User is not a client, redirecting to main dashboard');
       navigate("/dashboard", { replace: true });
       return;
     }

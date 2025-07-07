@@ -2,6 +2,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { youTubeAPIService } from '@/services/youTubeAPIService';
 import { useVideoPerformance } from './useVideoPerformance';
+import { logger } from '@/utils/logger';
 
 interface YouTubePlayerState {
   player: any | null;
@@ -48,7 +49,7 @@ export const useEnhancedYouTubePlayer = ({
     videoId,
     onMetricsUpdate: (metrics) => {
       if (metrics.errorCount > 2) {
-        console.warn('Multiple YouTube player errors detected for video:', videoId);
+        logger.warn('Multiple YouTube player errors detected for video:', videoId);
       }
     }
   });
@@ -84,7 +85,7 @@ export const useEnhancedYouTubePlayer = ({
         },
         events: {
           onReady: (event: any) => {
-            console.log('Enhanced YouTube player ready for:', videoId);
+            logger.log('Enhanced YouTube player ready for:', videoId);
             playerRef.current = event.target;
             
             endLoadTimer();
@@ -104,7 +105,7 @@ export const useEnhancedYouTubePlayer = ({
           },
           onStateChange: (event: any) => {
             const state = event.data;
-            console.log('Enhanced YouTube player state changed:', state, 'for video:', videoId);
+            logger.log('Enhanced YouTube player state changed:', state, 'for video:', videoId);
             
             setPlayerState(prev => ({ 
               ...prev, 
@@ -138,7 +139,7 @@ export const useEnhancedYouTubePlayer = ({
             const errorCode = event.data;
             const errorMessage = getErrorMessage(errorCode);
             
-            console.error('Enhanced YouTube player error:', errorCode, errorMessage, 'for video:', videoId);
+            logger.error('Enhanced YouTube player error:', errorCode, errorMessage, 'for video:', videoId);
             
             recordError();
             updatePlayerState('error');
@@ -164,7 +165,7 @@ export const useEnhancedYouTubePlayer = ({
 
       playerRef.current = player;
     } catch (error) {
-      console.error('Error initializing enhanced YouTube player:', error);
+      logger.error('Error initializing enhanced YouTube player:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown initialization error';
       
       recordError();
@@ -206,7 +207,7 @@ export const useEnhancedYouTubePlayer = ({
             onProgress(currentTime, duration);
           }
         } catch (error) {
-          console.warn('Error getting YouTube player time:', error);
+          logger.warn('Error getting YouTube player time:', error);
         }
       }
     }, 2000); // Update every 2 seconds for better performance
@@ -226,7 +227,7 @@ export const useEnhancedYouTubePlayer = ({
     }
 
     retryTimeoutRef.current = window.setTimeout(() => {
-      console.log('Retrying YouTube player initialization for:', videoId);
+      logger.log('Retrying YouTube player initialization for:', videoId);
       recordRetry();
       updatePlayerState('retrying');
       initializePlayer();
@@ -248,7 +249,7 @@ export const useEnhancedYouTubePlayer = ({
         try {
           playerRef.current.destroy();
         } catch (error) {
-          console.warn('Error destroying YouTube player:', error);
+          logger.warn('Error destroying YouTube player:', error);
         }
       }
     };
@@ -260,7 +261,7 @@ export const useEnhancedYouTubePlayer = ({
       try {
         playerRef.current.playVideo();
       } catch (error) {
-        console.warn('Error playing YouTube video:', error);
+        logger.warn('Error playing YouTube video:', error);
       }
     }
   }, []);
@@ -270,7 +271,7 @@ export const useEnhancedYouTubePlayer = ({
       try {
         playerRef.current.pauseVideo();
       } catch (error) {
-        console.warn('Error pausing YouTube video:', error);
+        logger.warn('Error pausing YouTube video:', error);
       }
     }
   }, []);
@@ -280,7 +281,7 @@ export const useEnhancedYouTubePlayer = ({
       try {
         playerRef.current.seekTo(seconds, true);
       } catch (error) {
-        console.warn('Error seeking YouTube video:', error);
+        logger.warn('Error seeking YouTube video:', error);
       }
     }
   }, []);

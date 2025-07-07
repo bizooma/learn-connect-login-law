@@ -2,6 +2,7 @@
 import { DragEndEvent } from '@dnd-kit/core';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 
 export const useDragHandler = (onRefetch: () => void) => {
   const { toast } = useToast();
@@ -13,7 +14,7 @@ export const useDragHandler = (onRefetch: () => void) => {
       return;
     }
 
-    console.log('Drag ended:', { active: active.id, over: over.id });
+    logger.log('Drag ended:', { active: active.id, over: over.id });
     
     try {
       const activeId = active.id as string;
@@ -24,18 +25,18 @@ export const useDragHandler = (onRefetch: () => void) => {
       const overMatch = overId.match(/^(course|module|lesson|unit)-(.+)$/);
       
       if (!activeMatch || !overMatch) {
-        console.error('Invalid drag item IDs:', { activeId, overId });
+        logger.error('Invalid drag item IDs:', { activeId, overId });
         return;
       }
       
       const [, activeType, activeItemId] = activeMatch;
       const [, overType, overItemId] = overMatch;
       
-      console.log('Drag operation:', { activeType, activeItemId, overType, overItemId });
+      logger.log('Drag operation:', { activeType, activeItemId, overType, overItemId });
       
       // Handle module to module reordering (same level drag)
       if (activeType === 'module' && overType === 'module' && activeItemId !== overItemId) {
-        console.log('Attempting to reorder modules:', { activeItemId, overItemId });
+        logger.log('Attempting to reorder modules:', { activeItemId, overItemId });
         
         // Since modules might actually be lessons in disguise due to data transformation,
         // we need to check both tables and handle accordingly
@@ -55,7 +56,7 @@ export const useDragHandler = (onRefetch: () => void) => {
         
         // If both are found in modules table, proceed with module reordering
         if (activeModule && overModule && !activeModuleError && !overModuleError) {
-          console.log('Found both items in modules table, proceeding with module reordering');
+          logger.log('Found both items in modules table, proceeding with module reordering');
           
           if (activeModule.course_id !== overModule.course_id) {
             toast({
@@ -67,7 +68,7 @@ export const useDragHandler = (onRefetch: () => void) => {
           
           const tempSortOrder = activeModule.sort_order;
           
-          console.log('Swapping module sort orders:', { 
+          logger.log('Swapping module sort orders:', { 
             activeId: activeItemId, 
             newSortOrder: overModule.sort_order,
             overId: overItemId,
@@ -80,7 +81,7 @@ export const useDragHandler = (onRefetch: () => void) => {
             .eq('id', activeItemId);
             
           if (updateError1) {
-            console.error('Error updating active module sort order:', updateError1);
+            logger.error('Error updating active module sort order:', updateError1);
             throw new Error(`Failed to update active module: ${updateError1.message}`);
           }
             
@@ -90,11 +91,11 @@ export const useDragHandler = (onRefetch: () => void) => {
             .eq('id', overItemId);
             
           if (updateError2) {
-            console.error('Error updating target module sort order:', updateError2);
+            logger.error('Error updating target module sort order:', updateError2);
             throw new Error(`Failed to update target module: ${updateError2.message}`);
           }
           
-          console.log('Module reordering completed successfully');
+          logger.log('Module reordering completed successfully');
           
           toast({
             title: "Success",
@@ -119,7 +120,7 @@ export const useDragHandler = (onRefetch: () => void) => {
           .maybeSingle();
         
         if (activeLesson && overLesson && !activeLessonError && !overLessonError) {
-          console.log('Found both items in lessons table, proceeding with lesson reordering');
+          logger.log('Found both items in lessons table, proceeding with lesson reordering');
           
           if (activeLesson.course_id !== overLesson.course_id) {
             toast({
@@ -131,7 +132,7 @@ export const useDragHandler = (onRefetch: () => void) => {
           
           const tempSortOrder = activeLesson.sort_order;
           
-          console.log('Swapping lesson sort orders:', { 
+          logger.log('Swapping lesson sort orders:', { 
             activeId: activeItemId, 
             newSortOrder: overLesson.sort_order,
             overId: overItemId,

@@ -1,13 +1,14 @@
 
 import { CourseFormData, ModuleData } from "../types";
 import { performEnhancedTransactionalCourseUpdate } from "./enhancedTransactionalCourseUpdate";
+import { logger } from "@/utils/logger";
 
 export const updateCourse = async (
   courseId: string,
   courseData: CourseFormData,
   modules: ModuleData[]
 ) => {
-  console.log('🔄 Starting course update with enhanced transactional safety...');
+  logger.log('🔄 Starting course update with enhanced transactional safety...');
   
   try {
     const result = await performEnhancedTransactionalCourseUpdate(
@@ -20,7 +21,7 @@ export const updateCourse = async (
       throw new Error(`Course update failed: ${result.errors.join(', ')}`);
     }
     
-    console.log('✅ Course update completed successfully');
+    logger.log('✅ Course update completed successfully');
     
     return {
       success: true,
@@ -31,7 +32,7 @@ export const updateCourse = async (
     };
     
   } catch (error) {
-    console.error('❌ Course update failed:', error);
+    logger.error('❌ Course update failed:', error);
     throw error;
   }
 };

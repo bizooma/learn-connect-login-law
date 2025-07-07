@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 import { usePagination } from "./user-management/usePagination";
 import UserProgressModal from "./user-progress/UserProgressModal";
 import UserProgressManagementHeader from "./user-progress/UserProgressManagementHeader";
@@ -181,7 +182,7 @@ const UserProgressManagement = () => {
       setUsers(uniqueUsers);
 
     } catch (error) {
-      console.error('Error fetching user progress:', error);
+      logger.error('Error fetching user progress:', error);
       toast({
         title: "Error",
         description: "Failed to fetch user progress data",

@@ -7,6 +7,7 @@ import { useUserProgress } from "@/hooks/useUserProgress";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { Tables } from "@/integrations/supabase/types";
+import { logger } from "@/utils/logger";
 
 type Course = Tables<'courses'>;
 type CourseProgress = Tables<'user_course_progress'>;
@@ -85,7 +86,7 @@ const UserCourseProgress = ({ userId, showOnlyAssigned = false, showOnlyComplete
   }
 
   // Enhanced debugging to understand the data structure
-  console.log('UserCourseProgress Enhanced Debug:', {
+  logger.log('UserCourseProgress Enhanced Debug:', {
     userId,
     showOnlyAssigned,
     showOnlyCompleted,

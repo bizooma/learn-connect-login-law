@@ -10,6 +10,7 @@ import UserProgressModal from "../user-progress/UserProgressModal";
 import { filterUsers } from "./userRoleUtils";
 import { UserProfile } from "./types";
 import { fetchUsersWithStatsSafe, updateUserRoleSafe } from "./updatedUserManagementService";
+import { logger } from "@/utils/logger";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -25,10 +26,10 @@ const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      console.log('Fetching users data with safe filtering...');
+      logger.log('Fetching users data with safe filtering...');
       setLoading(true);
       const { users: fetchedUsers, stats: fetchedStats } = await fetchUsersWithStatsSafe();
-      console.log('Fetched users safely:', fetchedUsers.length);
+      logger.log('Fetched users safely:', fetchedUsers.length);
       setUsers(fetchedUsers);
       setStats(fetchedStats);
       
@@ -36,7 +37,7 @@ const UserManagement = () => {
       setCurrentPage(1);
       
     } catch (error: any) {
-      console.error('Error fetching users:', error);
+      logger.error('Error fetching users:', error);
       toast({
         title: "Error",
         description: `Failed to fetch users: ${error.message}`,
@@ -70,7 +71,7 @@ const UserManagement = () => {
         description: "User role updated successfully with full audit trail",
       });
     } catch (error: any) {
-      console.error('Error updating user role:', error);
+      logger.error('Error updating user role:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update user role",
@@ -100,7 +101,7 @@ const UserManagement = () => {
   const handlePageChange = (page: number) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
-      console.log(`Changed to page ${page} of ${totalPages}`);
+      logger.log(`Changed to page ${page} of ${totalPages}`);
     }
   };
 

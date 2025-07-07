@@ -10,6 +10,7 @@ import TeamDetailsDialog from './TeamDetailsDialog';
 import EditTeamDialog from './EditTeamDialog';
 import TeamProgressDashboard from './TeamProgressDashboard';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { logger } from '@/utils/logger';
 
 interface AdminTeamCardProps {
   team: AdminTeam;
@@ -30,7 +31,7 @@ const AdminTeamCard = ({ team }: AdminTeamCardProps) => {
         const summary = await getTeamProgressSummary(team.id);
         setProgressSummary(summary);
       } catch (error) {
-        console.error('Error fetching team progress:', error);
+        logger.error('Error fetching team progress:', error);
       } finally {
         setLoading(false);
       }
@@ -44,7 +45,7 @@ const AdminTeamCard = ({ team }: AdminTeamCardProps) => {
       try {
         await deleteTeam(team.id);
       } catch (error) {
-        console.error('Error deleting team:', error);
+        logger.error('Error deleting team:', error);
       }
     }
   };

@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useAdminTeams } from '@/hooks/useAdminTeams';
+import { logger } from '@/utils/logger';
 
 interface CreateTeamDialogProps {
   open: boolean;
@@ -30,7 +31,7 @@ const CreateTeamDialog = ({ open, onOpenChange }: CreateTeamDialogProps) => {
       setDescription('');
       onOpenChange(false);
     } catch (error) {
-      console.error('Error creating team:', error);
+      logger.error('Error creating team:', error);
     } finally {
       setLoading(false);
     }

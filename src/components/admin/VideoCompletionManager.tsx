@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { RefreshCw, CheckCircle, AlertTriangle } from "lucide-react";
 import { repairVideoCompletionData, repairLegalTraining200 } from "@/utils/videoCompletionRepair";
+import { logger } from "@/utils/logger";
 
 const VideoCompletionManager = () => {
   const [isRepairing, setIsRepairing] = useState(false);
@@ -38,7 +39,7 @@ const VideoCompletionManager = () => {
       }
       
       if (results.errors.length > 0) {
-        console.warn('Repair errors:', results.errors);
+        logger.warn('Repair errors:', results.errors);
       }
     } catch (error) {
       toast({
@@ -64,7 +65,7 @@ const VideoCompletionManager = () => {
       });
       
       if (results.errors.length > 0) {
-        console.warn('Legal Training repair errors:', results.errors);
+        logger.warn('Legal Training repair errors:', results.errors);
       }
     } catch (error) {
       toast({

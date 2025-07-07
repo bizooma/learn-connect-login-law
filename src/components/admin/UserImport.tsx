@@ -11,6 +11,7 @@ import CSVFileUpload from "./user-import/CSVFileUpload";
 import CSVPreview from "./user-import/CSVPreview";
 import ImportResults from "./user-import/ImportResults";
 import BatchUserImport from "./BatchUserImport";
+import { logger } from "@/utils/logger";
 
 interface ImportResult {
   success: boolean;
@@ -58,12 +59,12 @@ const UserImport = () => {
 
     setImporting(true);
     try {
-      console.log('Starting import process...');
+      logger.log('Starting import process...');
       
       const formData = new FormData();
       formData.append('file', file);
 
-      console.log('Calling import function...');
+      logger.log('Calling import function...');
       
       const importPromise = supabase.functions.invoke('import-users-csv', {
         body: formData
@@ -75,10 +76,10 @@ const UserImport = () => {
       
       const { data, error } = await Promise.race([importPromise, timeoutPromise]) as any;
 
-      console.log('Import response received:', { data, error });
+      logger.log('Import response received:', { data, error });
 
       if (error) {
-        console.error('Import error:', error);
+        logger.error('Import error:', error);
         throw new Error(error.message || 'Import request failed');
       }
 
@@ -93,7 +94,7 @@ const UserImport = () => {
           description: `Successfully imported ${data.stats.successfulImports} users`,
         });
       } else {
-        console.error('Import failed:', data.error);
+        logger.error('Import failed:', data.error);
         toast({
           title: "Import failed",
           description: data.error || "Unknown error occurred",
@@ -101,7 +102,7 @@ const UserImport = () => {
         });
       }
     } catch (error) {
-      console.error('Import error:', error);
+      logger.error('Import error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to import users';
       toast({
         title: "Import failed",

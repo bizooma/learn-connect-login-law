@@ -2,10 +2,11 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CourseProgress, UnitProgress } from "./types";
 import { progressCalculator } from "./progressCalculator";
+import { logger } from "@/utils/logger";
 
 export const progressService = {
   async fetchUserProgress(userId: string) {
-    console.log('progressService: Fetching user progress for user:', userId);
+    logger.log('progressService: Fetching user progress for user:', userId);
     
     // First, get all course assignments for this user
     const { data: assignments, error: assignmentsError } = await supabase
@@ -14,14 +15,14 @@ export const progressService = {
       .eq('user_id', userId);
 
     if (assignmentsError) {
-      console.error('Error fetching course assignments:', assignmentsError);
+      logger.error('Error fetching course assignments:', assignmentsError);
       throw assignmentsError;
     }
 
-    console.log('progressService: Found assignments:', assignments);
+    logger.log('progressService: Found assignments:', assignments);
 
     if (!assignments || assignments.length === 0) {
-      console.log('progressService: No course assignments found for user');
+      logger.log('progressService: No course assignments found for user');
       return [];
     }
 
@@ -39,18 +40,18 @@ export const progressService = {
       .order('last_accessed_at', { ascending: false });
 
     if (progressError) {
-      console.error('Error fetching progress:', progressError);
+      logger.error('Error fetching progress:', progressError);
       throw progressError;
     }
 
-    console.log('progressService: Found progress data:', progressData);
+    logger.log('progressService: Found progress data:', progressData);
 
     // For courses that are assigned but don't have progress records yet, create entries
     const existingCourseIds = progressData?.map(p => p.course_id) || [];
     const missingCourseIds = assignedCourseIds.filter(id => !existingCourseIds.includes(id));
 
     if (missingCourseIds.length > 0) {
-      console.log('progressService: Creating progress entries for missing courses:', missingCourseIds);
+      logger.log('progressService: Creating progress entries for missing courses:', missingCourseIds);
       
       // Get course details for missing courses
       const { data: missingCourses, error: coursesError } = await supabase
@@ -59,7 +60,7 @@ export const progressService = {
         .in('id', missingCourseIds);
 
       if (coursesError) {
-        console.error('Error fetching missing courses:', coursesError);
+        logger.error('Error fetching missing courses:', coursesError);
         throw coursesError;
       }
 
@@ -81,11 +82,11 @@ export const progressService = {
             });
 
           if (createError) {
-            console.warn('Error creating progress entry for course:', courseId, createError);
+            logger.warn('Error creating progress entry for course:', courseId, createError);
             // Continue with other courses even if one fails
           }
         } catch (error) {
-          console.warn('Exception creating progress entry for course:', courseId, error);
+          logger.warn('Exception creating progress entry for course:', courseId, error);
           // Continue processing other courses
         }
       }
@@ -108,7 +109,7 @@ export const progressService = {
   },
 
   async updateCourseProgress(userId: string, courseId: string, updates: Partial<CourseProgress>) {
-    console.log('progressService: Updating course progress:', { courseId, updates });
+    logger.log('progressService: Updating course progress:', { courseId, updates });
     
     try {
       // Use defensive UPSERT with better error handling
@@ -127,7 +128,7 @@ export const progressService = {
       if (error) {
         // Handle constraint violations gracefully
         if (error.code === '23505' && error.message?.includes('duplicate key')) {
-          console.log('Course progress record exists, attempting update instead of insert');
+          logger.log('Course progress record exists, attempting update instead of insert');
           
           // Try direct update
           const { error: updateError } = await supabase
@@ -140,11 +141,11 @@ export const progressService = {
             .eq('course_id', courseId);
 
           if (updateError) {
-            console.error('Direct update also failed:', updateError);
+            logger.error('Direct update also failed:', updateError);
             throw updateError;
           }
           
-          console.log('Course progress updated via direct update');
+          logger.log('Course progress updated via direct update');
           return;
         }
         

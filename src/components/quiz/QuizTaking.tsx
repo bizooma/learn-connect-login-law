@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Clock, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { useReliableCompletion } from "@/hooks/useReliableCompletion";
+import { logger } from "@/utils/logger";
 
 type Quiz = Tables<'quizzes'> & {
   quiz_questions: Array<Tables<'quiz_questions'> & {
@@ -71,7 +72,7 @@ const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTak
     setIsSubmitting(true);
     
     try {
-      console.log('📝 Submitting quiz:', quiz.id);
+      logger.log('📝 Submitting quiz:', quiz.id);
       
       // Calculate score
       let correctAnswers = 0;
@@ -88,10 +89,10 @@ const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTak
       const score = Math.round((correctAnswers / totalQuestions) * 100);
       const passed = score >= quiz.passing_score;
       
-      console.log('📊 Quiz results:', { score, passed, correctAnswers, totalQuestions });
+      logger.log('📊 Quiz results:', { score, passed, correctAnswers, totalQuestions });
 
       if (passed && quiz.unit_id) {
-        console.log('✅ Quiz passed, marking quiz complete and evaluating unit');
+        logger.log('✅ Quiz passed, marking quiz complete and evaluating unit');
         
         // Mark quiz as completed
         await markQuizComplete(quiz.unit_id, courseId);
@@ -103,7 +104,7 @@ const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTak
 
       onComplete(passed, score);
     } catch (error) {
-      console.error('❌ Error submitting quiz:', error);
+      logger.error('❌ Error submitting quiz:', error);
     } finally {
       setIsSubmitting(false);
     }

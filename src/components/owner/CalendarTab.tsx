@@ -10,6 +10,7 @@ import { format, parseISO } from "date-fns";
 import { useLawFirm } from "@/hooks/useLawFirm";
 import OwnerCalendarEventDialog from "./OwnerCalendarEventDialog";
 import OwnerCalendarEventList from "./OwnerCalendarEventList";
+import { logger } from "@/utils/logger";
 
 type LawFirmCalendarEvent = Tables<'law_firm_calendars'>;
 
@@ -23,7 +24,7 @@ const CalendarTab = () => {
 
   useEffect(() => {
     if (lawFirm?.id) {
-      console.log('CalendarTab: Fetching events for law firm:', lawFirm.id);
+      logger.log('CalendarTab: Fetching events for law firm:', lawFirm.id);
       fetchEvents();
     }
   }, [lawFirm?.id]);
@@ -33,10 +34,10 @@ const CalendarTab = () => {
       try {
         const dateString = format(selectedDate, 'yyyy-MM-dd');
         const dayEvents = events.filter(event => event.event_date === dateString);
-        console.log('Selected date events:', { dateString, dayEvents });
+        logger.log('Selected date events:', { dateString, dayEvents });
         setSelectedEvents(dayEvents);
       } catch (error) {
-        console.error('Error filtering events by date:', error);
+        logger.error('Error filtering events by date:', error);
         setSelectedEvents([]);
       }
     }
@@ -44,13 +45,13 @@ const CalendarTab = () => {
 
   const fetchEvents = async () => {
     if (!lawFirm?.id) {
-      console.warn('CalendarTab: No law firm ID provided');
+      logger.warn('CalendarTab: No law firm ID provided');
       setLoading(false);
       return;
     }
 
     try {
-      console.log('Fetching calendar events for law firm:', lawFirm.id);
+      logger.log('Fetching calendar events for law firm:', lawFirm.id);
       
       const { data, error } = await supabase
         .from('law_firm_calendars')
@@ -59,14 +60,14 @@ const CalendarTab = () => {
         .order('event_date', { ascending: true });
 
       if (error) {
-        console.error('Error fetching calendar events:', error);
+        logger.error('Error fetching calendar events:', error);
         throw error;
       }
 
-      console.log('Calendar events fetched:', data);
+      logger.log('Calendar events fetched:', data);
       setEvents(data || []);
     } catch (error) {
-      console.error('Error fetching law firm calendar events:', error);
+      logger.error('Error fetching law firm calendar events:', error);
       toast({
         title: "Error",
         description: "Failed to load calendar events",
@@ -84,12 +85,12 @@ const CalendarTab = () => {
         try {
           return parseISO(event.event_date);
         } catch (dateError) {
-          console.error('Error parsing event date:', event.event_date, dateError);
+          logger.error('Error parsing event date:', event.event_date, dateError);
           return new Date(); // fallback to current date
         }
       }).filter(date => !isNaN(date.getTime()));
     } catch (error) {
-      console.error('Error getting event dates:', error);
+      logger.error('Error getting event dates:', error);
       return [];
     }
   };
@@ -112,7 +113,7 @@ const CalendarTab = () => {
     );
   }
 
-  console.log('CalendarTab: Rendering with lawFirm:', lawFirm?.id, 'Add button should be visible:', !!lawFirm);
+  logger.log('CalendarTab: Rendering with lawFirm:', lawFirm?.id, 'Add button should be visible:', !!lawFirm);
 
   return (
     <Card>
