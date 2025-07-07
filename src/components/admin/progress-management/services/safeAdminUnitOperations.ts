@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 
 export interface AdminUnitCompletionResult {
   success: boolean;
@@ -21,7 +22,7 @@ interface DatabaseFunctionResponse {
 
 // Enhanced helper function to recalculate course progress after unit completion
 const recalculateCourseProgress = async (userId: string, courseId: string) => {
-  console.log('🔄 Starting course progress recalculation:', { userId, courseId });
+  logger.log('🔄 Starting course progress recalculation:', { userId, courseId });
   
   try {
     // Get all units in the course through the proper relationships
@@ -34,19 +35,19 @@ const recalculateCourseProgress = async (userId: string, courseId: string) => {
       .eq('course_id', courseId);
 
     if (lessonsError) {
-      console.error('❌ Error fetching lessons for progress calculation:', lessonsError);
+      logger.error('❌ Error fetching lessons for progress calculation:', lessonsError);
       throw lessonsError;
     }
 
-    console.log('📚 Found lessons for course:', lessons);
+    logger.log('📚 Found lessons for course:', lessons);
 
     const allUnits = lessons?.flatMap(lesson => lesson.units || []) || [];
     const totalUnits = allUnits.length;
 
-    console.log(`📊 Total units in course: ${totalUnits}`);
+    logger.log(`📊 Total units in course: ${totalUnits}`);
 
     if (totalUnits === 0) {
-      console.log('⚠️ No units found for course, skipping progress calculation');
+      logger.log('⚠️ No units found for course, skipping progress calculation');
       return;
     }
 
@@ -59,7 +60,7 @@ const recalculateCourseProgress = async (userId: string, courseId: string) => {
       .eq('completed', true);
 
     if (progressError) {
-      console.error('❌ Error fetching unit progress:', progressError);
+      logger.error('❌ Error fetching unit progress:', progressError);
       throw progressError;
     }
 
@@ -68,7 +69,7 @@ const recalculateCourseProgress = async (userId: string, courseId: string) => {
     const status = progressPercentage === 100 ? 'completed' : 
                   progressPercentage > 0 ? 'in_progress' : 'not_started';
 
-    console.log(`📈 Course progress calculated:`, {
+    logger.log(`📈 Course progress calculated:`, {
       completedCount,
       totalUnits,
       progressPercentage,
@@ -94,11 +95,11 @@ const recalculateCourseProgress = async (userId: string, courseId: string) => {
       .select();
 
     if (updateError) {
-      console.error('❌ Error updating course progress:', updateError);
+      logger.error('❌ Error updating course progress:', updateError);
       throw updateError;
     }
 
-    console.log('✅ Course progress updated successfully:', updateResult);
+    logger.log('✅ Course progress updated successfully:', updateResult);
     
     // Verify the update by fetching the latest data
     const { data: verifyData, error: verifyError } = await supabase
@@ -109,13 +110,13 @@ const recalculateCourseProgress = async (userId: string, courseId: string) => {
       .single();
 
     if (verifyError) {
-      console.error('❌ Error verifying progress update:', verifyError);
+      logger.error('❌ Error verifying progress update:', verifyError);
     } else {
-      console.log('🔍 Verification - Current course progress in DB:', verifyData);
+      logger.log('🔍 Verification - Current course progress in DB:', verifyData);
     }
 
   } catch (error) {
-    console.error('❌ Error in course progress recalculation:', error);
+    logger.error('❌ Error in course progress recalculation:', error);
     throw error;
   }
 };

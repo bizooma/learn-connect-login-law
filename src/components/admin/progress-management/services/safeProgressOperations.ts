@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 
 export interface ProgressOperationResult {
   success: boolean;
@@ -23,7 +24,7 @@ export interface ProgressBackupData {
 
 export const createProgressBackup = async (userIds: string[], courseIds?: string[]): Promise<ProgressOperationResult> => {
   try {
-    console.log('Creating progress backup for users:', userIds.length, 'courses:', courseIds?.length || 'all');
+    logger.log('Creating progress backup for users:', userIds.length, 'courses:', courseIds?.length || 'all');
     
     // Build queries
     let courseProgressQuery = supabase.from('user_course_progress').select('*').in('user_id', userIds);
@@ -61,7 +62,7 @@ export const createProgressBackup = async (userIds: string[], courseIds?: string
                         backupData.videoProgress.length + 
                         backupData.certificates.length;
 
-    console.log('Progress backup created:', {
+    logger.log('Progress backup created:', {
       backupId: backupData.backupId,
       totalRecords,
       breakdown: {
@@ -82,7 +83,7 @@ export const createProgressBackup = async (userIds: string[], courseIds?: string
     };
 
   } catch (error) {
-    console.error('Error creating progress backup:', error);
+    logger.error('Error creating progress backup:', error);
     return {
       success: false,
       errors: [`Progress backup failed: ${error.message}`],
@@ -99,7 +100,7 @@ export const safeResetUserProgress = async (
   reason: string = 'Administrative reset'
 ): Promise<ProgressOperationResult> => {
   try {
-    console.log('Starting safe progress reset for user:', userId, 'course:', courseId || 'all');
+    logger.log('Starting safe progress reset for user:', userId, 'course:', courseId || 'all');
     
     // Create backup first
     const backupResult = await createProgressBackup([userId], courseId ? [courseId] : undefined);
@@ -174,7 +175,7 @@ export const safeResetUserProgress = async (
       recordsFailed++;
     }
 
-    console.log('Progress reset completed:', { recordsProcessed, recordsFailed });
+    logger.log('Progress reset completed:', { recordsProcessed, recordsFailed });
 
     return {
       success: recordsProcessed > 0,
@@ -187,7 +188,7 @@ export const safeResetUserProgress = async (
     };
 
   } catch (error) {
-    console.error('Error in safe progress reset:', error);
+    logger.error('Error in safe progress reset:', error);
     return {
       success: false,
       errors: [`Progress reset failed: ${error.message}`],
@@ -203,7 +204,7 @@ export const safeBulkMarkCompleted = async (
   completionDate?: string
 ): Promise<ProgressOperationResult> => {
   try {
-    console.log('Starting safe bulk completion marking:', assignments.length);
+    logger.log('Starting safe bulk completion marking:', assignments.length);
     
     const userIds = [...new Set(assignments.map(a => a.userId))];
     const courseIds = [...new Set(assignments.map(a => a.courseId))];
@@ -253,7 +254,7 @@ export const safeBulkMarkCompleted = async (
       }
     }
 
-    console.log('Bulk completion marking completed:', { successCount, failCount });
+    logger.log('Bulk completion marking completed:', { successCount, failCount });
 
     return {
       success: successCount > 0,
@@ -266,7 +267,7 @@ export const safeBulkMarkCompleted = async (
     };
 
   } catch (error) {
-    console.error('Error in safe bulk completion marking:', error);
+    logger.error('Error in safe bulk completion marking:', error);
     return {
       success: false,
       errors: [`Bulk completion marking failed: ${error.message}`],
@@ -279,7 +280,7 @@ export const safeBulkMarkCompleted = async (
 
 export const validateProgressIntegrity = async () => {
   try {
-    console.log('Validating progress data integrity...');
+    logger.log('Validating progress data integrity...');
     
     const issues: string[] = [];
     const warnings: string[] = [];
@@ -332,7 +333,7 @@ export const validateProgressIntegrity = async () => {
       supabase.from('user_certificates').select('id', { count: 'exact', head: true })
     ]);
     
-    console.log('Progress integrity validation completed:', {
+    logger.log('Progress integrity validation completed:', {
       isValid: issues.length === 0,
       issueCount: issues.length,
       warningCount: warnings.length

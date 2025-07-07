@@ -3,6 +3,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Option, useQuestionFormValidation } from "./questionFormValidation";
+import { logger } from "@/utils/logger";
 
 interface UseCreateQuestionFormProps {
   quizId: string;
@@ -92,7 +93,7 @@ export const useCreateQuestionForm = ({ quizId, onQuestionCreated, onClose }: Us
       onQuestionCreated();
       onClose();
     } catch (error) {
-      console.error('Error creating question:', error);
+      logger.error('Error creating question:', error);
       toast({
         title: "Error",
         description: "Failed to create question",

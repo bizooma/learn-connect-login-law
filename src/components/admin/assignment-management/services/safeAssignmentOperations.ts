@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 
 export interface AssignmentOperationResult {
   success: boolean;
@@ -20,7 +21,7 @@ export interface AssignmentBackupData {
 
 export const createAssignmentBackup = async (userIds: string[], courseIds: string[]): Promise<AssignmentOperationResult> => {
   try {
-    console.log('Creating assignment backup for users:', userIds.length, 'courses:', courseIds.length);
+    logger.log('Creating assignment backup for users:', userIds.length, 'courses:', courseIds.length);
     
     // Fetch existing assignments
     const { data: assignments, error: assignmentsError } = await supabase
@@ -47,7 +48,7 @@ export const createAssignmentBackup = async (userIds: string[], courseIds: strin
       .in('course_id', courseIds);
 
     if (progressError) {
-      console.warn('Failed to backup progress data:', progressError);
+      logger.warn('Failed to backup progress data:', progressError);
     }
 
     const backupData: AssignmentBackupData = {
@@ -58,7 +59,7 @@ export const createAssignmentBackup = async (userIds: string[], courseIds: strin
       affectedUsers: userIds
     };
 
-    console.log('Assignment backup created:', {
+    logger.log('Assignment backup created:', {
       backupId: backupData.backupId,
       assignments: backupData.assignments.length,
       progress: backupData.userProgress.length
@@ -74,7 +75,7 @@ export const createAssignmentBackup = async (userIds: string[], courseIds: strin
     };
 
   } catch (error) {
-    console.error('Error creating assignment backup:', error);
+    logger.error('Error creating assignment backup:', error);
     return {
       success: false,
       errors: [`Backup failed: ${error.message}`],
@@ -96,7 +97,7 @@ export const safeBulkAssignCourse = async (
   } = {}
 ): Promise<AssignmentOperationResult> => {
   try {
-    console.log('Starting safe bulk course assignment:', { userIds: userIds.length, courseId });
+    logger.log('Starting safe bulk course assignment:', { userIds: userIds.length, courseId });
     
     // Create backup first
     const backupResult = await createAssignmentBackup(userIds, [courseId]);
@@ -161,7 +162,7 @@ export const safeBulkAssignCourse = async (
       }
     }
 
-    console.log('Bulk assignment completed:', { successCount, failCount });
+    logger.log('Bulk assignment completed:', { successCount, failCount });
 
     return {
       success: successCount > 0,
@@ -174,7 +175,7 @@ export const safeBulkAssignCourse = async (
     };
 
   } catch (error) {
-    console.error('Error in safe bulk assignment:', error);
+    logger.error('Error in safe bulk assignment:', error);
     return {
       success: false,
       errors: [`Bulk assignment failed: ${error.message}`],
@@ -190,7 +191,7 @@ export const safeRemoveAssignments = async (
   reason: string = 'Administrative removal'
 ): Promise<AssignmentOperationResult> => {
   try {
-    console.log('Starting safe assignment removal:', assignmentIds.length);
+    logger.log('Starting safe assignment removal:', assignmentIds.length);
     
     // Get assignment details for backup
     const { data: assignments, error: fetchError } = await supabase
@@ -249,7 +250,7 @@ export const safeRemoveAssignments = async (
       };
     }
 
-    console.log('Assignments removed successfully:', assignmentIds.length);
+    logger.log('Assignments removed successfully:', assignmentIds.length);
 
     return {
       success: true,
@@ -262,7 +263,7 @@ export const safeRemoveAssignments = async (
     };
 
   } catch (error) {
-    console.error('Error in safe assignment removal:', error);
+    logger.error('Error in safe assignment removal:', error);
     return {
       success: false,
       errors: [`Assignment removal failed: ${error.message}`],
@@ -275,7 +276,7 @@ export const safeRemoveAssignments = async (
 
 export const validateAssignmentIntegrity = async () => {
   try {
-    console.log('Validating assignment data integrity...');
+    logger.log('Validating assignment data integrity...');
     
     const issues: string[] = [];
     const warnings: string[] = [];
@@ -329,7 +330,7 @@ export const validateAssignmentIntegrity = async () => {
       supabase.from('user_course_progress').select('id', { count: 'exact', head: true })
     ]);
     
-    console.log('Assignment integrity validation completed:', {
+    logger.log('Assignment integrity validation completed:', {
       isValid: issues.length === 0,
       issueCount: issues.length,
       warningCount: warnings.length

@@ -1,9 +1,10 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { SectionData } from "../types";
+import { logger } from "@/utils/logger";
 
 export const createLesson = async (courseId: string, moduleId: string, lesson: SectionData) => {
-  console.log('Creating lesson:', lesson.title);
+  logger.log('Creating lesson:', lesson.title);
   
   const { data: lessonData, error: lessonError } = await supabase
     .from('lessons')
@@ -18,7 +19,7 @@ export const createLesson = async (courseId: string, moduleId: string, lesson: S
     .single();
 
   if (lessonError) {
-    console.error('Error creating lesson:', lessonError);
+    logger.error('Error creating lesson:', lessonError);
     throw new Error(`Failed to create lesson: ${lessonError.message}`);
   }
 

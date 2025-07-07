@@ -11,6 +11,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { Tables } from "@/integrations/supabase/types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, UserPlus } from "lucide-react";
+import { logger } from "@/utils/logger";
 
 type LawFirm = Tables<'law_firms'>;
 
@@ -118,7 +119,7 @@ const AddEmployeeDialog = ({
         .delete()
         .eq('user_id', employeeProfile.id);
 
-      if (roleError) console.error('Error removing old roles:', roleError);
+      if (roleError) logger.error('Error removing old roles:', roleError);
 
       const { error: newRoleError } = await supabase
         .from('user_roles')
@@ -148,7 +149,7 @@ const AddEmployeeDialog = ({
         });
 
       if (notificationError) {
-        console.error('Failed to create notification:', notificationError);
+        logger.error('Failed to create notification:', notificationError);
         // Don't throw here as the main operation succeeded
       }
 
@@ -168,13 +169,13 @@ const AddEmployeeDialog = ({
         role: "student"
       });
     } catch (error: any) {
-      console.error('Error adding employee:', error);
+      logger.error('Error adding employee:', error);
       toast({
         title: "Error",
         description: `Failed to add employee: ${error.message}`,
         variant: "destructive",
       });
-    } finally {
+    }finally {
       setLoading(false);
     }
   };

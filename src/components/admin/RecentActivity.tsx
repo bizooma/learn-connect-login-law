@@ -6,6 +6,7 @@ import { Bell, Users, UserPlus, UserMinus, Building2 } from "lucide-react";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 
 interface Notification {
   id: string;
@@ -36,7 +37,7 @@ const RecentActivity = () => {
       if (error) throw error;
       setNotifications(data || []);
     } catch (error: any) {
-      console.error('Error fetching notifications:', error);
+      logger.error('Error fetching notifications:', error);
       toast({
         title: "Error",
         description: "Failed to load recent activity",

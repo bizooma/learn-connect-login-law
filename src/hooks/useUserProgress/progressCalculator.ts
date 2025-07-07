@@ -1,9 +1,10 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 
 export const progressCalculator = {
   async calculateCourseProgress(userId: string, courseId: string) {
-    console.log('Calculating course progress for:', courseId);
+    logger.log('Calculating course progress for:', courseId);
     
     try {
       // Get total units in course by first getting lessons
@@ -13,14 +14,14 @@ export const progressCalculator = {
         .eq('course_id', courseId);
 
       if (lessonsError) {
-        console.error('Error fetching lessons:', lessonsError);
+        logger.error('Error fetching lessons:', lessonsError);
         throw lessonsError;
       }
 
       const lessonIds = lessons?.map(s => s.id) || [];
       
       if (lessonIds.length === 0) {
-        console.log('No lessons found for course:', courseId);
+        logger.log('No lessons found for course:', courseId);
         return { progressPercentage: 0, status: 'not_started' as const };
       }
 
@@ -31,7 +32,7 @@ export const progressCalculator = {
         .in('section_id', lessonIds);
 
       if (unitsError) {
-        console.error('Error fetching units:', unitsError);
+        logger.error('Error fetching units:', unitsError);
         throw unitsError;
       }
 
@@ -44,7 +45,7 @@ export const progressCalculator = {
         .eq('completed', true);
 
       if (completedError) {
-        console.error('Error fetching completed units:', completedError);
+        logger.error('Error fetching completed units:', completedError);
         throw completedError;
       }
 
@@ -52,7 +53,7 @@ export const progressCalculator = {
       const completedCount = completedUnits?.length || 0;
       const progressPercentage = totalUnits > 0 ? Math.round((completedCount / totalUnits) * 100) : 0;
 
-      console.log('Progress calculation:', { totalUnits, completedCount, progressPercentage });
+      logger.log('Progress calculation:', { totalUnits, completedCount, progressPercentage });
 
       // Determine status based on progress
       let status: 'not_started' | 'in_progress' | 'completed';
@@ -66,25 +67,25 @@ export const progressCalculator = {
 
       // If course is completed, automatically update the course progress with better error handling
       if (status === 'completed') {
-        console.log('Course completed! Updating course progress to completed status');
+        logger.log('Course completed! Updating course progress to completed status');
         try {
           await this.markCourseCompleted(userId, courseId);
         } catch (markCompletedError) {
-          console.error('Failed to mark course as completed, but progress calculation succeeded:', markCompletedError);
+          logger.error('Failed to mark course as completed, but progress calculation succeeded:', markCompletedError);
           // Don't throw - the progress calculation itself was successful
         }
       }
 
       return { progressPercentage, status };
     } catch (error) {
-      console.error('Error calculating course progress:', error);
+      logger.error('Error calculating course progress:', error);
       throw error;
     }
   },
 
   async markCourseCompleted(userId: string, courseId: string) {
     try {
-      console.log('Marking course as completed:', { userId, courseId });
+      logger.log('Marking course as completed:', { userId, courseId });
       
       // Use defensive UPSERT with better conflict handling
       const { error } = await supabase
@@ -105,7 +106,7 @@ export const progressCalculator = {
       if (error) {
         // Check if it's a constraint violation we can safely ignore
         if (error.code === '23505' && error.message?.includes('duplicate key')) {
-          console.log('Course progress already exists, updating existing record');
+          logger.log('Course progress already exists, updating existing record');
           
           // Try a direct update instead
           const { error: updateError } = await supabase
@@ -121,19 +122,19 @@ export const progressCalculator = {
             .eq('course_id', courseId);
 
           if (updateError) {
-            console.error('Failed to update existing course progress:', updateError);
+            logger.error('Failed to update existing course progress:', updateError);
             throw updateError;
           }
           
-          console.log('Course marked as completed via update');
+          logger.log('Course marked as completed via update');
           return;
         }
         
-        console.error('Error marking course as completed:', error);
+        logger.error('Error marking course as completed:', error);
         throw error;
       }
 
-      console.log('Course marked as completed successfully');
+      logger.log('Course marked as completed successfully');
     } catch (error) {
       console.error('Error in markCourseCompleted:', error);
       throw error;

@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
+import { logger } from "@/utils/logger";
 
 interface DashboardStats {
   totalCourses: number;
@@ -109,7 +110,7 @@ export const useDashboardStats = () => {
       }
 
     } catch (error) {
-      console.error('Error fetching dashboard stats:', error);
+      logger.error('Error fetching dashboard stats:', error);
     } finally {
       setLoading(false);
     }

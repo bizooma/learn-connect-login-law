@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
+import { logger } from "@/utils/logger";
 
 type Unit = Tables<'units'>;
 
@@ -32,7 +33,7 @@ export const useUnifiedCompletion = () => {
     setProcessing(true);
     
     try {
-      console.log('🎯 Unified video completion for unit:', unitId);
+      logger.log('🎯 Unified video completion for unit:', unitId);
       
       // Use the new reliable sync function (with proper error handling)
       try {
@@ -47,13 +48,13 @@ export const useUnifiedCompletion = () => {
         );
 
         if (syncError) {
-          console.error('❌ Video sync error:', syncError);
+          logger.error('❌ Video sync error:', syncError);
           throw syncError;
         } else {
-          console.log('✅ Video completion synced successfully');
+          logger.log('✅ Video completion synced successfully');
         }
       } catch (syncError) {
-        console.error('❌ Video sync failed, using fallback:', syncError);
+        logger.error('❌ Video sync failed, using fallback:', syncError);
         // Fallback to existing system
         await fallbackVideoCompletion(unitId, courseId, watchPercentage);
       }
@@ -68,7 +69,7 @@ export const useUnifiedCompletion = () => {
 
       return true;
     } catch (error) {
-      console.error('❌ Video completion error:', error);
+      logger.error('❌ Video completion error:', error);
       toast({
         title: "Progress Save Issue",
         description: "We're working to save your progress. Please refresh if it doesn't update.",
@@ -92,7 +93,7 @@ export const useUnifiedCompletion = () => {
     setProcessing(true);
     
     try {
-      console.log('📝 Unified quiz completion for unit:', unitId);
+      logger.log('📝 Unified quiz completion for unit:', unitId);
       
       // Use the new reliable quiz completion function (with proper error handling)
       try {
@@ -109,13 +110,13 @@ export const useUnifiedCompletion = () => {
         );
 
         if (quizError) {
-          console.error('❌ Quiz completion error:', quizError);
+          logger.error('❌ Quiz completion error:', quizError);
           throw quizError;
         } else {
-          console.log('✅ Quiz completion saved successfully');
+          logger.log('✅ Quiz completion saved successfully');
         }
       } catch (quizError) {
-        console.error('❌ Quiz completion failed, using fallback:', quizError);
+        logger.error('❌ Quiz completion failed, using fallback:', quizError);
         // Fallback to existing system
         await fallbackQuizCompletion(quizId, unitId, courseId, score);
       }
@@ -130,7 +131,7 @@ export const useUnifiedCompletion = () => {
 
       return true;
     } catch (error) {
-      console.error('❌ Quiz completion error:', error);
+      logger.error('❌ Quiz completion error:', error);
       toast({
         title: "Quiz Save Issue",
         description: "We're working to save your quiz results. Please refresh if it doesn't update.",
@@ -152,7 +153,7 @@ export const useUnifiedCompletion = () => {
     setProcessing(true);
     
     try {
-      console.log('🔄 Unified unit completion for unit:', unit.id);
+      logger.log('🔄 Unified unit completion for unit:', unit.id);
       
       // Use the new reliable unit completion function (with proper error handling)
       try {
@@ -167,10 +168,10 @@ export const useUnifiedCompletion = () => {
         );
 
         if (unitError) {
-          console.error('❌ Unit completion error:', unitError);
+          logger.error('❌ Unit completion error:', unitError);
           throw unitError;
         } else {
-          console.log('✅ Unit completion saved successfully');
+          logger.log('✅ Unit completion saved successfully');
         }
       } catch (unitError) {
         console.error('❌ Unit completion failed, using fallback:', unitError);

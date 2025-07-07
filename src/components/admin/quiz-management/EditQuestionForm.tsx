@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -40,7 +41,7 @@ const EditQuestionForm = ({ open, onOpenChange, question, onQuestionUpdated }: E
 
   useEffect(() => {
     if (open && question) {
-      console.log('EDIT QUESTION: Loading question data:', question.id);
+      logger.log('EDIT QUESTION: Loading question data:', question.id);
       setQuestionText(question.question_text);
       setPoints(question.points);
       setOptions(
@@ -58,21 +59,21 @@ const EditQuestionForm = ({ open, onOpenChange, question, onQuestionUpdated }: E
   const addOption = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('EDIT QUESTION: Adding option');
+    logger.log('EDIT QUESTION: Adding option');
     setOptions([...options, { text: "", isCorrect: false }]);
   };
 
   const removeOption = (index: number, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('EDIT QUESTION: Removing option at index:', index);
+    logger.log('EDIT QUESTION: Removing option at index:', index);
     if (options.length > 2) {
       setOptions(options.filter((_, i) => i !== index));
     }
   };
 
   const updateOption = (index: number, field: keyof Option, value: string | boolean) => {
-    console.log('EDIT QUESTION: Updating option:', index, field, value);
+    logger.log('EDIT QUESTION: Updating option:', index, field, value);
     const newOptions = [...options];
     newOptions[index] = { ...newOptions[index], [field]: value };
     setOptions(newOptions);
@@ -81,7 +82,7 @@ const EditQuestionForm = ({ open, onOpenChange, question, onQuestionUpdated }: E
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('EDIT QUESTION: Form submit triggered');
+    logger.log('EDIT QUESTION: Form submit triggered');
     
     if (!question || !questionText.trim()) {
       toast({
@@ -113,7 +114,7 @@ const EditQuestionForm = ({ open, onOpenChange, question, onQuestionUpdated }: E
     }
 
     setLoading(true);
-    console.log('EDIT QUESTION: Starting update process');
+    logger.log('EDIT QUESTION: Starting update process');
     
     try {
       // Update the question
@@ -156,7 +157,7 @@ const EditQuestionForm = ({ open, onOpenChange, question, onQuestionUpdated }: E
         throw optionsError;
       }
 
-      console.log('EDIT QUESTION: Update completed successfully');
+      logger.log('EDIT QUESTION: Update completed successfully');
       toast({
         title: "Success",
         description: "Question updated successfully",
@@ -165,7 +166,7 @@ const EditQuestionForm = ({ open, onOpenChange, question, onQuestionUpdated }: E
       onQuestionUpdated();
       onOpenChange(false);
     } catch (error) {
-      console.error('EDIT QUESTION: Error updating question:', error);
+      logger.error('EDIT QUESTION: Error updating question:', error);
       toast({
         title: "Error",
         description: "Failed to update question",
@@ -179,14 +180,14 @@ const EditQuestionForm = ({ open, onOpenChange, question, onQuestionUpdated }: E
   const handleCancel = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('EDIT QUESTION: Cancel button clicked');
+    logger.log('EDIT QUESTION: Cancel button clicked');
     onOpenChange(false);
   };
 
   const handleSheetOpenChange = (newOpen: boolean) => {
-    console.log('EDIT QUESTION: Sheet open change:', newOpen);
+    logger.log('EDIT QUESTION: Sheet open change:', newOpen);
     if (!newOpen) {
-      console.log('EDIT QUESTION: Sheet is being closed');
+      logger.log('EDIT QUESTION: Sheet is being closed');
     }
     onOpenChange(newOpen);
   };

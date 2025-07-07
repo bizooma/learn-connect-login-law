@@ -3,6 +3,7 @@ import { BookOpen, Menu, LogOut, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { logger } from "@/utils/logger";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,7 +21,7 @@ const StudentMainHeader = () => {
       await signOut();
       navigate('/', { replace: true });
     } catch (error) {
-      console.error('Error signing out:', error);
+      logger.error('Error signing out:', error);
       navigate('/', { replace: true });
     }
   };

@@ -6,6 +6,7 @@ import { createLessonsAndUnits } from "./services/sectionCreation";
 import { createWelcomeCalendarEvent } from "./services/calendarService";
 import { createCourseWithModules } from "./services/courseSubmissionService";
 import { sanitizeCourseData } from "@/utils/databaseSanitization";
+import { logger } from "@/utils/logger";
 
 interface SectionData {
   title: string;
@@ -31,7 +32,7 @@ export const handleCourseSubmission = async (
   sections: SectionData[], 
   modules?: ModuleData[]
 ) => {
-  console.log('Starting course submission with data:', { data, sections, modules });
+  logger.log('Starting course submission with data:', { data, sections, modules });
   
   let imageUrl = '';
   
@@ -40,7 +41,7 @@ export const handleCourseSubmission = async (
     try {
       imageUrl = await uploadImageFile(data.image_file);
     } catch (error) {
-      console.error('Image upload failed:', error);
+      logger.error('Image upload failed:', error);
       // Continue without image
     }
   }
@@ -57,7 +58,7 @@ export const handleCourseSubmission = async (
     is_draft: false,
   });
 
-  console.log('Prepared course data:', courseData);
+  logger.log('Prepared course data:', courseData);
 
   // Create the course
   const { data: course, error: courseError } = await supabase
@@ -67,30 +68,30 @@ export const handleCourseSubmission = async (
     .single();
 
   if (courseError) {
-    console.error('Error creating course:', courseError);
+    logger.error('Error creating course:', courseError);
     throw new Error(`Failed to create course: ${courseError.message}`);
   }
 
-  console.log('Course created:', course);
+  logger.log('Course created:', course);
 
   // Create welcome calendar event
   try {
     await createWelcomeCalendarEvent(course.id, course.title);
   } catch (error) {
-    console.error('Error creating welcome calendar event:', error);
+    logger.error('Error creating welcome calendar event:', error);
   }
 
   // Handle content creation based on whether we have modules or sections
   if (modules && modules.length > 0) {
-    console.log('Creating course with modules structure');
+    logger.log('Creating course with modules structure');
     await createCourseWithModules(course.id, data, modules);
   } else if (sections && sections.length > 0) {
-    console.log('Creating course with legacy sections structure');
+    logger.log('Creating course with legacy sections structure');
     // Create a default module for backward compatibility
     const defaultModule = await createDefaultModule(course.id);
     await createLessonsAndUnits(course.id, sections, defaultModule.id);
   } else {
-    console.log('No content provided, creating empty course');
+    logger.log('No content provided, creating empty course');
   }
 
   return course;

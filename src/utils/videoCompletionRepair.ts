@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 
 interface VideoCompletionRepairResult {
   repairedUsers: number;
@@ -25,7 +26,7 @@ export const repairVideoCompletionData = async (
   };
 
   try {
-    console.log('🔧 Starting video completion data repair...', { courseId, userId });
+    logger.log('🔧 Starting video completion data repair...', { courseId, userId });
 
     // Find users with video progress issues
     let query = supabase
@@ -60,11 +61,11 @@ export const repairVideoCompletionData = async (
     }
 
     if (!progressData || progressData.length === 0) {
-      console.log('ℹ️ No video progress issues found');
+      logger.log('ℹ️ No video progress issues found');
       return result;
     }
 
-    console.log(`🔍 Found ${progressData.length} potential video completion issues`);
+    logger.log(`🔍 Found ${progressData.length} potential video completion issues`);
 
     // Process each progress record
     for (const progress of progressData) {
@@ -86,7 +87,7 @@ export const repairVideoCompletionData = async (
         }
 
         if (needsRepair) {
-          console.log(`🔧 Repairing video completion for user ${progress.user_id}, unit ${progress.unit_id}: ${repairReason}`);
+          logger.log(`🔧 Repairing video completion for user ${progress.user_id}, unit ${progress.unit_id}: ${repairReason}`);
 
           const completedAt = new Date().toISOString();
 
@@ -140,14 +141,14 @@ export const repairVideoCompletionData = async (
 
     result.repairedUsers = new Set(result.details.filter(d => d.fixed).map(d => d.userId)).size;
 
-    console.log('✅ Video completion repair completed:', {
+    logger.log('✅ Video completion repair completed:', {
       repairedUsers: result.repairedUsers,
       repairedVideos: result.repairedVideos,
       totalErrors: result.errors.length
     });
 
   } catch (error) {
-    console.error('❌ Video completion repair failed:', error);
+    logger.error('❌ Video completion repair failed:', error);
     result.errors.push(`Critical error: ${error}`);
   }
 
@@ -156,7 +157,7 @@ export const repairVideoCompletionData = async (
 
 // Specific repair for Legal Training-200 and Julio's issues
 export const repairLegalTraining200 = async (): Promise<VideoCompletionRepairResult> => {
-  console.log('🔧 Starting Legal Training-200 specific repair...');
+  logger.log('🔧 Starting Legal Training-200 specific repair...');
 
   // Get the course ID for Legal Training-200
   const { data: course } = await supabase

@@ -8,6 +8,7 @@ import CalendarControls from "./CalendarControls";
 import { useCourseCalendarEvents } from "@/hooks/useCourseCalendarEvents";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
+import { logger } from "@/utils/logger";
 
 interface CourseCalendarProps {
   courseId: string;
@@ -30,7 +31,7 @@ const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
   // Check if user can add events (either passed as prop or user has admin role)
   const canAddEvents = isAdmin || userIsAdmin;
 
-  console.log('CourseCalendar: Component rendered with:', {
+  logger.log('CourseCalendar: Component rendered with:', {
     isAdmin,
     userIsAdmin,
     canAddEvents,
@@ -44,7 +45,7 @@ const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
   const selectedEvents = getSelectedEvents(selectedDate);
 
   if (loading) {
-    console.log('CourseCalendar: Showing loading state');
+    logger.log('CourseCalendar: Showing loading state');
     return (
       <Card>
         <CardHeader>
@@ -62,7 +63,7 @@ const CourseCalendar = ({ courseId, isAdmin = false }: CourseCalendarProps) => {
     );
   }
 
-  console.log('CourseCalendar: Rendering calendar. Add button should be visible:', canAddEvents);
+  logger.log('CourseCalendar: Rendering calendar. Add button should be visible:', canAddEvents);
 
   return (
     <Card>

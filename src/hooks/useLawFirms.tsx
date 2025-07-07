@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Tables } from '@/integrations/supabase/types';
+import { logger } from '@/utils/logger';
 
 type LawFirm = Tables<'law_firms'> & {
   owner?: {
@@ -24,7 +25,7 @@ export const useLawFirms = () => {
       setLoading(true);
       setError(null);
       
-      console.log('useLawFirms: Starting to fetch law firms');
+      logger.log('useLawFirms: Starting to fetch law firms');
       
       // First, fetch law firms without the problematic join
       const { data: lawFirmsData, error: lawFirmsError } = await supabase
@@ -33,14 +34,14 @@ export const useLawFirms = () => {
         .order('created_at', { ascending: false });
 
       if (lawFirmsError) {
-        console.error('useLawFirms: Error fetching law firms:', lawFirmsError);
+        logger.error('useLawFirms: Error fetching law firms:', lawFirmsError);
         throw lawFirmsError;
       }
 
-      console.log('useLawFirms: Law firms data:', lawFirmsData);
+      logger.log('useLawFirms: Law firms data:', lawFirmsData);
 
       if (!lawFirmsData || lawFirmsData.length === 0) {
-        console.log('useLawFirms: No law firms found');
+        logger.log('useLawFirms: No law firms found');
         setLawFirms([]);
         return;
       }
@@ -57,7 +58,7 @@ export const useLawFirms = () => {
               .single();
 
             if (ownerError) {
-              console.warn('useLawFirms: Error fetching owner for law firm:', lawFirm.id, ownerError);
+              logger.warn('useLawFirms: Error fetching owner for law firm:', lawFirm.id, ownerError);
             }
 
             // Get employee count
@@ -68,7 +69,7 @@ export const useLawFirms = () => {
               .eq('is_deleted', false);
             
             if (countError) {
-              console.warn('useLawFirms: Error counting employees for law firm:', lawFirm.id, countError);
+              logger.warn('useLawFirms: Error counting employees for law firm:', lawFirm.id, countError);
             }
 
             return {
@@ -77,7 +78,7 @@ export const useLawFirms = () => {
               employee_count: employeeCount || 0
             };
           } catch (error) {
-            console.error('useLawFirms: Error processing law firm:', lawFirm.id, error);
+            logger.error('useLawFirms: Error processing law firm:', lawFirm.id, error);
             return {
               ...lawFirm,
               owner: undefined,
@@ -87,10 +88,10 @@ export const useLawFirms = () => {
         })
       );
 
-      console.log('useLawFirms: Law firms with details:', lawFirmsWithDetails);
+      logger.log('useLawFirms: Law firms with details:', lawFirmsWithDetails);
       setLawFirms(lawFirmsWithDetails);
     } catch (error: any) {
-      console.error('useLawFirms: Error in fetchLawFirms:', error);
+      logger.error('useLawFirms: Error in fetchLawFirms:', error);
       setError(error.message);
       toast({
         title: "Error",

@@ -3,6 +3,7 @@ import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { logger } from "@/utils/logger";
 
 const UserDatabaseDebug = () => {
   const [debugInfo, setDebugInfo] = useState<any>(null);
@@ -66,7 +67,7 @@ const UserDatabaseDebug = () => {
         }
       });
     } catch (error) {
-      console.error('Debug check failed:', error);
+      logger.error('Debug check failed:', error);
       setDebugInfo({ error: error.message });
     } finally {
       setLoading(false);

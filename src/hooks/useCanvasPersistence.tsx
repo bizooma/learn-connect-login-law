@@ -3,6 +3,7 @@ import { useState, useCallback } from 'react';
 import { Node, Edge } from '@xyflow/react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/utils/logger';
 
 export interface SavedCanvas {
   id: string;
@@ -44,7 +45,7 @@ export const useCanvasPersistence = () => {
       
       setSavedCanvases(transformedData);
     } catch (error) {
-      console.error('Error fetching canvases:', error);
+      logger.error('Error fetching canvases:', error);
       toast.error('Failed to load saved canvases');
     }
   }, []);
@@ -94,7 +95,7 @@ export const useCanvasPersistence = () => {
       setCurrentCanvasName(name);
       await fetchCanvases();
     } catch (error) {
-      console.error('Error saving canvas:', error);
+      logger.error('Error saving canvas:', error);
       toast.error('Failed to save canvas');
     } finally {
       setIsSaving(false);
@@ -119,7 +120,7 @@ export const useCanvasPersistence = () => {
         edges: (data.edges_data as unknown as Edge[]) || []
       };
     } catch (error) {
-      console.error('Error loading canvas:', error);
+      logger.error('Error loading canvas:', error);
       toast.error('Failed to load canvas');
       return null;
     } finally {
@@ -152,7 +153,7 @@ export const useCanvasPersistence = () => {
         createNewCanvas();
       }
     } catch (error) {
-      console.error('Error deleting canvas:', error);
+      logger.error('Error deleting canvas:', error);
       toast.error('Failed to delete canvas');
     }
   }, [currentCanvasId, createNewCanvas, fetchCanvases]);
@@ -169,7 +170,7 @@ export const useCanvasPersistence = () => {
           })
           .eq('id', currentCanvasId);
       } catch (error) {
-        console.error('Auto-save failed:', error);
+        logger.error('Auto-save failed:', error);
       }
     }
   }, [currentCanvasId]);

@@ -4,6 +4,7 @@ import { useYouTubePlayer } from '@/hooks/useYouTubePlayer';
 import { extractYouTubeVideoId, getYouTubeContainerId } from '@/utils/youTubeUtils';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import { logger } from '@/utils/logger';
 
 interface YouTubeVideoPlayerProps {
   videoUrl: string;
@@ -62,7 +63,7 @@ const YouTubeVideoPlayer = ({
   };
 
   const handleReady = (player: any) => {
-    console.log('YouTube player ready for video:', videoId);
+    logger.log('YouTube player ready for video:', videoId);
     setError(null);
   };
 

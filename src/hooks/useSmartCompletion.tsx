@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
+import { logger } from "@/utils/logger";
 
 type Unit = Tables<'units'>;
 
@@ -67,7 +68,7 @@ export const useSmartCompletion = () => {
         .maybeSingle();
 
       if (error) {
-        console.error('Error checking completion status:', error);
+        logger.error('Error checking completion status:', error);
         return null;
       }
 
@@ -78,7 +79,7 @@ export const useSmartCompletion = () => {
         overallCompleted: data?.completed || false
       };
     } catch (error) {
-      console.error('Error checking completion status:', error);
+      logger.error('Error checking completion status:', error);
       return null;
     }
   }, [user]);
@@ -96,7 +97,7 @@ export const useSmartCompletion = () => {
       
       if (!status) return false;
 
-      console.log('Smart completion evaluation:', {
+      logger.log('Smart completion evaluation:', {
         unitId: unit.id,
         strategy: requirements.completionStrategy,
         status,
@@ -120,7 +121,7 @@ export const useSmartCompletion = () => {
           return false;
       }
     } catch (error) {
-      console.error('Error evaluating smart completion:', error);
+      logger.error('Error evaluating smart completion:', error);
       return false;
     }
   }, [user, analyzeCompletionRequirements, checkCompletionStatus]);
@@ -139,7 +140,7 @@ export const useSmartCompletion = () => {
       const shouldComplete = await evaluateSmartCompletion(unit, courseId, hasQuiz);
       
       if (shouldComplete) {
-        console.log('Smart completion triggered for unit:', unit.id);
+        logger.log('Smart completion triggered for unit:', unit.id);
         
         // Use defensive UPSERT with better error handling
         const { error } = await supabase
@@ -160,7 +161,7 @@ export const useSmartCompletion = () => {
         if (error) {
           // Handle constraint violations gracefully
           if (error.code === '23505' && error.message?.includes('duplicate key')) {
-            console.log('Unit progress record exists, attempting update for completion');
+            logger.log('Unit progress record exists, attempting update for completion');
             
             // Try direct update
             const { error: updateError } = await supabase
@@ -176,13 +177,13 @@ export const useSmartCompletion = () => {
               .eq('course_id', courseId);
 
             if (updateError) {
-              console.error('Smart completion update failed:', updateError);
+              logger.error('Smart completion update failed:', updateError);
               return false;
             }
             
-            console.log('Smart completion updated via direct update');
+            logger.log('Smart completion updated via direct update');
           } else {
-            console.error('Error triggering smart completion:', error);
+            logger.error('Error triggering smart completion:', error);
             return false;
           }
         }
@@ -200,7 +201,7 @@ export const useSmartCompletion = () => {
       
       return false;
     } catch (error) {
-      console.error('Error in smart completion:', error);
+      logger.error('Error in smart completion:', error);
       return false;
     } finally {
       setProcessing(false);

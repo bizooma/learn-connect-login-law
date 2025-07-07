@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { AlertTriangle, CheckCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { safeAdminMarkUnitComplete, validateAdminUnitCompletion } from "./services/safeAdminUnitOperations";
+import { logger } from "@/utils/logger";
 
 interface AdminUnitCompletionDialogProps {
   open: boolean;
@@ -51,7 +52,7 @@ const AdminUnitCompletionDialog = ({
         });
       }
     } catch (error) {
-      console.error('Validation error:', error);
+      logger.error('Validation error:', error);
       toast({
         title: "Validation Error",
         description: "Failed to validate unit completion request",
@@ -97,7 +98,7 @@ const AdminUnitCompletionDialog = ({
         });
       }
     } catch (error: any) {
-      console.error('Admin unit completion error:', error);
+      logger.error('Admin unit completion error:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to mark unit as complete",

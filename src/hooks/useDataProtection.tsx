@@ -1,6 +1,7 @@
 
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 import { 
   safeRoleUpdate, 
   safeUserDeactivation, 
@@ -41,7 +42,7 @@ export const useDataProtection = () => {
       });
 
       if (result.warnings.length > 0) {
-        console.warn(`${operationType} warnings:`, result.warnings);
+        logger.warn(`${operationType} warnings:`, result.warnings);
       }
     } else {
       const errorMessage = [
@@ -56,7 +57,7 @@ export const useDataProtection = () => {
         variant: "destructive",
       });
 
-      console.error(`${operationType} errors:`, result.errors);
+      logger.error(`${operationType} errors:`, result.errors);
     }
   };
 
@@ -175,7 +176,7 @@ export const useDataProtection = () => {
   const validateAllDataIntegrity = async (userId?: string) => {
     setIsProcessing(true);
     try {
-      console.log('🔍 Running basic data integrity check...');
+      logger.log('🔍 Running basic data integrity check...');
       
       const [userResult, assignmentResult, progressResult] = await Promise.all([
         userId ? validateUserDataIntegrity(userId) : Promise.resolve({ isValid: true, issues: [], warnings: [], summary: {} }),
@@ -207,9 +208,9 @@ export const useDataProtection = () => {
       }
 
       // Log detailed results
-      if (userResult.issues.length > 0) console.error('User data issues:', userResult.issues);
-      if (assignmentResult.issues.length > 0) console.error('Assignment data issues:', assignmentResult.issues);
-      if (progressResult.issues.length > 0) console.error('Progress data issues:', progressResult.issues);
+      if (userResult.issues.length > 0) logger.error('User data issues:', userResult.issues);
+      if (assignmentResult.issues.length > 0) logger.error('Assignment data issues:', assignmentResult.issues);
+      if (progressResult.issues.length > 0) logger.error('Progress data issues:', progressResult.issues);
       
       return {
         isValid: totalIssues === 0,

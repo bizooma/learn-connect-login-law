@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { logger } from "@/utils/logger";
 
 interface DebugQuestionFormProps {
   open: boolean;
@@ -18,19 +19,19 @@ const DebugQuestionForm = ({ open, onOpenChange, quizId, onQuestionCreated }: De
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('DEBUG SHEET: Form submit triggered with:', questionText);
+    logger.log('DEBUG SHEET: Form submit triggered with:', questionText);
     
     if (!questionText.trim()) {
-      console.log('DEBUG SHEET: No question text provided');
+      logger.log('DEBUG SHEET: No question text provided');
       return;
     }
     
     setIsSubmitting(true);
-    console.log('DEBUG SHEET: Starting submission...');
+    logger.log('DEBUG SHEET: Starting submission...');
     
     // Simulate a successful submission
     setTimeout(() => {
-      console.log('DEBUG SHEET: Form submission completed successfully');
+      logger.log('DEBUG SHEET: Form submission completed successfully');
       setIsSubmitting(false);
       setQuestionText("");
       onQuestionCreated();
@@ -39,20 +40,20 @@ const DebugQuestionForm = ({ open, onOpenChange, quizId, onQuestionCreated }: De
   };
 
   const handleSheetOpenChange = (newOpen: boolean) => {
-    console.log('DEBUG SHEET: Sheet open change:', newOpen);
+    logger.log('DEBUG SHEET: Sheet open change:', newOpen);
     if (!newOpen) {
-      console.log('DEBUG SHEET: Sheet is being closed');
+      logger.log('DEBUG SHEET: Sheet is being closed');
     }
     onOpenChange(newOpen);
   };
 
   const handleCancel = () => {
-    console.log('DEBUG SHEET: Cancel button clicked');
+    logger.log('DEBUG SHEET: Cancel button clicked');
     onOpenChange(false);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    console.log('DEBUG SHEET: Input changed:', e.target.value);
+    logger.log('DEBUG SHEET: Input changed:', e.target.value);
     setQuestionText(e.target.value);
   };
 

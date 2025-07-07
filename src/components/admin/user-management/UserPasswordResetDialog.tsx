@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 import {
   Dialog,
   DialogContent,
@@ -81,7 +82,7 @@ export const UserPasswordResetDialog = ({
       setPassword("");
       setConfirmPassword("");
     } catch (error: any) {
-      console.error('Error changing password:', error);
+      logger.error('Error changing password:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update password",

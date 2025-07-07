@@ -9,6 +9,7 @@ import { Users, Plus, Trash2, Search, TrendingUp, BookOpen } from 'lucide-react'
 import { useAdminTeams, AdminTeam, AdminTeamMember } from '@/hooks/useAdminTeams';
 import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { logger } from '@/utils/logger';
 
 interface TeamDetailsDialogProps {
   team: AdminTeam;
@@ -36,7 +37,7 @@ const TeamDetailsDialog = ({ team, open, onOpenChange }: TeamDetailsDialogProps)
       const teamMembers = await getTeamMembers(team.id);
       setMembers(teamMembers);
     } catch (error) {
-      console.error('Error fetching team members:', error);
+      logger.error('Error fetching team members:', error);
     }
   };
 
@@ -56,7 +57,7 @@ const TeamDetailsDialog = ({ team, open, onOpenChange }: TeamDetailsDialogProps)
       const filtered = (data || []).filter(user => !memberIds.includes(user.id));
       setAvailableUsers(filtered);
     } catch (error) {
-      console.error('Error fetching available users:', error);
+      logger.error('Error fetching available users:', error);
     }
   };
 
@@ -80,7 +81,7 @@ const TeamDetailsDialog = ({ team, open, onOpenChange }: TeamDetailsDialogProps)
       setShowAddMember(false);
       setSearchTerm('');
     } catch (error) {
-      console.error('Error adding member:', error);
+      logger.error('Error adding member:', error);
     } finally {
       setLoading(false);
     }
@@ -93,7 +94,7 @@ const TeamDetailsDialog = ({ team, open, onOpenChange }: TeamDetailsDialogProps)
         await removeTeamMember(team.id, userId);
         await fetchMembers();
       } catch (error) {
-        console.error('Error removing member:', error);
+        logger.error('Error removing member:', error);
       } finally {
         setLoading(false);
       }

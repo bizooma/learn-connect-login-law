@@ -11,6 +11,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 
 interface ReclassificationDropdownProps {
   itemId: string;
@@ -75,7 +76,7 @@ const ReclassificationDropdown = ({
       
       onRefetch();
     } catch (error) {
-      console.error('Error during reclassification:', error);
+      logger.error('Error during reclassification:', error);
       toast({
         title: "Error",
         description: "Failed to reclassify content",

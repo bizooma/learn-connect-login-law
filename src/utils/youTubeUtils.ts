@@ -1,4 +1,6 @@
 
+import { logger } from '@/utils/logger';
+
 /**
  * Extracts video ID from various YouTube URL formats
  */
@@ -36,7 +38,7 @@ export const getCleanYouTubeEmbedUrl = (url: string, enableAPI: boolean = false)
   const videoId = extractYouTubeVideoId(url);
   
   if (!videoId) {
-    console.warn('Could not extract video ID from URL:', url);
+    logger.warn('Could not extract video ID from URL:', url);
     return url;
   }
 

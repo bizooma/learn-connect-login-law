@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 
 interface QuizImportManagerProps {
   importedQuizData: any;
@@ -87,7 +88,7 @@ export const useQuizImportManager = ({
       });
 
     } catch (error) {
-      console.error('Error creating imported quiz:', error);
+      logger.error('Error creating imported quiz:', error);
       toast({
         title: "Error",
         description: "Failed to create quiz from import",

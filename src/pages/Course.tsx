@@ -6,6 +6,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 import CourseHeader from "@/components/course/CourseHeader";
 import CourseSidebar from "@/components/course/CourseSidebar";
 import CourseMainContent from "@/components/course/CourseMainContent";
@@ -29,7 +30,7 @@ const Course = () => {
     return 'Unknown error';
   };
 
-  console.log('Course: Component state:', {
+  logger.log('Course: Component state:', {
     courseId,
     hasUser: !!user,
     authLoading,
@@ -40,7 +41,7 @@ const Course = () => {
   });
 
   useEffect(() => {
-    console.log('Course: Auth/navigation useEffect triggered:', {
+    logger.log('Course: Auth/navigation useEffect triggered:', {
       authLoading,
       hasUser: !!user,
       courseExists: !!course,
@@ -49,20 +50,20 @@ const Course = () => {
     });
 
     if (!authLoading && !user) {
-      console.log('Course: No user found, redirecting to login');
+      logger.log('Course: No user found, redirecting to login');
       navigate("/");
       return;
     }
 
     // Check if non-admin user is trying to access a draft course (only admins can access drafts)
     if (course && course.is_draft && !isAdmin) {
-      console.log('Course: Non-admin trying to access draft course, redirecting');
+      logger.log('Course: Non-admin trying to access draft course, redirecting');
       navigate("/courses");
       return;
     }
 
     if (course && user) {
-      console.log('Course: Updating course progress for user');
+      logger.log('Course: Updating course progress for user');
       updateCourseProgress(course.id, 'in_progress', 0);
     }
   }, [course, user, authLoading, isAdmin, navigate, updateCourseProgress]);
@@ -71,7 +72,7 @@ const Course = () => {
   useEffect(() => {
     if (!courseId) return;
 
-    console.log('Setting up real-time subscriptions for course:', courseId);
+    logger.log('Setting up real-time subscriptions for course:', courseId);
 
     // Subscribe to changes in modules, lessons, and units for this course
     const channel = supabase
@@ -85,7 +86,7 @@ const Course = () => {
           filter: `course_id=eq.${courseId}`
         },
         (payload) => {
-          console.log('Module change detected:', payload);
+          logger.log('Module change detected:', payload);
           refreshCourse();
         }
       )
@@ -98,7 +99,7 @@ const Course = () => {
           filter: `course_id=eq.${courseId}`
         },
         (payload) => {
-          console.log('Lesson change detected:', payload);
+          logger.log('Lesson change detected:', payload);
           refreshCourse();
         }
       )
@@ -110,7 +111,7 @@ const Course = () => {
           table: 'units'
         },
         (payload) => {
-          console.log('Unit change detected:', payload);
+          logger.log('Unit change detected:', payload);
           // Check if this unit belongs to our course by refreshing
           refreshCourse();
         }
@@ -118,13 +119,13 @@ const Course = () => {
       .subscribe();
 
     return () => {
-      console.log('Cleaning up real-time subscriptions');
+      logger.log('Cleaning up real-time subscriptions');
       supabase.removeChannel(channel);
     };
   }, [courseId, refreshCourse]);
 
   if (authLoading || loading) {
-    console.log('Course: Showing loading state:', { authLoading, loading });
+    logger.log('Course: Showing loading state:', { authLoading, loading });
     return <CourseLoading />;
   }
 

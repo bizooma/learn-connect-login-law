@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useCreateQuestionForm } from "./useCreateQuestionForm";
 import QuestionOptionsManager from "./QuestionOptionsManager";
+import { logger } from "@/utils/logger";
 
 interface CreateQuestionFormProps {
   open: boolean;
@@ -33,21 +34,21 @@ const CreateQuestionForm = ({ open, onOpenChange, quizId, onQuestionCreated }: C
   const handleFormSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('CREATE QUESTION: Form submit triggered');
+    logger.log('CREATE QUESTION: Form submit triggered');
     handleSubmit(e);
   };
 
   const handleCancel = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    console.log('CREATE QUESTION: Cancel button clicked');
+    logger.log('CREATE QUESTION: Cancel button clicked');
     onOpenChange(false);
   };
 
   const handleSheetOpenChange = (newOpen: boolean) => {
-    console.log('CREATE QUESTION: Sheet open change:', newOpen);
+    logger.log('CREATE QUESTION: Sheet open change:', newOpen);
     if (!newOpen) {
-      console.log('CREATE QUESTION: Sheet is being closed');
+      logger.log('CREATE QUESTION: Sheet is being closed');
     }
     onOpenChange(newOpen);
   };

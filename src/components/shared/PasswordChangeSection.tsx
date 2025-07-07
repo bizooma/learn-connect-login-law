@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Lock } from "lucide-react";
 import PasswordFields from "@/components/PasswordFields";
+import { logger } from "@/utils/logger";
 
 const PasswordChangeSection = () => {
   const [currentPassword, setCurrentPassword] = useState("");
@@ -79,7 +80,7 @@ const PasswordChangeSection = () => {
       setNewPassword("");
       setConfirmPassword("");
     } catch (error: any) {
-      console.error('Error changing password:', error);
+      logger.error('Error changing password:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update password",

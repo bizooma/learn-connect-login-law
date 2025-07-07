@@ -7,6 +7,7 @@ import { Settings } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import ProfileImageUpload from "../admin/ProfileImageUpload";
+import { logger } from "@/utils/logger";
 
 interface ProfileData {
   first_name: string;
@@ -47,7 +48,7 @@ const FreeProfileTab = ({ profile, setProfile, userId }: FreeProfileTabProps) =>
         description: "Profile updated successfully",
       });
     } catch (error) {
-      console.error('Error updating profile:', error);
+      logger.error('Error updating profile:', error);
       toast({
         title: "Error",
         description: "Failed to update profile",

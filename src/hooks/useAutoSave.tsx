@@ -1,6 +1,7 @@
 
 import { useCallback, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/utils/logger';
 
 interface UseAutoSaveOptions {
   onSave: (data: any) => Promise<void>;
@@ -29,9 +30,9 @@ export const useAutoSave = ({ onSave, delay = 2000, enabled = true }: UseAutoSav
         isSavingRef.current = true;
         await onSave(data);
         lastSaveDataRef.current = currentDataString;
-        console.log('Auto-saved successfully');
+        logger.log('Auto-saved successfully');
       } catch (error) {
-        console.error('Auto-save failed:', error);
+        logger.error('Auto-save failed:', error);
         toast({
           title: "Auto-save failed",
           description: "Your changes couldn't be saved automatically. Please save manually.",
@@ -57,7 +58,7 @@ export const useAutoSave = ({ onSave, delay = 2000, enabled = true }: UseAutoSav
         description: "Your changes have been saved successfully.",
       });
     } catch (error) {
-      console.error('Manual save failed:', error);
+      logger.error('Manual save failed:', error);
       toast({
         title: "Save failed",
         description: "Failed to save your changes. Please try again.",

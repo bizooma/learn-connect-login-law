@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Plus, Trash2, HelpCircle } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 
 interface Quiz {
   id: string;
@@ -55,7 +56,7 @@ const QuizSelector = ({ quizId, onQuizUpdate }: QuizSelectorProps) => {
 
       setAvailableQuizzes(data || []);
     } catch (error) {
-      console.error('Error fetching quizzes:', error);
+      logger.error('Error fetching quizzes:', error);
       toast({
         title: "Error",
         description: "Failed to fetch available quizzes",

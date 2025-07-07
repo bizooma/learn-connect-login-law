@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/utils/logger';
 
 interface CreateLessonModalProps {
   open: boolean;
@@ -106,7 +107,7 @@ const CreateLessonModal: React.FC<CreateLessonModalProps> = ({
       onOpenChange(false);
       onLessonCreated();
     } catch (error) {
-      console.error('Error creating lesson:', error);
+      logger.error('Error creating lesson:', error);
       toast.error('Failed to create lesson');
     } finally {
       setIsCreating(false);

@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Camera, Upload, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 
 interface LessonImageUploadProps {
   currentImageUrl?: string;
@@ -21,7 +22,7 @@ const LessonImageUpload = ({ currentImageUrl, onImageUpdate, lessonIndex }: Less
   const uploadImage = async (file: File) => {
     setUploading(true);
     try {
-      console.log('Starting image upload for file:', file.name, 'size:', file.size);
+      logger.log('Starting image upload for file:', file.name, 'size:', file.size);
       
       // Validate file
       if (!file.type.startsWith('image/')) {
@@ -37,7 +38,7 @@ const LessonImageUpload = ({ currentImageUrl, onImageUpdate, lessonIndex }: Less
       const randomId = Math.random().toString(36).substring(7);
       const fileName = `lesson_${lessonIndex}_${timestamp}_${randomId}.${fileExt}`;
 
-      console.log('Uploading to storage with filename:', fileName);
+      logger.log('Uploading to storage with filename:', fileName);
 
       // Try to upload to lesson-images bucket first
       const { error: uploadError, data: uploadData } = await supabase.storage
@@ -48,10 +49,10 @@ const LessonImageUpload = ({ currentImageUrl, onImageUpdate, lessonIndex }: Less
         });
 
       if (uploadError) {
-        console.error('Upload to lesson-images failed:', uploadError);
+        logger.error('Upload to lesson-images failed:', uploadError);
         
         // Fallback: try course-images bucket
-        console.log('Trying fallback upload to course-images bucket...');
+        logger.log('Trying fallback upload to course-images bucket...');
         const { error: fallbackError } = await supabase.storage
           .from('course-images')
           .upload(fileName, file, {
@@ -60,7 +61,7 @@ const LessonImageUpload = ({ currentImageUrl, onImageUpdate, lessonIndex }: Less
           });
 
         if (fallbackError) {
-          console.error('Fallback upload also failed:', fallbackError);
+          logger.error('Fallback upload also failed:', fallbackError);
           throw new Error(`Upload failed: ${fallbackError.message}`);
         }
 
@@ -70,7 +71,7 @@ const LessonImageUpload = ({ currentImageUrl, onImageUpdate, lessonIndex }: Less
           .getPublicUrl(fileName);
 
         const imageUrl = data.publicUrl;
-        console.log('Fallback upload successful, URL:', imageUrl);
+        logger.log('Fallback upload successful, URL:', imageUrl);
         setPreviewUrl(imageUrl);
         onImageUpdate(imageUrl);
       } else {
@@ -80,7 +81,7 @@ const LessonImageUpload = ({ currentImageUrl, onImageUpdate, lessonIndex }: Less
           .getPublicUrl(fileName);
 
         const imageUrl = data.publicUrl;
-        console.log('Primary upload successful, URL:', imageUrl);
+        logger.log('Primary upload successful, URL:', imageUrl);
         setPreviewUrl(imageUrl);
         onImageUpdate(imageUrl);
       }
@@ -90,7 +91,7 @@ const LessonImageUpload = ({ currentImageUrl, onImageUpdate, lessonIndex }: Less
         description: "Lesson image uploaded successfully",
       });
     } catch (error: any) {
-      console.error('Error uploading image:', error);
+      logger.error('Error uploading image:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to upload lesson image",
@@ -115,7 +116,7 @@ const LessonImageUpload = ({ currentImageUrl, onImageUpdate, lessonIndex }: Less
     const file = event.target.files?.[0];
     if (!file) return;
 
-    console.log('File selected:', file.name, file.type, file.size);
+    logger.log('File selected:', file.name, file.type, file.size);
     uploadImage(file);
     
     // Clear the input so the same file can be selected again if needed
@@ -133,7 +134,7 @@ const LessonImageUpload = ({ currentImageUrl, onImageUpdate, lessonIndex }: Less
             alt="Lesson preview" 
             className="w-20 h-20 object-cover rounded-lg border"
             onError={() => {
-              console.error('Failed to load image:', previewUrl);
+              logger.error('Failed to load image:', previewUrl);
               setPreviewUrl(null);
             }}
           />

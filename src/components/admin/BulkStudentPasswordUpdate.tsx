@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { AlertCircle, Users, Lock } from "lucide-react";
+import { logger } from "@/utils/logger";
 
 const BulkStudentPasswordUpdate = () => {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -35,7 +36,7 @@ const BulkStudentPasswordUpdate = () => {
         return;
       }
 
-      console.log(`Found ${studentRoles.length} student users to update`);
+      logger.log(`Found ${studentRoles.length} student users to update`);
 
       let successful = 0;
       let failed = 0;
@@ -52,14 +53,14 @@ const BulkStudentPasswordUpdate = () => {
           });
 
           if (error || data?.error) {
-            console.error(`Failed to update password for user ${student.user_id}:`, error || data?.error);
+            logger.error(`Failed to update password for user ${student.user_id}:`, error || data?.error);
             failed++;
           } else {
-            console.log(`Successfully updated password for user ${student.user_id}`);
+            logger.log(`Successfully updated password for user ${student.user_id}`);
             successful++;
           }
         } catch (error) {
-          console.error(`Exception updating password for user ${student.user_id}:`, error);
+          logger.error(`Exception updating password for user ${student.user_id}:`, error);
           failed++;
         }
 
@@ -89,7 +90,7 @@ const BulkStudentPasswordUpdate = () => {
       }
 
     } catch (error) {
-      console.error('Error in bulk password update:', error);
+      logger.error('Error in bulk password update:', error);
       toast({
         title: "Update Failed",
         description: "An error occurred while updating student passwords.",

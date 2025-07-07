@@ -2,12 +2,13 @@
 import { supabase } from "@/integrations/supabase/client";
 import { ReorderConfig } from "../types/reorderTypes";
 import { validateReorderBounds, swapSortOrders } from "./reorderUtils";
+import { logger } from "@/utils/logger";
 
 export const reorderLesson = async (lessonId: string, direction: 'up' | 'down', config: ReorderConfig) => {
   try {
-    console.log('=== REORDER LESSON DEBUG ===');
-    console.log('Lesson ID:', lessonId);
-    console.log('Direction:', direction);
+    logger.log('=== REORDER LESSON DEBUG ===');
+    logger.log('Lesson ID:', lessonId);
+    logger.log('Direction:', direction);
 
     const { data: lessonData, error: lessonError } = await supabase
       .from('lessons')
@@ -16,7 +17,7 @@ export const reorderLesson = async (lessonId: string, direction: 'up' | 'down', 
       .maybeSingle();
 
     if (lessonError) {
-      console.error('Error fetching lesson:', lessonError);
+      logger.error('Error fetching lesson:', lessonError);
       throw lessonError;
     }
 
@@ -24,7 +25,7 @@ export const reorderLesson = async (lessonId: string, direction: 'up' | 'down', 
       throw new Error('Lesson not found');
     }
 
-    console.log('Lesson data:', lessonData);
+    logger.log('Lesson data:', lessonData);
 
     const { data: siblings, error: siblingsError } = await supabase
       .from('lessons')
@@ -33,11 +34,11 @@ export const reorderLesson = async (lessonId: string, direction: 'up' | 'down', 
       .order('sort_order');
 
     if (siblingsError) {
-      console.error('Error fetching lesson siblings:', siblingsError);
+      logger.error('Error fetching lesson siblings:', siblingsError);
       throw siblingsError;
     }
 
-    console.log('Lesson siblings:', siblings);
+    logger.log('Lesson siblings:', siblings);
 
     const currentIndex = siblings.findIndex(s => s.id === lessonId);
     const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
@@ -51,7 +52,7 @@ export const reorderLesson = async (lessonId: string, direction: 'up' | 'down', 
 
     await swapSortOrders('lessons', current, target, config);
   } catch (error) {
-    console.error('Error reordering lesson:', error);
+    logger.error('Error reordering lesson:', error);
     config.toast({
       title: "Error",
       description: error instanceof Error ? error.message : "Failed to reorder lesson",

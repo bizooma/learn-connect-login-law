@@ -8,6 +8,7 @@ import { RotateCcw, Trash2, Eye } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
+import { logger } from "@/utils/logger";
 
 interface DeletedQuiz {
   id: string;
@@ -53,7 +54,7 @@ const DeletedQuizzesTab = ({ onQuizRestored }: DeletedQuizzesTabProps) => {
 
       setDeletedQuizzes(formattedQuizzes);
     } catch (error) {
-      console.error('Error fetching deleted quizzes:', error);
+      logger.error('Error fetching deleted quizzes:', error);
       toast({
         title: "Error",
         description: "Failed to load deleted quizzes",
@@ -82,7 +83,7 @@ const DeletedQuizzesTab = ({ onQuizRestored }: DeletedQuizzesTabProps) => {
       fetchDeletedQuizzes();
       onQuizRestored();
     } catch (error) {
-      console.error('Error restoring quiz:', error);
+      logger.error('Error restoring quiz:', error);
       toast({
         title: "Error",
         description: "Failed to restore quiz",
@@ -126,7 +127,7 @@ const DeletedQuizzesTab = ({ onQuizRestored }: DeletedQuizzesTabProps) => {
 
       fetchDeletedQuizzes();
     } catch (error) {
-      console.error('Error permanently deleting quiz:', error);
+      logger.error('Error permanently deleting quiz:', error);
       toast({
         title: "Error",
         description: "Failed to permanently delete quiz",

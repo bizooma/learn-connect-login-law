@@ -2,6 +2,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ModuleData } from "../types";
 import { uploadImageFile, uploadVideoFile } from "../fileUploadUtils";
 import { createMultipleFileUpload } from "./fileUploadService";
+import { logger } from "@/utils/logger";
 
 export const shouldUseSelectiveUpdate = (modules: ModuleData[]): boolean => {
   // Use selective update if we have existing IDs (indicating this is an edit)
@@ -15,7 +16,7 @@ export const shouldUseSelectiveUpdate = (modules: ModuleData[]): boolean => {
 };
 
 export const performSelectiveUpdate = async (courseId: string, modules: ModuleData[]) => {
-  console.log('Performing selective update with quiz assignment preservation');
+  logger.log('Performing selective update with quiz assignment preservation');
 
   for (let moduleIndex = 0; moduleIndex < modules.length; moduleIndex++) {
     const module = modules[moduleIndex];
@@ -32,7 +33,7 @@ export const performSelectiveUpdate = async (courseId: string, modules: ModuleDa
       try {
         moduleData.image_url = await uploadImageFile(module.image_file);
       } catch (error) {
-        console.error('Error uploading module image:', error);
+        logger.error('Error uploading module image:', error);
       }
     } else if (module.image_url) {
       moduleData.image_url = module.image_url;
@@ -45,7 +46,7 @@ export const performSelectiveUpdate = async (courseId: string, modules: ModuleDa
         moduleData.file_name = module.file.name;
         moduleData.file_size = module.file.size;
       } catch (error) {
-        console.error('Error uploading module file:', error);
+        logger.error('Error uploading module file:', error);
       }
     } else {
       moduleData.file_url = module.file_url;
@@ -63,7 +64,7 @@ export const performSelectiveUpdate = async (courseId: string, modules: ModuleDa
         .eq('id', moduleId);
 
       if (moduleError) {
-        console.error('Error updating module:', moduleError);
+        logger.error('Error updating module:', moduleError);
         throw new Error(`Failed to update module: ${moduleError.message}`);
       }
     } else {
@@ -75,7 +76,7 @@ export const performSelectiveUpdate = async (courseId: string, modules: ModuleDa
         .single();
 
       if (moduleError) {
-        console.error('Error creating module:', moduleError);
+        logger.error('Error creating module:', moduleError);
         throw new Error(`Failed to create module: ${moduleError.message}`);
       }
 
@@ -99,7 +100,7 @@ export const performSelectiveUpdate = async (courseId: string, modules: ModuleDa
         try {
           lessonData.image_url = await uploadImageFile(lesson.image_file);
         } catch (error) {
-          console.error('Error uploading lesson image:', error);
+          logger.error('Error uploading lesson image:', error);
         }
       } else if (lesson.image_url) {
         lessonData.image_url = lesson.image_url;
@@ -112,7 +113,7 @@ export const performSelectiveUpdate = async (courseId: string, modules: ModuleDa
           lessonData.file_name = lesson.file.name;
           lessonData.file_size = lesson.file.size;
         } catch (error) {
-          console.error('Error uploading lesson file:', error);
+          logger.error('Error uploading lesson file:', error);
         }
       } else {
         lessonData.file_url = lesson.file_url;
@@ -130,7 +131,7 @@ export const performSelectiveUpdate = async (courseId: string, modules: ModuleDa
           .eq('id', lessonId);
 
         if (lessonError) {
-          console.error('Error updating lesson:', lessonError);
+          logger.error('Error updating lesson:', lessonError);
           throw new Error(`Failed to update lesson: ${lessonError.message}`);
         }
       } else {
@@ -142,7 +143,7 @@ export const performSelectiveUpdate = async (courseId: string, modules: ModuleDa
           .single();
 
         if (lessonError) {
-          console.error('Error creating lesson:', lessonError);
+          logger.error('Error creating lesson:', lessonError);
           throw new Error(`Failed to create lesson: ${lessonError.message}`);
         }
 

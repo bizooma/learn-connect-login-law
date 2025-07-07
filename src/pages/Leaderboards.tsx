@@ -7,6 +7,7 @@ import StreakLeaderboard from "@/components/leaderboards/StreakLeaderboard";
 import CategoryLeaderboard from "@/components/leaderboards/CategoryLeaderboard";
 import { useLeaderboards } from "@/hooks/useLeaderboards";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 
 const Leaderboards = () => {
   const [refreshKey, setRefreshKey] = useState(0);
@@ -19,16 +20,16 @@ const Leaderboards = () => {
     try {
       setIsRefreshing(true);
       setDebugInfo(null);
-      console.log('Starting leaderboard refresh...');
+      logger.log('Starting leaderboard refresh...');
       
       const result = await refreshCache();
       
-      console.log('Refresh result:', result);
+      logger.log('Refresh result:', result);
       setDebugInfo(result);
       setRefreshKey(prev => prev + 1);
       setCacheStatus('populated');
     } catch (error: any) {
-      console.error('Error refreshing leaderboard cache:', error);
+      logger.error('Error refreshing leaderboard cache:', error);
       setDebugInfo({ error: error.message });
     } finally {
       setIsRefreshing(false);
@@ -43,7 +44,7 @@ const Leaderboards = () => {
         .gt('expires_at', new Date().toISOString());
 
       if (error) {
-        console.error('Error checking cache status:', error);
+        logger.error('Error checking cache status:', error);
         setCacheStatus('empty');
         return;
       }
@@ -51,11 +52,11 @@ const Leaderboards = () => {
       setCacheStatus(count && count > 0 ? 'populated' : 'empty');
       
       if (count === 0) {
-        console.log('No valid cache data found, auto-refreshing...');
+        logger.log('No valid cache data found, auto-refreshing...');
         await handleRefreshCache();
       }
     } catch (error) {
-      console.error('Error checking cache status:', error);
+      logger.error('Error checking cache status:', error);
       setCacheStatus('empty');
     }
   };

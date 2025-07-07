@@ -2,20 +2,21 @@
 import { supabase } from "@/integrations/supabase/client";
 import { CourseFormData } from "../types";
 import { uploadImageFile } from "../fileUploadUtils";
+import { logger } from "@/utils/logger";
 // Removed automatic calendar event import
 
 export const createCourse = async (courseData: CourseFormData, isDraft: boolean = false) => {
-  console.log('Creating course with data:', courseData);
+  logger.log('Creating course with data:', courseData);
 
   let imageUrl = '';
   
   if (courseData.image_file) {
     try {
-      console.log('Uploading course image...');
+      logger.log('Uploading course image...');
       imageUrl = await uploadImageFile(courseData.image_file);
-      console.log('Course image uploaded:', imageUrl);
+      logger.log('Course image uploaded:', imageUrl);
     } catch (error) {
-      console.error('Error uploading course image:', error);
+      logger.error('Error uploading course image:', error);
       throw new Error(`Failed to upload course image: ${error.message}`);
     }
   }
@@ -36,11 +37,11 @@ export const createCourse = async (courseData: CourseFormData, isDraft: boolean 
     .single();
 
   if (courseError) {
-    console.error('Error creating course:', courseError);
+    logger.error('Error creating course:', courseError);
     throw new Error(`Failed to create course: ${courseError.message}`);
   }
 
-  console.log('Course created successfully:', course);
+  logger.log('Course created successfully:', course);
 
   // Removed automatic calendar event creation
   // No welcome calendar events will be created automatically

@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -40,7 +41,7 @@ const UserCourseAssignment = ({ userId, userEmail, userName, onAssignmentComplet
           .maybeSingle();
 
         if (error && error.code !== 'PGRST116') {
-          console.error('Error checking existing progress:', error);
+          logger.error('Error checking existing progress:', error);
           return;
         }
 
@@ -51,7 +52,7 @@ const UserCourseAssignment = ({ userId, userEmail, userName, onAssignmentComplet
           setSelectedStatus(data.status);
         }
       } catch (error) {
-        console.error('Error checking existing progress:', error);
+        logger.error('Error checking existing progress:', error);
       }
     };
 
@@ -104,7 +105,7 @@ const UserCourseAssignment = ({ userId, userEmail, userName, onAssignmentComplet
         });
 
       if (progressError) {
-        console.error('Progress upsert error:', progressError);
+        logger.error('Progress upsert error:', progressError);
         throw new Error(`Failed to update course progress: ${progressError.message}`);
       }
 
@@ -126,7 +127,7 @@ const UserCourseAssignment = ({ userId, userEmail, userName, onAssignmentComplet
         });
 
       if (assignmentError) {
-        console.error('Assignment upsert error:', assignmentError);
+        logger.error('Assignment upsert error:', assignmentError);
         throw new Error(`Failed to create assignment: ${assignmentError.message}`);
       }
 
@@ -144,7 +145,7 @@ const UserCourseAssignment = ({ userId, userEmail, userName, onAssignmentComplet
       handleClose();
 
     } catch (error: any) {
-      console.error('Error in course assignment:', error);
+      logger.error('Error in course assignment:', error);
       toast({
         title: "Assignment Failed",
         description: error.message || "Failed to assign course. Please try again.",

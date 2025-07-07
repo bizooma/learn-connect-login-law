@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { UserProfile } from "./types";
 import { getAvailableRoles } from "./userRoleUtils";
 import { useUserRole } from "@/hooks/useUserRole";
+import { logger } from "@/utils/logger";
 
 interface SafeRoleUpdateDialogProps {
   user: UserProfile;
@@ -45,7 +46,7 @@ const SafeRoleUpdateDialog = ({ user, currentRole, onRoleUpdated }: SafeRoleUpda
     setLoading(true);
 
     try {
-      console.log('Attempting to update user role:', { userId: user.id, newRole, currentRole });
+      logger.log('Attempting to update user role:', { userId: user.id, newRole, currentRole });
       
       // Call the new safe role update function
       const { data, error } = await supabase.rpc('update_user_role_safe', {
@@ -54,14 +55,14 @@ const SafeRoleUpdateDialog = ({ user, currentRole, onRoleUpdated }: SafeRoleUpda
         p_reason: reason.trim()
       });
 
-      console.log('Role update response:', { data, error });
+      logger.log('Role update response:', { data, error });
 
       if (error) {
-        console.error('Role update error:', error);
+        logger.error('Role update error:', error);
         throw new Error(error.message || 'Failed to update user role');
       }
 
-      console.log('User role update successful:', data);
+      logger.log('User role update successful:', data);
 
       toast({
         title: "Role Updated",
@@ -75,7 +76,7 @@ const SafeRoleUpdateDialog = ({ user, currentRole, onRoleUpdated }: SafeRoleUpda
       onRoleUpdated();
 
     } catch (error: any) {
-      console.error('Error updating user role:', error);
+      logger.error('Error updating user role:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update user role",

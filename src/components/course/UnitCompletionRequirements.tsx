@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { CheckCircle, Play, BookOpen, Clock, AlertTriangle } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { useSmartCompletion } from "@/hooks/useSmartCompletion";
+import { logger } from "@/utils/logger";
 
 type Unit = Tables<'units'>;
 
@@ -35,7 +36,7 @@ const UnitCompletionRequirements = ({
         setRequirements(reqs);
         setStatus(stat);
       } catch (error) {
-        console.error('Error initializing completion requirements:', error);
+        logger.error('Error initializing completion requirements:', error);
       } finally {
         setLoading(false);
       }

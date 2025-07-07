@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Upload, Image, Trash2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { logger } from "@/utils/logger";
 
 interface UnitImageUploadProps {
   currentImageUrl?: string;
@@ -61,7 +62,7 @@ const UnitImageUpload = ({
       onImageUpdate(publicUrl);
       toast.success('Unit image uploaded successfully');
     } catch (error) {
-      console.error('Error uploading image:', error);
+      logger.error('Error uploading image:', error);
       toast.error('Failed to upload image');
     } finally {
       setIsUploading(false);

@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 
 interface TemplateModule {
   title: string;
@@ -24,7 +25,7 @@ interface TemplateUnit {
 }
 
 export const extractCourseStructure = async (sourceCourseId: string): Promise<TemplateModule[]> => {
-  console.log('Extracting structure from course:', sourceCourseId);
+  logger.log('Extracting structure from course:', sourceCourseId);
   
   const { data: modules, error } = await supabase
     .from('modules')
@@ -48,7 +49,7 @@ export const extractCourseStructure = async (sourceCourseId: string): Promise<Te
     .order('sort_order', { ascending: true });
 
   if (error) {
-    console.error('Error extracting course structure:', error);
+    logger.error('Error extracting course structure:', error);
     throw error;
   }
 
@@ -78,7 +79,7 @@ export const replicateStructureToCourse = async (
   targetCourseId: string,
   templateStructure: TemplateModule[]
 ): Promise<void> => {
-  console.log('Replicating structure to course:', targetCourseId);
+  logger.log('Replicating structure to course:', targetCourseId);
   
   // Check if course already has content
   const { data: existingModules } = await supabase
@@ -88,7 +89,7 @@ export const replicateStructureToCourse = async (
     .limit(1);
 
   if (existingModules && existingModules.length > 0) {
-    console.log('Course already has modules, skipping:', targetCourseId);
+    logger.log('Course already has modules, skipping:', targetCourseId);
     return;
   }
 
@@ -107,11 +108,11 @@ export const replicateStructureToCourse = async (
       .single();
 
     if (moduleError) {
-      console.error('Error creating module:', moduleError);
+      logger.error('Error creating module:', moduleError);
       throw moduleError;
     }
 
-    console.log('Created module:', newModule.title);
+    logger.log('Created module:', newModule.title);
 
     // Create lessons for this module
     for (const lessonTemplate of moduleTemplate.lessons) {
@@ -128,11 +129,11 @@ export const replicateStructureToCourse = async (
         .single();
 
       if (lessonError) {
-        console.error('Error creating lesson:', lessonError);
+        logger.error('Error creating lesson:', lessonError);
         throw lessonError;
       }
 
-      console.log('Created lesson:', newLesson.title);
+      logger.log('Created lesson:', newLesson.title);
 
       // Create units for this lesson
       for (const unitTemplate of lessonTemplate.units) {
@@ -149,16 +150,16 @@ export const replicateStructureToCourse = async (
           });
 
         if (unitError) {
-          console.error('Error creating unit:', unitError);
+          logger.error('Error creating unit:', unitError);
           throw unitError;
         }
 
-        console.log('Created unit:', unitTemplate.title);
+        logger.log('Created unit:', unitTemplate.title);
       }
     }
   }
 
-  console.log('Successfully replicated structure to course:', targetCourseId);
+  logger.log('Successfully replicated structure to course:', targetCourseId);
 };
 
 export const copyStructureToAllCourses = async (): Promise<void> => {
@@ -196,14 +197,14 @@ export const copyStructureToAllCourses = async (): Promise<void> => {
     }
 
     // Extract structure from source course
-    console.log('Extracting structure from Legal Training-100...');
+    logger.log('Extracting structure from Legal Training-100...');
     const templateStructure = await extractCourseStructure(sourceCourse.id);
 
     if (templateStructure.length === 0) {
       throw new Error('No structure found in source course');
     }
 
-    console.log('Found structure:', templateStructure);
+    logger.log('Found structure:', templateStructure);
 
     // Replicate to each target course
     let successCount = 0;
@@ -211,7 +212,7 @@ export const copyStructureToAllCourses = async (): Promise<void> => {
 
     for (const targetCourse of targetCourses) {
       try {
-        console.log(`Processing course: ${targetCourse.title}`);
+        logger.log(`Processing course: ${targetCourse.title}`);
         await replicateStructureToCourse(targetCourse.id, templateStructure);
         successCount++;
       } catch (error) {

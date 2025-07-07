@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
 import { Building2 } from "lucide-react";
+import { logger } from "@/utils/logger";
 
 type LawFirm = Tables<'law_firms'>;
 
@@ -38,7 +39,7 @@ const LawFirmInfoSection = ({ lawFirm, onUpdateLawFirm }: LawFirmInfoSectionProp
         description: "Law firm name updated successfully",
       });
     } catch (error) {
-      console.error('Error updating law firm name:', error);
+      logger.error('Error updating law firm name:', error);
       toast({
         title: "Error",
         description: "Failed to update law firm name",

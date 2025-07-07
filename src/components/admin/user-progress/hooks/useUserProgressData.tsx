@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 
 interface UserProgressData {
   user_id: string;
@@ -116,7 +117,7 @@ export const useUserProgressData = () => {
       });
 
     } catch (error) {
-      console.error('Error fetching user progress:', error);
+      logger.error('Error fetching user progress:', error);
       toast({
         title: "Error",
         description: "Failed to fetch user progress details",
@@ -166,7 +167,7 @@ export const useUserProgressData = () => {
       // Refresh the data
       await fetchUserProgress(userId);
     } catch (error) {
-      console.error('Error deleting course assignment:', error);
+      logger.error('Error deleting course assignment:', error);
       toast({
         title: "Error",
         description: "Failed to delete course assignment",

@@ -11,6 +11,7 @@ import {
 } from '@xyflow/react';
 import { supabase } from '@/integrations/supabase/client';
 import { useCanvasPersistence } from '@/hooks/useCanvasPersistence';
+import { logger } from '@/utils/logger';
 
 export interface FlowchartItem {
   id: string;
@@ -122,7 +123,7 @@ export const FlowchartProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         .order('created_at', { ascending: false });
 
       if (coursesError) {
-        console.error('Error fetching courses:', coursesError);
+        logger.error('Error fetching courses:', coursesError);
         return;
       }
 
@@ -138,7 +139,7 @@ export const FlowchartProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         .order('created_at', { ascending: false });
 
       if (modulesError) {
-        console.error('Error fetching modules:', modulesError);
+        logger.error('Error fetching modules:', modulesError);
       }
 
       // Fetch lessons with their course and module info (excluding temp ones)
@@ -154,7 +155,7 @@ export const FlowchartProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         .order('created_at', { ascending: false });
 
       if (lessonsError) {
-        console.error('Error fetching lessons:', lessonsError);
+        logger.error('Error fetching lessons:', lessonsError);
       }
 
       // Fetch units with their lesson info (excluding temp ones)
@@ -168,7 +169,7 @@ export const FlowchartProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         .order('created_at', { ascending: false });
 
       if (unitsError) {
-        console.error('Error fetching units:', unitsError);
+        logger.error('Error fetching units:', unitsError);
       }
 
       // Fetch quizzes with their unit info
@@ -182,7 +183,7 @@ export const FlowchartProvider: React.FC<{ children: React.ReactNode }> = ({ chi
         .order('created_at', { ascending: false });
 
       if (quizzesError) {
-        console.error('Error fetching quizzes:', quizzesError);
+        logger.error('Error fetching quizzes:', quizzesError);
       }
 
       // Transform data into FlowchartItem format
@@ -274,7 +275,7 @@ export const FlowchartProvider: React.FC<{ children: React.ReactNode }> = ({ chi
 
       setSidebarItems(items);
     } catch (error) {
-      console.error('Error fetching flowchart data:', error);
+      logger.error('Error fetching flowchart data:', error);
     } finally {
       setLoading(false);
     }

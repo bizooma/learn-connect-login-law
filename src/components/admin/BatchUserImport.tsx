@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Upload, CheckCircle, AlertCircle } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { logger } from "@/utils/logger";
 
 interface ImportResult {
   success: boolean;
@@ -59,7 +60,7 @@ const BatchUserImport = () => {
     setProgress(0);
     
     try {
-      console.log('Starting batch import process...');
+      logger.log('Starting batch import process...');
       
       const formData = new FormData();
       formData.append('file', file);
@@ -77,10 +78,10 @@ const BatchUserImport = () => {
       clearInterval(progressInterval);
       setProgress(100);
 
-      console.log('Batch import response:', { data, error });
+      logger.log('Batch import response:', { data, error });
 
       if (error) {
-        console.error('Batch import error:', error);
+        logger.error('Batch import error:', error);
         throw new Error(error.message || 'Import request failed');
       }
 
@@ -99,7 +100,7 @@ const BatchUserImport = () => {
           description: successMessage,
         });
       } else {
-        console.error('Batch import failed:', data.error);
+        logger.error('Batch import failed:', data.error);
         toast({
           title: "Import failed",
           description: data.error || "Unknown error occurred",
@@ -107,7 +108,7 @@ const BatchUserImport = () => {
         });
       }
     } catch (error) {
-      console.error('Batch import error:', error);
+      logger.error('Batch import error:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to import users';
       toast({
         title: "Import failed",

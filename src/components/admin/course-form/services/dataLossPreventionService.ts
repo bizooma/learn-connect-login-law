@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { ModuleData } from "../types";
+import { logger } from "@/utils/logger";
 
 export interface DataLossWarning {
   type: 'missing_modules' | 'missing_lessons' | 'missing_units';
@@ -20,7 +21,7 @@ export const checkForPotentialDataLoss = async (
   courseId: string, 
   formModules: ModuleData[]
 ): Promise<DataLossCheck> => {
-  console.log('🔍 Checking for potential data loss before update...');
+  logger.log('🔍 Checking for potential data loss before update...');
   
   try {
     // Get current database state
@@ -37,7 +38,7 @@ export const checkForPotentialDataLoss = async (
       .order('sort_order', { ascending: true });
 
     if (error) {
-      console.error('Error fetching database state:', error);
+      logger.error('Error fetching database state:', error);
       return {
         hasWarnings: false,
         warnings: [],
@@ -125,7 +126,7 @@ export const checkForPotentialDataLoss = async (
       preservedItemsCount
     };
 
-    console.log('🔍 Data loss check completed:', {
+    logger.log('🔍 Data loss check completed:', {
       hasWarnings: result.hasWarnings,
       warningCount: warnings.length,
       preservedItems: preservedItemsCount,
@@ -135,7 +136,7 @@ export const checkForPotentialDataLoss = async (
     return result;
 
   } catch (error) {
-    console.error('Error checking for data loss:', error);
+    logger.error('Error checking for data loss:', error);
     return {
       hasWarnings: true,
       warnings: [{

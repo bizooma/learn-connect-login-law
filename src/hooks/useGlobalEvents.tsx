@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/hooks/useAuth";
 import { useEnrollmentCounts } from "@/hooks/useEnrollmentCounts";
+import { logger } from "@/utils/logger";
 
 interface GlobalEvent {
   id: string;
@@ -55,7 +56,7 @@ export const useGlobalEvents = () => {
       
       setCourses(coursesWithEnrollment);
     } catch (error) {
-      console.error('Error fetching courses:', error);
+      logger.error('Error fetching courses:', error);
       toast({
         title: "Error",
         description: "Failed to load courses",
@@ -97,7 +98,7 @@ export const useGlobalEvents = () => {
             .eq('global_event_id', event.id);
 
           if (courseError) {
-            console.error('Error fetching courses for event:', courseError);
+            logger.error('Error fetching courses for event:', courseError);
             return { ...event, courses: [] };
           }
 
@@ -110,7 +111,7 @@ export const useGlobalEvents = () => {
 
       setEvents(eventsWithCourses);
     } catch (error) {
-      console.error('Error fetching global events:', error);
+      logger.error('Error fetching global events:', error);
       toast({
         title: "Error",
         description: "Failed to load events",
@@ -181,7 +182,7 @@ export const useGlobalEvents = () => {
       await fetchGlobalEvents();
       return eventResult;
     } catch (error) {
-      console.error('Error creating global event:', error);
+      logger.error('Error creating global event:', error);
       toast({
         title: "Error",
         description: "Failed to create global event",
@@ -207,7 +208,7 @@ export const useGlobalEvents = () => {
 
       await fetchGlobalEvents();
     } catch (error) {
-      console.error('Error deleting global event:', error);
+      logger.error('Error deleting global event:', error);
       toast({
         title: "Error",
         description: "Failed to delete global event",

@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
+import { logger } from "@/utils/logger";
 
 type Unit = Tables<'units'>;
 
@@ -58,7 +59,7 @@ export const useReliableCompletion = () => {
         .maybeSingle();
 
       if (error) {
-        console.error('Error checking completion status:', error);
+        logger.error('Error checking completion status:', error);
         return null;
       }
 
@@ -69,7 +70,7 @@ export const useReliableCompletion = () => {
         canComplete: true // Will be determined by strategy
       };
     } catch (error) {
-      console.error('Error checking completion status:', error);
+      logger.error('Error checking completion status:', error);
       return null;
     }
   }, [user]);
@@ -84,7 +85,7 @@ export const useReliableCompletion = () => {
     setProcessing(true);
     
     try {
-      console.log('🔄 Marking unit complete:', { unitId, courseId, completionMethod });
+      logger.log('🔄 Marking unit complete:', { unitId, courseId, completionMethod });
       
       // Use the reliable database function
       const { data, error } = await supabase.rpc('mark_unit_complete_reliable', {
@@ -95,7 +96,7 @@ export const useReliableCompletion = () => {
       });
 
       if (error) {
-        console.error('❌ Error marking unit complete:', error);
+        logger.error('❌ Error marking unit complete:', error);
         toast({
           title: "Error",
           description: "Failed to mark unit as complete. Please try again.",
@@ -104,7 +105,7 @@ export const useReliableCompletion = () => {
         return false;
       }
 
-      console.log('✅ Unit marked complete successfully');
+      logger.log('✅ Unit marked complete successfully');
       
       toast({
         title: "Unit Completed! 🎉",
@@ -113,14 +114,14 @@ export const useReliableCompletion = () => {
 
       return true;
     } catch (error) {
-      console.error('❌ Error in unit completion:', error);
+      logger.error('❌ Error in unit completion:', error);
       toast({
         title: "Error",
         description: "Failed to mark unit as complete. Please try again.",
         variant: "destructive",
       });
       return false;
-    } finally {
+    }finally {
       setProcessing(false);
     }
   }, [user, processing, toast]);
@@ -132,7 +133,7 @@ export const useReliableCompletion = () => {
     if (!user || processing) return false;
 
     try {
-      console.log('🎥 Marking video complete:', { unitId, courseId });
+      logger.log('🎥 Marking video complete:', { unitId, courseId });
       
       // Update video completion status
       const { error } = await supabase
@@ -149,14 +150,14 @@ export const useReliableCompletion = () => {
         });
 
       if (error) {
-        console.error('❌ Error marking video complete:', error);
+        logger.error('❌ Error marking video complete:', error);
         return false;
       }
 
-      console.log('✅ Video marked complete');
+      logger.log('✅ Video marked complete');
       return true;
     } catch (error) {
-      console.error('❌ Error in video completion:', error);
+      logger.error('❌ Error in video completion:', error);
       return false;
     }
   }, [user, processing]);

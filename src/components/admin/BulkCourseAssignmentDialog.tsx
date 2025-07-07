@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
 import { Loader2, Users, BookOpen } from "lucide-react";
+import { logger } from "@/utils/logger";
 
 type Profile = Tables<'profiles'>;
 type Course = Tables<'courses'>;
@@ -51,7 +52,7 @@ const BulkCourseAssignmentDialog = ({ open, onOpenChange, onAssignmentsComplete 
       if (error) throw error;
       setUsers(data || []);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      logger.error('Error fetching users:', error);
       toast({
         title: "Error",
         description: "Failed to load users",
@@ -73,7 +74,7 @@ const BulkCourseAssignmentDialog = ({ open, onOpenChange, onAssignmentsComplete 
       if (error) throw error;
       setCourses(data || []);
     } catch (error) {
-      console.error('Error fetching courses:', error);
+      logger.error('Error fetching courses:', error);
       toast({
         title: "Error",
         description: "Failed to load courses",
@@ -183,7 +184,7 @@ const BulkCourseAssignmentDialog = ({ open, onOpenChange, onAssignmentsComplete 
       onOpenChange(false);
 
     } catch (error) {
-      console.error('Error with bulk assignment:', error);
+      logger.error('Error with bulk assignment:', error);
       toast({
         title: "Assignment Failed",
         description: "Failed to complete bulk assignment. Please try again.",

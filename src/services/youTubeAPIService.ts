@@ -1,4 +1,6 @@
 
+import { logger } from '@/utils/logger';
+
 interface YouTubeAPIState {
   isLoaded: boolean;
   isLoading: boolean;
@@ -101,7 +103,7 @@ class YouTubeAPIService {
     this.state.error = error.message;
     this.state.retryCount++;
 
-    console.warn(`YouTube API load attempt ${this.state.retryCount} failed:`, error);
+    logger.warn(`YouTube API load attempt ${this.state.retryCount} failed:`, error);
 
     if (this.state.retryCount < this.maxRetries) {
       setTimeout(() => {
@@ -131,7 +133,7 @@ class YouTubeAPIService {
       try {
         listener();
       } catch (error) {
-        console.warn('YouTube API listener error:', error);
+        logger.warn('YouTube API listener error:', error);
       }
     });
   }

@@ -5,6 +5,7 @@ import SimpleLessonCard from "./lesson-manager/SimpleLessonCard";
 import EmptyState from "./lesson-manager/EmptyState";
 import { useLessonManager } from "./lesson-manager/useLessonManager";
 import { SectionData } from "./lesson-manager/types";
+import { logger } from "@/utils/logger";
 
 interface SimpleLessonManagerProps {
   lessons: SectionData[];
@@ -101,7 +102,7 @@ const SimpleLessonManager = ({ lessons, onLessonsChange }: SimpleLessonManagerPr
   };
 
   const handleAddUnitToLesson = (lessonIndex: number) => {
-    console.log('SimpleLessonManager: Adding unit to lesson:', lessonIndex);
+    logger.log('SimpleLessonManager: Adding unit to lesson:', lessonIndex);
     addUnit(lessonIndex);
   };
 

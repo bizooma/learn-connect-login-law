@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 import type { UserSession, SessionStats, ActivityFilters } from "@/components/admin/activity-tracking/types";
 
 interface PaginationState {
@@ -140,7 +141,7 @@ export const useUserSessions = (filters: ActivityFilters = {}) => {
         totalCount: count || 0
       }));
     } catch (error) {
-      console.error('Error fetching sessions:', error);
+      logger.error('Error fetching sessions:', error);
       toast({
         title: "Error",
         description: "Failed to fetch user sessions",
@@ -151,7 +152,7 @@ export const useUserSessions = (filters: ActivityFilters = {}) => {
 
   const fetchStats = async () => {
     try {
-      console.log('Fetching stats with filters:', filters);
+      logger.log('Fetching stats with filters:', filters);
       
       const { data, error } = await supabase.rpc('get_user_session_stats', {
         p_user_id: filters.userId || null,
@@ -159,14 +160,14 @@ export const useUserSessions = (filters: ActivityFilters = {}) => {
         p_end_date: filters.endDate || null
       });
 
-      console.log('Stats RPC response:', { data, error });
+      logger.log('Stats RPC response:', { data, error });
 
       if (error) throw error;
       
-      console.log('Setting stats:', data);
+      logger.log('Setting stats:', data);
       setStats(data || []);
     } catch (error) {
-      console.error('Error fetching session stats:', error);
+      logger.error('Error fetching session stats:', error);
       toast({
         title: "Error",
         description: "Failed to fetch session statistics",

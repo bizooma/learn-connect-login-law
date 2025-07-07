@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { logger } from '@/utils/logger';
 
 interface CreateUnitModalProps {
   open: boolean;
@@ -135,7 +136,7 @@ const CreateUnitModal: React.FC<CreateUnitModalProps> = ({
       onOpenChange(false);
       onUnitCreated();
     } catch (error) {
-      console.error('Error creating unit:', error);
+      logger.error('Error creating unit:', error);
       toast.error('Failed to create unit');
     } finally {
       setIsCreating(false);

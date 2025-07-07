@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { useUnifiedCompletion } from "@/hooks/useUnifiedCompletion";
+import { logger } from "@/utils/logger";
 
 interface VideoCompletionState {
   isCompleted: boolean;
@@ -27,7 +28,7 @@ export const useVideoCompletion = (unitId: string, courseId: string) => {
   const markVideoCompleteReliable = useCallback(async (forceComplete: boolean = false) => {
     if (!user || !unitId || !courseId) return false;
 
-    console.log('🎯 Attempting reliable video completion:', { unitId, forceComplete, attempts: completionState.completionAttempts });
+    logger.log('🎯 Attempting reliable video completion:', { unitId, forceComplete, attempts: completionState.completionAttempts });
 
     try {
       // Update completion attempts
@@ -50,19 +51,19 @@ export const useVideoCompletion = (unitId: string, courseId: string) => {
           watchPercentage: Math.max(prev.watchPercentage, 95)
         }));
 
-        console.log('✅ Video completion successful via unified system');
+        logger.log('✅ Video completion successful via unified system');
         return true;
       } else {
         // Fallback to old system if unified fails
-        console.log('⚠️ Unified system failed, trying fallback...');
+        logger.log('⚠️ Unified system failed, trying fallback...');
         return await fallbackVideoCompletion(forceComplete);
       }
 
     } catch (error) {
-      console.error('❌ Video completion failed:', error);
+      logger.error('❌ Video completion failed:', error);
       
       // Try fallback system
-      console.log('⚠️ Trying fallback completion system...');
+      logger.log('⚠️ Trying fallback completion system...');
       return await fallbackVideoCompletion(forceComplete);
     }
   }, [user, unitId, courseId, completionState.completionAttempts, completionState.watchPercentage, unifiedMarkVideoComplete]);
@@ -126,14 +127,14 @@ export const useVideoCompletion = (unitId: string, courseId: string) => {
           description: "Your progress has been saved successfully.",
         });
 
-        console.log('✅ Fallback video completion successful');
+        logger.log('✅ Fallback video completion successful');
         return true;
       } else {
         throw new Error('All completion strategies failed');
       }
 
     } catch (error) {
-      console.error('❌ Fallback video completion failed:', error);
+      logger.error('❌ Fallback video completion failed:', error);
       
       // Show user-friendly error
       toast({
@@ -166,14 +167,14 @@ export const useVideoCompletion = (unitId: string, courseId: string) => {
 
       // Set new timeout for completion
       completionTimeoutRef.current = window.setTimeout(() => {
-        console.log('🎯 Auto-completing video at 95% threshold');
+        logger.log('🎯 Auto-completing video at 95% threshold');
         markVideoCompleteReliable();
       }, 2000); // 2 second delay to ensure stable playback
     }
   }, [completionState.isCompleted, markVideoCompleteReliable]);
 
   const handleVideoEnded = useCallback(() => {
-    console.log('🎯 Video ended - triggering completion');
+    logger.log('🎯 Video ended - triggering completion');
     
     // Clear any pending auto-completion
     if (completionTimeoutRef.current) {
@@ -185,7 +186,7 @@ export const useVideoCompletion = (unitId: string, courseId: string) => {
   }, [markVideoCompleteReliable]);
 
   const forceComplete = useCallback(() => {
-    console.log('🎯 Force completing video manually');
+    logger.log('🎯 Force completing video manually');
     return markVideoCompleteReliable(true);
   }, [markVideoCompleteReliable]);
 

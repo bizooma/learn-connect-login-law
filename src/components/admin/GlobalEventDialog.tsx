@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
+import { logger } from "@/utils/logger";
 
 interface Course {
   id: string;
@@ -70,7 +71,7 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
       setSelectedCourses([]);
       onOpenChange(false);
     } catch (error) {
-      console.error('Error submitting event:', error);
+      logger.error('Error submitting event:', error);
     } finally {
       setIsSubmitting(false);
     }

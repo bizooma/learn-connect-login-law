@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Trash2, ArrowUp, ArrowDown, Upload } from "lucide-react";
 import MultipleFileUpload from "@/components/admin/MultipleFileUpload";
 import MarkdownHelp from "@/components/ui/markdown-help";
+import { logger } from "@/utils/logger";
 
 interface UnitData {
   id?: string;
@@ -49,7 +50,7 @@ const UnitCard = ({
   onMoveUnitUp,
   onMoveUnitDown,
 }: UnitCardProps) => {
-  console.log('UnitCard render:', { unit: unit.title, files: unit.files, unitIndex });
+  logger.log('UnitCard render:', { unit: unit.title, files: unit.files, unitIndex });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
@@ -57,7 +58,7 @@ const UnitCard = ({
   };
 
   const handleFilesUpdate = (files: Array<{ url: string; name: string; size: number }>) => {
-    console.log('UnitCard: Updating files for unit', unit.title, 'with:', files);
+    logger.log('UnitCard: Updating files for unit', unit.title, 'with:', files);
     onUpdateUnit(moduleIndex, lessonIndex, unitIndex, 'files', files);
     
     // Force re-render by updating timestamp
@@ -66,7 +67,7 @@ const UnitCard = ({
 
   // Ensure files is always an array
   const currentFiles = Array.isArray(unit.files) ? unit.files : [];
-  console.log('UnitCard: Current files for display:', currentFiles);
+  logger.log('UnitCard: Current files for display:', currentFiles);
 
   return (
     <Card className="border border-yellow-200 ml-4">

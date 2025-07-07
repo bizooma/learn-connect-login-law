@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/utils/logger';
 
 interface AvailableOwner {
   id: string;
@@ -48,7 +49,7 @@ export const useAvailableOwners = () => {
 
       setAvailableOwners(availableOwnersList);
     } catch (error: any) {
-      console.error('Error fetching available owners:', error);
+      logger.error('Error fetching available owners:', error);
       toast({
         title: "Error",
         description: "Failed to load available owners",

@@ -10,6 +10,7 @@ import OwnerDashboardTabs from "@/components/owner/OwnerDashboardTabs";
 import NotificationBanner from "@/components/notifications/NotificationBanner";
 import LMSTreeFooter from "@/components/lms-tree/LMSTreeFooter";
 import { useEffect } from "react";
+import { logger } from "@/utils/logger";
 
 const OwnerDashboard = () => {
   const navigate = useNavigate();
@@ -20,14 +21,14 @@ const OwnerDashboard = () => {
   useEffect(() => {
     // If no user, redirect immediately
     if (!user) {
-      console.log('OwnerDashboard: No user found, redirecting to home');
+      logger.log('OwnerDashboard: No user found, redirecting to home');
       navigate("/", { replace: true });
       return;
     }
 
     // Only redirect if role loading is complete AND user is definitely not an owner
     if (!roleLoading && user && !isOwner) {
-      console.log('OwnerDashboard: User is not an owner, redirecting to main dashboard');
+      logger.log('OwnerDashboard: User is not an owner, redirecting to main dashboard');
       navigate("/", { replace: true });
       return;
     }

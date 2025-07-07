@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Download, Award, Loader2 } from "lucide-react";
+import { logger } from "@/utils/logger";
 
 interface CertificateDownloadProps {
   courseId: string;
@@ -24,7 +25,7 @@ const CertificateDownload = ({ courseId, courseTitle, isCompleted, loading = fal
 
     setIsDownloading(true);
     try {
-      console.log('Generating certificate for:', { courseId, userId: user.id });
+      logger.log('Generating certificate for:', { courseId, userId: user.id });
 
       const { data, error } = await supabase.functions.invoke('generate-certificate', {
         body: { courseId, userId: user.id }
@@ -49,7 +50,7 @@ const CertificateDownload = ({ courseId, courseTitle, isCompleted, loading = fal
       });
 
     } catch (error) {
-      console.error('Error downloading certificate:', error);
+      logger.error('Error downloading certificate:', error);
       toast({
         title: "Download Failed",
         description: "Failed to download certificate. Please try again.",

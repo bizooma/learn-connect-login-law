@@ -1,5 +1,6 @@
 
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 
 export interface CourseBackupData {
   backupId: string;
@@ -19,7 +20,7 @@ export interface BackupResult {
 
 export const createCourseBackup = async (courseId: string): Promise<BackupResult> => {
   try {
-    console.log('Creating course backup for:', courseId);
+    logger.log('Creating course backup for:', courseId);
     
     // Fetch complete course structure
     const { data: modules, error: modulesError } = await supabase
@@ -49,7 +50,7 @@ export const createCourseBackup = async (courseId: string): Promise<BackupResult
       .eq('is_deleted', false);
 
     if (quizzesError) {
-      console.warn('Failed to backup quizzes:', quizzesError);
+      logger.warn('Failed to backup quizzes:', quizzesError);
     }
 
     const backupData: CourseBackupData = {
@@ -62,7 +63,7 @@ export const createCourseBackup = async (courseId: string): Promise<BackupResult
       quizzes: quizzes || []
     };
 
-    console.log('Course backup created:', {
+    logger.log('Course backup created:', {
       backupId: backupData.backupId,
       modules: backupData.modules.length,
       lessons: backupData.lessons.length,
@@ -73,14 +74,14 @@ export const createCourseBackup = async (courseId: string): Promise<BackupResult
     return { success: true, backupData };
 
   } catch (error) {
-    console.error('Error creating course backup:', error);
+    logger.error('Error creating course backup:', error);
     return { success: false, error: error.message };
   }
 };
 
 export const validateCourseIntegrity = async (courseId: string) => {
   try {
-    console.log('Validating course integrity for:', courseId);
+    logger.log('Validating course integrity for:', courseId);
     
     // Fetch course structure
     const { data: modules } = await supabase
@@ -128,7 +129,7 @@ export const validateCourseIntegrity = async (courseId: string) => {
       orphanedQuizzes: orphanedQuizzes.length
     };
 
-    console.log('Integrity validation completed:', { issues: issues.length, summary });
+    logger.log('Integrity validation completed:', { issues: issues.length, summary });
 
     return {
       isValid: issues.length === 0,
@@ -137,7 +138,7 @@ export const validateCourseIntegrity = async (courseId: string) => {
     };
 
   } catch (error) {
-    console.error('Error validating course integrity:', error);
+    logger.error('Error validating course integrity:', error);
     return {
       isValid: false,
       issues: [`Validation failed: ${error.message}`],

@@ -9,6 +9,7 @@ import { UserMinus, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { UserProfile } from "./types";
+import { logger } from "@/utils/logger";
 
 interface SafeDeleteUserDialogProps {
   user: UserProfile;
@@ -38,7 +39,7 @@ const SafeDeleteUserDialog = ({ user, onUserDeleted }: SafeDeleteUserDialogProps
     setLoading(true);
 
     try {
-      console.log('Attempting to soft delete user:', user.id);
+      logger.log('Attempting to soft delete user:', user.id);
       
       // Call the new safe soft delete function
       const { data, error } = await supabase.rpc('soft_delete_user', {
@@ -46,14 +47,14 @@ const SafeDeleteUserDialog = ({ user, onUserDeleted }: SafeDeleteUserDialogProps
         p_reason: reason.trim()
       });
 
-      console.log('Soft delete response:', { data, error });
+      logger.log('Soft delete response:', { data, error });
 
       if (error) {
-        console.error('Soft delete error:', error);
+        logger.error('Soft delete error:', error);
         throw new Error(error.message || 'Failed to deactivate user');
       }
 
-      console.log('User soft deletion successful:', data);
+      logger.log('User soft deletion successful:', data);
 
       toast({
         title: "User Deactivated",
@@ -66,7 +67,7 @@ const SafeDeleteUserDialog = ({ user, onUserDeleted }: SafeDeleteUserDialogProps
       onUserDeleted();
 
     } catch (error: any) {
-      console.error('Error soft deleting user:', error);
+      logger.error('Error soft deleting user:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to deactivate user",

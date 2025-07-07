@@ -15,6 +15,7 @@ import { Download, File } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useCourseCompletion } from "@/hooks/useCourseCompletion";
 import MarkdownRenderer from "@/components/ui/markdown-renderer";
+import { logger } from "@/utils/logger";
 
 type Unit = Tables<'units'>;
 type Quiz = Tables<'quizzes'>;
@@ -48,7 +49,7 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle, onProgressUpdate }
         return;
       }
 
-      console.log('COURSE CONTENT: Fetching quiz for unit:', unit.id);
+      logger.log('COURSE CONTENT: Fetching quiz for unit:', unit.id);
       setQuizLoading(true);
       
       try {
@@ -62,14 +63,14 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle, onProgressUpdate }
           .maybeSingle();
 
         if (error) {
-          console.error('COURSE CONTENT: Error fetching quiz:', error);
+          logger.error('COURSE CONTENT: Error fetching quiz:', error);
           setUnitQuiz(null);
         } else {
-          console.log('COURSE CONTENT: Quiz found:', quizData ? `${quizData.title} (ID: ${quizData.id})` : 'No quiz');
+          logger.log('COURSE CONTENT: Quiz found:', quizData ? `${quizData.title} (ID: ${quizData.id})` : 'No quiz');
           setUnitQuiz(quizData);
         }
       } catch (error) {
-        console.error('COURSE CONTENT: Error in fetchUnitQuiz:', error);
+        logger.error('COURSE CONTENT: Error in fetchUnitQuiz:', error);
         setUnitQuiz(null);
       } finally {
         setQuizLoading(false);
@@ -80,7 +81,7 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle, onProgressUpdate }
 
     // Set up real-time subscription for quiz changes
     if (unit?.id) {
-      console.log('COURSE CONTENT: Setting up real-time subscription for unit quiz changes');
+      logger.log('COURSE CONTENT: Setting up real-time subscription for unit quiz changes');
       
       const channel = supabase
         .channel(`unit-quiz-${unit.id}`)
@@ -93,14 +94,14 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle, onProgressUpdate }
             filter: `unit_id=eq.${unit.id}`
           },
           (payload) => {
-            console.log('COURSE CONTENT: Quiz change detected:', payload);
+            logger.log('COURSE CONTENT: Quiz change detected:', payload);
             fetchUnitQuiz();
           }
         )
         .subscribe();
 
       return () => {
-        console.log('COURSE CONTENT: Cleaning up real-time subscription');
+        logger.log('COURSE CONTENT: Cleaning up real-time subscription');
         supabase.removeChannel(channel);
       };
     }
@@ -132,7 +133,7 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle, onProgressUpdate }
   };
 
   const handleProgressRefresh = () => {
-    console.log('COURSE CONTENT: Refreshing progress after completion');
+    logger.log('COURSE CONTENT: Refreshing progress after completion');
     setRefreshKey(prev => prev + 1);
     refetchCompletion();
     if (onProgressUpdate) {

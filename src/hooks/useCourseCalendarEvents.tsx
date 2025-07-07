@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Tables } from "@/integrations/supabase/types";
 import { format, parseISO } from "date-fns";
+import { logger } from "@/utils/logger";
 
 type CourseCalendarEvent = Tables<'course_calendars'>;
 type GlobalEvent = {
@@ -30,13 +31,13 @@ export const useCourseCalendarEvents = (courseId: string) => {
 
   const fetchEvents = async () => {
     if (!courseId) {
-      console.warn('useCourseCalendarEvents: No course ID provided');
+      logger.warn('useCourseCalendarEvents: No course ID provided');
       setLoading(false);
       return;
     }
 
     try {
-      console.log('useCourseCalendarEvents: Fetching calendar events for course:', courseId);
+      logger.log('useCourseCalendarEvents: Fetching calendar events for course:', courseId);
       
       // Fetch course-specific events
       const { data: courseEvents, error: courseError } = await supabase
@@ -46,7 +47,7 @@ export const useCourseCalendarEvents = (courseId: string) => {
         .order('event_date', { ascending: true });
 
       if (courseError) {
-        console.error('useCourseCalendarEvents: Error fetching course calendar events:', courseError);
+        logger.error('useCourseCalendarEvents: Error fetching course calendar events:', courseError);
         throw courseError;
       }
 
@@ -71,7 +72,7 @@ export const useCourseCalendarEvents = (courseId: string) => {
         .eq('course_id', courseId);
 
       if (globalError) {
-        console.error('useCourseCalendarEvents: Error fetching global events:', globalError);
+        logger.error('useCourseCalendarEvents: Error fetching global events:', globalError);
         // Don't throw here, just log the error and continue with course events only
       }
 
@@ -88,10 +89,10 @@ export const useCourseCalendarEvents = (courseId: string) => {
       // Sort by date
       allEvents.sort((a, b) => new Date(a.event_date).getTime() - new Date(b.event_date).getTime());
 
-      console.log('useCourseCalendarEvents: Combined events fetched:', allEvents);
+      logger.log('useCourseCalendarEvents: Combined events fetched:', allEvents);
       setEvents(allEvents);
     } catch (error) {
-      console.error('useCourseCalendarEvents: Error fetching course calendar events:', error);
+      logger.error('useCourseCalendarEvents: Error fetching course calendar events:', error);
       toast({
         title: "Error",
         description: "Failed to load calendar events",
@@ -109,12 +110,12 @@ export const useCourseCalendarEvents = (courseId: string) => {
         try {
           return parseISO(event.event_date);
         } catch (dateError) {
-          console.error('useCourseCalendarEvents: Error parsing event date:', event.event_date, dateError);
+          logger.error('useCourseCalendarEvents: Error parsing event date:', event.event_date, dateError);
           return new Date();
         }
       }).filter(date => !isNaN(date.getTime()));
     } catch (error) {
-      console.error('useCourseCalendarEvents: Error getting event dates:', error);
+      logger.error('useCourseCalendarEvents: Error getting event dates:', error);
       return [];
     }
   };
@@ -127,12 +128,12 @@ export const useCourseCalendarEvents = (courseId: string) => {
           try {
             return parseISO(event.event_date);
           } catch (dateError) {
-            console.error('useCourseCalendarEvents: Error parsing meeting date:', event.event_date, dateError);
+            logger.error('useCourseCalendarEvents: Error parsing meeting date:', event.event_date, dateError);
             return new Date();
           }
         }).filter(date => !isNaN(date.getTime()));
     } catch (error) {
-      console.error('useCourseCalendarEvents: Error getting meeting dates:', error);
+      logger.error('useCourseCalendarEvents: Error getting meeting dates:', error);
       return [];
     }
   };
@@ -144,7 +145,7 @@ export const useCourseCalendarEvents = (courseId: string) => {
       const dateString = format(selectedDate, 'yyyy-MM-dd');
       return events.filter(event => event.event_date === dateString);
     } catch (error) {
-      console.error('useCourseCalendarEvents: Error filtering events by date:', error);
+      logger.error('useCourseCalendarEvents: Error filtering events by date:', error);
       return [];
     }
   };

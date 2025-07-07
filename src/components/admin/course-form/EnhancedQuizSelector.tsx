@@ -8,6 +8,7 @@ import { Plus, X, Edit, ExternalLink } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Badge } from "@/components/ui/badge";
+import { logger } from "@/utils/logger";
 
 interface Quiz {
   id: string;
@@ -49,7 +50,7 @@ const EnhancedQuizSelector = ({ quizId, onQuizUpdate, unitTitle, unitId }: Enhan
         setSelectedQuiz(quiz || null);
       }
     } catch (error) {
-      console.error('Error fetching quizzes:', error);
+      logger.error('Error fetching quizzes:', error);
       toast({
         title: "Error",
         description: "Failed to load quizzes",

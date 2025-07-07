@@ -9,6 +9,7 @@ import PowerPointVideoIntegration from './PowerPointVideoIntegration';
 import MultipleFileUpload from '../MultipleFileUpload';
 import EnhancedQuizSelector from './EnhancedQuizSelector';
 import MarkdownHelp from '@/components/ui/markdown-help';
+import { logger } from '@/utils/logger';
 
 interface UnitFormProps {
   unit: any;
@@ -18,7 +19,7 @@ interface UnitFormProps {
 }
 
 const UnitForm = ({ unit, onUnitChange, onRemove, unitIndex }: UnitFormProps) => {
-  console.log('UnitForm render:', { unit: unit.title, files: unit.files, unitIndex });
+  logger.log('UnitForm render:', { unit: unit.title, files: unit.files, unitIndex });
 
   const handleVideoGenerated = (videoUrl: string) => {
     onUnitChange('video_url', videoUrl);
@@ -30,7 +31,7 @@ const UnitForm = ({ unit, onUnitChange, onRemove, unitIndex }: UnitFormProps) =>
   };
 
   const handleMultipleFilesUpdate = (files: Array<{ url: string; name: string; size: number }>) => {
-    console.log('UnitForm: Updating files for unit', unit.title, 'with:', files);
+    logger.log('UnitForm: Updating files for unit', unit.title, 'with:', files);
     onUnitChange('files', files);
     
     // Force a re-render by updating a timestamp
@@ -39,7 +40,7 @@ const UnitForm = ({ unit, onUnitChange, onRemove, unitIndex }: UnitFormProps) =>
 
   // Ensure files is always an array and force refresh display
   const currentFiles = Array.isArray(unit.files) ? unit.files : [];
-  console.log('UnitForm: Current files for display:', currentFiles);
+  logger.log('UnitForm: Current files for display:', currentFiles);
 
   return (
     <Card className="mb-4">

@@ -6,6 +6,7 @@ import { handleCourseSubmission } from "./courseSubmissionHandler";
 import { useDraftManager } from "@/hooks/useDraftManager";
 import { useAutoSave } from "@/hooks/useAutoSave";
 import { Tables } from "@/integrations/supabase/types";
+import { logger } from "@/utils/logger";
 
 interface ModuleData {
   id?: string;
@@ -158,7 +159,7 @@ export const useCourseFormWithDrafts = (onSuccess: () => void) => {
       setModules([]);
       onSuccess();
     } catch (error) {
-      console.error('Error creating course:', error);
+      logger.error('Error creating course:', error);
       toast({
         title: "Error",
         description: "Failed to create course",

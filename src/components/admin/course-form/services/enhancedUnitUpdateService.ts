@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { UnitData } from "../types";
+import { logger } from "@/utils/logger";
 
 export interface UnitUpdateResult {
   success: boolean;
@@ -13,7 +14,7 @@ export const updateUnitsEnhanced = async (
   sectionId: string,
   units: UnitData[]
 ): Promise<UnitUpdateResult[]> => {
-  console.log('🔧 Starting enhanced unit updates for section:', sectionId);
+  logger.log('🔧 Starting enhanced unit updates for section:', sectionId);
   
   const results: UnitUpdateResult[] = [];
   
@@ -27,7 +28,7 @@ export const updateUnitsEnhanced = async (
     };
     
     try {
-      console.log(`📝 Processing unit ${i + 1}/${units.length}: "${unit.title}"`);
+      logger.log(`📝 Processing unit ${i + 1}/${units.length}: "${unit.title}"`);
       
       // Handle video file upload if present
       let videoUrl = unit.video_url;
@@ -35,10 +36,10 @@ export const updateUnitsEnhanced = async (
         try {
           const { uploadVideoFile } = await import("../fileUploadUtils");
           videoUrl = await uploadVideoFile(unit.video_file);
-          console.log('📹 Video uploaded successfully:', videoUrl);
+          logger.log('📹 Video uploaded successfully:', videoUrl);
         } catch (error) {
           result.warnings.push(`Video upload failed: ${error.message}`);
-          console.warn('Video upload failed:', error);
+          logger.warn('Video upload failed:', error);
         }
       }
       
@@ -48,10 +49,10 @@ export const updateUnitsEnhanced = async (
         try {
           const { createMultipleFileUpload } = await import("./fileUploadService");
           filesData = await createMultipleFileUpload(unit.file_uploads, 'unit', i);
-          console.log('📎 Multiple files uploaded successfully');
+          logger.log('📎 Multiple files uploaded successfully');
         } catch (error) {
           result.warnings.push(`File uploads failed: ${error.message}`);
-          console.warn('File uploads failed:', error);
+          logger.warn('File uploads failed:', error);
         }
       }
       
@@ -72,28 +73,28 @@ export const updateUnitsEnhanced = async (
       });
       
       if (error) {
-        console.error('❌ Unit upsert failed:', error);
+        logger.error('❌ Unit upsert failed:', error);
         result.errors.push(`Unit update failed: ${error.message}`);
       } else {
-        console.log('✅ Unit updated successfully:', unitId);
+        logger.log('✅ Unit updated successfully:', unitId);
         result.success = true;
         result.unitId = unitId;
       }
       
     } catch (error) {
-      console.error('❌ Unexpected error during unit update:', error);
+      logger.error('❌ Unexpected error during unit update:', error);
       result.errors.push(`Unexpected error: ${error.message}`);
     }
     
     results.push(result);
   }
   
-  console.log('🏁 Enhanced unit updates completed');
+  logger.log('🏁 Enhanced unit updates completed');
   return results;
 };
 
 export const cleanupOrphanedUnits = async (sectionId: string, keepUnitIds: string[]) => {
-  console.log('🧹 Cleaning up orphaned units for section:', sectionId);
+  logger.log('🧹 Cleaning up orphaned units for section:', sectionId);
   
   try {
     const { error } = await supabase
@@ -103,11 +104,11 @@ export const cleanupOrphanedUnits = async (sectionId: string, keepUnitIds: strin
       .not('id', 'in', `(${keepUnitIds.map(id => `'${id}'`).join(',')})`);
     
     if (error) {
-      console.error('❌ Failed to cleanup orphaned units:', error);
+      logger.error('❌ Failed to cleanup orphaned units:', error);
       throw error;
     }
     
-    console.log('✅ Orphaned units cleaned up successfully');
+    logger.log('✅ Orphaned units cleaned up successfully');
   } catch (error) {
     console.error('❌ Error during orphaned units cleanup:', error);
     throw error;

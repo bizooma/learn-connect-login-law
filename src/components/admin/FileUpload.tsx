@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Upload, File, Trash2, Download } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { logger } from "@/utils/logger";
 
 interface FileUploadProps {
   currentFileUrl?: string;
@@ -61,7 +62,7 @@ const FileUpload = ({
       onFileUpdate(publicUrl, file.name, file.size);
       toast.success('File uploaded successfully');
     } catch (error) {
-      console.error('Error uploading file:', error);
+      logger.error('Error uploading file:', error);
       toast.error('Failed to upload file');
     } finally {
       setIsUploading(false);

@@ -5,6 +5,7 @@ import { CheckCircle, Clock } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { useUnitProgress } from "@/hooks/useUnitProgress";
 import { useReliableCompletion } from "@/hooks/useReliableCompletion";
+import { logger } from "@/utils/logger";
 
 type Unit = Tables<'units'>;
 
@@ -27,7 +28,7 @@ const UnitCompletionButton = ({ unit, courseId, onComplete }: UnitCompletionButt
     setIsCompleting(true);
 
     try {
-      console.log('📝 Manual completion for unit:', unit.id);
+      logger.log('📝 Manual completion for unit:', unit.id);
       
       // Use the reliable completion system
       const success = await markUnitComplete(unit.id, courseId, 'manual');
@@ -41,7 +42,7 @@ const UnitCompletionButton = ({ unit, courseId, onComplete }: UnitCompletionButt
         }
       }
     } catch (error) {
-      console.error('❌ Error in manual completion:', error);
+      logger.error('❌ Error in manual completion:', error);
     } finally {
       setIsCompleting(false);
     }

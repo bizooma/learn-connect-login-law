@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
+import { logger } from "@/utils/logger";
 
 type Profile = Tables<'profiles'>;
 type Course = Tables<'courses'>;
@@ -46,7 +47,7 @@ const CourseAssignmentDialog = ({ open, onOpenChange, onAssignCourse }: CourseAs
       if (error) throw error;
       setUsers(data || []);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      logger.error('Error fetching users:', error);
     }
   };
 
@@ -60,7 +61,7 @@ const CourseAssignmentDialog = ({ open, onOpenChange, onAssignCourse }: CourseAs
       if (error) throw error;
       setCourses(data || []);
     } catch (error) {
-      console.error('Error fetching courses:', error);
+      logger.error('Error fetching courses:', error);
     }
   };
 
@@ -86,7 +87,7 @@ const CourseAssignmentDialog = ({ open, onOpenChange, onAssignCourse }: CourseAs
       setNotes("");
       onOpenChange(false);
     } catch (error) {
-      console.error('Error assigning course:', error);
+      logger.error('Error assigning course:', error);
     } finally {
       setLoading(false);
     }

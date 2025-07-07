@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 import { Tables } from '@/integrations/supabase/types';
+import { logger } from '@/utils/logger';
 
 type CourseDraft = Tables<'course_drafts'>;
 
@@ -68,7 +69,7 @@ export const useDraftManager = (courseId?: string) => {
       if (error) throw error;
       setDrafts(data || []);
     } catch (error) {
-      console.error('Error fetching drafts:', error);
+      logger.error('Error fetching drafts:', error);
     }
   }, [user?.id]);
 
@@ -101,7 +102,7 @@ export const useDraftManager = (courseId?: string) => {
       await fetchDrafts();
       return data;
     } catch (error) {
-      console.error('Error creating draft:', error);
+      logger.error('Error creating draft:', error);
       toast({
         title: "Error",
         description: "Failed to create draft",
@@ -143,7 +144,7 @@ export const useDraftManager = (courseId?: string) => {
       await fetchDrafts();
       return data;
     } catch (error) {
-      console.error('Error updating draft:', error);
+      logger.error('Error updating draft:', error);
       throw error;
     }
   }, [user?.id, fetchDrafts]);
@@ -170,7 +171,7 @@ export const useDraftManager = (courseId?: string) => {
         description: "The draft has been removed successfully.",
       });
     } catch (error) {
-      console.error('Error deleting draft:', error);
+      logger.error('Error deleting draft:', error);
       toast({
         title: "Error",
         description: "Failed to delete draft",
@@ -195,7 +196,7 @@ export const useDraftManager = (courseId?: string) => {
       setCurrentDraft(data);
       return data;
     } catch (error) {
-      console.error('Error loading draft:', error);
+      logger.error('Error loading draft:', error);
       return null;
     }
   }, [user?.id]);

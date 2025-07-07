@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Mail } from "lucide-react";
+import { logger } from "@/utils/logger";
 
 interface ForgotPasswordDialogProps {
   open: boolean;
@@ -30,7 +31,7 @@ const ForgotPasswordDialog = ({ open, onOpenChange }: ForgotPasswordDialogProps)
     }
 
     setIsLoading(true);
-    console.log('ForgotPassword: Sending reset email to:', email);
+    logger.log('ForgotPassword: Sending reset email to:', email);
 
     try {
       const { error } = await supabase.auth.resetPasswordForEmail(email.trim(), {
@@ -38,7 +39,7 @@ const ForgotPasswordDialog = ({ open, onOpenChange }: ForgotPasswordDialogProps)
       });
 
       if (error) {
-        console.error('ForgotPassword: Reset email failed:', error);
+        logger.error('ForgotPassword: Reset email failed:', error);
         
         // Handle specific error cases
         if (error.message?.includes('rate limit')) {
@@ -61,7 +62,7 @@ const ForgotPasswordDialog = ({ open, onOpenChange }: ForgotPasswordDialogProps)
           });
         }
       } else {
-        console.log('ForgotPassword: Reset email sent successfully');
+        logger.log('ForgotPassword: Reset email sent successfully');
         toast({
           title: "Reset Email Sent",
           description: "Check your email for a password reset link.",
@@ -72,7 +73,7 @@ const ForgotPasswordDialog = ({ open, onOpenChange }: ForgotPasswordDialogProps)
         onOpenChange(false);
       }
     } catch (error) {
-      console.error('ForgotPassword: Unexpected error:', error);
+      logger.error('ForgotPassword: Unexpected error:', error);
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",

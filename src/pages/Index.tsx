@@ -7,6 +7,7 @@ import AdminDashboard from "../components/AdminDashboard";
 import NotificationBanner from "../components/notifications/NotificationBanner";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useRef } from "react";
+import { logger } from "@/utils/logger";
 
 const Index = () => {
   const { user, loading: authLoading } = useAuth();
@@ -17,7 +18,7 @@ const Index = () => {
   const lastUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    console.log('Index useEffect triggered with:', {
+    logger.log('Index useEffect triggered with:', {
       user: !!user,
       authLoading,
       roleLoading,
@@ -39,7 +40,7 @@ const Index = () => {
     const userChanged = currentUserId !== lastUserIdRef.current;
     
     if (userChanged) {
-      console.log('Index: User changed, resetting redirect flag', {
+      logger.log('Index: User changed, resetting redirect flag', {
         oldUserId: lastUserIdRef.current,
         newUserId: currentUserId
       });
@@ -49,31 +50,31 @@ const Index = () => {
 
     // Wait for both auth and role loading to complete before making decisions
     if (authLoading || roleLoading) {
-      console.log('Index: Still loading, waiting...', { authLoading, roleLoading });
+      logger.log('Index: Still loading, waiting...', { authLoading, roleLoading });
       return;
     }
 
     // If no user after loading is complete, ensure we stay on auth page
     if (!user) {
-      console.log('Index: No user found after loading complete, staying on auth page');
+      logger.log('Index: No user found after loading complete, staying on auth page');
       hasRedirected.current = false; // Reset redirect flag
       return;
     }
 
     // Prevent multiple redirects for the same user session
     if (hasRedirected.current && !userChanged) {
-      console.log('Index: Already redirected for this user session, skipping...');
+      logger.log('Index: Already redirected for this user session, skipping...');
       return;
     }
 
     // Only redirect authenticated users with confirmed roles
     if (user && !authLoading && !roleLoading) {
-      console.log('Index: User authenticated with role confirmed, checking redirects...');
+      logger.log('Index: User authenticated with role confirmed, checking redirects...');
       
       try {
         // Redirect owners to their dedicated dashboard
         if (isOwner) {
-          console.log('Index: Redirecting owner to owner dashboard');
+          logger.log('Index: Redirecting owner to owner dashboard');
           hasRedirected.current = true;
           navigate("/owner-dashboard", { replace: true });
           return;

@@ -1,6 +1,7 @@
 
 import { supabase } from "@/integrations/supabase/client";
 import { SiblingItem, ReorderConfig } from "../types/reorderTypes";
+import { logger } from "@/utils/logger";
 
 export const validateReorderBounds = (
   currentIndex: number,
@@ -10,7 +11,7 @@ export const validateReorderBounds = (
   config: ReorderConfig
 ): boolean => {
   if (currentIndex === -1) {
-    console.error('Current item not found in siblings array');
+    logger.error('Current item not found in siblings array');
     config.toast({
       title: "Error",
       description: "Item not found in list",
@@ -35,8 +36,8 @@ export const swapSortOrders = async (
   target: SiblingItem,
   config: ReorderConfig
 ): Promise<void> => {
-  console.log(`Swapping ${tableName}:`, current.title, 'with:', target.title);
-  console.log('Current sort_order:', current.sort_order, 'Target sort_order:', target.sort_order);
+  logger.log(`Swapping ${tableName}:`, current.title, 'with:', target.title);
+  logger.log('Current sort_order:', current.sort_order, 'Target sort_order:', target.sort_order);
 
   try {
     // Use individual updates to swap sort orders
@@ -46,7 +47,7 @@ export const swapSortOrders = async (
       .eq('id', current.id);
 
     if (updateError1) {
-      console.error(`Error updating first ${tableName}:`, updateError1);
+      logger.error(`Error updating first ${tableName}:`, updateError1);
       throw updateError1;
     }
 
@@ -56,18 +57,18 @@ export const swapSortOrders = async (
       .eq('id', target.id);
 
     if (updateError2) {
-      console.error(`Error updating second ${tableName}:`, updateError2);
+      logger.error(`Error updating second ${tableName}:`, updateError2);
       throw updateError2;
     }
 
-    console.log(`Successfully swapped ${tableName} sort orders`);
+    logger.log(`Successfully swapped ${tableName} sort orders`);
     config.toast({
       title: "Success",
       description: `${tableName.slice(0, -1).charAt(0).toUpperCase() + tableName.slice(1, -1)} reordered successfully`,
     });
     config.onRefetch();
   } catch (error) {
-    console.error(`Failed to swap ${tableName} sort orders:`, error);
+    logger.error(`Failed to swap ${tableName} sort orders:`, error);
     config.toast({
       title: "Error",
       description: `Failed to reorder ${tableName.slice(0, -1)}. Please try again.`,

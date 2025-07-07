@@ -2,12 +2,13 @@
 import { supabase } from "@/integrations/supabase/client";
 import { ReorderConfig } from "../types/reorderTypes";
 import { validateReorderBounds, swapSortOrders } from "./reorderUtils";
+import { logger } from "@/utils/logger";
 
 export const reorderModule = async (moduleId: string, direction: 'up' | 'down', config: ReorderConfig) => {
   try {
-    console.log('=== REORDER MODULE DEBUG ===');
-    console.log('Module ID:', moduleId);
-    console.log('Direction:', direction);
+    logger.log('=== REORDER MODULE DEBUG ===');
+    logger.log('Module ID:', moduleId);
+    logger.log('Direction:', direction);
 
     // First, check if this is actually a lesson displayed as a module
     const { data: lessonData, error: lessonError } = await supabase
@@ -17,7 +18,7 @@ export const reorderModule = async (moduleId: string, direction: 'up' | 'down', 
       .maybeSingle();
 
     if (lessonData && !lessonError) {
-      console.log('Found lesson-as-module, handling special reordering');
+      logger.log('Found lesson-as-module, handling special reordering');
       await handleLessonAsModuleReordering(lessonData, direction, config);
       return;
     }
@@ -30,7 +31,7 @@ export const reorderModule = async (moduleId: string, direction: 'up' | 'down', 
       .maybeSingle();
 
     if (moduleData && !moduleError) {
-      console.log('Found actual module, handling normal reordering');
+      logger.log('Found actual module, handling normal reordering');
       await handleActualModuleReordering(moduleData, direction, config);
       return;
     }
@@ -38,7 +39,7 @@ export const reorderModule = async (moduleId: string, direction: 'up' | 'down', 
     throw new Error('Item not found in either modules or lessons table');
 
   } catch (error) {
-    console.error('Error reordering module:', error);
+    logger.error('Error reordering module:', error);
     config.toast({
       title: "Error",
       description: error instanceof Error ? error.message : "Failed to reorder module",
@@ -48,7 +49,7 @@ export const reorderModule = async (moduleId: string, direction: 'up' | 'down', 
 };
 
 const handleActualModuleReordering = async (moduleData: any, direction: 'up' | 'down', config: ReorderConfig) => {
-  console.log('Handling actual module reordering for:', moduleData);
+  logger.log('Handling actual module reordering for:', moduleData);
   
   // Get all modules in the same course
   const { data: siblings, error: siblingsError } = await supabase
@@ -58,11 +59,11 @@ const handleActualModuleReordering = async (moduleData: any, direction: 'up' | '
     .order('sort_order');
 
   if (siblingsError) {
-    console.error('Error fetching module siblings:', siblingsError);
+    logger.error('Error fetching module siblings:', siblingsError);
     throw siblingsError;
   }
 
-  console.log('Module siblings:', siblings);
+  logger.log('Module siblings:', siblings);
 
   const currentIndex = siblings.findIndex(s => s.id === moduleData.id);
   const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
@@ -80,7 +81,7 @@ const handleActualModuleReordering = async (moduleData: any, direction: 'up' | '
 };
 
 const handleLessonAsModuleReordering = async (lessonData: any, direction: 'up' | 'down', config: ReorderConfig) => {
-  console.log('Handling lesson-as-module reordering for:', lessonData);
+  logger.log('Handling lesson-as-module reordering for:', lessonData);
   
   // Get the module to check if this is a "Main Module" scenario
   const { data: moduleData, error: moduleError } = await supabase
@@ -90,11 +91,11 @@ const handleLessonAsModuleReordering = async (lessonData: any, direction: 'up' |
     .maybeSingle();
 
   if (moduleError) {
-    console.error('Error fetching module data:', moduleError);
+    logger.error('Error fetching module data:', moduleError);
     throw moduleError;
   }
 
-  console.log('Module data:', moduleData);
+  logger.log('Module data:', moduleData);
 
   // Check if this is a "Main Module" or migration scenario
   const isMainModule = moduleData?.title === "Main Module" || 
@@ -104,7 +105,7 @@ const handleLessonAsModuleReordering = async (lessonData: any, direction: 'up' |
   let moduleLessons;
 
   if (isMainModule) {
-    console.log('This is a Main Module scenario - treating all lessons as modules');
+    logger.log('This is a Main Module scenario - treating all lessons as modules');
     // For Main Module, ALL lessons in this module should be treated as modules
     const { data: allLessonsInModule, error: lessonsError } = await supabase
       .from('lessons')
@@ -113,12 +114,12 @@ const handleLessonAsModuleReordering = async (lessonData: any, direction: 'up' |
       .order('sort_order');
 
     if (lessonsError) {
-      console.error('Error fetching lessons in module:', lessonsError);
+      logger.error('Error fetching lessons in module:', lessonsError);
       throw lessonsError;
     }
 
     moduleLessons = allLessonsInModule || [];
-    console.log('All lessons in Main Module (displayed as modules):', moduleLessons);
+    logger.log('All lessons in Main Module (displayed as modules):', moduleLessons);
   } else {
     // For other cases, get all lessons in the course and find standalone lessons
     const { data: allLessons, error: lessonsError } = await supabase
@@ -135,7 +136,7 @@ const handleLessonAsModuleReordering = async (lessonData: any, direction: 'up' |
       .order('sort_order');
 
     if (lessonsError) {
-      console.error('Error fetching all lessons:', lessonsError);
+      logger.error('Error fetching all lessons:', lessonsError);
       throw lessonsError;
     }
 
@@ -157,10 +158,10 @@ const handleLessonAsModuleReordering = async (lessonData: any, direction: 'up' |
     }
   }
 
-  console.log('Final lessons displayed as modules:', moduleLessons);
+  logger.log('Final lessons displayed as modules:', moduleLessons);
 
   if (!moduleLessons || moduleLessons.length === 0) {
-    console.log('No lessons found to reorder');
+    logger.log('No lessons found to reorder');
     config.toast({
       title: "Info",
       description: "No items available to reorder",
@@ -172,7 +173,7 @@ const handleLessonAsModuleReordering = async (lessonData: any, direction: 'up' |
   const targetIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
 
   console.log('Current index:', currentIndex, 'Target index:', targetIndex);
-  console.log('Available lessons for reordering:', moduleLessons.map(l => ({ id: l.id, title: l.title, sort_order: l.sort_order })));
+  logger.log('Available lessons for reordering:', moduleLessons.map(l => ({ id: l.id, title: l.title, sort_order: l.sort_order })));
 
   if (!validateReorderBounds(currentIndex, targetIndex, moduleLessons, direction, config)) {
     return;
@@ -181,7 +182,7 @@ const handleLessonAsModuleReordering = async (lessonData: any, direction: 'up' |
   const current = moduleLessons[currentIndex];
   const target = moduleLessons[targetIndex];
 
-  console.log('Swapping lesson sort orders:', current.title, 'with:', target.title);
+  logger.log('Swapping lesson sort orders:', current.title, 'with:', target.title);
 
   await swapSortOrders('lessons', current, target, config);
 };

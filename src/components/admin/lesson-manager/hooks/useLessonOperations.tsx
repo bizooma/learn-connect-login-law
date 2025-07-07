@@ -1,5 +1,6 @@
 import { SectionData } from "../types";
 import { uploadVideoFile } from "../../course-form/fileUploadUtils";
+import { logger } from "@/utils/logger";
 
 interface UseLessonOperationsProps {
   lessons: SectionData[];
@@ -45,7 +46,7 @@ export const useLessonOperations = ({ lessons, onLessonsChange }: UseLessonOpera
     }
 
     try {
-      console.log('Uploading lesson video file...');
+      logger.log('Uploading lesson video file...');
       const videoUrl = await uploadVideoFile(file);
       
       // Update both the video URL and set video type to 'upload'
@@ -62,9 +63,9 @@ export const useLessonOperations = ({ lessons, onLessonsChange }: UseLessonOpera
       });
       
       onLessonsChange(updatedLessons);
-      console.log('Lesson video uploaded successfully:', videoUrl);
+      logger.log('Lesson video uploaded successfully:', videoUrl);
     } catch (error) {
-      console.error('Error uploading lesson video:', error);
+      logger.error('Error uploading lesson video:', error);
       // Keep the file in state for retry
       updateLesson(lessonIndex, 'video_file', file);
     }

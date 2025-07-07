@@ -8,6 +8,7 @@ import { Upload, X, Building2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
+import { logger } from "@/utils/logger";
 
 type LawFirm = Tables<'law_firms'>;
 
@@ -51,7 +52,7 @@ const LawFirmLogoUpload = ({ lawFirm, onUpdate }: LawFirmLogoUploadProps) => {
       const fileName = `${lawFirm.id}-logo.${fileExt}`;
       const filePath = `law-firm-logos/${fileName}`;
 
-      console.log('Uploading law firm logo:', filePath);
+      logger.log('Uploading law firm logo:', filePath);
 
       // Upload to Supabase storage
       const { error: uploadError } = await supabase.storage
@@ -61,7 +62,7 @@ const LawFirmLogoUpload = ({ lawFirm, onUpdate }: LawFirmLogoUploadProps) => {
         });
 
       if (uploadError) {
-        console.error('Upload error:', uploadError);
+        logger.error('Upload error:', uploadError);
         throw uploadError;
       }
 
@@ -70,7 +71,7 @@ const LawFirmLogoUpload = ({ lawFirm, onUpdate }: LawFirmLogoUploadProps) => {
         .from('uploads')
         .getPublicUrl(filePath);
 
-      console.log('Logo uploaded, public URL:', publicUrl);
+      logger.log('Logo uploaded, public URL:', publicUrl);
 
       // Update law firm with new logo URL
       await onUpdate({ logo_url: publicUrl });
@@ -80,7 +81,7 @@ const LawFirmLogoUpload = ({ lawFirm, onUpdate }: LawFirmLogoUploadProps) => {
         description: "Law firm logo updated successfully",
       });
     } catch (error) {
-      console.error('Error uploading logo:', error);
+      logger.error('Error uploading logo:', error);
       toast({
         title: "Error",
         description: "Failed to upload logo",
@@ -99,7 +100,7 @@ const LawFirmLogoUpload = ({ lawFirm, onUpdate }: LawFirmLogoUploadProps) => {
         description: "Law firm logo removed successfully",
       });
     } catch (error) {
-      console.error('Error removing logo:', error);
+      logger.error('Error removing logo:', error);
       toast({
         title: "Error",
         description: "Failed to remove logo",

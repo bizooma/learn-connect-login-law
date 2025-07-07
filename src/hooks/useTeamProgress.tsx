@@ -2,6 +2,7 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
+import { logger } from '@/utils/logger';
 
 export interface TeamMemberProgress {
   user_id: string;
@@ -35,7 +36,7 @@ export const useTeamProgress = () => {
     setLoading(true);
     
     try {
-      console.log('📊 Fetching team progress for team:', teamId);
+      logger.log('📊 Fetching team progress for team:', teamId);
       
       // Get team members
       const { data: teamMembers, error: membersError } = await supabase
@@ -136,10 +137,10 @@ export const useTeamProgress = () => {
       }) || [];
 
       setTeamProgress(memberProgress);
-      console.log('✅ Team progress loaded:', memberProgress.length, 'members');
+      logger.log('✅ Team progress loaded:', memberProgress.length, 'members');
 
     } catch (error: any) {
-      console.error('❌ Error fetching team progress:', error);
+      logger.error('❌ Error fetching team progress:', error);
       toast({
         title: "Error",
         description: "Failed to load team progress",

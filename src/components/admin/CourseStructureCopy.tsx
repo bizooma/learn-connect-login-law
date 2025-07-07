@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Copy, AlertTriangle } from "lucide-react";
 import { copyStructureToAllCourses } from "./course-form/services/courseStructureCopy";
+import { logger } from "@/utils/logger";
 
 const CourseStructureCopy = () => {
   const [isProcessing, setIsProcessing] = useState(false);
@@ -20,7 +21,7 @@ const CourseStructureCopy = () => {
     try {
       await copyStructureToAllCourses();
     } catch (error) {
-      console.error('Copy failed:', error);
+      logger.error('Copy failed:', error);
     } finally {
       setIsProcessing(false);
     }

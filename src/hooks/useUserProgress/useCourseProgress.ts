@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { CourseWithProgress } from "./types";
 import { transformProgressData } from "./dataTransformer";
 import { progressCalculator } from "./progressCalculator";
+import { logger } from "@/utils/logger";
 
 export const useCourseProgress = (userId?: string) => {
   const [courseProgress, setCourseProgress] = useState<CourseWithProgress[]>([]);
@@ -12,14 +13,14 @@ export const useCourseProgress = (userId?: string) => {
 
   const fetchUserProgress = useCallback(async () => {
     if (!userId) {
-      console.log('useCourseProgress: No userId provided');
+      logger.log('useCourseProgress: No userId provided');
       setLoading(false);
       return;
     }
 
     try {
       setLoading(true);
-      console.log('useCourseProgress: Fetching progress for user:', userId);
+      logger.log('useCourseProgress: Fetching progress for user:', userId);
 
       // Get user progress with course data
       const { data: progressData, error: progressError } = await supabase
@@ -31,19 +32,19 @@ export const useCourseProgress = (userId?: string) => {
         .eq('user_id', userId);
 
       if (progressError) {
-        console.error('Error fetching user progress:', progressError);
+        logger.error('Error fetching user progress:', progressError);
         throw progressError;
       }
 
-      console.log('useCourseProgress: Raw progress data from DB:', progressData);
+      logger.log('useCourseProgress: Raw progress data from DB:', progressData);
 
       // Transform the data to CourseWithProgress format
       const transformedData = transformProgressData(progressData || []);
-      console.log('useCourseProgress: Transformed progress data:', transformedData);
+      logger.log('useCourseProgress: Transformed progress data:', transformedData);
 
       setCourseProgress(transformedData);
     } catch (error) {
-      console.error('Error in fetchUserProgress:', error);
+      logger.error('Error in fetchUserProgress:', error);
       setCourseProgress([]);
     } finally {
       setLoading(false);
@@ -52,7 +53,7 @@ export const useCourseProgress = (userId?: string) => {
 
   const updateCourseProgress = useCallback(async (courseId: string, status: string, progressPercentage: number) => {
     if (!userId) {
-      console.warn('Cannot update course progress: no user ID');
+      logger.warn('Cannot update course progress: no user ID');
       return;
     }
 
@@ -74,19 +75,19 @@ export const useCourseProgress = (userId?: string) => {
       // Refresh the data
       await fetchUserProgress();
     } catch (error) {
-      console.error('Error updating course progress:', error);
+      logger.error('Error updating course progress:', error);
       throw error;
     }
   }, [userId, fetchUserProgress]);
 
   const calculateCourseProgress = useCallback(async (courseId: string) => {
     if (!userId) {
-      console.warn('Cannot calculate course progress: no user ID');
+      logger.warn('Cannot calculate course progress: no user ID');
       return;
     }
 
     try {
-      console.log('Calculating course progress and checking for completion...');
+      logger.log('Calculating course progress and checking for completion...');
       const { progressPercentage, status } = await progressCalculator.calculateCourseProgress(userId, courseId);
       
       // Update the course progress with the calculated values
@@ -94,10 +95,10 @@ export const useCourseProgress = (userId?: string) => {
       
       // If course is completed, show success message
       if (status === 'completed') {
-        console.log('🎉 Course completed! Certificate is now available for download.');
+        logger.log('🎉 Course completed! Certificate is now available for download.');
       }
     } catch (error) {
-      console.error('Error calculating course progress:', error);
+      logger.error('Error calculating course progress:', error);
       throw error;
     }
   }, [userId, updateCourseProgress]);

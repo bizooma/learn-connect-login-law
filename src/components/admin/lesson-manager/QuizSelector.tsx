@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Plus, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 
 interface Quiz {
   id: string;
@@ -35,7 +36,7 @@ const QuizSelector = ({ quizId, onQuizUpdate }: QuizSelectorProps) => {
       if (error) throw error;
       setQuizzes(data || []);
     } catch (error) {
-      console.error('Error fetching quizzes:', error);
+      logger.error('Error fetching quizzes:', error);
       toast({
         title: "Error",
         description: "Failed to load quizzes",

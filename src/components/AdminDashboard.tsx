@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { logger } from "@/utils/logger";
 import AdminDashboardHeader from "./admin/AdminDashboardHeader";
 import AdminStatsCards from "./admin/AdminStatsCards";
 import AdminManagementTabs from "./admin/AdminManagementTabs";
@@ -72,7 +73,7 @@ const AdminDashboard = () => {
         averageProgress
       });
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      logger.error('Error fetching stats:', error);
     }
   };
 
