@@ -130,7 +130,7 @@ const RecentActivity = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <h4 className="text-sm font-medium text-orange-700">
+                    <h4 className="text-sm font-bold text-orange-700">
                       {notification.title}
                     </h4>
                     <Badge className={getNotificationBadgeColor(notification.type)}>
