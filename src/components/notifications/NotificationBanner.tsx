@@ -135,7 +135,7 @@ const NotificationBanner = () => {
       case 'error':
         return 'border-red-200 bg-red-50 text-red-800';
       default:
-        return 'border-orange-200 text-blue-800' + ' ' + 'bg-[#FFF7ED]';
+        return 'border-orange-200 text-blue-800' + ' ' + 'bg-[#F9E8CD]';
     }
   };
 
