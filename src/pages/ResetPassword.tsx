@@ -22,20 +22,84 @@ const ResetPassword = () => {
   const [isValidSession, setIsValidSession] = useState(false);
 
   useEffect(() => {
-    // Check if we have the required parameters from the email link
-    const accessToken = searchParams.get('access_token');
-    const refreshToken = searchParams.get('refresh_token');
+    const validateResetSession = async () => {
+      console.log('ResetPassword: Checking URL parameters');
+      
+      // Supabase password reset uses these parameters
+      const tokenHash = searchParams.get('token_hash');
+      const type = searchParams.get('type');
+      const error = searchParams.get('error');
+      const errorDescription = searchParams.get('error_description');
+      
+      console.log('ResetPassword: URL params:', { tokenHash, type, error, errorDescription });
+      
+      // Check for error parameters first
+      if (error) {
+        console.error('ResetPassword: Error in URL:', error, errorDescription);
+        toast({
+          title: "Reset Link Error",
+          description: errorDescription || "The password reset link contains an error.",
+          variant: "destructive",
+        });
+        navigate("/");
+        return;
+      }
+      
+      // Check if we have the required parameters for password reset
+      if (tokenHash && type === 'recovery') {
+        console.log('ResetPassword: Valid reset parameters found, verifying OTP');
+        
+        try {
+          // Verify the OTP token and establish the session
+          const { data, error: verifyError } = await supabase.auth.verifyOtp({
+            token_hash: tokenHash,
+            type: 'recovery'
+          });
+          
+          if (verifyError) {
+            console.error('ResetPassword: OTP verification failed:', verifyError);
+            toast({
+              title: "Invalid Reset Link",
+              description: verifyError.message || "This password reset link is invalid or has expired.",
+              variant: "destructive",
+            });
+            navigate("/");
+            return;
+          }
+          
+          if (data.user && data.session) {
+            console.log('ResetPassword: Session established successfully');
+            setIsValidSession(true);
+          } else {
+            console.error('ResetPassword: No user or session after OTP verification');
+            toast({
+              title: "Session Error",
+              description: "Unable to establish a valid session for password reset.",
+              variant: "destructive",
+            });
+            navigate("/");
+          }
+        } catch (error) {
+          console.error('ResetPassword: Unexpected error during OTP verification:', error);
+          toast({
+            title: "Verification Error",
+            description: "An unexpected error occurred while verifying the reset link.",
+            variant: "destructive",
+          });
+          navigate("/");
+        }
+      } else {
+        console.error('ResetPassword: Missing required parameters');
+        toast({
+          title: "Invalid Reset Link",
+          description: "This password reset link is missing required parameters or has expired.",
+          variant: "destructive",
+        });
+        navigate("/");
+      }
+    };
     
-    if (accessToken && refreshToken) {
-      setIsValidSession(true);
-    } else {
-      toast({
-        title: "Invalid Reset Link",
-        description: "This password reset link is invalid or has expired.",
-        variant: "destructive",
-      });
-      navigate("/");
-    }
+    validateResetSession();
   }, [searchParams, navigate, toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
