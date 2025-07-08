@@ -63,22 +63,30 @@ const SafeRoleUpdateDialog = ({ user, currentRole, onRoleUpdated }: SafeRoleUpda
 
       console.log('User role update successful:', data);
 
+      // Enhanced success feedback with verification
       toast({
-        title: "Role Updated",
-        description: `${user.email}'s role has been changed from ${currentRole} to ${newRole}.`,
+        title: "✅ Role Updated Successfully",
+        description: `${user.email}'s role has been changed from ${currentRole} to ${newRole}. The page will refresh to show the updated role.`,
       });
+
+      // Force a complete refresh of the user data
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
 
       setDialogOpen(false);
       setConfirmText("");
       setReason("");
       setNewRole("");
+      
+      // Call the callback to refresh the parent component
       onRoleUpdated();
 
     } catch (error: any) {
       console.error('Error updating user role:', error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to update user role",
+        title: "❌ Role Update Failed",
+        description: error.message || "Failed to update user role. Please try again or contact support.",
         variant: "destructive",
       });
     } finally {
