@@ -55,11 +55,8 @@ export const performEnhancedTransactionalCourseUpdate = async (
   };
 
   try {
-    console.log('🚀 Starting enhanced transactional course update for:', courseId);
-
     // Phase 1: Pre-update validation and safety checks
     const phase1Start = Date.now();
-    console.log('🔍 Phase 1: Pre-update validation and safety checks');
     
     const progressValidation = await validateProgressConsistency(courseId);
     if (!progressValidation.isConsistent) {
@@ -69,26 +66,22 @@ export const performEnhancedTransactionalCourseUpdate = async (
     const existingStructure = await fetchExistingCourseStructure(courseId);
     const quizMappings = await createQuizMappings(existingStructure, modules);
     
-    console.log('Quiz mappings to preserve:', quizMappings.length);
     phaseTimings.phase1_validation = Date.now() - phase1Start;
 
     // Phase 2: Update course metadata safely
     const phase2Start = Date.now();
-    console.log('📝 Phase 2: Updating course metadata safely');
     
     await updateCourseMetadataSafely(courseId, courseData);
     phaseTimings.phase2_metadata = Date.now() - phase2Start;
 
     // Phase 3: Perform safe content replacement with transaction safety
     const phase3Start = Date.now();
-    console.log('🔧 Phase 3: Performing safe content replacement with enhanced unit handling');
     
     await performSafeContentReplacementEnhanced(courseId, modules);
     phaseTimings.phase3_content = Date.now() - phase3Start;
 
     // Phase 4: Restore quiz assignments using enhanced matching
     const phase4Start = Date.now();
-    console.log('🎯 Phase 4: Restoring quiz assignments with enhanced matching');
     
     const quizRestoreCount = await restoreQuizAssignmentsByTitleEnhanced(quizMappings);
     result.quizAssignmentsRestored = quizRestoreCount;
@@ -97,7 +90,6 @@ export const performEnhancedTransactionalCourseUpdate = async (
 
     // Phase 5: Ensure safe progress creation and final validation
     const phase5Start = Date.now();
-    console.log('🛡️ Phase 5: Ensuring safe progress creation and final validation');
     
     // Get all users who should have access to this course
     const { data: assignedUsers } = await supabase
@@ -135,25 +127,16 @@ export const performEnhancedTransactionalCourseUpdate = async (
       phaseTimings
     };
 
-    console.log('✨ Enhanced course update completed successfully!', {
-      totalTime: `${totalTime}ms`,
-      quizAssignmentsRestored: result.quizAssignmentsRestored,
-      integrityScore: result.integrityScore,
-      duplicatesDetected: validation.duplicateCount || 0
-    });
-
     return result;
 
   } catch (error) {
-    console.error('💥 Enhanced course update failed:', error);
+    console.error('Enhanced course update failed:', error);
     result.errors.push(`Update failed: ${error.message}`);
     return result;
   }
 };
 
 const fetchExistingCourseStructure = async (courseId: string) => {
-  console.log('Fetching existing course structure...');
-  
   const { data: modules, error } = await supabase
     .from('modules')
     .select(`
@@ -183,19 +166,10 @@ const fetchExistingCourseStructure = async (courseId: string) => {
     .eq('is_deleted', false)
     .not('unit_id', 'is', null);
 
-  console.log('Existing structure loaded:', {
-    modules: modules?.length || 0,
-    lessons: modules?.flatMap(m => m.lessons || []).length || 0,
-    units: allUnits.length,
-    quizzes: quizzes?.length || 0
-  });
-
   return { modules: modules || [], quizzes: quizzes || [] };
 };
 
 const calculateContentDiff = (existing: any, newModules: ModuleData[]): ContentDiff => {
-  console.log('Calculating content differences...');
-  
   // For now, implement a simple strategy: match by title and position
   const diff: ContentDiff = {
     modulesToUpdate: [],
@@ -229,17 +203,10 @@ const calculateContentDiff = (existing: any, newModules: ModuleData[]): ContentD
     }
   });
 
-  console.log('Content diff calculated:', {
-    modulesToUpdate: diff.modulesToUpdate.length,
-    modulesToCreate: diff.modulesToCreate.length
-  });
-
   return diff;
 };
 
 const createQuizMappings = async (existing: any, newModules: ModuleData[]): Promise<QuizMapping[]> => {
-  console.log('Creating quiz mappings...');
-  
   const mappings: QuizMapping[] = [];
   const quizzes = existing.quizzes || [];
   
@@ -269,20 +236,15 @@ const createQuizMappings = async (existing: any, newModules: ModuleData[]): Prom
         quizTitle: quiz.title,
         unitTitle: oldUnit.title
       });
-      
-      console.log(`Quiz mapping created: "${quiz.title}" -> "${oldUnit.title}"`);
     } else {
       console.warn(`Could not find matching unit for quiz "${quiz.title}" (unit: "${oldUnit.title}")`);
     }
   }
   
-  console.log(`Created ${mappings.length} quiz mappings`);
   return mappings;
 };
 
 const updateCourseMetadataSafely = async (courseId: string, courseData: CourseFormData) => {
-  console.log('Updating course metadata safely...');
-  
   const updateData: any = {
     title: courseData.title,
     description: courseData.description,
@@ -309,16 +271,10 @@ const updateCourseMetadataSafely = async (courseId: string, courseData: CourseFo
   if (error) {
     throw new Error(`Failed to update course metadata: ${error.message}`);
   }
-  
-  console.log('Course metadata updated successfully');
 };
 
 const performSafeContentReplacementEnhanced = async (courseId: string, modules: ModuleData[]) => {
-  console.log('🔄 Starting safe content replacement with enhanced unit handling');
-  
   try {
-    // Start a transaction-like approach by working in controlled steps
-    
     // Get all existing module IDs for this course
     const { data: existingModules } = await supabase
       .from('modules')
@@ -338,7 +294,6 @@ const performSafeContentReplacementEnhanced = async (courseId: string, modules: 
         const lessonIds = existingLessons.map(l => l.id);
         
         // Delete all units first (to maintain referential integrity)
-        console.log('🗑️ Removing existing units...');
         const { error: unitDeleteError } = await supabase
           .from('units')
           .delete()
@@ -350,7 +305,6 @@ const performSafeContentReplacementEnhanced = async (courseId: string, modules: 
       }
 
       // Delete all lessons
-      console.log('🗑️ Removing existing lessons...');
       const { error: lessonDeleteError } = await supabase
         .from('lessons')
         .delete()
@@ -361,7 +315,6 @@ const performSafeContentReplacementEnhanced = async (courseId: string, modules: 
       }
 
       // Delete all modules
-      console.log('🗑️ Removing existing modules...');
       const { error: moduleDeleteError } = await supabase
         .from('modules')
         .delete()
@@ -373,20 +326,15 @@ const performSafeContentReplacementEnhanced = async (courseId: string, modules: 
     }
 
     // Now create the new content structure using enhanced methods
-    console.log('🏗️ Creating new content structure with enhanced unit handling...');
     await createCourseContentEnhanced(courseId, modules);
     
-    console.log('✅ Safe content replacement with enhanced unit handling completed successfully');
-    
   } catch (error) {
-    console.error('❌ Error during safe content replacement:', error);
+    console.error('Error during safe content replacement:', error);
     throw new Error(`Content replacement failed: ${error.message}`);
   }
 };
 
 const createCourseContentEnhanced = async (courseId: string, modules: ModuleData[]) => {
-  console.log('🏗️ Creating course content with enhanced unit handling');
-  
   for (let moduleIndex = 0; moduleIndex < modules.length; moduleIndex++) {
     const module = modules[moduleIndex];
     
@@ -449,8 +397,6 @@ const createCourseContentEnhanced = async (courseId: string, modules: ModuleData
 };
 
 const restoreQuizAssignmentsByTitleEnhanced = async (mappings: QuizMapping[]): Promise<number> => {
-  console.log('🎯 Restoring quiz assignments using enhanced title matching...');
-  
   let restoredCount = 0;
   
   for (const mapping of mappings) {
@@ -484,29 +430,25 @@ const restoreQuizAssignmentsByTitleEnhanced = async (mappings: QuizMapping[]): P
             .eq('id', mapping.quizId);
           
           if (error) {
-            console.error(`❌ Failed to restore quiz "${mapping.quizTitle}":`, error);
+            console.error(`Failed to restore quiz "${mapping.quizTitle}":`, error);
           } else {
-            console.log(`✅ Restored quiz: "${mapping.quizTitle}" -> "${mapping.unitTitle}"`);
             restoredCount++;
           }
         } else {
-          console.warn(`⚠️ Quiz "${mapping.quizTitle}" no longer exists or was deleted`);
+          console.warn(`Quiz "${mapping.quizTitle}" no longer exists or was deleted`);
         }
       } else {
-        console.warn(`⚠️ Could not find matching unit for quiz: "${mapping.unitTitle}"`);
+        console.warn(`Could not find matching unit for quiz: "${mapping.unitTitle}"`);
       }
     } catch (error) {
-      console.error(`❌ Error restoring quiz "${mapping.quizTitle}":`, error);
+      console.error(`Error restoring quiz "${mapping.quizTitle}":`, error);
     }
   }
   
-  console.log(`🎯 Enhanced quiz restoration completed: ${restoredCount}/${mappings.length} restored`);
   return restoredCount;
 };
 
 const validateCourseIntegrityWithDuplicateCheck = async (courseId: string) => {
-  console.log('🔍 Validating course integrity with duplicate detection...');
-  
   // Fetch course structure
   const { data: modules } = await supabase
     .from('modules')
@@ -603,14 +545,6 @@ const validateCourseIntegrityWithDuplicateCheck = async (courseId: string) => {
     orphanedQuizzes: orphanedQuizzes.length,
     duplicatesFound: duplicateCount
   };
-
-  console.log('🔍 Integrity validation completed:', { 
-    score, 
-    issues: issues.length, 
-    warnings: warnings.length,
-    duplicates: duplicateCount,
-    summary 
-  });
 
   return {
     score: Math.max(0, score),
