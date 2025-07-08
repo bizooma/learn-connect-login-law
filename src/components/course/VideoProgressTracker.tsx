@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, Play, RefreshCw } from "lucide-react";
 import { useVideoProgress } from "@/hooks/useVideoProgress";
 import { useVideoCompletion } from "@/hooks/useVideoCompletion";
+import { logger } from "@/utils/logger";
 
 interface VideoProgressTrackerProps {
   unitId: string;
@@ -34,11 +35,11 @@ const VideoProgressTracker = ({
 
       const handleStateChange = (event: any) => {
         const state = event.data;
-        console.log('🎵 YouTube state change:', state, 'for unit:', unitId);
+        logger.log('🎵 YouTube state change:', state, 'for unit:', unitId);
         
         if (state === 0 && !hasTriggeredCompletion) { // Video ended
           hasTriggeredCompletion = true;
-          console.log('🎯 YouTube video ended - triggering completion');
+          logger.log('🎯 YouTube video ended - triggering completion');
           handleVideoEnded();
         } else if (state === 1) { // Playing
           // Start enhanced progress tracking
@@ -55,7 +56,7 @@ const VideoProgressTracker = ({
                 handleVideoProgress(currentTime, duration);
               }
             } catch (error) {
-              console.warn('⚠️ Error tracking YouTube progress:', error);
+              logger.warn('⚠️ Error tracking YouTube progress:', error);
             }
           }, 3000); // Update every 3 seconds
         } else {
@@ -70,14 +71,14 @@ const VideoProgressTracker = ({
       try {
         youtubePlayer.addEventListener('onStateChange', handleStateChange);
       } catch (error) {
-        console.warn('⚠️ Error setting up YouTube progress tracking:', error);
+        logger.warn('⚠️ Error setting up YouTube progress tracking:', error);
       }
 
       return () => {
         try {
           youtubePlayer.removeEventListener('onStateChange', handleStateChange);
         } catch (error) {
-          console.warn('⚠️ Error removing YouTube event listener:', error);
+          logger.warn('⚠️ Error removing YouTube event listener:', error);
         }
         if (progressInterval) {
           clearInterval(progressInterval);
@@ -108,7 +109,7 @@ const VideoProgressTracker = ({
     };
 
     const handleEnded = () => {
-      console.log('🎯 Regular video ended - triggering completion');
+      logger.log('🎯 Regular video ended - triggering completion');
       handleVideoEnded();
     };
 
