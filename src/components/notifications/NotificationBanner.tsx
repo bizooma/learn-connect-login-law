@@ -70,6 +70,7 @@ const NotificationBanner = () => {
         console.log('NotificationBanner: Filtering notification:', {
           notificationId: notification.id,
           audience: notification.audience,
+          title: notification.title,
           isAdmin,
           isOwner,
           isStudent,
@@ -77,15 +78,30 @@ const NotificationBanner = () => {
           userEmail: user?.email
         });
 
-        // Admins see all notifications
-        if (isAdmin) {
-          console.log('NotificationBanner: User is admin, showing notification');
-          return true;
-        }
+        // Filter out admin operational notifications (these should only appear in RecentActivity)
+        const adminOperationalTitles = [
+          'Admin Assigned Employee',
+          'Employee Added',
+          'Employee Removed',
+          'New Employee',
+          'Admin',
+          'Law Firm'
+        ];
         
+        const isAdminOperational = adminOperationalTitles.some(title => 
+          notification.title.includes(title)
+        );
+        
+        if (isAdminOperational) {
+          console.log('NotificationBanner: Filtering out admin operational notification:', notification.title);
+          return false;
+        }
+
+        // Show user-facing announcements based on audience
         switch (notification.audience) {
           case 'admin_only':
-            console.log('NotificationBanner: Admin only notification, user is admin:', isAdmin);
+            // Only show admin_only notifications that are NOT operational (announcements)
+            console.log('NotificationBanner: Admin only announcement, user is admin:', isAdmin);
             return isAdmin;
           case 'all_users':
             console.log('NotificationBanner: Notification for all users, showing');
