@@ -2229,6 +2229,7 @@ export type Database = {
         | "all_free"
         | "all_owners"
         | "all_users"
+        | "admin_only"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2379,6 +2380,7 @@ export const Constants = {
         "all_free",
         "all_owners",
         "all_users",
+        "admin_only",
       ],
     },
   },
