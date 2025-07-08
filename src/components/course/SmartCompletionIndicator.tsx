@@ -98,58 +98,65 @@ const SmartCompletionIndicator = ({
         const quizComplete = status.quizCompleted;
         const bothComplete = videoComplete && quizComplete;
         
-        // Show detailed progress for video+quiz units
-        if (bothComplete) {
-          return (
-            <Badge variant="default" className={`flex items-center space-x-1 bg-green-600 ${className}`}>
-              <CheckCircle className="h-3 w-3" />
-              <span>Complete</span>
-            </Badge>
-          );
-        } else if (videoComplete && !quizComplete) {
-          return (
-            <div className={`flex items-center space-x-2 ${className}`}>
-              <Badge variant="default" className="flex items-center space-x-1 bg-green-600">
-                <Play className="h-3 w-3" />
-                <span>Video ✓</span>
-              </Badge>
-              <Badge variant="secondary" className="flex items-center space-x-1">
-                <BookOpen className="h-3 w-3" />
-                <span>Take Quiz</span>
-              </Badge>
+        // Always show PROMINENT separate progress for video+quiz units
+        return (
+          <div className={`flex flex-col space-y-2 ${className}`}>
+            {/* Main completion status */}
+            <div className="flex items-center space-x-2">
+              {bothComplete ? (
+                <Badge variant="default" className="flex items-center space-x-1 bg-green-600 text-white">
+                  <CheckCircle className="h-4 w-4" />
+                  <span className="font-semibold">Unit Complete</span>
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="flex items-center space-x-1 text-orange-600 border-orange-300 bg-orange-50">
+                  <AlertCircle className="h-4 w-4" />
+                  <span className="font-semibold">Both Required</span>
+                </Badge>
+              )}
             </div>
-          );
-        } else if (!videoComplete && quizComplete) {
-          return (
-            <div className={`flex items-center space-x-2 ${className}`}>
-              <Badge variant="secondary" className="flex items-center space-x-1">
-                <Play className="h-3 w-3" />
-                <span>Watch Video</span>
-              </Badge>
-              <Badge variant="default" className="flex items-center space-x-1 bg-green-600">
-                <BookOpen className="h-3 w-3" />
-                <span>Quiz ✓</span>
-              </Badge>
+            
+            {/* Detailed progress indicators - ALWAYS visible and prominent */}
+            <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-1">
+                <Badge 
+                  variant={videoComplete ? "default" : "secondary"} 
+                  className={`flex items-center space-x-1 ${videoComplete ? 'bg-green-600 text-white' : 'bg-gray-100'}`}
+                >
+                  <Play className="h-3 w-3" />
+                  <span className="text-xs font-medium">
+                    Video {videoComplete ? '✓' : '○'}
+                  </span>
+                </Badge>
+              </div>
+              
+              <div className="flex items-center space-x-1">
+                <Badge 
+                  variant={quizComplete ? "default" : "secondary"} 
+                  className={`flex items-center space-x-1 ${quizComplete ? 'bg-green-600 text-white' : 'bg-gray-100'}`}
+                >
+                  <BookOpen className="h-3 w-3" />
+                  <span className="text-xs font-medium">
+                    Quiz {quizComplete ? '✓' : '○'}
+                  </span>
+                </Badge>
+              </div>
             </div>
-          );
-        } else {
-          return (
-            <div className={`flex items-center space-x-2 ${className}`}>
-              <Badge variant="secondary" className="flex items-center space-x-1">
-                <Play className="h-3 w-3" />
-                <span>Video</span>
-              </Badge>
-              <Badge variant="secondary" className="flex items-center space-x-1">
-                <BookOpen className="h-3 w-3" />
-                <span>Quiz</span>
-              </Badge>
-              <Badge variant="outline" className="flex items-center space-x-1 text-orange-600 border-orange-300">
-                <AlertCircle className="h-3 w-3" />
-                <span>Both Required</span>
-              </Badge>
-            </div>
-          );
-        }
+            
+            {/* Helper text for next steps */}
+            {!bothComplete && (
+              <div className="text-xs text-gray-600">
+                {!videoComplete && !quizComplete ? (
+                  "Complete video and quiz to finish this unit"
+                ) : !videoComplete ? (
+                  "🎯 Next: Watch the video to complete this unit"
+                ) : !quizComplete ? (
+                  "🎯 Next: Take the quiz to complete this unit"
+                ) : null}
+              </div>
+            )}
+          </div>
+        );
 
       case 'manual_only':
         return (
