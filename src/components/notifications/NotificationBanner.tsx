@@ -164,7 +164,7 @@ const NotificationBanner = () => {
               <div className="flex items-start space-x-3">
                 <Bell className="h-5 w-5 mt-0.5 flex-shrink-0" />
                 <div>
-                  <h4 className="font-semibold text-sm">{notification.title}</h4>
+                  <h4 className="font-semibold text-sm text-orange-700">{notification.title}</h4>
                   <p className="text-sm mt-1">{notification.message}</p>
                   <p className="text-xs mt-2 opacity-75">
                     {new Date(notification.created_at).toLocaleDateString()}
