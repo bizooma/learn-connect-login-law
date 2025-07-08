@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tables } from "@/integrations/supabase/types";
 import VideoProgressTracker from "./VideoProgressTracker";
 import { useReliableCompletion } from "@/hooks/useReliableCompletion";
+import { logger } from "@/utils/logger";
 
 type Unit = Tables<'units'>;
 
@@ -56,19 +57,19 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
   const handleVideoComplete = useCallback(async () => {
     if (!unit) return;
 
-    console.log('🎥 Video completed for unit:', unit.id, unit.title);
+    logger.log('🎥 Video completed for unit:', unit.id, unit.title);
     
     try {
       await markVideoComplete(unit.id, courseId);
       await evaluateAndCompleteUnit(unit, courseId, false, 'video_complete');
     } catch (error) {
-      console.error('❌ Error handling video completion:', error);
+      logger.error('❌ Error handling video completion:', error);
     }
   }, [unit, courseId, markVideoComplete, evaluateAndCompleteUnit]);
 
   // Cleanup YouTube player
   const cleanupYouTubePlayer = useCallback(() => {
-    console.log('🧹 Cleaning up YouTube player for unit:', unit?.id);
+    logger.log('🧹 Cleaning up YouTube player for unit:', unit?.id);
     
     if (youtubePlayerRef.current) {
       try {
@@ -76,7 +77,7 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
           youtubePlayerRef.current.destroy();
         }
       } catch (error) {
-        console.warn('⚠️ Error destroying YouTube player:', error);
+        logger.warn('⚠️ Error destroying YouTube player:', error);
       }
       youtubePlayerRef.current = null;
     }
@@ -109,7 +110,7 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
       }
 
       window.onYouTubeIframeAPIReady = () => {
-        console.log('✅ YouTube API loaded successfully');
+        logger.log('✅ YouTube API loaded successfully');
         resolve();
       };
 
@@ -129,7 +130,7 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
   const createYouTubePlayer = useCallback(async (videoId: string) => {
     if (!containerRef.current || !unit) return;
 
-    console.log('🎬 Creating YouTube player for:', videoId, 'Unit:', unit.title);
+    logger.log('🎬 Creating YouTube player for:', videoId, 'Unit:', unit.title);
     
     try {
       setIsLoading(true);
@@ -157,7 +158,7 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
         },
         events: {
           onReady: (event: any) => {
-            console.log('✅ YouTube player ready for unit:', unit.title);
+            logger.log('✅ YouTube player ready for unit:', unit.title);
             youtubePlayerRef.current = event.target;
             setIsYouTubeReady(true);
             setIsLoading(false);
@@ -169,12 +170,12 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
                 setDuration(videoDuration);
               }
             } catch (error) {
-              console.warn('⚠️ Could not get video duration:', error);
+              logger.warn('⚠️ Could not get video duration:', error);
             }
           },
           onStateChange: (event: any) => {
             const state = event.data;
-            console.log('🎵 YouTube player state changed:', state, 'for unit:', unit.title);
+            logger.log('🎵 YouTube player state changed:', state, 'for unit:', unit.title);
             
             setIsPlaying(state === 1); // 1 = playing
             
@@ -184,7 +185,7 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
           },
           onError: (event: any) => {
             const errorCode = event.data;
-            console.error('❌ YouTube player error:', errorCode, 'for unit:', unit.title);
+            logger.error(`❌ YouTube player error: ${errorCode} for unit: ${unit.title}`);
             
             let errorMessage = 'Video playback error';
             switch (errorCode) {
@@ -211,7 +212,7 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
 
       youtubePlayerRef.current = player;
     } catch (error) {
-      console.error('❌ Error creating YouTube player:', error);
+      logger.error('❌ Error creating YouTube player:', error);
       setError('Failed to load video player');
       setIsLoading(false);
     }
@@ -334,7 +335,7 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
   const retryVideoLoad = () => {
     if (!unit?.video_url) return;
     
-    console.log('🔄 Retrying video load for unit:', unit.title);
+    logger.log('🔄 Retrying video load for unit:', unit.title);
     setError(null);
     setIsLoading(true);
     

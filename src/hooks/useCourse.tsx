@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
+import { logger } from "@/utils/logger";
 
 type Course = Tables<'courses'>;
 type Module = Tables<'modules'>;
@@ -97,7 +98,7 @@ export const useCourse = (courseId: string) => {
                   const parsedFiles = Array.isArray(unit.files) ? unit.files : JSON.parse(unit.files as string);
                   files = Array.isArray(parsedFiles) ? parsedFiles : [];
                 } catch (e) {
-                  console.error('Error parsing unit files:', e);
+                  logger.error('Error parsing unit files:', e);
                   files = [];
                 }
               }
@@ -151,7 +152,7 @@ export const useCourse = (courseId: string) => {
         }
       }
     } catch (err) {
-      console.error('Error fetching course:', err);
+      logger.error('Error fetching course:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch course');
     } finally {
       setLoading(false);
@@ -159,7 +160,7 @@ export const useCourse = (courseId: string) => {
   };
 
   const refreshCourse = async () => {
-    console.log('Refreshing course data...');
+    logger.log('Refreshing course data...');
     await fetchCourse();
   };
 
