@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 import { Tables } from "@/integrations/supabase/types";
 
 type CourseAssignment = Tables<'course_assignments'>;
@@ -29,7 +30,7 @@ export const useCourseAssignments = () => {
         .order('assigned_at', { ascending: false });
 
       if (assignmentsError) {
-        console.error('Error fetching course assignments:', assignmentsError);
+        logger.error('Error fetching course assignments:', assignmentsError);
         throw assignmentsError;
       }
 
@@ -49,11 +50,11 @@ export const useCourseAssignments = () => {
       ]);
 
       if (profilesResponse.error) {
-        console.error('Error fetching profiles:', profilesResponse.error);
+        logger.error('Error fetching profiles:', profilesResponse.error);
       }
 
       if (coursesResponse.error) {
-        console.error('Error fetching courses:', coursesResponse.error);
+        logger.error('Error fetching courses:', coursesResponse.error);
       }
 
       // Map the data together
@@ -65,7 +66,7 @@ export const useCourseAssignments = () => {
 
       setAssignments(assignmentsWithDetails);
     } catch (error) {
-      console.error('Error fetching assignments:', error);
+      logger.error('Error fetching assignments:', error);
       toast({
         title: "Error",
         description: "Failed to load course assignments",
@@ -96,7 +97,7 @@ export const useCourseAssignments = () => {
         });
 
       if (error) {
-        console.error('Error assigning course:', error);
+        logger.error('Error assigning course:', error);
         throw error;
       }
 
@@ -107,7 +108,7 @@ export const useCourseAssignments = () => {
 
       await fetchAssignments();
     } catch (error) {
-      console.error('Error assigning course:', error);
+      logger.error('Error assigning course:', error);
       toast({
         title: "Error",
         description: "Failed to assign course",
@@ -125,7 +126,7 @@ export const useCourseAssignments = () => {
       });
 
       if (error) {
-        console.error('Error marking course completed:', error);
+        logger.error('Error marking course completed:', error);
         throw error;
       }
 
@@ -136,7 +137,7 @@ export const useCourseAssignments = () => {
 
       await fetchAssignments();
     } catch (error) {
-      console.error('Error marking course completed:', error);
+      logger.error('Error marking course completed:', error);
       toast({
         title: "Error",
         description: "Failed to mark course as completed",
@@ -153,7 +154,7 @@ export const useCourseAssignments = () => {
         .eq('id', assignmentId);
 
       if (error) {
-        console.error('Error removing assignment:', error);
+        logger.error('Error removing assignment:', error);
         throw error;
       }
 
@@ -164,7 +165,7 @@ export const useCourseAssignments = () => {
 
       await fetchAssignments();
     } catch (error) {
-      console.error('Error removing assignment:', error);
+      logger.error('Error removing assignment:', error);
       toast({
         title: "Error",
         description: "Failed to remove assignment",

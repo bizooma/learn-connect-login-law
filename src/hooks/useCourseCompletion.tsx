@@ -2,6 +2,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { logger } from "@/utils/logger";
 
 export const useCourseCompletion = (courseId: string) => {
   const { user } = useAuth();
@@ -17,7 +18,7 @@ export const useCourseCompletion = (courseId: string) => {
 
     try {
       setLoading(true);
-      console.log('Checking course completion for:', { courseId, userId: user.id });
+      logger.log('Checking course completion for:', { courseId, userId: user.id });
       
       const { data, error } = await supabase
         .from('user_course_progress')
@@ -27,15 +28,15 @@ export const useCourseCompletion = (courseId: string) => {
         .maybeSingle();
 
       if (error) {
-        console.error('Error checking course completion:', error);
+        logger.error('Error checking course completion:', error);
         setIsCompleted(false);
       } else {
         const completed = data?.status === 'completed';
-        console.log('Course completion status:', { completed, status: data?.status });
+        logger.log('Course completion status:', { completed, status: data?.status });
         setIsCompleted(completed);
       }
     } catch (error) {
-      console.error('Error checking course completion:', error);
+      logger.error('Error checking course completion:', error);
       setIsCompleted(false);
     } finally {
       setLoading(false);

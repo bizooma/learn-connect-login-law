@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useEnrollmentCounts } from "@/hooks/useEnrollmentCounts";
 import { Tables } from "@/integrations/supabase/types";
+import { logger } from "@/utils/logger";
 
 type Course = Tables<'courses'>;
 type Level = Tables<'levels'>;
@@ -76,7 +77,7 @@ export const useCoursesData = () => {
         return aLevelOrder - bLevelOrder;
       });
     } catch (error) {
-      console.error('Error sorting courses:', error);
+      logger.error('Error sorting courses:', error);
       // Fallback to basic sorting if level-based sorting fails
       return coursesToSort.sort((a, b) => a.title.localeCompare(b.title));
     }
@@ -114,7 +115,7 @@ export const useCoursesData = () => {
       setCourses(sortedData);
       setFilteredCourses(sortedData);
     } catch (error) {
-      console.error('Error fetching courses:', error);
+      logger.error('Error fetching courses:', error);
       toast({
         title: "Error",
         description: "Failed to fetch courses",
@@ -139,7 +140,7 @@ export const useCoursesData = () => {
 
       setLevels(data || []);
     } catch (error) {
-      console.error('Error fetching levels:', error);
+      logger.error('Error fetching levels:', error);
     }
   };
 
