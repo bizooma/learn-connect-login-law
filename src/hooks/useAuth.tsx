@@ -3,6 +3,7 @@ import { useState, useEffect, createContext, useContext } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { logger } from '@/utils/logger';
 
 interface AuthContextType {
   user: User | null;
@@ -56,7 +57,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setLoading(false);
         }
       } catch (error) {
-        console.error('Auth error handling state change:', error);
+        logger.error('Auth error handling state change:', error);
         setSession(null);
         setUser(null);
         setLoading(false);
@@ -72,11 +73,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (!mounted) return;
         
         if (error) {
-          console.error('Auth session error:', error);
+          logger.error('Auth session error:', error);
           try {
             await supabase.auth.refreshSession();
           } catch (recoveryError) {
-            console.error('Auth recovery failed:', recoveryError);
+            logger.error('Auth recovery failed:', recoveryError);
             setSession(null);
             setUser(null);
           }
@@ -96,7 +97,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 setUser(null);
               }
             } catch (refreshError) {
-              console.error('Auth refresh error:', refreshError);
+              logger.error('Auth refresh error:', refreshError);
               setSession(null);
               setUser(null);
             }
@@ -108,7 +109,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       } catch (error) {
         if (!mounted) return;
         
-        console.error('Auth initialization error:', error);
+        logger.error('Auth initialization error:', error);
         setSession(null);
         setUser(null);
       } finally {
@@ -136,7 +137,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const { error } = await supabase.auth.signOut({ scope: 'global' });
       
       if (error) {
-        console.error('Sign out error:', error);
+        logger.error('Sign out error:', error);
         toast({
           title: "Sign out warning",
           description: "There was an issue signing out, but you've been logged out locally.",
@@ -160,13 +161,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
         keysToRemove.forEach(key => localStorage.removeItem(key));
       } catch (storageError) {
-        console.error('Storage cleanup error:', storageError);
+        logger.error('Storage cleanup error:', storageError);
       }
       
       window.location.href = '/';
       
     } catch (error) {
-      console.error('Unexpected sign out error:', error);
+      logger.error('Unexpected sign out error:', error);
       
       // Emergency cleanup
       try {
@@ -182,7 +183,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
         keysToRemove.forEach(key => localStorage.removeItem(key));
       } catch (cleanupError) {
-        console.error('Emergency cleanup error:', cleanupError);
+        logger.error('Emergency cleanup error:', cleanupError);
       }
       
       toast({
