@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 import { useEnrollmentCounts } from "@/hooks/useEnrollmentCounts";
 
 type Course = Tables<'courses'>;
@@ -55,7 +56,7 @@ const AdminCourseCard = ({ course, onDelete, onEdit, onStatusChange }: AdminCour
         onStatusChange();
       }
     } catch (error) {
-      console.error('Error updating course status:', error);
+      logger.error('Error updating course status:', error);
       toast({
         title: "Error",
         description: "Failed to update course status",

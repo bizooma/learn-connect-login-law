@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 import { Tables } from "@/integrations/supabase/types";
 import { Loader2, Users, BookOpen } from "lucide-react";
 
@@ -51,10 +52,10 @@ const BulkCourseAssignmentDialog = ({ open, onOpenChange, onAssignmentsComplete 
       if (error) throw error;
       setUsers(data || []);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      logger.error('Error fetching users:', error);
       toast({
         title: "Error",
-        description: "Failed to load users",
+        description: "Failed to fetch users",
         variant: "destructive",
       });
     } finally {
@@ -73,10 +74,10 @@ const BulkCourseAssignmentDialog = ({ open, onOpenChange, onAssignmentsComplete 
       if (error) throw error;
       setCourses(data || []);
     } catch (error) {
-      console.error('Error fetching courses:', error);
+      logger.error('Error fetching courses:', error);
       toast({
         title: "Error",
-        description: "Failed to load courses",
+        description: "Failed to fetch courses",
         variant: "destructive",
       });
     }
@@ -115,75 +116,41 @@ const BulkCourseAssignmentDialog = ({ open, onOpenChange, onAssignmentsComplete 
   };
 
   const handleBulkAssignment = async () => {
-    if (selectedUserIds.length === 0 || selectedCourseIds.length === 0) {
-      toast({
-        title: "Missing Selection",
-        description: "Please select at least one user and one course",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setLoading(true);
     try {
-      const { data: currentUser } = await supabase.auth.getUser();
-      if (!currentUser.user) throw new Error('User not authenticated');
-
       const assignments = [];
-      const progressRecords = [];
-      const now = new Date().toISOString();
-
+      
       for (const userId of selectedUserIds) {
         for (const courseId of selectedCourseIds) {
           assignments.push({
             user_id: userId,
             course_id: courseId,
-            assigned_by: currentUser.user.id,
-            assigned_at: now,
+            assigned_by: (await supabase.auth.getUser()).data.user?.id,
             is_mandatory: isMandatory,
-            notes: notes || `Bulk assignment - ${selectedCourseIds.length} course(s) to ${selectedUserIds.length} user(s)`
-          });
-
-          progressRecords.push({
-            user_id: userId,
-            course_id: courseId,
-            status: 'not_started',
-            progress_percentage: 0,
-            started_at: now,
-            last_accessed_at: now
+            notes: notes || null,
           });
         }
       }
 
-      // Insert assignments
-      const { error: assignmentError } = await supabase
+      const { error } = await supabase
         .from('course_assignments')
-        .upsert(assignments, { onConflict: 'user_id,course_id' });
+        .upsert(assignments, { 
+          onConflict: 'user_id,course_id',
+          ignoreDuplicates: false 
+        });
 
-      if (assignmentError) throw assignmentError;
-
-      // Insert progress records
-      const { error: progressError } = await supabase
-        .from('user_course_progress')
-        .upsert(progressRecords, { onConflict: 'user_id,course_id' });
-
-      if (progressError) throw progressError;
+      if (error) throw error;
 
       toast({
-        title: "Bulk Assignment Complete",
-        description: `Successfully assigned ${selectedCourseIds.length} course(s) to ${selectedUserIds.length} user(s)`,
+        title: "Success",
+        description: `Successfully assigned ${assignments.length} courses`,
+        variant: "default",
       });
 
-      // Reset form
-      setSelectedUserIds([]);
-      setSelectedCourseIds([]);
-      setIsMandatory(false);
-      setNotes("");
       onAssignmentsComplete();
       onOpenChange(false);
-
     } catch (error) {
-      console.error('Error with bulk assignment:', error);
+      logger.error('Error with bulk assignment:', error);
       toast({
         title: "Assignment Failed",
         description: "Failed to complete bulk assignment. Please try again.",

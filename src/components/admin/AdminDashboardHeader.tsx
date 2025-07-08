@@ -10,6 +10,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { logger } from "@/utils/logger";
 
 interface AdminDashboardHeaderProps {
   triggerDemo: () => void;
@@ -25,7 +26,7 @@ const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
       // Redirect to homepage after successful sign out
       navigate('/', { replace: true });
     } catch (error) {
-      console.error('Error signing out:', error);
+      logger.error('Error signing out:', error);
       // Still redirect to homepage even if there's an error
       navigate('/', { replace: true });
     }
@@ -40,7 +41,7 @@ const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
   };
 
   const handleDemoWelcome = () => {
-    console.log('Demo Welcome button clicked');
+    logger.log('Demo Welcome button clicked');
     triggerDemo();
   };
 
