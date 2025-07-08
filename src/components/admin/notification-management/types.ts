@@ -4,6 +4,7 @@ import { Tables } from "@/integrations/supabase/types";
 export type NotificationRow = Tables<'notifications'>;
 
 export type NotificationAudience = 
+  | 'admin_only'
   | 'new_frontier_only'
   | 'all_students' 
   | 'all_free'

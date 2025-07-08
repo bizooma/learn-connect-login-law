@@ -23,6 +23,7 @@ const NotificationList = ({ notifications, onEdit, onDelete, onToggleActive }: N
 
   const getAudienceLabel = (audience: NotificationAudience) => {
     switch (audience) {
+      case 'admin_only': return 'Admins Only';
       case 'new_frontier_only': return 'New Frontier Only';
       case 'all_students': return 'All Students';
       case 'all_free': return 'All Free';
@@ -34,6 +35,7 @@ const NotificationList = ({ notifications, onEdit, onDelete, onToggleActive }: N
 
   const getAudienceColor = (audience: NotificationAudience) => {
     switch (audience) {
+      case 'admin_only': return 'bg-red-100 text-red-800';
       case 'new_frontier_only': return 'bg-purple-100 text-purple-800';
       case 'all_students': return 'bg-blue-100 text-blue-800';
       case 'all_free': return 'bg-gray-100 text-gray-800';

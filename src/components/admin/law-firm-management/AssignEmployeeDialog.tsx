@@ -151,6 +151,7 @@ const AssignEmployeeDialog = ({
           title: 'Admin Assigned Employee',
           message: `Admin assigned ${formData.firstName} ${formData.lastName} (${formData.email}) to ${lawFirm.name} as a student. Seat count updated to ${lawFirm.used_seats + 1}/${lawFirm.total_seats}.`,
           type: 'info',
+          audience: 'admin_only',
           created_by: user.id
         });
 

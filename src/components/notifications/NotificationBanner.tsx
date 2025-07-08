@@ -84,6 +84,9 @@ const NotificationBanner = () => {
         }
         
         switch (notification.audience) {
+          case 'admin_only':
+            console.log('NotificationBanner: Admin only notification, user is admin:', isAdmin);
+            return isAdmin;
           case 'all_users':
             console.log('NotificationBanner: Notification for all users, showing');
             return true;
