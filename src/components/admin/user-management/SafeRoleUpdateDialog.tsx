@@ -63,16 +63,11 @@ const SafeRoleUpdateDialog = ({ user, currentRole, onRoleUpdated }: SafeRoleUpda
 
       console.log('User role update successful:', data);
 
-      // Enhanced success feedback with verification
+      // Enhanced success feedback
       toast({
         title: "✅ Role Updated Successfully",
-        description: `${user.email}'s role has been changed from ${currentRole} to ${newRole}. The page will refresh to show the updated role.`,
+        description: `${user.email}'s role has been changed from ${currentRole} to ${newRole}.`,
       });
-
-      // Force a complete refresh of the user data
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
 
       setDialogOpen(false);
       setConfirmText("");
