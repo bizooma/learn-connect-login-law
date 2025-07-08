@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Database, CheckCircle, AlertTriangle, Loader2 } from "lucide-react";
 import { useProgressBackfill } from "@/hooks/useProgressBackfill";
+import { logger } from "@/utils/logger";
 
 const ProgressBackfillTool = () => {
   const { backfillMissingUnitCompletions, fixVideoCompletionIssues, processing } = useProgressBackfill();
@@ -16,7 +17,7 @@ const ProgressBackfillTool = () => {
       const result = await backfillMissingUnitCompletions();
       setResults(result);
     } catch (error) {
-      console.error('Backfill failed:', error);
+      logger.error('Backfill failed:', error);
     }
   };
 
@@ -25,7 +26,7 @@ const ProgressBackfillTool = () => {
       const result = await fixVideoCompletionIssues();
       setVideoResults(result);
     } catch (error) {
-      console.error('Video fix failed:', error);
+      logger.error('Video fix failed:', error);
     }
   };
 

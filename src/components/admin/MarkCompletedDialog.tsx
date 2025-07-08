@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { Tables } from "@/integrations/supabase/types";
+import { logger } from "@/utils/logger";
 
 type Profile = Tables<'profiles'>;
 type Course = Tables<'courses'>;
@@ -44,7 +45,7 @@ const MarkCompletedDialog = ({ open, onOpenChange, onMarkCompleted }: MarkComple
       if (error) throw error;
       setUsers(data || []);
     } catch (error) {
-      console.error('Error fetching users:', error);
+      logger.error('Error fetching users:', error);
     }
   };
 
@@ -58,7 +59,7 @@ const MarkCompletedDialog = ({ open, onOpenChange, onMarkCompleted }: MarkComple
       if (error) throw error;
       setCourses(data || []);
     } catch (error) {
-      console.error('Error fetching courses:', error);
+      logger.error('Error fetching courses:', error);
     }
   };
 
@@ -80,7 +81,7 @@ const MarkCompletedDialog = ({ open, onOpenChange, onMarkCompleted }: MarkComple
       setCompletionDate(new Date().toISOString().split('T')[0]);
       onOpenChange(false);
     } catch (error) {
-      console.error('Error marking course completed:', error);
+      logger.error('Error marking course completed:', error);
     } finally {
       setLoading(false);
     }

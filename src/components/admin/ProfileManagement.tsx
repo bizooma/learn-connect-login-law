@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { logger } from "@/utils/logger";
 import ProfileImageUpload from "./ProfileImageUpload";
 import UserCourseProgress from "../user/UserCourseProgress";
 import PasswordChangeSection from "../shared/PasswordChangeSection";
@@ -52,7 +53,7 @@ const ProfileManagement = () => {
         profile_image_url: data.profile_image_url || '',
       });
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      logger.error('Error fetching profile:', error);
       toast({
         title: "Error",
         description: "Failed to fetch profile",
@@ -86,7 +87,7 @@ const ProfileManagement = () => {
         description: "Profile updated successfully",
       });
     } catch (error) {
-      console.error('Error updating profile:', error);
+      logger.error('Error updating profile:', error);
       toast({
         title: "Error",
         description: "Failed to update profile",
@@ -106,7 +107,7 @@ const ProfileManagement = () => {
   };
 
   const handleImageUpdate = (imageUrl: string | null) => {
-    console.log('Image updated:', imageUrl);
+    logger.log('Image updated:', imageUrl);
     setFormData(prev => ({
       ...prev,
       profile_image_url: imageUrl || ''
