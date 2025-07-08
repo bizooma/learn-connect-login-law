@@ -181,11 +181,11 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
             />
           </div>
 
-          <div className="flex-1 min-h-0 flex flex-col">
+          <div className="space-y-3">
             <Label>Select Courses</Label>
             
             {selectedCourseDetails.length > 0 && (
-              <div className="flex flex-wrap gap-2 mb-3">
+              <div className="flex flex-wrap gap-2">
                 {selectedCourseDetails.map(course => (
                   <Badge key={course.id} variant="secondary" className="flex items-center gap-1">
                     {course.title}
@@ -203,7 +203,7 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
               </div>
             )}
             
-            <ScrollArea className="flex-1 border rounded-md p-3">
+            <ScrollArea className="h-48 border rounded-md p-3">
               <div className="space-y-2">
                 {courses.map(course => (
                   <div key={course.id} className="flex items-center space-x-2">
