@@ -19,9 +19,10 @@ type LawFirm = Tables<'law_firms'> & {
 
 interface LawFirmCardProps {
   lawFirm: LawFirm;
+  onEmployeeAdded?: () => void;
 }
 
-const LawFirmCard = ({ lawFirm }: LawFirmCardProps) => {
+const LawFirmCard = ({ lawFirm, onEmployeeAdded }: LawFirmCardProps) => {
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showAssignDialog, setShowAssignDialog] = useState(false);
   
@@ -115,6 +116,10 @@ const LawFirmCard = ({ lawFirm }: LawFirmCardProps) => {
         lawFirm={lawFirm}
         open={showAssignDialog}
         onOpenChange={setShowAssignDialog}
+        onEmployeeAdded={() => {
+          onEmployeeAdded?.();
+          setShowAssignDialog(false);
+        }}
       />
     </>
   );
