@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, forwardRef, useImperativeHandle, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import LeaderboardCard from "./LeaderboardCard";
@@ -13,16 +13,16 @@ interface StreakLeaderboardEntry {
   rank_position: number;
 }
 
-const StreakLeaderboard = () => {
+export interface StreakLeaderboardRef {
+  refresh: () => void;
+}
+
+const StreakLeaderboard = forwardRef<StreakLeaderboardRef, {}>((props, ref) => {
   const [entries, setEntries] = useState<StreakLeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchStreakLeaderboard();
-  }, []);
-
-  const fetchStreakLeaderboard = async () => {
+  const fetchStreakLeaderboard = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -69,7 +69,15 @@ const StreakLeaderboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useImperativeHandle(ref, () => ({
+    refresh: fetchStreakLeaderboard
+  }));
+
+  useEffect(() => {
+    fetchStreakLeaderboard();
+  }, [fetchStreakLeaderboard]);
 
   if (loading) {
     return (
@@ -117,6 +125,8 @@ const StreakLeaderboard = () => {
       ))}
     </div>
   );
-};
+});
+
+StreakLeaderboard.displayName = 'StreakLeaderboard';
 
 export default StreakLeaderboard;

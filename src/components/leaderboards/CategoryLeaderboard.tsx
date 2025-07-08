@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback, forwardRef, useImperativeHandle } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import LeaderboardCard from "./LeaderboardCard";
@@ -8,26 +8,28 @@ interface CategoryLeaderboardEntry {
   user_id: string;
   user_name: string;
   user_email: string;
-  completion_rate: number;
-  courses_completed: number;
-  total_courses: number;
+  completion_rate?: number;
+  courses_completed?: number;
+  total_courses?: number;
   rank_position: number;
+  score?: number;
+  additional_data?: any;
 }
 
 interface CategoryLeaderboardProps {
   category: string;
 }
 
-const CategoryLeaderboard = ({ category }: CategoryLeaderboardProps) => {
+export interface CategoryLeaderboardRef {
+  refresh: () => void;
+}
+
+const CategoryLeaderboard = forwardRef<CategoryLeaderboardRef, CategoryLeaderboardProps>(({ category }, ref) => {
   const [entries, setEntries] = useState<CategoryLeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchCategoryLeaderboard();
-  }, [category]);
-
-  const fetchCategoryLeaderboard = async () => {
+  const fetchCategoryLeaderboard = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -46,16 +48,7 @@ const CategoryLeaderboard = ({ category }: CategoryLeaderboardProps) => {
       }
 
       if (cachedData && cachedData.length > 0) {
-        const formattedData = cachedData.map(entry => ({
-          user_id: entry.user_id,
-          user_name: entry.user_name,
-          user_email: entry.user_email,
-          completion_rate: (entry.additional_data as any)?.completion_rate || entry.score,
-          courses_completed: (entry.additional_data as any)?.courses_completed || 0,
-          total_courses: (entry.additional_data as any)?.total_courses || 0,
-          rank_position: entry.rank_position
-        }));
-        setEntries(formattedData);
+        setEntries(cachedData);
       } else {
         // If no cache, generate fresh data
         const { data: freshData, error: freshError } = await supabase
@@ -80,7 +73,15 @@ const CategoryLeaderboard = ({ category }: CategoryLeaderboardProps) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [category, toast]);
+
+  useImperativeHandle(ref, () => ({
+    refresh: fetchCategoryLeaderboard
+  }));
+
+  useEffect(() => {
+    fetchCategoryLeaderboard();
+  }, [fetchCategoryLeaderboard]);
 
   if (loading) {
     return (
@@ -105,9 +106,21 @@ const CategoryLeaderboard = ({ category }: CategoryLeaderboardProps) => {
     );
   }
 
+  const formattedEntries = useMemo(() => {
+    return entries.map(entry => ({
+      user_id: entry.user_id,
+      user_name: entry.user_name,
+      user_email: entry.user_email,
+      completion_rate: (entry.additional_data as any)?.completion_rate || entry.score,
+      courses_completed: (entry.additional_data as any)?.courses_completed || 0,
+      total_courses: (entry.additional_data as any)?.total_courses || 0,
+      rank_position: entry.rank_position
+    }));
+  }, [entries]);
+
   return (
     <div className="space-y-3">
-      {entries.map((entry, index) => (
+      {formattedEntries.map((entry, index) => (
         <LeaderboardCard
           key={entry.user_id}
           rank={entry.rank_position}
@@ -128,6 +141,8 @@ const CategoryLeaderboard = ({ category }: CategoryLeaderboardProps) => {
       ))}
     </div>
   );
-};
+});
+
+CategoryLeaderboard.displayName = 'CategoryLeaderboard';
 
 export default CategoryLeaderboard;

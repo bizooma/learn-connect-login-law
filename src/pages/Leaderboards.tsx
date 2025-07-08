@@ -1,18 +1,20 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trophy, Flame, Target, Users, RefreshCw, AlertCircle, CheckCircle } from "lucide-react";
-import StreakLeaderboard from "@/components/leaderboards/StreakLeaderboard";
-import CategoryLeaderboard from "@/components/leaderboards/CategoryLeaderboard";
+import StreakLeaderboard, { StreakLeaderboardRef } from "@/components/leaderboards/StreakLeaderboard";
+import CategoryLeaderboard, { CategoryLeaderboardRef } from "@/components/leaderboards/CategoryLeaderboard";
 import { useLeaderboards } from "@/hooks/useLeaderboards";
 import { supabase } from "@/integrations/supabase/client";
 
 const Leaderboards = () => {
-  const [refreshKey, setRefreshKey] = useState(0);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [cacheStatus, setCacheStatus] = useState<'checking' | 'empty' | 'populated'>('checking');
+  const streakRef = useRef<StreakLeaderboardRef>(null);
+  const salesRef = useRef<CategoryLeaderboardRef>(null);
+  const legalRef = useRef<CategoryLeaderboardRef>(null);
   const { refreshCache } = useLeaderboards();
 
   const handleRefreshCache = async () => {
@@ -25,7 +27,12 @@ const Leaderboards = () => {
       
       console.log('Refresh result:', result);
       setDebugInfo(result);
-      setRefreshKey(prev => prev + 1);
+      
+      // Trigger refresh on all components
+      streakRef.current?.refresh();
+      salesRef.current?.refresh();
+      legalRef.current?.refresh();
+      
       setCacheStatus('populated');
     } catch (error: any) {
       console.error('Error refreshing leaderboard cache:', error);
@@ -142,7 +149,7 @@ const Leaderboards = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <StreakLeaderboard key={refreshKey} />
+              <StreakLeaderboard ref={streakRef} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -159,7 +166,7 @@ const Leaderboards = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <CategoryLeaderboard category="Sales" key={refreshKey} />
+              <CategoryLeaderboard category="Sales" ref={salesRef} />
             </CardContent>
           </Card>
         </TabsContent>
@@ -176,7 +183,7 @@ const Leaderboards = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <CategoryLeaderboard category="Legal" key={refreshKey} />
+              <CategoryLeaderboard category="Legal" ref={legalRef} />
             </CardContent>
           </Card>
         </TabsContent>
