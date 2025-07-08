@@ -82,7 +82,7 @@ const RecentActivity = () => {
       case 'error':
         return 'bg-red-50 hover:bg-red-100';
       default:
-        return 'bg-[#FFF7ED] hover:bg-orange-50';
+        return 'bg-[#F9E8CD] hover:bg-orange-50';
     }
   };
 
@@ -130,7 +130,7 @@ const RecentActivity = () => {
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between mb-1">
-                    <h4 className="text-sm font-medium text-gray-900">
+                    <h4 className="text-sm font-medium text-orange-700">
                       {notification.title}
                     </h4>
                     <Badge className={getNotificationBadgeColor(notification.type)}>
