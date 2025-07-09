@@ -17,12 +17,15 @@ const VideoCompletionManager = () => {
 
   const handleRepairAll = async () => {
     setIsRepairing(true);
+    setRepairResults(null); // Clear previous results
     try {
+      console.log('🚀 Starting video completion repair from UI...');
       const results = await repairVideoCompletionData(
         courseIdFilter || undefined,
         userIdFilter || undefined
       );
       
+      console.log('✅ Repair completed with results:', results);
       setRepairResults(results);
       
       if (results.repairedVideos > 0) {
@@ -39,11 +42,17 @@ const VideoCompletionManager = () => {
       
       if (results.errors.length > 0) {
         console.warn('Repair errors:', results.errors);
+        toast({
+          title: "Repair Completed with Warnings ⚠️",
+          description: `Fixed ${results.repairedVideos} videos but encountered ${results.errors.length} errors. Check console for details.`,
+          variant: "destructive",
+        });
       }
     } catch (error) {
+      console.error('❌ Repair failed:', error);
       toast({
         title: "Repair Failed",
-        description: "Error occurred during repair process.",
+        description: error instanceof Error ? error.message : "Unknown error occurred during repair process.",
         variant: "destructive",
       });
     } finally {

@@ -26,52 +26,67 @@ export const repairVideoCompletionData = async (
     details: []
   };
 
+  // Create a timeout promise
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => reject(new Error('Repair operation timed out after 30 seconds')), 30000);
+  });
+
   try {
     console.log('🔧 Starting video completion data repair...', { courseId, userId });
 
-    // Find users with video progress issues
-    let query = supabase
+    // Step 1: Get video progress records with high watch percentage (simplified query)
+    console.log('📊 Step 1: Fetching video progress records...');
+    let videoQuery = supabase
       .from('user_video_progress')
-      .select(`
-        user_id,
-        unit_id,
-        course_id,
-        watch_percentage,
-        is_completed,
-        watched_duration_seconds,
-        user_unit_progress!inner(
-          video_completed,
-          video_completed_at
-        )
-      `)
-      .gte('watch_percentage', 80); // Videos watched to at least 80%
+      .select('user_id, unit_id, course_id, watch_percentage, is_completed, watched_duration_seconds')
+      .gte('watch_percentage', 80);
 
     if (courseId) {
-      query = query.eq('course_id', courseId);
+      videoQuery = videoQuery.eq('course_id', courseId);
     }
-
     if (userId) {
-      query = query.eq('user_id', userId);
+      videoQuery = videoQuery.eq('user_id', userId);
     }
 
-    const { data: progressData, error } = await query;
+    const videoProgressPromise = videoQuery.limit(100); // Add limit to prevent huge queries
+    const { data: progressData, error } = await Promise.race([videoProgressPromise, timeoutPromise]);
 
     if (error) {
-      result.errors.push(`Query error: ${error.message}`);
+      result.errors.push(`Video progress query error: ${error.message}`);
       return result;
     }
 
     if (!progressData || progressData.length === 0) {
-      console.log('ℹ️ No video progress issues found');
+      console.log('ℹ️ No video progress records found with 80%+ watch percentage');
       return result;
     }
 
-    console.log(`🔍 Found ${progressData.length} potential video completion issues`);
+    console.log(`📊 Found ${progressData.length} video progress records to check`);
 
-    // Process each progress record
+    // Step 2: For each video progress record, check corresponding unit progress
+    let processedCount = 0;
     for (const progress of progressData) {
       try {
-        const unitProgress = progress.user_unit_progress as any;
+        processedCount++;
+        console.log(`🔍 Processing ${processedCount}/${progressData.length}: User ${progress.user_id.slice(0, 8)}...`);
+
+        // Get the corresponding unit progress record
+        const { data: unitProgressData, error: unitError } = await Promise.race([
+          supabase
+            .from('user_unit_progress')
+            .select('video_completed, video_completed_at')
+            .eq('user_id', progress.user_id)
+            .eq('unit_id', progress.unit_id)
+            .eq('course_id', progress.course_id)
+            .maybeSingle(),
+          timeoutPromise
+        ]);
+
+        if (unitError) {
+          result.errors.push(`Unit progress query error for ${progress.user_id}/${progress.unit_id}: ${unitError.message}`);
+          continue;
+        }
+
         let needsRepair = false;
         let repairReason = '';
 
@@ -79,10 +94,10 @@ export const repairVideoCompletionData = async (
         if (progress.watch_percentage >= 95 && !progress.is_completed) {
           needsRepair = true;
           repairReason = 'Video watched 95%+ but not marked complete in video_progress';
-        } else if (progress.watch_percentage >= 95 && !unitProgress?.video_completed) {
+        } else if (progress.watch_percentage >= 95 && !unitProgressData?.video_completed) {
           needsRepair = true;
           repairReason = 'Video watched 95%+ but not marked complete in unit_progress';
-        } else if (progress.is_completed && !unitProgress?.video_completed) {
+        } else if (progress.is_completed && !unitProgressData?.video_completed) {
           needsRepair = true;
           repairReason = 'Video marked complete in video_progress but not unit_progress';
         }
@@ -92,32 +107,35 @@ export const repairVideoCompletionData = async (
 
           const completedAt = new Date().toISOString();
 
-          // Repair both tables
-          const repairs = await Promise.allSettled([
-            supabase
-              .from('user_video_progress')
-              .update({
-                is_completed: true,
-                completed_at: completedAt,
-                watch_percentage: Math.max(progress.watch_percentage, 95),
-                updated_at: completedAt
-              })
-              .eq('user_id', progress.user_id)
-              .eq('unit_id', progress.unit_id)
-              .eq('course_id', progress.course_id),
+          // Repair both tables with timeout protection
+          const repairs = await Promise.race([
+            Promise.allSettled([
+              supabase
+                .from('user_video_progress')
+                .update({
+                  is_completed: true,
+                  completed_at: completedAt,
+                  watch_percentage: Math.max(progress.watch_percentage, 95),
+                  updated_at: completedAt
+                })
+                .eq('user_id', progress.user_id)
+                .eq('unit_id', progress.unit_id)
+                .eq('course_id', progress.course_id),
 
-            supabase
-              .from('user_unit_progress')
-              .upsert({
-                user_id: progress.user_id,
-                unit_id: progress.unit_id,
-                course_id: progress.course_id,
-                video_completed: true,
-                video_completed_at: completedAt,
-                updated_at: completedAt
-              }, {
-                onConflict: 'user_id,unit_id,course_id'
-              })
+              supabase
+                .from('user_unit_progress')
+                .upsert({
+                  user_id: progress.user_id,
+                  unit_id: progress.unit_id,
+                  course_id: progress.course_id,
+                  video_completed: true,
+                  video_completed_at: completedAt,
+                  updated_at: completedAt
+                }, {
+                  onConflict: 'user_id,unit_id,course_id'
+                })
+            ]),
+            timeoutPromise
           ]);
 
           const allSucceeded = repairs.every(r => r.status === 'fulfilled');
@@ -193,61 +211,88 @@ export const repairMissingVideoProgress = async (
     details: []
   };
 
+  // Create a timeout promise
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(() => reject(new Error('Missing video progress repair timed out after 30 seconds')), 30000);
+  });
+
   try {
     console.log('🔧 Starting missing video progress repair...', { courseId, userId });
 
-    // Find completed units with video content but missing video progress records
+    // Step 1: Get completed unit progress records (simplified query)
+    console.log('📊 Step 1: Fetching completed unit progress records...');
     let unitQuery = supabase
       .from('user_unit_progress')
-      .select(`
-        user_id,
-        unit_id,
-        course_id,
-        completed,
-        completed_at,
-        video_completed,
-        video_completed_at,
-        units!inner(
-          video_url,
-          title
-        )
-      `)
-      .eq('completed', true)
-      .not('units.video_url', 'is', null); // Only units with video content
+      .select('user_id, unit_id, course_id, completed, completed_at, video_completed, video_completed_at')
+      .eq('completed', true);
 
     if (courseId) {
       unitQuery = unitQuery.eq('course_id', courseId);
     }
-
     if (userId) {
       unitQuery = unitQuery.eq('user_id', userId);
     }
 
-    const { data: completedUnits, error: unitError } = await unitQuery;
+    const { data: completedUnits, error: unitError } = await Promise.race([
+      unitQuery.limit(100), // Add limit to prevent huge queries
+      timeoutPromise
+    ]);
 
     if (unitError) {
-      result.errors.push(`Unit query error: ${unitError.message}`);
+      result.errors.push(`Unit progress query error: ${unitError.message}`);
       return result;
     }
 
     if (!completedUnits || completedUnits.length === 0) {
-      console.log('ℹ️ No completed units with videos found');
+      console.log('ℹ️ No completed units found');
       return result;
     }
 
-    console.log(`🔍 Found ${completedUnits.length} completed units with video content`);
+    console.log(`📊 Found ${completedUnits.length} completed units to check`);
 
-    // Check which ones are missing video progress records
+    // Step 2: For each completed unit, check if it has video content and video progress
+    let processedCount = 0;
     for (const unitProgress of completedUnits) {
       try {
+        processedCount++;
+        console.log(`🔍 Processing ${processedCount}/${completedUnits.length}: User ${unitProgress.user_id.slice(0, 8)}...`);
+
+        // Check if this unit has video content
+        const { data: unitData, error: unitFetchError } = await Promise.race([
+          supabase
+            .from('units')
+            .select('video_url, title')
+            .eq('id', unitProgress.unit_id)
+            .maybeSingle(),
+          timeoutPromise
+        ]);
+
+        if (unitFetchError) {
+          result.errors.push(`Unit fetch error for ${unitProgress.unit_id}: ${unitFetchError.message}`);
+          continue;
+        }
+
+        // Skip units without video content
+        if (!unitData?.video_url) {
+          continue;
+        }
+
         // Check if video progress record exists
-        const { data: existingVideoProgress } = await supabase
-          .from('user_video_progress')
-          .select('id')
-          .eq('user_id', unitProgress.user_id)
-          .eq('unit_id', unitProgress.unit_id)
-          .eq('course_id', unitProgress.course_id)
-          .maybeSingle();
+        const { data: existingVideoProgress, error: videoProgressError } = await Promise.race([
+          supabase
+            .from('user_video_progress')
+            .select('id')
+            .eq('user_id', unitProgress.user_id)
+            .eq('unit_id', unitProgress.unit_id)
+            .eq('course_id', unitProgress.course_id)
+            .maybeSingle(),
+          timeoutPromise
+        ]);
+
+        if (videoProgressError) {
+          result.errors.push(`Video progress query error for ${unitProgress.user_id}/${unitProgress.unit_id}: ${videoProgressError.message}`);
+          continue;
+        }
 
         const needsVideoProgressRecord = !existingVideoProgress;
         const needsVideoCompletedFlag = !unitProgress.video_completed;
@@ -304,7 +349,10 @@ export const repairMissingVideoProgress = async (
             );
           }
 
-          const repairResults = await Promise.allSettled(repairs);
+          const repairResults = await Promise.race([
+            Promise.allSettled(repairs),
+            timeoutPromise
+          ]);
           const allSucceeded = repairResults.every(r => r.status === 'fulfilled');
 
           result.details.push({
