@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Suspense, lazy } from "react";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { useSessionTracking } from "@/hooks/useSessionTracking";
+import { usePerformanceTracking } from "@/hooks/usePerformanceTracking";
 import { AuthProvider } from "@/hooks/useAuth";
 
 // Lazy load components for better code splitting
@@ -48,6 +49,9 @@ const PageLoader = () => (
 const AppContent = () => {
   // Initialize session tracking
   useSessionTracking();
+  
+  // Initialize performance tracking
+  usePerformanceTracking();
 
   return (
     <Suspense fallback={<PageLoader />}>
