@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import supportAvatar from '@/assets/support-avatar.png';
 import { Send, FileText, Bot, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -166,7 +167,7 @@ const ChatbotInterface = () => {
                 {message.type === 'user' ? (
                   <User className="w-3 h-3 text-primary-foreground" />
                 ) : (
-                  <img src="/lovable-uploads/dd78c305-4498-44b3-89e6-a7b4e959a273.png" alt="Support" className="w-6 h-6 rounded-full object-cover" />
+                  <img src={supportAvatar} alt="Support" className="w-6 h-6 rounded-full object-cover" />
                 )}
               </div>
               <div className={`rounded-lg p-3 ${
@@ -204,7 +205,7 @@ const ChatbotInterface = () => {
           <div className="flex justify-start">
             <div className="flex items-center space-x-2">
               <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
-                <img src="/lovable-uploads/dd78c305-4498-44b3-89e6-a7b4e959a273.png" alt="Support" className="w-6 h-6 rounded-full object-cover" />
+                <img src={supportAvatar} alt="Support" className="w-6 h-6 rounded-full object-cover" />
               </div>
               <div className="bg-muted rounded-lg p-3">
                 <div className="flex space-x-1">
