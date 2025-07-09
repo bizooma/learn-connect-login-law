@@ -186,11 +186,18 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return lastUpdated ? (Date.now() - lastUpdated) < CACHE_TTL : false;
   }, [state.cache.lastUpdated]);
 
-  // Course progress operations
+  // Enhanced course progress operations with intelligent caching
   const fetchCourseProgress = useCallback(async (userId: string, force = false) => {
     const cacheKey = `course-${userId}`;
     
     if (!force && isCacheValid(cacheKey)) {
+      optimizationTracker.trackOptimization(
+        `ProgressCacheHit_${userId}`,
+        'memory_optimization',
+        0,
+        0,
+        1
+      );
       return; // Use cached data
     }
 
@@ -198,14 +205,9 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     dispatch({ type: 'SET_ERROR', key: cacheKey });
 
     try {
-      optimizationTracker.trackOptimization(
-        `CentralizedProgressFetch_${userId}`,
-        'parallel_processing',
-        0,
-        performance.now(),
-        1
-      );
-
+      const startTime = performance.now();
+      
+      // Enhanced query with unit progress data for immediate availability
       const { data, error } = await supabase
         .from('user_course_progress')
         .select(`
@@ -215,7 +217,24 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           progress_percentage,
           completed_at,
           last_accessed_at,
-          courses!inner(id, title, category)
+          started_at,
+          courses!inner(
+            id, 
+            title, 
+            category,
+            lessons!inner(
+              id,
+              units!inner(
+                id,
+                user_unit_progress!left(
+                  completed,
+                  completed_at,
+                  video_completed,
+                  quiz_completed
+                )
+              )
+            )
+          )
         `)
         .eq('user_id', userId);
 
@@ -230,7 +249,43 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         last_accessed_at: item.last_accessed_at
       }));
 
+      // Pre-populate unit progress cache from the same query
+      data?.forEach(courseData => {
+        const unitProgress: UnitProgress[] = [];
+        courseData.courses?.lessons?.forEach(lesson => {
+          lesson.units?.forEach(unit => {
+            const progress = unit.user_unit_progress?.[0];
+            unitProgress.push({
+              unit_id: unit.id,
+              course_id: courseData.course_id,
+              user_id: userId,
+              completed: progress?.completed || false,
+              completed_at: progress?.completed_at || undefined
+            });
+          });
+        });
+        
+        if (unitProgress.length > 0) {
+          dispatch({ 
+            type: 'SET_UNIT_PROGRESS', 
+            userId, 
+            courseId: courseData.course_id, 
+            data: unitProgress 
+          });
+        }
+      });
+
       dispatch({ type: 'SET_COURSE_PROGRESS', userId, data: courseProgress });
+
+      const endTime = performance.now();
+      optimizationTracker.trackOptimization(
+        `OptimizedProgressFetch_${userId}`,
+        'parallel_processing',
+        endTime - startTime,
+        endTime,
+        courseProgress.length
+      );
+
     } catch (error: any) {
       console.error('Error fetching course progress:', error);
       dispatch({ type: 'SET_ERROR', key: cacheKey, error: error.message });
@@ -351,7 +406,7 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
   }, [isCacheValid]);
 
-  // Optimized progress calculation with caching
+  // Optimized progress calculation with single unified query
   const calculateCourseProgress = useCallback(async (userId: string, courseId: string) => {
     const calcKey = `calc-${userId}-${courseId}`;
     
@@ -360,32 +415,44 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     }
 
     try {
-      // Ensure we have unit progress data
-      await fetchUnitProgress(userId, courseId);
+      optimizationTracker.trackOptimization(
+        `OptimizedProgressCalc_${courseId}`,
+        'parallel_processing',
+        0,
+        performance.now(),
+        1
+      );
 
-      // Get total units for course
-      const { data: lessons, error: lessonsError } = await supabase
+      // Single comprehensive query instead of 3 separate queries
+      const { data: courseData, error } = await supabase
         .from('lessons')
-        .select('id')
+        .select(`
+          id,
+          units!inner(
+            id,
+            user_unit_progress!left(
+              completed,
+              user_id
+            )
+          )
+        `)
         .eq('course_id', courseId);
 
-      if (lessonsError) throw lessonsError;
+      if (error) throw error;
 
-      const { data: units, error: unitsError } = await supabase
-        .from('units')
-        .select('id')
-        .in('section_id', lessons?.map(l => l.id) || []);
-
-      if (unitsError) throw unitsError;
-
-      const unitProgressData = state.cache.unitProgress.get(`${userId}-${courseId}`) || [];
-      const totalUnits = units?.length || 0;
-      const completedUnits = unitProgressData.filter(u => u.completed).length;
+      // Calculate progress from the unified result
+      const allUnits = courseData?.flatMap(lesson => lesson.units || []) || [];
+      const totalUnits = allUnits.length;
+      const completedUnits = allUnits.filter(unit => 
+        unit.user_unit_progress?.some(progress => 
+          progress.completed && progress.user_id === userId
+        )
+      ).length;
       
       const progress = totalUnits > 0 ? Math.round((completedUnits / totalUnits) * 100) : 0;
       const status = progress === 100 ? 'completed' : progress > 0 ? 'in_progress' : 'not_started';
 
-      const result = { progress, status };
+      const result = { progress, status, totalUnits, completedUnits };
       dispatch({ type: 'SET_CALCULATION', key: calcKey, data: result });
       
       return result;
@@ -393,7 +460,7 @@ export const ProgressProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       console.error('Error calculating course progress:', error);
       throw error;
     }
-  }, [state.cache.unitProgress, state.cache.calculations, isCacheValid, fetchUnitProgress]);
+  }, [isCacheValid]);
 
   // Batch operations for efficiency
   const batchFetchCourseProgress = useCallback(async (userIds: string[]) => {

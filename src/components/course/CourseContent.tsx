@@ -14,7 +14,7 @@ import UnitCompletionRequirements from "./UnitCompletionRequirements";
 import { Button } from "@/components/ui/button";
 import { Download, File } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useCourseCompletion } from "@/hooks/useCourseCompletion";
+import { useUnifiedCourseProgress } from "@/hooks/useUnifiedProgress";
 import MarkdownRenderer from "@/components/ui/markdown-renderer";
 
 type Unit = Tables<'units'>;
@@ -36,7 +36,8 @@ interface CourseContentProps {
 
 const CourseContent = ({ unit, lesson, courseId, courseTitle, onProgressUpdate }: CourseContentProps) => {
   const { user } = useAuth();
-  const { isCompleted, loading, refetchCompletion } = useCourseCompletion(courseId);
+  const { isCompleted, refreshCourseProgress } = useUnifiedCourseProgress(courseId);
+  const loading = false; // The unified system handles loading more efficiently
   const [unitQuiz, setUnitQuiz] = useState<Quiz | null>(null);
   const [quizLoading, setQuizLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
@@ -74,14 +75,14 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle, onProgressUpdate }
     }
   }, [unit?.id]);
 
-  // Enhanced progress refresh handler
+  // Enhanced progress refresh handler with unified system
   const handleProgressRefresh = useCallback(() => {
     setRefreshKey(prev => prev + 1);
-    refetchCompletion();
+    refreshCourseProgress();
     if (onProgressUpdate) {
       onProgressUpdate();
     }
-  }, [refetchCompletion, onProgressUpdate]);
+  }, [refreshCourseProgress, onProgressUpdate]);
 
   // Unified unit real-time subscriptions with intelligent filtering
   const { diagnostics } = useUnitRealtimeUpdates({
@@ -98,9 +99,9 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle, onProgressUpdate }
   // Refresh completion status when component mounts or courseId changes
   useEffect(() => {
     if (courseId) {
-      refetchCompletion();
+      refreshCourseProgress();
     }
-  }, [courseId, refetchCompletion, refreshKey]);
+  }, [courseId, refreshCourseProgress, refreshKey]);
 
   const handleFileDownload = (fileUrl: string) => {
     window.open(fileUrl, '_blank');

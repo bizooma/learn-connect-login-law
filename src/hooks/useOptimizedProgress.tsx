@@ -1,216 +1,255 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { useProgressContext } from '@/contexts/ProgressContext';
 import { useAuth } from '@/hooks/useAuth';
+import { optimizationTracker } from '@/utils/algorithmicOptimizationTracker';
 
-interface UseProgressOptions {
+interface OptimizedProgressConfig {
   autoFetch?: boolean;
-  refreshInterval?: number;
+  enableCaching?: boolean;
+  cacheTimeout?: number;
 }
 
-// Unified progress hook that replaces multiple existing hooks
-export const useOptimizedProgress = (options: UseProgressOptions = {}) => {
+interface CourseProgressSummary {
+  course_id: string;
+  status: 'not_started' | 'in_progress' | 'completed';
+  progress_percentage: number;
+  completed_at?: string;
+  last_accessed_at?: string;
+}
+
+export const useOptimizedProgress = (config: OptimizedProgressConfig = {}) => {
   const { user } = useAuth();
   const progressContext = useProgressContext();
-  const { autoFetch = true, refreshInterval } = options;
+  const {
+    autoFetch = true,
+    enableCaching = true,
+    cacheTimeout = 5 * 60 * 1000 // 5 minutes
+  } = config;
 
-  // Auto-fetch user's course progress on mount
-  useEffect(() => {
-    if (autoFetch && user?.id) {
-      progressContext.fetchCourseProgress(user.id);
-    }
-  }, [autoFetch, user?.id, progressContext]);
-
-  // Optional refresh interval
-  useEffect(() => {
-    if (refreshInterval && user?.id) {
-      const interval = setInterval(() => {
-        progressContext.fetchCourseProgress(user.id, true);
-      }, refreshInterval);
-      
-      return () => clearInterval(interval);
-    }
-  }, [refreshInterval, user?.id, progressContext]);
-
-  // Course progress selectors
-  const courseProgress = useMemo(() => {
-    return user?.id ? progressContext.getCourseProgress(user.id) || [] : [];
-  }, [user?.id, progressContext]);
-
-  const completedCourses = useMemo(() => {
-    return courseProgress.filter(c => c.status === 'completed');
-  }, [courseProgress]);
-
-  const inProgressCourses = useMemo(() => {
-    return courseProgress.filter(c => c.status === 'in_progress');
-  }, [courseProgress]);
-
-  const notStartedCourses = useMemo(() => {
-    return courseProgress.filter(c => c.status === 'not_started');
-  }, [courseProgress]);
-
-  const currentCourse = useMemo(() => {
-    return inProgressCourses[0] || null;
-  }, [inProgressCourses]);
-
-  // Loading and error states
-  const isLoading = useMemo(() => {
-    return user?.id ? progressContext.isLoading(`course-${user.id}`) : false;
-  }, [user?.id, progressContext]);
-
-  const error = useMemo(() => {
-    return user?.id ? progressContext.getError(`course-${user.id}`) : null;
-  }, [user?.id, progressContext]);
-
-  // Actions
-  const refreshProgress = useCallback(() => {
-    if (user?.id) {
-      progressContext.fetchCourseProgress(user.id, true);
-    }
-  }, [user?.id, progressContext]);
-
-  const markUnitComplete = useCallback(async (unitId: string, courseId: string) => {
+  // Fetch user's course progress with intelligent caching
+  const fetchProgress = useCallback(async (force = false) => {
     if (!user?.id) return;
+
+    const startTime = performance.now();
     
-    await progressContext.updateUnitProgress(user.id, unitId, courseId, true);
-    
-    // Trigger course progress recalculation
-    await progressContext.calculateCourseProgress(user.id, courseId);
+    try {
+      await progressContext.fetchCourseProgress(user.id, force);
+      
+      const endTime = performance.now();
+      optimizationTracker.trackOptimization(
+        `OptimizedProgressHook_${user.id}`,
+        'parallel_processing',
+        endTime - startTime,
+        endTime,
+        1
+      );
+    } catch (error) {
+      console.error('Error in optimized progress fetch:', error);
+      throw error;
+    }
   }, [user?.id, progressContext]);
+
+  // Auto-fetch on mount if enabled
+  React.useEffect(() => {
+    if (autoFetch && user?.id) {
+      fetchProgress();
+    }
+  }, [autoFetch, user?.id, fetchProgress]);
+
+  // Get cached course progress
+  const courseProgress = useMemo((): CourseProgressSummary[] => {
+    if (!user?.id) return [];
+    
+    const cached = progressContext.getCourseProgress(user.id);
+    return cached || [];
+  }, [user?.id, progressContext]);
+
+  // Computed values with memoization for performance
+  const completedCourses = useMemo(() => 
+    courseProgress.filter(course => course.status === 'completed'),
+    [courseProgress]
+  );
+
+  const inProgressCourses = useMemo(() => 
+    courseProgress.filter(course => course.status === 'in_progress'),
+    [courseProgress]
+  );
+
+  const currentCourse = useMemo(() => 
+    courseProgress.find(course => course.status === 'in_progress') || 
+    courseProgress[courseProgress.length - 1],
+    [courseProgress]
+  );
+
+  // Mark unit complete with optimistic updates
+  const markUnitComplete = useCallback(async (unitId: string, courseId: string) => {
+    if (!user?.id) {
+      throw new Error('User not authenticated');
+    }
+
+    const startTime = performance.now();
+
+    try {
+      await progressContext.updateUnitProgress(user.id, unitId, courseId, true);
+      
+      // Refresh course progress to update percentages
+      await progressContext.fetchCourseProgress(user.id, true);
+
+      const endTime = performance.now();
+      optimizationTracker.trackOptimization(
+        `OptimizedUnitComplete_${unitId}`,
+        'database_batch',
+        endTime - startTime,
+        endTime,
+        1
+      );
+    } catch (error) {
+      console.error('Error marking unit complete:', error);
+      throw error;
+    }
+  }, [user?.id, progressContext]);
+
+  // Get specific course progress
+  const getCourseProgress = useCallback((courseId: string) => {
+    return courseProgress.find(course => course.course_id === courseId);
+  }, [courseProgress]);
+
+  // Refresh progress data
+  const refreshProgress = useCallback(() => {
+    return fetchProgress(true);
+  }, [fetchProgress]);
+
+  // Performance metrics
+  const isLoading = user?.id ? progressContext.isLoading(`course-${user.id}`) : false;
+  const error = user?.id ? progressContext.getError(`course-${user.id}`) : null;
 
   return {
-    // Data
     courseProgress,
     completedCourses,
     inProgressCourses,
-    notStartedCourses,
     currentCourse,
-    
-    // State
     isLoading,
     error,
-    
-    // Actions
+    markUnitComplete,
+    getCourseProgress,
     refreshProgress,
-    markUnitComplete
+    fetchProgress
   };
 };
 
-// Specialized hook for unit progress
-export const useOptimizedUnitProgress = (courseId: string, options: UseProgressOptions = {}) => {
+export const useOptimizedUnitProgress = (courseId: string, config: OptimizedProgressConfig = {}) => {
   const { user } = useAuth();
   const progressContext = useProgressContext();
-  const { autoFetch = true } = options;
+  const { autoFetch = true } = config;
 
-  // Auto-fetch unit progress
-  useEffect(() => {
-    if (autoFetch && user?.id && courseId) {
-      progressContext.fetchUnitProgress(user.id, courseId);
+  // Fetch unit progress for specific course
+  const fetchUnitProgress = useCallback(async (force = false) => {
+    if (!user?.id || !courseId) return;
+
+    try {
+      await progressContext.fetchUnitProgress(user.id, courseId, force);
+    } catch (error) {
+      console.error('Error fetching unit progress:', error);
+      throw error;
     }
-  }, [autoFetch, user?.id, courseId, progressContext]);
+  }, [user?.id, courseId, progressContext]);
 
-  // Unit progress data
+  // Auto-fetch on mount
+  React.useEffect(() => {
+    if (autoFetch && user?.id && courseId) {
+      fetchUnitProgress();
+    }
+  }, [autoFetch, user?.id, courseId, fetchUnitProgress]);
+
+  // Get cached unit progress
   const unitProgress = useMemo(() => {
     if (!user?.id || !courseId) return [];
+    
     return progressContext.getUnitProgress(user.id, courseId) || [];
   }, [user?.id, courseId, progressContext]);
 
-  // Helper functions
+  // Utility functions
   const isUnitCompleted = useCallback((unitId: string) => {
-    return unitProgress.find(u => u.unit_id === unitId)?.completed || false;
+    return unitProgress.some(unit => unit.unit_id === unitId && unit.completed);
   }, [unitProgress]);
 
   const getUnitCompletedAt = useCallback((unitId: string) => {
-    return unitProgress.find(u => u.unit_id === unitId)?.completed_at || null;
+    const unit = unitProgress.find(unit => unit.unit_id === unitId);
+    return unit?.completed_at;
   }, [unitProgress]);
 
   const markUnitComplete = useCallback(async (unitId: string) => {
-    if (!user?.id || !courseId) return;
-    await progressContext.updateUnitProgress(user.id, unitId, courseId, true);
+    if (!user?.id) {
+      throw new Error('User not authenticated');
+    }
+
+    try {
+      await progressContext.updateUnitProgress(user.id, unitId, courseId, true);
+    } catch (error) {
+      console.error('Error marking unit complete:', error);
+      throw error;
+    }
   }, [user?.id, courseId, progressContext]);
 
-  const isLoading = useMemo(() => {
-    if (!user?.id || !courseId) return false;
-    return progressContext.isLoading(`unit-${user.id}-${courseId}`);
-  }, [user?.id, courseId, progressContext]);
+  const refreshUnitProgress = useCallback(() => {
+    return fetchUnitProgress(true);
+  }, [fetchUnitProgress]);
+
+  const isLoading = user?.id ? progressContext.isLoading(`unit-${user.id}-${courseId}`) : false;
+  const error = user?.id ? progressContext.getError(`unit-${user.id}-${courseId}`) : null;
 
   return {
     unitProgress,
+    isLoading,
+    error,
     isUnitCompleted,
     getUnitCompletedAt,
     markUnitComplete,
-    isLoading
+    refreshUnitProgress,
+    fetchUnitProgress
   };
 };
 
-// Specialized hook for team progress
-export const useOptimizedTeamProgress = (teamId?: string, options: UseProgressOptions = {}) => {
+export const useOptimizedTeamProgress = (teamId: string, config: OptimizedProgressConfig = {}) => {
   const progressContext = useProgressContext();
-  const { autoFetch = true } = options;
+  const { autoFetch = true } = config;
 
-  // Auto-fetch team progress
-  useEffect(() => {
-    if (autoFetch && teamId) {
-      progressContext.fetchTeamProgress(teamId);
+  // Fetch team progress
+  const fetchTeamProgress = useCallback(async (force = false) => {
+    if (!teamId) return;
+
+    try {
+      await progressContext.fetchTeamProgress(teamId, force);
+    } catch (error) {
+      console.error('Error fetching team progress:', error);
+      throw error;
     }
-  }, [autoFetch, teamId, progressContext]);
-
-  // Team progress data
-  const teamProgress = useMemo(() => {
-    return teamId ? progressContext.getTeamProgress(teamId) : null;
   }, [teamId, progressContext]);
 
-  // Team statistics
-  const teamStats = useMemo(() => {
-    if (!teamProgress) return null;
+  // Auto-fetch on mount
+  React.useEffect(() => {
+    if (autoFetch && teamId) {
+      fetchTeamProgress();
+    }
+  }, [autoFetch, teamId, fetchTeamProgress]);
 
-    const totalMembers = teamProgress.members.length;
-    const totalCourses = teamProgress.members.reduce((sum, m) => sum + m.total_courses, 0);
-    const totalCompletedCourses = teamProgress.members.reduce((sum, m) => sum + m.completed_courses, 0);
-    const averageProgress = totalMembers > 0 
-      ? Math.round(teamProgress.members.reduce((sum, m) => sum + m.overall_progress, 0) / totalMembers)
-      : 0;
-
-    return {
-      totalMembers,
-      totalCourses,
-      totalCompletedCourses,
-      averageProgress,
-      completionRate: totalCourses > 0 ? Math.round((totalCompletedCourses / totalCourses) * 100) : 0
-    };
-  }, [teamProgress]);
-
-  const isLoading = useMemo(() => {
-    return teamId ? progressContext.isLoading(`team-${teamId}`) : false;
+  // Get cached team progress
+  const teamProgress = useMemo(() => {
+    return progressContext.getTeamProgress(teamId);
   }, [teamId, progressContext]);
 
   const refreshTeamProgress = useCallback(() => {
-    if (teamId) {
-      progressContext.fetchTeamProgress(teamId, true);
-    }
-  }, [teamId, progressContext]);
+    return fetchTeamProgress(true);
+  }, [fetchTeamProgress]);
+
+  const isLoading = progressContext.isLoading(`team-${teamId}`);
+  const error = progressContext.getError(`team-${teamId}`);
 
   return {
     teamProgress,
-    teamStats,
     isLoading,
-    refreshTeamProgress
-  };
-};
-
-// Hook for batch operations
-export const useBatchProgressOperations = () => {
-  const progressContext = useProgressContext();
-
-  const batchFetchCourseProgress = useCallback(async (userIds: string[]) => {
-    await progressContext.batchFetchCourseProgress(userIds);
-  }, [progressContext]);
-
-  const batchCalculateProgress = useCallback(async (requests: Array<{ userId: string; courseId: string }>) => {
-    await progressContext.batchCalculateProgress(requests);
-  }, [progressContext]);
-
-  return {
-    batchFetchCourseProgress,
-    batchCalculateProgress
+    error,
+    refreshTeamProgress,
+    fetchTeamProgress
   };
 };
