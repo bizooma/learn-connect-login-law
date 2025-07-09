@@ -35,22 +35,30 @@ class NetworkErrorBoundary extends Component<Props, State> {
     window.addEventListener('online', this.handleOnline);
     window.addEventListener('offline', this.handleOffline);
     
-    // Check for network errors in fetch requests
+    // Check for network errors in fetch requests - but ignore diagnostic calls
     const originalFetch = window.fetch;
     window.fetch = async (...args) => {
       try {
         const response = await originalFetch(...args);
         if (!response.ok && response.status >= 500) {
-          console.error('🌐 Network: Server error detected:', response.status);
-          if (response.status === 502 || response.status === 503 || response.status === 504) {
-            this.setState({ hasNetworkError: true });
+          const url = args[0]?.toString() || '';
+          // Don't trigger error for diagnostic API calls
+          if (!url.includes('googleapis.com') && !url.includes('diagnostic')) {
+            console.error('🌐 Network: Server error detected:', response.status);
+            if (response.status === 502 || response.status === 503 || response.status === 504) {
+              this.setState({ hasNetworkError: true });
+            }
           }
         }
         return response;
       } catch (error) {
-        console.error('🌐 Network: Fetch error detected:', error);
-        if (error instanceof TypeError && error.message.includes('fetch')) {
-          this.setState({ hasNetworkError: true });
+        const url = args[0]?.toString() || '';
+        // Don't trigger error for diagnostic API calls
+        if (!url.includes('googleapis.com') && !url.includes('diagnostic')) {
+          console.error('🌐 Network: Fetch error detected:', error);
+          if (error instanceof TypeError && error.message.includes('fetch')) {
+            this.setState({ hasNetworkError: true });
+          }
         }
         throw error;
       }

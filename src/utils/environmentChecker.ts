@@ -73,23 +73,12 @@ export const checkExternalDependencies = async () => {
     });
   }
 
-  // Check YouTube API (if needed)
-  try {
-    const response = await fetch('https://www.googleapis.com/youtube/v3/search?part=snippet&q=test&key=test', {
-      method: 'HEAD'
-    });
-    dependencies.push({
-      name: 'YouTube API',
-      status: response.status === 400 ? 'available' : 'unknown', // 400 means API is available but key is invalid
-      statusCode: response.status
-    });
-  } catch (error) {
-    dependencies.push({
-      name: 'YouTube API',
-      status: 'failed',
-      error: error instanceof Error ? error.message : 'Unknown error'
-    });
-  }
+  // Check YouTube API (if needed) - Skip to avoid CORS issues
+  dependencies.push({
+    name: 'YouTube API',
+    status: 'skipped',
+    note: 'Skipped to avoid CORS issues in diagnostic'
+  });
 
   console.group('🌐 External Dependencies Check');
   dependencies.forEach(dep => {
