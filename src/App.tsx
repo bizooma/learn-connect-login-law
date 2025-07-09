@@ -4,13 +4,17 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { Suspense, lazy } from "react";
+import { Suspense, lazy, useEffect } from "react";
+import * as React from "react";
 import ErrorBoundary from "@/components/ErrorBoundary";
+import FallbackErrorBoundary from "@/components/FallbackErrorBoundary";
+import NetworkErrorBoundary from "@/components/NetworkErrorBoundary";
 import { useSessionTracking } from "@/hooks/useSessionTracking";
 import { usePerformanceTracking } from "@/hooks/usePerformanceTracking";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProgressProvider } from "@/contexts/ProgressContext";
 import { SupportChatbot } from "@/components/support/SupportChatbot";
+import { runFullDiagnostic } from "@/utils/environmentChecker";
 
 // Lazy load components for better code splitting
 const Index = lazy(() => import("./pages/Index"));
@@ -68,6 +72,19 @@ const AppContent = () => {
     throw error;
   }
 
+  // Run diagnostic on first load
+  React.useEffect(() => {
+    const runDiagnostic = async () => {
+      try {
+        await runFullDiagnostic();
+      } catch (error) {
+        console.error('❌ Diagnostic failed:', error);
+      }
+    };
+    
+    runDiagnostic();
+  }, []);
+
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
@@ -105,22 +122,26 @@ const App = () => {
   });
   
   return (
-    <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <ErrorBoundary>
-          <AuthProvider>
-            <ProgressProvider>
-              <Toaster />
-              <Sonner />
-              <BrowserRouter>
-                <AppContent />
-                <SupportChatbot />
-              </BrowserRouter>
-            </ProgressProvider>
-          </AuthProvider>
-        </ErrorBoundary>
-      </TooltipProvider>
-    </QueryClientProvider>
+    <FallbackErrorBoundary>
+      <NetworkErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <ErrorBoundary>
+              <AuthProvider>
+                <ProgressProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
+                    <AppContent />
+                    <SupportChatbot />
+                  </BrowserRouter>
+                </ProgressProvider>
+              </AuthProvider>
+            </ErrorBoundary>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </NetworkErrorBoundary>
+    </FallbackErrorBoundary>
   );
 };
 
