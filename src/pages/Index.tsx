@@ -11,8 +11,14 @@ import { useEffect, useRef } from "react";
 const Index = () => {
   console.log('🏠 Index component initializing...');
   
+  console.log('🔐 Getting auth state...');
   const { user, loading: authLoading } = useAuth();
+  console.log('🔐 Auth state received:', { hasUser: !!user, authLoading });
+  
+  console.log('👤 Getting user role...');
   const { isAdmin, isOwner, isTeamLeader, isStudent, isClient, isFree, loading: roleLoading } = useUserRole();
+  console.log('👤 User role received:', { isAdmin, isOwner, isTeamLeader, isStudent, isClient, isFree, roleLoading });
+  
   const navigate = useNavigate();
   const location = useLocation();
   const hasRedirected = useRef(false);

@@ -29,23 +29,38 @@ window.addEventListener('error', (event) => {
 });
 
 try {
-  // Initialize YouTube API service early for better performance
-  console.log('📺 Loading YouTube API...');
-  youTubeAPIService.loadAPI().catch(error => {
-    console.warn('⚠️ Failed to preload YouTube API:', error);
-  });
-
-  // Preload critical resources based on device capabilities
-  console.log('🔄 Preloading critical resources...');
-  preloadCriticalResources();
+  // Skip YouTube API loading for faster startup
+  console.log('📺 Skipping YouTube API preload for faster startup...');
+  
+  // Skip resource preloading for faster startup
+  console.log('🔄 Skipping resource preload for faster startup...');
 
   console.log('✅ Pre-initialization complete, rendering app...');
-  createRoot(document.getElementById("root")!).render(<App />);
+  
+  const rootElement = document.getElementById("root");
+  if (!rootElement) {
+    throw new Error('Root element not found');
+  }
+  
+  console.log('🎯 Creating React root...');
+  const root = createRoot(rootElement);
+  
+  console.log('🚀 Rendering App component...');
+  root.render(<App />);
+  
+  console.log('✅ App render complete');
 } catch (error) {
   console.error('❌ Critical error during app initialization:', error);
+  console.error('❌ Error stack:', error instanceof Error ? error.stack : 'No stack available');
+  console.error('❌ Error details:', {
+    name: error instanceof Error ? error.name : 'Unknown',
+    message: error instanceof Error ? error.message : String(error)
+  });
+  
   document.body.innerHTML = `
     <div style="padding: 20px; text-align: center; font-family: Arial, sans-serif;">
       <h1 style="color: red;">Application Failed to Load</h1>
+      <p>Critical error: ${error instanceof Error ? error.message : String(error)}</p>
       <p>Check the console for details.</p>
       <button onclick="window.location.reload()">Reload Page</button>
     </div>
