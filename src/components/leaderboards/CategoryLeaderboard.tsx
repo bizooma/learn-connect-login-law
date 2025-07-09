@@ -4,6 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { optimizationTracker } from "@/utils/algorithmicOptimizationTracker";
 import LeaderboardCard from "./LeaderboardCard";
+import OptimizedComponentWrapper from "@/components/admin/OptimizedComponentWrapper";
 
 interface CategoryLeaderboardEntry {
   user_id: string;
@@ -140,27 +141,29 @@ const CategoryLeaderboard = forwardRef<CategoryLeaderboardRef, CategoryLeaderboa
   }, [entries, category]);
 
   return (
-    <div className="space-y-3">
-      {formattedEntries.map((entry, index) => (
-        <LeaderboardCard
-          key={entry.user_id}
-          rank={entry.rank_position}
-          name={entry.user_name}
-          email={entry.user_email}
-          primaryStat={{
-            label: "Completion Rate",
-            value: `${entry.completion_rate}%`,
-            icon: "🎯"
-          }}
-          secondaryStat={{
-            label: "Courses",
-            value: `${entry.courses_completed}/${entry.total_courses}`
-          }}
-          isTopThree={index < 3}
-          userId={entry.user_id}
-        />
-      ))}
-    </div>
+    <OptimizedComponentWrapper componentName={`CategoryLeaderboard_${category}`}>
+      <div className="space-y-3">
+        {formattedEntries.map((entry, index) => (
+          <LeaderboardCard
+            key={entry.user_id}
+            rank={entry.rank_position}
+            name={entry.user_name}
+            email={entry.user_email}
+            primaryStat={{
+              label: "Completion Rate",
+              value: `${entry.completion_rate}%`,
+              icon: "🎯"
+            }}
+            secondaryStat={{
+              label: "Courses",
+              value: `${entry.courses_completed}/${entry.total_courses}`
+            }}
+            isTopThree={index < 3}
+            userId={entry.user_id}
+          />
+        ))}
+      </div>
+    </OptimizedComponentWrapper>
   );
 });
 
