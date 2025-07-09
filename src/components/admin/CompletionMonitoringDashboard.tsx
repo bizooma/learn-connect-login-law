@@ -225,34 +225,43 @@ const CompletionMonitoringDashboard = () => {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Incomplete Units</CardTitle>
+            <CardTitle className="text-sm font-medium" title="Units where quizzes are completed but the unit still shows as incomplete">
+              Incomplete Units
+            </CardTitle>
             <BookOpen className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{completionStats?.totalIncompleteUnits || 0}</div>
             <p className="text-xs text-muted-foreground">Quiz done, unit pending</p>
+            <p className="text-xs text-blue-600 font-medium mt-1">→ Use "Fix Unit Completions"</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Video Issues</CardTitle>
+            <CardTitle className="text-sm font-medium" title="Videos that are 95%+ watched but not marked as complete">
+              Video Completion Issues
+            </CardTitle>
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{completionStats?.videoCompletionIssues || 0}</div>
             <p className="text-xs text-muted-foreground">Watched but not marked complete</p>
+            <p className="text-xs text-blue-600 font-medium mt-1">→ Use "Fix Video Completions"</p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Course Progress Issues</CardTitle>
+            <CardTitle className="text-sm font-medium" title="Courses showing 0% progress despite having in_progress or completed status">
+              Course Progress Calculation Issues
+            </CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{completionStats?.courseProgressInconsistencies || 0}</div>
             <p className="text-xs text-muted-foreground">Progress calculation errors</p>
+            <p className="text-xs text-blue-600 font-medium mt-1">→ Use "Bulk Progress Recalculation"</p>
           </CardContent>
         </Card>
 
@@ -338,8 +347,10 @@ const CompletionMonitoringDashboard = () => {
               <Alert>
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>
-                  These operations affect all users and should be used carefully. 
-                  Run after individual repairs to recalculate overall progress.
+                  <div className="space-y-2">
+                    <div><strong>Bulk Progress Recalculation:</strong> Fixes course-level progress calculation issues where courses show 0% progress despite having in_progress or completed status.</div>
+                    <p className="text-sm">⚠️ This operation affects all users and should be used carefully. Run after individual repairs to recalculate overall progress.</p>
+                  </div>
                 </AlertDescription>
               </Alert>
 
@@ -348,6 +359,7 @@ const CompletionMonitoringDashboard = () => {
                   onClick={runBulkProgressRecalculation}
                   className="w-full"
                   size="lg"
+                  title="Recalculates course progress percentages for all users - use this for Course Progress Calculation Issues"
                 >
                   <Database className="h-4 w-4 mr-2" />
                   Bulk Progress Recalculation

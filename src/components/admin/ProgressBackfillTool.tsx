@@ -41,8 +41,11 @@ const ProgressBackfillTool = () => {
         <Alert>
           <AlertTriangle className="h-4 w-4" />
           <AlertDescription>
-            This tool will find users who have completed quizzes but their units still show as incomplete, 
-            and fix their progress records. This is safe and will not remove any existing progress.
+            <div className="space-y-2">
+              <div><strong>Fix Unit Completions:</strong> Targets quiz/unit completion mismatches - finds units where quizzes are completed but the unit still shows as incomplete.</div>
+              <div><strong>Fix Video Completions:</strong> Targets video completion tracking issues - finds videos that should be marked as complete based on watch percentage.</div>
+              <p className="text-sm">⚠️ These tools are safe and will not remove any existing progress.</p>
+            </div>
           </AlertDescription>
         </Alert>
 

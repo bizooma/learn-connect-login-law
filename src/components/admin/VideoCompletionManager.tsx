@@ -130,6 +130,9 @@ const VideoCompletionManager = () => {
             <RefreshCw className="h-5 w-5" />
             <span>Video Completion Repair Tool</span>
           </CardTitle>
+          <p className="text-sm text-muted-foreground mt-2">
+            Use these tools for <strong>Video Completion Issues</strong> - when videos are 95%+ watched but not marked as complete
+          </p>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
