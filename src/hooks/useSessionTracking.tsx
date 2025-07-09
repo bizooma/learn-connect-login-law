@@ -170,9 +170,9 @@ export const useSessionTracking = () => {
     };
   }, [endSession]);
 
-  // End session when page unloads - stabilized with useCallback
+  // End session when page unloads - fix hook usage
   useEffect(() => {
-    const handleBeforeUnload = useCallback((event: BeforeUnloadEvent) => {
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
       if (sessionIdRef.current) {
         console.log('Page unloading, attempting to end session');
         // Use sendBeacon for better reliability during page unload
@@ -190,7 +190,7 @@ export const useSessionTracking = () => {
         // Also try the normal way as fallback
         endSession();
       }
-    }, [endSession]);
+    };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => {
