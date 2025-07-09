@@ -89,28 +89,52 @@ const IssueReportModal = ({ open, onOpenChange }: IssueReportModalProps) => {
 
   // Fetch user's assigned courses
   const fetchUserCourses = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('No user found');
+      return;
+    }
+
+    console.log('Fetching courses for user:', user.id);
 
     try {
-      const { data: assignments } = await supabase
+      // First, get assignments with course IDs
+      const { data: assignments, error: assignmentsError } = await supabase
         .from('course_assignments')
-        .select(`
-          course_id,
-          courses (
-            id,
-            title
-          )
-        `)
+        .select('course_id')
         .eq('user_id', user.id);
 
-      if (assignments) {
-        const courseList = assignments
-          .filter(assignment => assignment.courses)
-          .map(assignment => ({
-            id: assignment.courses.id,
-            title: assignment.courses.title,
-          }));
-        setCourses(courseList);
+      if (assignmentsError) {
+        console.error('Error fetching assignments:', assignmentsError);
+        return;
+      }
+
+      console.log('Assignments found:', assignments);
+
+      if (!assignments || assignments.length === 0) {
+        console.log('No course assignments found for user');
+        setCourses([]);
+        return;
+      }
+
+      // Get unique course IDs
+      const courseIds = [...new Set(assignments.map(a => a.course_id))];
+      console.log('Course IDs:', courseIds);
+
+      // Fetch course details
+      const { data: coursesData, error: coursesError } = await supabase
+        .from('courses')
+        .select('id, title')
+        .in('id', courseIds);
+
+      if (coursesError) {
+        console.error('Error fetching courses:', coursesError);
+        return;
+      }
+
+      console.log('Courses data:', coursesData);
+
+      if (coursesData) {
+        setCourses(coursesData);
       }
     } catch (error) {
       console.error('Error fetching courses:', error);
