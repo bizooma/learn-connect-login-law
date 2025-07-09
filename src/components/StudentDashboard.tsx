@@ -17,6 +17,7 @@ import StudentBadgesSection from "./badges/StudentBadgesSection";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 import Confetti from "./ui/confetti";
 import WelcomeModal from "./modals/WelcomeModal";
+import IssueReportButton from "./support/IssueReportButton";
 import { useFirstTimeUser } from "@/hooks/useFirstTimeUser";
 
 const StudentDashboard = () => {
@@ -128,9 +129,12 @@ const StudentDashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <NotificationBanner />
           
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">Student Dashboard</h1>
-            <p className="text-gray-600">Welcome back! Continue your learning journey.</p>
+          <div className="mb-8 flex justify-between items-start">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">Student Dashboard</h1>
+              <p className="text-gray-600">Welcome back! Continue your learning journey.</p>
+            </div>
+            <IssueReportButton />
           </div>
           
           <Tabs value={mainTab} onValueChange={setMainTab} className="w-full">

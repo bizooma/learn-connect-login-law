@@ -9,6 +9,7 @@ import LMSTreeFooter from "./lms-tree/LMSTreeFooter";
 import DashboardHeader from "./dashboard/DashboardHeader";
 import DashboardStats from "./dashboard/DashboardStats";
 import DashboardContent from "./dashboard/DashboardContent";
+import IssueReportButton from "./support/IssueReportButton";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
 
 const ClientDashboard = () => {
@@ -111,6 +112,10 @@ const ClientDashboard = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <NotificationBanner />
+          
+          <div className="mb-8 flex justify-end">
+            <IssueReportButton />
+          </div>
 
           <DashboardStats stats={clientStats} />
 

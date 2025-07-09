@@ -9,6 +9,7 @@ import OwnerDashboardHeader from "@/components/owner/OwnerDashboardHeader";
 import OwnerDashboardTabs from "@/components/owner/OwnerDashboardTabs";
 import NotificationBanner from "@/components/notifications/NotificationBanner";
 import LMSTreeFooter from "@/components/lms-tree/LMSTreeFooter";
+import IssueReportButton from "@/components/support/IssueReportButton";
 import { useEffect } from "react";
 
 const OwnerDashboard = () => {
@@ -58,6 +59,10 @@ const OwnerDashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Notification Banner */}
           <NotificationBanner />
+          
+          <div className="mb-8 flex justify-end">
+            <IssueReportButton />
+          </div>
 
           {/* Show main dashboard with tabs - law firm will be auto-created if needed */}
           {lawFirm && <OwnerDashboardTabs lawFirm={lawFirm} onUpdateLawFirm={updateLawFirm} />}

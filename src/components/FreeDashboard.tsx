@@ -8,6 +8,7 @@ import NotificationBanner from "./notifications/NotificationBanner";
 import LMSTreeFooter from "./lms-tree/LMSTreeFooter";
 import DashboardStats from "./dashboard/DashboardStats";
 import FreeDashboardContent from "./free/FreeDashboardContent";
+import IssueReportButton from "./support/IssueReportButton";
 
 const FreeDashboard = () => {
   const { user, signOut } = useAuth();
@@ -148,6 +149,10 @@ const FreeDashboard = () => {
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <NotificationBanner />
+          
+          <div className="mb-8 flex justify-end">
+            <IssueReportButton />
+          </div>
 
           <DashboardStats stats={stats} />
 
