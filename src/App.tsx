@@ -10,6 +10,7 @@ import { useSessionTracking } from "@/hooks/useSessionTracking";
 import { usePerformanceTracking } from "@/hooks/usePerformanceTracking";
 import { AuthProvider } from "@/hooks/useAuth";
 import { ProgressProvider } from "@/contexts/ProgressContext";
+import { SupportChatbot } from "@/components/support/SupportChatbot";
 
 // Lazy load components for better code splitting
 const Index = lazy(() => import("./pages/Index"));
@@ -91,6 +92,7 @@ const App = () => (
             <Sonner />
             <BrowserRouter>
               <AppContent />
+              <SupportChatbot />
             </BrowserRouter>
           </ProgressProvider>
         </AuthProvider>
