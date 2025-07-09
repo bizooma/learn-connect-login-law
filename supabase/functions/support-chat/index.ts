@@ -13,7 +13,7 @@ const corsHeaders = {
 
 const studentKnowledgeBase = `
 Getting Started:
-- Log into your student account and navigate to your dashboard
+- Log into your account and navigate to your dashboard
 - View your assigned courses and track progress
 - Switch between Dashboard, Certificates, and Profile tabs
 
@@ -45,6 +45,50 @@ Certificates:
 - View all certificates in Certificates tab
 - Download PDF copies for your records
 - Each has unique verification number
+
+Law Firm Management (for Law Firm Owners):
+- Set up your law firm profile in the Settings tab
+- Upload your law firm logo for branding
+- Manage seat allocation for your employees
+- Add employees to your law firm:
+  1. Go to the Employee Management section
+  2. Click "Add Employee" button
+  3. Fill in employee details (name, email, role)
+  4. Select their role (student, team_leader, etc.)
+  5. Assign them to courses as needed
+- View employee progress and completion rates
+- Remove employees when they leave your firm
+- Track seat usage vs. total seats purchased
+
+Team Leadership (for Team Leaders):
+- View and manage your team members
+- Monitor team progress across assigned courses
+- Access team performance dashboards
+- Assign courses to team members
+- View individual team member progress
+
+Profile Management:
+- Update personal information in Profile tab
+- Upload professional profile picture
+- Change password and security settings
+- Update law firm association if applicable
+- Manage notification preferences
+
+Dashboard Navigation:
+- Dashboard: View course progress and statistics
+- Certificates: Download and view earned certificates
+- Profile: Manage personal and professional information
+- Course Catalog: Browse available courses
+- LMS Tree: Visual course structure overview
+- Leaderboards: View competitive rankings
+
+Common Tasks:
+- How to enroll in courses: Courses are assigned by administrators
+- How to track progress: View Dashboard for real-time progress
+- How to get certificates: Complete all course requirements
+- How to contact support: Use this chat or submit a ticket
+- How to reset password: Use "Forgot Password" on login page
+- How to update profile: Go to Profile tab and edit information
 `;
 
 const adminKnowledgeBase = `
