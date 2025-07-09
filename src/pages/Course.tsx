@@ -5,7 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useEffect, useCallback } from "react";
-import { useOptimizedRealtimeSubscriptions } from "@/hooks/useOptimizedRealtimeSubscriptions";
+import { useCourseRealtimeUpdates } from "@/hooks/useCourseRealtimeUpdates";
 import CourseHeader from "@/components/course/CourseHeader";
 import CourseSidebar from "@/components/course/CourseSidebar";
 import CourseMainContent from "@/components/course/CourseMainContent";
@@ -19,8 +19,6 @@ const Course = () => {
   const { isAdmin } = useUserRole();
   const { course, selectedUnit, setSelectedUnit, loading, error, refreshCourse } = useCourse(courseId!);
   const { updateCourseProgress } = useUserProgress(user?.id);
-  const { subscribe } = useOptimizedRealtimeSubscriptions();
-
   // Safely handle error for logging
   const getErrorMessage = (err: unknown): string => {
     if (typeof err === 'string') return err;
@@ -68,49 +66,14 @@ const Course = () => {
     }
   }, [course, user, authLoading, isAdmin, navigate, updateCourseProgress]);
 
-  // Optimized real-time subscriptions setup with coordination
-  const handleCourseContentUpdate = useCallback((payload: any) => {
-    console.log('Course content change detected:', payload);
-    refreshCourse();
-  }, [refreshCourse]);
-
-  useEffect(() => {
-    if (!courseId) return;
-
-    console.log('Setting up optimized real-time subscriptions for course:', courseId);
-
-    // Create coordinated subscriptions using the optimized manager
-    const unsubscribeModules = subscribe({
-      id: `course-modules-${courseId}`,
-      table: 'modules',
-      filter: `course_id=eq.${courseId}`,
-      events: ['INSERT', 'UPDATE', 'DELETE'],
-      callback: handleCourseContentUpdate
-    });
-
-    const unsubscribeLessons = subscribe({
-      id: `course-lessons-${courseId}`,
-      table: 'lessons', 
-      filter: `course_id=eq.${courseId}`,
-      events: ['INSERT', 'UPDATE', 'DELETE'],
-      callback: handleCourseContentUpdate
-    });
-
-    // For units, we need to be more specific since they don't have direct course_id
-    const unsubscribeUnits = subscribe({
-      id: `course-units-${courseId}`,
-      table: 'units',
-      events: ['INSERT', 'UPDATE', 'DELETE'],
-      callback: handleCourseContentUpdate
-    });
-
-    return () => {
-      unsubscribeModules();
-      unsubscribeLessons();
-      unsubscribeUnits();
-      console.log('Cleaned up optimized course subscriptions');
-    };
-  }, [courseId, subscribe, handleCourseContentUpdate]);
+  // Unified real-time subscriptions with intelligent batching
+  const { diagnostics } = useCourseRealtimeUpdates({
+    courseId: courseId || '',
+    onCourseUpdate: refreshCourse,
+    onContentUpdate: refreshCourse,
+    enableSmartBatching: true,
+    batchDelay: 300 // Reduced delay for better responsiveness
+  });
 
   if (authLoading || loading) {
     console.log('Course: Showing loading state:', { authLoading, loading });
