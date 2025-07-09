@@ -114,61 +114,29 @@ const AppContent = () => {
 
 const App = () => {
   console.log('🎯 App component initializing...');
-  console.log('🔗 Environment check:', {
-    href: window.location.href,
-    origin: window.location.origin,
-    pathname: window.location.pathname,
-    timestamp: new Date().toISOString()
-  });
   
-  try {
-    console.log('🛡️ Setting up error boundaries...');
-    
-    console.log('🔄 Creating query client...');
-    
-    console.log('🎨 Setting up providers...');
-    
-    return (
-      <FallbackErrorBoundary>
-        <NetworkErrorBoundary>
-          <QueryClientProvider client={queryClient}>
-            <TooltipProvider>
-              <ErrorBoundary>
-                <AuthProvider>
-                  <ProgressProvider>
-                    <Toaster />
-                    <Sonner />
-                    <BrowserRouter>
-                      <AppContent />
-                      <SupportChatbot />
-                    </BrowserRouter>
-                  </ProgressProvider>
-                </AuthProvider>
-              </ErrorBoundary>
-            </TooltipProvider>
-          </QueryClientProvider>
-        </NetworkErrorBoundary>
-      </FallbackErrorBoundary>
-    );
-  } catch (error) {
-    console.error('❌ Critical error in App component:', error);
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-red-50">
-        <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
-          <h1 className="text-2xl font-bold text-red-600 mb-4">App Component Error</h1>
-          <p className="text-gray-600 mb-4">
-            {error instanceof Error ? error.message : String(error)}
-          </p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
-          >
-            Reload
-          </button>
-        </div>
-      </div>
-    );
-  }
+  return (
+    <FallbackErrorBoundary>
+      <NetworkErrorBoundary>
+        <QueryClientProvider client={queryClient}>
+          <TooltipProvider>
+            <ErrorBoundary>
+              <AuthProvider>
+                <ProgressProvider>
+                  <Toaster />
+                  <Sonner />
+                  <BrowserRouter>
+                    <AppContent />
+                    <SupportChatbot />
+                  </BrowserRouter>
+                </ProgressProvider>
+              </AuthProvider>
+            </ErrorBoundary>
+          </TooltipProvider>
+        </QueryClientProvider>
+      </NetworkErrorBoundary>
+    </FallbackErrorBoundary>
+  );
 };
 
 export default App;
