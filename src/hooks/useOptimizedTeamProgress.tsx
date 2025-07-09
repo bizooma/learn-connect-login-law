@@ -2,6 +2,7 @@ import { useState, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 import { optimizationTracker } from '@/utils/algorithmicOptimizationTracker';
+import { useAdvancedCaching } from './useAdvancedCaching';
 
 export interface TeamMemberProgress {
   user_id: string;
@@ -27,24 +28,23 @@ export interface CourseProgress {
   is_mandatory: boolean;
 }
 
-// Cache for team progress data
-const progressCache = new Map<string, { data: TeamMemberProgress[]; timestamp: number }>();
-const CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
 export const useOptimizedTeamProgress = () => {
   const [loading, setLoading] = useState(false);
   const [teamProgress, setTeamProgress] = useState<TeamMemberProgress[]>([]);
+  const { getCachedData, setCachedData, invalidateCache, warmCache, preloadRelatedData, getCacheStats } = useAdvancedCaching();
 
-  // Optimized single-query approach
+  // Optimized single-query approach with advanced caching
   const fetchTeamProgressOptimized = useCallback(async (teamId: string) => {
     const start = performance.now();
+    const cacheKey = `team_progress_${teamId}`;
+    const dependencies = ['team_members', 'course_assignments', 'user_progress'];
     
-    // Check cache first
-    const cached = progressCache.get(teamId);
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      setTeamProgress(cached.data);
+    // Check advanced cache first
+    const cached = getCachedData<TeamMemberProgress[]>(cacheKey, dependencies);
+    if (cached) {
+      setTeamProgress(cached);
       optimizationTracker.trackOptimization(
-        'TeamProgress_CacheHit',
+        'TeamProgress_AdvancedCacheHit',
         'memory_optimization',
         0,
         performance.now() - start
@@ -178,13 +178,19 @@ export const useOptimizedTeamProgress = () => {
         };
       });
 
-      // Cache the results
-      progressCache.set(teamId, {
-        data: memberProgress,
-        timestamp: Date.now()
-      });
+      // Cache the results with advanced caching
+      setCachedData(cacheKey, memberProgress, 5 * 60 * 1000, dependencies);
 
       setTeamProgress(memberProgress);
+      
+      // Preload related data
+      preloadRelatedData(cacheKey, [
+        `team_stats_${teamId}`,
+        `team_courses_${teamId}`
+      ], async (relatedKey) => {
+        // Placeholder for related data fetching
+        return null;
+      });
       
       const duration = performance.now() - start;
       optimizationTracker.trackOptimization(
@@ -207,28 +213,29 @@ export const useOptimizedTeamProgress = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [getCachedData, setCachedData, preloadRelatedData]);
 
   // Clear cache when needed
-  const clearCache = useCallback((teamId?: string) => {
+  const clearCacheForTeam = useCallback((teamId?: string) => {
     if (teamId) {
-      progressCache.delete(teamId);
+      invalidateCache('team_members');
+      invalidateCache('course_assignments');
+      invalidateCache('user_progress');
     } else {
-      progressCache.clear();
+      invalidateCache('team_members');
+      invalidateCache('course_assignments');
+      invalidateCache('user_progress');
     }
-  }, []);
+  }, [invalidateCache]);
 
-  // Memoized cache status
-  const cacheStats = useMemo(() => ({
-    size: progressCache.size,
-    entries: Array.from(progressCache.keys())
-  }), [teamProgress]);
+  // Memoized cache status using advanced caching
+  const advancedCacheStats = useMemo(() => getCacheStats(), [getCacheStats, teamProgress]);
 
   return {
     teamProgress,
     loading,
     fetchTeamProgress: fetchTeamProgressOptimized,
-    clearCache,
-    cacheStats
+    clearCache: clearCacheForTeam,
+    cacheStats: advancedCacheStats
   };
 };

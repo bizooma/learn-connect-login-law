@@ -1,6 +1,7 @@
 import { useState, useCallback, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { optimizationTracker } from '@/utils/algorithmicOptimizationTracker';
+import { useAdvancedCaching } from './useAdvancedCaching';
 
 export interface DashboardStats {
   total_users: number;
@@ -12,28 +13,27 @@ export interface DashboardStats {
   active_learners: number;
 }
 
-// Cache for dashboard stats
-const statsCache = new Map<string, { data: DashboardStats; timestamp: number }>();
-const CACHE_TTL = 2 * 60 * 1000; // 2 minutes for dashboard stats
-
 export const useOptimizedDashboardStats = () => {
   const [loading, setLoading] = useState(false);
   const [stats, setStats] = useState<DashboardStats | null>(null);
+  const { getCachedData, setCachedData, invalidateCache, warmCache, getCacheStats } = useAdvancedCaching();
 
   const fetchDashboardStats = useCallback(async () => {
     const start = performance.now();
+    const cacheKey = 'dashboard_stats_global';
+    const dependencies = ['users', 'courses', 'assignments', 'progress', 'streaks'];
     
-    // Check cache first
-    const cached = statsCache.get('global');
-    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
-      setStats(cached.data);
+    // Check advanced cache first
+    const cached = getCachedData<DashboardStats>(cacheKey, dependencies);
+    if (cached) {
+      setStats(cached);
       optimizationTracker.trackOptimization(
-        'DashboardStats_CacheHit',
+        'DashboardStats_AdvancedCacheHit',
         'memory_optimization',
         0,
         performance.now() - start
       );
-      return cached.data;
+      return cached;
     }
 
     setLoading(true);
@@ -85,11 +85,8 @@ export const useOptimizedDashboardStats = () => {
         active_learners: streaksResult.count || 0
       };
 
-      // Cache the results
-      statsCache.set('global', {
-        data: statsData,
-        timestamp: Date.now()
-      });
+      // Cache the results with advanced caching
+      setCachedData(cacheKey, statsData, 2 * 60 * 1000, dependencies);
 
       setStats(statsData);
       
@@ -110,34 +107,38 @@ export const useOptimizedDashboardStats = () => {
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [getCachedData, setCachedData]);
 
-  // Refresh cache (materialized view refresh will be available after migration)
+  // Refresh cache using advanced caching
   const refreshStatsCache = useCallback(async () => {
     console.log('Refreshing dashboard stats cache manually');
     // Clear cache and fetch fresh data
-    statsCache.clear();
+    invalidateCache('users');
+    invalidateCache('courses');
+    invalidateCache('assignments');
+    invalidateCache('progress');
+    invalidateCache('streaks');
     return await fetchDashboardStats();
-  }, [fetchDashboardStats]);
+  }, [fetchDashboardStats, invalidateCache]);
 
   // Clear cache when needed
-  const clearCache = useCallback(() => {
-    statsCache.clear();
-  }, []);
+  const clearCacheAdvanced = useCallback(() => {
+    invalidateCache('users');
+    invalidateCache('courses');
+    invalidateCache('assignments');
+    invalidateCache('progress');
+    invalidateCache('streaks');
+  }, [invalidateCache]);
 
-  // Memoized cache status
-  const cacheStats = useMemo(() => ({
-    size: statsCache.size,
-    entries: Array.from(statsCache.keys()),
-    lastUpdate: statsCache.get('global')?.timestamp
-  }), [stats]);
+  // Memoized cache status using advanced caching
+  const advancedCacheStats = useMemo(() => getCacheStats(), [getCacheStats, stats]);
 
   return {
     stats,
     loading,
     fetchDashboardStats,
     refreshStatsCache,
-    clearCache,
-    cacheStats
+    clearCache: clearCacheAdvanced,
+    cacheStats: advancedCacheStats
   };
 };
