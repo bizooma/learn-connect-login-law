@@ -79,7 +79,11 @@ export const SupportChatbot = () => {
             </div>
           ) : (
             <>
-              <ScrollArea className="flex-1 p-4">
+              <div 
+                className="flex-1 overflow-y-auto p-4 max-h-[350px]"
+                onWheel={(e) => e.stopPropagation()}
+                style={{ scrollbarWidth: 'thin' }}
+              >
                 {messages.length === 0 && (
                   <div className="text-center text-muted-foreground py-8">
                     <MessageCircle className="h-12 w-12 mx-auto mb-4 opacity-50" />
@@ -101,7 +105,7 @@ export const SupportChatbot = () => {
                     </div>
                   </div>
                 )}
-              </ScrollArea>
+              </div>
 
               <div className="border-t p-4">
                 <div className="flex items-center gap-2 mb-2">
