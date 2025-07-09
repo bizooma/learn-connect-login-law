@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { useSessionTracking } from "@/hooks/useSessionTracking";
 import { AuthProvider } from "@/hooks/useAuth";
+import ChatbotWidget from "@/components/support/ChatbotWidget";
 import Index from "./pages/Index";
 import Course from "./pages/Course";
 import Courses from "./pages/Courses";
@@ -33,27 +34,30 @@ const AppContent = () => {
   useSessionTracking();
 
   return (
-    <Routes>
-      <Route path="/" element={<Index />} />
-      <Route path="/dashboard" element={<Navigate to="/" replace />} />
-      <Route path="/homepage" element={<Homepage />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/courses" element={<Courses />} />
-      <Route path="/course/:id" element={<Course />} />
-      <Route path="/section/:id" element={<Section />} />
-      <Route path="/knowledge-base" element={<KnowledgeBase />} />
-      <Route path="/admin-knowledge-base" element={<AdminKnowledgeBase />} />
-      <Route path="/lms-tree" element={<LMSTree />} />
-      <Route path="/flowchart-lms-tree" element={<FlowchartLMSTree />} />
-      <Route path="/protected-flowchart-lms-tree" element={<ProtectedFlowchartLMSTree />} />
-      <Route path="/owner-dashboard" element={<OwnerDashboard />} />
-      <Route path="/team-leader-dashboard" element={<TeamLeaderDashboard />} />
-      <Route path="/student-dashboard" element={<StudentDashboard />} />
-      <Route path="/client-dashboard" element={<ClientDashboard />} />
-      <Route path="/free-dashboard" element={<FreeDashboard />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/dashboard" element={<Navigate to="/" replace />} />
+        <Route path="/homepage" element={<Homepage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/courses" element={<Courses />} />
+        <Route path="/course/:id" element={<Course />} />
+        <Route path="/section/:id" element={<Section />} />
+        <Route path="/knowledge-base" element={<KnowledgeBase />} />
+        <Route path="/admin-knowledge-base" element={<AdminKnowledgeBase />} />
+        <Route path="/lms-tree" element={<LMSTree />} />
+        <Route path="/flowchart-lms-tree" element={<FlowchartLMSTree />} />
+        <Route path="/protected-flowchart-lms-tree" element={<ProtectedFlowchartLMSTree />} />
+        <Route path="/owner-dashboard" element={<OwnerDashboard />} />
+        <Route path="/team-leader-dashboard" element={<TeamLeaderDashboard />} />
+        <Route path="/student-dashboard" element={<StudentDashboard />} />
+        <Route path="/client-dashboard" element={<ClientDashboard />} />
+        <Route path="/free-dashboard" element={<FreeDashboard />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      <ChatbotWidget />
+    </>
   );
 };
 
