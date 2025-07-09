@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { optimizationTracker } from "@/utils/algorithmicOptimizationTracker";
 import LeaderboardCard from "./LeaderboardCard";
+import { withPerformanceOptimization } from "@/utils/performanceBoundaries";
 
 interface StreakLeaderboardEntry {
   user_id: string;
@@ -189,4 +190,5 @@ const StreakLeaderboard = forwardRef<StreakLeaderboardRef, {}>((props, ref) => {
 
 StreakLeaderboard.displayName = 'StreakLeaderboard';
 
-export default StreakLeaderboard;
+// Export optimized component with performance boundaries
+export default withPerformanceOptimization(StreakLeaderboard, 'StreakLeaderboard');

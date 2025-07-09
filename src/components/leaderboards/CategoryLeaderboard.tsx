@@ -5,6 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import { optimizationTracker } from "@/utils/algorithmicOptimizationTracker";
 import LeaderboardCard from "./LeaderboardCard";
 import OptimizedComponentWrapper from "@/components/admin/OptimizedComponentWrapper";
+import { withPerformanceOptimization, useMemoizedClassName } from "@/utils/performanceBoundaries";
 
 interface CategoryLeaderboardEntry {
   user_id: string;
@@ -169,4 +170,5 @@ const CategoryLeaderboard = forwardRef<CategoryLeaderboardRef, CategoryLeaderboa
 
 CategoryLeaderboard.displayName = 'CategoryLeaderboard';
 
-export default CategoryLeaderboard;
+// Export optimized component with performance boundaries
+export default withPerformanceOptimization(CategoryLeaderboard, 'CategoryLeaderboard');

@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Trophy, TrendingUp, AlertCircle } from "lucide-react";
 import { useRenderPerformanceMonitor } from "@/utils/renderPerformanceMonitor";
+import { useMemoizedClassName, withPerformanceOptimization } from "@/utils/performanceBoundaries";
 
 interface MiniLeaderboardProps {
   type: 'learning_streak' | 'sales_training' | 'legal_training';
@@ -197,30 +198,39 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
     </Card>
   ), [icon, title, fetchMiniLeaderboard]);
 
-  // Memoized entries list to prevent expensive re-computations
+  // Memoized entries list with optimized class names
   const entriesList = useMemo(() => {
     if (entries.length === 0) return null;
     
-    return entries.map((entry, index) => (
-      <div key={index} className="flex items-center justify-between text-sm">
-        <div className="flex items-center gap-2">
-          <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium ${
-            index === 0 ? 'bg-yellow-100 text-yellow-800' :
-            index === 1 ? 'bg-gray-100 text-gray-700' :
-            index === 2 ? 'bg-amber-100 text-amber-800' :
-            'bg-blue-100 text-blue-800'
-          }`}>
-            {entry.rank_position}
-          </span>
-          <span className="font-medium truncate max-w-[100px]">
-            {entry.user_name}
+    return entries.map((entry, index) => {
+      // Memoized class name for rank badge
+      const rankBadgeClass = useMemoizedClassName(
+        'w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium',
+        {
+          'bg-yellow-100 text-yellow-800': index === 0,
+          'bg-gray-100 text-gray-700': index === 1,
+          'bg-amber-100 text-amber-800': index === 2,
+          'bg-blue-100 text-blue-800': index >= 3
+        },
+        [index]
+      );
+
+      return (
+        <div key={index} className="flex items-center justify-between text-sm">
+          <div className="flex items-center gap-2">
+            <span className={rankBadgeClass}>
+              {entry.rank_position}
+            </span>
+            <span className="font-medium truncate max-w-[100px]">
+              {entry.user_name}
+            </span>
+          </div>
+          <span className="font-semibold text-gray-900">
+            {formatScore(entry.score)}
           </span>
         </div>
-        <span className="font-semibold text-gray-900">
-          {formatScore(entry.score)}
-        </span>
-      </div>
-    ));
+      );
+    });
   }, [entries, formatScore]);
 
   if (loading) {
@@ -258,4 +268,5 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
   );
 };
 
-export default MiniLeaderboard;
+// Export optimized component with performance boundaries
+export default withPerformanceOptimization(MiniLeaderboard, 'MiniLeaderboard');
