@@ -19,12 +19,16 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-4`}>
       <div className={`flex items-start gap-2 max-w-[80%] ${isUser ? 'flex-row-reverse' : 'flex-row'}`}>
         <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-          isUser ? 'bg-blue-600' : 'bg-gray-200'
+          isUser ? 'bg-blue-600' : 'bg-transparent'
         }`}>
           {isUser ? (
             <User className="h-4 w-4 text-white" />
           ) : (
-            <Bot className="h-4 w-4 text-gray-600" />
+            <img 
+              src="/lovable-uploads/46508e0c-9266-4e5e-8cfd-cd390ddf40c3.png" 
+              alt="Support Avatar" 
+              className="w-8 h-8 rounded-full object-cover"
+            />
           )}
         </div>
         
