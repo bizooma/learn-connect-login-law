@@ -261,8 +261,19 @@ export const useVideoProgress = (unitId: string, courseId: string) => {
     fetchVideoProgress();
   }, [fetchVideoProgress]);
 
+  // Enhanced display percentage that shows 100% when video is completed
+  const getDisplayPercentage = useCallback(() => {
+    if (videoProgress.is_completed) {
+      return 100;
+    }
+    return videoProgress.watch_percentage;
+  }, [videoProgress.is_completed, videoProgress.watch_percentage]);
+
   return {
-    videoProgress,
+    videoProgress: {
+      ...videoProgress,
+      displayPercentage: getDisplayPercentage()
+    },
     loading,
     updateVideoProgress,
     markVideoComplete,

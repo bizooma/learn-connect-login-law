@@ -8,6 +8,7 @@ import { Progress } from "@/components/ui/progress";
 import { Clock, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { useReliableCompletion } from "@/hooks/useReliableCompletion";
+import { useQuizAudit } from "@/hooks/useQuizAudit";
 
 type Quiz = Tables<'quizzes'> & {
   quiz_questions: Array<Tables<'quiz_questions'> & {
@@ -28,6 +29,7 @@ const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTak
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { markQuizComplete, evaluateAndCompleteUnit } = useReliableCompletion();
+  const { logQuizAttempt, validateQuizScore } = useQuizAudit();
 
   const questions = quiz.quiz_questions || [];
   const totalQuestions = questions.length;
@@ -73,35 +75,44 @@ const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTak
     try {
       console.log('📝 Submitting quiz:', quiz.id);
       
-      // Calculate score
-      let correctAnswers = 0;
+      // Use the enhanced quiz validation system
+      const validationResult = validateQuizScore(answers, questions, quiz.passing_score);
       
-      questions.forEach(question => {
-        const selectedOptionId = answers[question.id];
-        const correctOption = question.quiz_question_options.find(opt => opt.is_correct);
-        
-        if (selectedOptionId === correctOption?.id) {
-          correctAnswers++;
-        }
+      // This should be the accurate score
+      const calculatedScore = validationResult.calculatedScore;
+      const passed = validationResult.passed;
+      
+      console.log('📊 Enhanced quiz results:', { 
+        calculatedScore, 
+        passed, 
+        correctAnswers: validationResult.correctAnswers, 
+        totalQuestions: validationResult.totalQuestions 
       });
 
-      const score = Math.round((correctAnswers / totalQuestions) * 100);
-      const passed = score >= quiz.passing_score;
-      
-      console.log('📊 Quiz results:', { score, passed, correctAnswers, totalQuestions });
+      // Log the quiz attempt for audit purposes
+      if (quiz.unit_id) {
+        await logQuizAttempt({
+          quizId: quiz.id,
+          unitId: quiz.unit_id,
+          courseId: courseId,
+          answers: answers,
+          calculatedScore: calculatedScore,
+          displayedScore: calculatedScore, // Should be the same, but we track both
+          correctAnswers: validationResult.correctAnswers,
+          totalQuestions: validationResult.totalQuestions,
+          passingScore: quiz.passing_score
+        });
+      }
 
       if (passed && quiz.unit_id) {
         console.log('✅ Quiz passed, marking quiz complete and evaluating unit');
         
         // Mark quiz as completed
         await markQuizComplete(quiz.unit_id, courseId);
-        
-        // Evaluate if unit should be completed
-        // Note: We'll need the unit data for this, but for now we'll trigger the completion
-        // The evaluateAndCompleteUnit will be called from the parent component
       }
 
-      onComplete(passed, score);
+      // Always pass the calculated score to ensure accuracy
+      onComplete(passed, calculatedScore);
     } catch (error) {
       console.error('❌ Error submitting quiz:', error);
     } finally {

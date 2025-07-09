@@ -130,7 +130,8 @@ const VideoProgressTracker = ({
 
   // Determine if video is actually completed (check both systems)
   const isVideoCompleted = videoProgress.is_completed || completionState.isCompleted;
-  const displayPercentage = Math.max(videoProgress.watch_percentage, completionState.watchPercentage);
+  // Use the enhanced display percentage that shows 100% when completed
+  const displayPercentage = videoProgress.displayPercentage || Math.max(videoProgress.watch_percentage, completionState.watchPercentage);
 
   return (
     <div className="bg-white rounded-lg shadow-sm border p-4 mb-4">
