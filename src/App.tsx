@@ -49,11 +49,24 @@ const PageLoader = () => (
 );
 
 const AppContent = () => {
-  // Initialize session tracking
-  useSessionTracking();
+  console.log('🚀 AppContent rendering at:', new Date().toISOString());
+  console.log('🌐 Current URL:', window.location.href);
+  console.log('🔧 User Agent:', navigator.userAgent);
   
-  // Initialize performance tracking
-  usePerformanceTracking();
+  try {
+    // Initialize session tracking
+    console.log('📊 Initializing session tracking...');
+    useSessionTracking();
+    
+    // Initialize performance tracking
+    console.log('⚡ Initializing performance tracking...');
+    usePerformanceTracking();
+    
+    console.log('✅ App hooks initialized successfully');
+  } catch (error) {
+    console.error('❌ Error in App hooks:', error);
+    throw error;
+  }
 
   return (
     <Suspense fallback={<PageLoader />}>
@@ -82,23 +95,33 @@ const AppContent = () => {
   );
 };
 
-const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <ErrorBoundary>
-        <AuthProvider>
-          <ProgressProvider>
-            <Toaster />
-            <Sonner />
-            <BrowserRouter>
-              <AppContent />
-              <SupportChatbot />
-            </BrowserRouter>
-          </ProgressProvider>
-        </AuthProvider>
-      </ErrorBoundary>
-    </TooltipProvider>
-  </QueryClientProvider>
-);
+const App = () => {
+  console.log('🎯 App component initializing...');
+  console.log('🔗 Environment check:', {
+    href: window.location.href,
+    origin: window.location.origin,
+    pathname: window.location.pathname,
+    timestamp: new Date().toISOString()
+  });
+  
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <ErrorBoundary>
+          <AuthProvider>
+            <ProgressProvider>
+              <Toaster />
+              <Sonner />
+              <BrowserRouter>
+                <AppContent />
+                <SupportChatbot />
+              </BrowserRouter>
+            </ProgressProvider>
+          </AuthProvider>
+        </ErrorBoundary>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
 
 export default App;
