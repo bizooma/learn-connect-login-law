@@ -196,6 +196,39 @@ export type Database = {
         }
         Relationships: []
       }
+      chatbot_interactions: {
+        Row: {
+          created_at: string
+          helpful: boolean | null
+          id: string
+          question: string
+          response: string
+          response_type: string
+          user_id: string
+          user_role: string
+        }
+        Insert: {
+          created_at?: string
+          helpful?: boolean | null
+          id?: string
+          question: string
+          response: string
+          response_type?: string
+          user_id: string
+          user_role: string
+        }
+        Update: {
+          created_at?: string
+          helpful?: boolean | null
+          id?: string
+          question?: string
+          response?: string
+          response_type?: string
+          user_id?: string
+          user_role?: string
+        }
+        Relationships: []
+      }
       completion_migration_backup: {
         Row: {
           backup_timestamp: string | null
@@ -1233,6 +1266,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      support_tickets: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          id: string
+          priority: string
+          status: string
+          subject: string
+          updated_at: string
+          user_email: string
+          user_id: string
+          user_name: string
+          user_role: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          description: string
+          id?: string
+          priority?: string
+          status?: string
+          subject: string
+          updated_at?: string
+          user_email: string
+          user_id: string
+          user_name: string
+          user_role: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          priority?: string
+          status?: string
+          subject?: string
+          updated_at?: string
+          user_email?: string
+          user_id?: string
+          user_name?: string
+          user_role?: string
+        }
+        Relationships: []
       }
       units: {
         Row: {
