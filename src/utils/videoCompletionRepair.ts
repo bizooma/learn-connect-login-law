@@ -4,6 +4,8 @@ import { supabase } from "@/integrations/supabase/client";
 interface VideoCompletionRepairResult {
   repairedUsers: number;
   repairedVideos: number;
+  createdVideoRecords?: number;
+  updatedUnitProgress?: number;
   errors: string[];
   details: Array<{
     userId: string;
@@ -175,4 +177,171 @@ export const repairLegalTraining200 = async (): Promise<VideoCompletionRepairRes
   }
 
   return repairVideoCompletionData(course.id);
+};
+
+// Enhanced repair function to fix missing video progress data (Julio's issue)
+export const repairMissingVideoProgress = async (
+  courseId?: string,
+  userId?: string
+): Promise<VideoCompletionRepairResult> => {
+  const result: VideoCompletionRepairResult = {
+    repairedUsers: 0,
+    repairedVideos: 0,
+    createdVideoRecords: 0,
+    updatedUnitProgress: 0,
+    errors: [],
+    details: []
+  };
+
+  try {
+    console.log('🔧 Starting missing video progress repair...', { courseId, userId });
+
+    // Find completed units with video content but missing video progress records
+    let unitQuery = supabase
+      .from('user_unit_progress')
+      .select(`
+        user_id,
+        unit_id,
+        course_id,
+        completed,
+        completed_at,
+        video_completed,
+        video_completed_at,
+        units!inner(
+          video_url,
+          title
+        )
+      `)
+      .eq('completed', true)
+      .not('units.video_url', 'is', null); // Only units with video content
+
+    if (courseId) {
+      unitQuery = unitQuery.eq('course_id', courseId);
+    }
+
+    if (userId) {
+      unitQuery = unitQuery.eq('user_id', userId);
+    }
+
+    const { data: completedUnits, error: unitError } = await unitQuery;
+
+    if (unitError) {
+      result.errors.push(`Unit query error: ${unitError.message}`);
+      return result;
+    }
+
+    if (!completedUnits || completedUnits.length === 0) {
+      console.log('ℹ️ No completed units with videos found');
+      return result;
+    }
+
+    console.log(`🔍 Found ${completedUnits.length} completed units with video content`);
+
+    // Check which ones are missing video progress records
+    for (const unitProgress of completedUnits) {
+      try {
+        // Check if video progress record exists
+        const { data: existingVideoProgress } = await supabase
+          .from('user_video_progress')
+          .select('id')
+          .eq('user_id', unitProgress.user_id)
+          .eq('unit_id', unitProgress.unit_id)
+          .eq('course_id', unitProgress.course_id)
+          .maybeSingle();
+
+        const needsVideoProgressRecord = !existingVideoProgress;
+        const needsVideoCompletedFlag = !unitProgress.video_completed;
+        let repairReason = '';
+
+        if (needsVideoProgressRecord && needsVideoCompletedFlag) {
+          repairReason = 'Missing video progress record and video_completed flag';
+        } else if (needsVideoProgressRecord) {
+          repairReason = 'Missing video progress record';
+        } else if (needsVideoCompletedFlag) {
+          repairReason = 'Missing video_completed flag';
+        }
+
+        if (needsVideoProgressRecord || needsVideoCompletedFlag) {
+          console.log(`🔧 Repairing missing video data for user ${unitProgress.user_id}, unit ${unitProgress.unit_id}: ${repairReason}`);
+
+          const completedAt = unitProgress.completed_at || new Date().toISOString();
+          const repairs = [];
+
+          // Create missing video progress record if needed
+          if (needsVideoProgressRecord) {
+            repairs.push(
+              supabase
+                .from('user_video_progress')
+                .insert({
+                  user_id: unitProgress.user_id,
+                  unit_id: unitProgress.unit_id,
+                  course_id: unitProgress.course_id,
+                  watch_percentage: 100,
+                  is_completed: true,
+                  completed_at: completedAt,
+                  last_watched_at: completedAt,
+                  watched_duration_seconds: 300, // Default 5 minutes
+                  total_duration_seconds: 300,
+                  created_at: completedAt,
+                  updated_at: completedAt
+                })
+            );
+          }
+
+          // Update video_completed flag if needed
+          if (needsVideoCompletedFlag) {
+            repairs.push(
+              supabase
+                .from('user_unit_progress')
+                .update({
+                  video_completed: true,
+                  video_completed_at: completedAt,
+                  updated_at: new Date().toISOString()
+                })
+                .eq('user_id', unitProgress.user_id)
+                .eq('unit_id', unitProgress.unit_id)
+                .eq('course_id', unitProgress.course_id)
+            );
+          }
+
+          const repairResults = await Promise.allSettled(repairs);
+          const allSucceeded = repairResults.every(r => r.status === 'fulfilled');
+
+          result.details.push({
+            userId: unitProgress.user_id,
+            unitId: unitProgress.unit_id,
+            issue: repairReason,
+            fixed: allSucceeded
+          });
+
+          if (allSucceeded) {
+            result.repairedVideos++;
+            if (needsVideoProgressRecord) result.createdVideoRecords!++;
+            if (needsVideoCompletedFlag) result.updatedUnitProgress!++;
+          } else {
+            const failedRepair = repairResults.find(r => r.status === 'rejected') as PromiseRejectedResult;
+            result.errors.push(`Failed to repair ${unitProgress.user_id}/${unitProgress.unit_id}: ${failedRepair?.reason}`);
+          }
+        }
+      } catch (error) {
+        result.errors.push(`Error processing ${unitProgress.user_id}/${unitProgress.unit_id}: ${error}`);
+      }
+    }
+
+    result.repairedUsers = new Set(result.details.filter(d => d.fixed).map(d => d.userId)).size;
+
+    console.log('✅ Missing video progress repair completed:', {
+      repairedUsers: result.repairedUsers,
+      repairedVideos: result.repairedVideos,
+      createdVideoRecords: result.createdVideoRecords,
+      updatedUnitProgress: result.updatedUnitProgress,
+      totalErrors: result.errors.length
+    });
+
+  } catch (error) {
+    console.error('❌ Missing video progress repair failed:', error);
+    result.errors.push(`Critical error: ${error}`);
+  }
+
+  return result;
 };

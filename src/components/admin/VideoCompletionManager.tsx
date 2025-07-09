@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { RefreshCw, CheckCircle, AlertTriangle } from "lucide-react";
-import { repairVideoCompletionData, repairLegalTraining200 } from "@/utils/videoCompletionRepair";
+import { repairVideoCompletionData, repairLegalTraining200, repairMissingVideoProgress } from "@/utils/videoCompletionRepair";
 
 const VideoCompletionManager = () => {
   const [isRepairing, setIsRepairing] = useState(false);
@@ -77,6 +77,42 @@ const VideoCompletionManager = () => {
     }
   };
 
+  const handleRepairMissingVideoData = async () => {
+    setIsRepairing(true);
+    try {
+      const results = await repairMissingVideoProgress(
+        courseIdFilter || undefined,
+        userIdFilter || undefined
+      );
+      
+      setRepairResults(results);
+      
+      if (results.repairedVideos > 0) {
+        toast({
+          title: "Missing Video Data Repair Completed! ✅",
+          description: `Created ${results.createdVideoRecords} video records and updated ${results.updatedUnitProgress} unit progress for ${results.repairedUsers} users.`,
+        });
+      } else {
+        toast({
+          title: "No Missing Video Data Found",
+          description: "All completed units have proper video progress records.",
+        });
+      }
+      
+      if (results.errors.length > 0) {
+        console.warn('Missing video data repair errors:', results.errors);
+      }
+    } catch (error) {
+      toast({
+        title: "Missing Video Data Repair Failed",
+        description: "Error occurred during missing video data repair.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsRepairing(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -106,7 +142,7 @@ const VideoCompletionManager = () => {
             </div>
           </div>
           
-          <div className="flex space-x-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Button
               onClick={handleRepairAll}
               disabled={isRepairing}
@@ -124,11 +160,32 @@ const VideoCompletionManager = () => {
                 </>
               )}
             </Button>
-            
+
+            <Button
+              onClick={handleRepairMissingVideoData}
+              disabled={isRepairing}
+              variant="secondary"
+            >
+              {isRepairing ? (
+                <>
+                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  Repairing...
+                </>
+              ) : (
+                <>
+                  <AlertTriangle className="h-4 w-4 mr-2" />
+                  Fix Missing Video Data
+                </>
+              )}
+            </Button>
+          </div>
+          
+          <div className="flex space-x-4">
             <Button
               onClick={handleRepairLegalTraining}
               disabled={isRepairing}
               variant="outline"
+              className="flex-1"
             >
               {isRepairing ? (
                 <>
@@ -152,7 +209,7 @@ const VideoCompletionManager = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
               <div className="text-center">
                 <div className="text-2xl font-bold text-green-600">
                   {repairResults.repairedUsers}
@@ -165,6 +222,14 @@ const VideoCompletionManager = () => {
                 </div>
                 <div className="text-sm text-gray-600">Videos Fixed</div>
               </div>
+              {repairResults.createdVideoRecords !== undefined && (
+                <div className="text-center">
+                  <div className="text-2xl font-bold text-purple-600">
+                    {repairResults.createdVideoRecords}
+                  </div>
+                  <div className="text-sm text-gray-600">Records Created</div>
+                </div>
+              )}
               <div className="text-center">
                 <div className="text-2xl font-bold text-red-600">
                   {repairResults.errors.length}
