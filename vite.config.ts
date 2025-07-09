@@ -39,21 +39,7 @@ export default defineConfig(({ mode }) => ({
           'flowchart-vendor': ['@xyflow/react'],
           'charts-vendor': ['recharts'],
           'query-vendor': ['@tanstack/react-query'],
-          'supabase-vendor': ['@supabase/supabase-js'],
-          
-          // Admin-specific components
-          'admin-chunk': [
-            'src/components/admin',
-            'src/pages/AdminKnowledgeBase.tsx'
-          ],
-          
-          // Dashboard pages
-          'dashboard-chunk': [
-            'src/pages/OwnerDashboard.tsx',
-            'src/pages/TeamLeaderDashboard.tsx',
-            'src/pages/StudentDashboard.tsx',
-            'src/pages/ClientDashboard.tsx'
-          ]
+          'supabase-vendor': ['@supabase/supabase-js']
         }
       }
     },
