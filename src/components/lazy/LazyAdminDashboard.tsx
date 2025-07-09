@@ -15,12 +15,25 @@ const AdminLoader = () => (
 );
 
 const LazyAdminDashboard = () => {
+  console.log('🎯 LazyAdminDashboard: Component initializing...');
+  
   const { isAdmin, loading } = useUserRole();
+  
+  console.log('🎯 LazyAdminDashboard: Role state:', { isAdmin, loading });
 
   // Don't load admin dashboard if user is not admin
-  if (loading) return <AdminLoader />;
-  if (!isAdmin) return null;
+  if (loading) {
+    console.log('🎯 LazyAdminDashboard: Still loading, showing loader...');
+    return <AdminLoader />;
+  }
+  
+  if (!isAdmin) {
+    console.log('🎯 LazyAdminDashboard: User is not admin, returning null');
+    return null;
+  }
 
+  console.log('🎯 LazyAdminDashboard: User is admin, rendering AdminDashboard...');
+  
   return (
     <Suspense fallback={<AdminLoader />}>
       <AdminDashboard />
