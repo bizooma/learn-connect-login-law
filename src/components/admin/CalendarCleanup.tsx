@@ -7,7 +7,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2, Globe, Calendar } from "lucide-react";
 import GlobalEventManagement from "./GlobalEventManagement";
-import { logger } from "@/utils/logger";
 
 const CalendarCleanup = () => {
   const [loading, setLoading] = useState(false);
@@ -30,7 +29,7 @@ const CalendarCleanup = () => {
         description: "All automatic calendar events have been removed",
       });
     } catch (error) {
-      logger.error('Error cleaning up calendar events:', error);
+      console.error('Error cleaning up calendar events:', error);
       toast({
         title: "Error",
         description: "Failed to clean up calendar events",

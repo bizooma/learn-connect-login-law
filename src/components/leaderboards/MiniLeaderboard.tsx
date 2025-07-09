@@ -1,10 +1,8 @@
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Trophy, TrendingUp, AlertCircle } from "lucide-react";
-import { useRenderPerformanceMonitor } from "@/utils/renderPerformanceMonitor";
-import { useMemoizedClassName, withPerformanceOptimization } from "@/utils/performanceBoundaries";
 
 interface MiniLeaderboardProps {
   type: 'learning_streak' | 'sales_training' | 'legal_training';
@@ -21,19 +19,15 @@ interface MiniLeaderboardEntry {
 }
 
 const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps) => {
-  const { startRender, endRender } = useRenderPerformanceMonitor(`MiniLeaderboard_${type}`);
   const [entries, setEntries] = useState<MiniLeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  // Track render performance
   useEffect(() => {
-    startRender();
-    return () => endRender();
-  });
+    fetchMiniLeaderboard();
+  }, [type]);
 
-  // Memoized fetch function to prevent recreation on every render
-  const fetchMiniLeaderboard = useCallback(async () => {
+  const fetchMiniLeaderboard = async () => {
     try {
       setLoading(true);
       setError(null);
@@ -69,9 +63,9 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
     } finally {
       setLoading(false);
     }
-  }, [type, limit]);
+  };
 
-  const fetchFreshData = useCallback(async () => {
+  const fetchFreshData = async () => {
     try {
       console.log(`Fetching fresh data for ${type}`);
       
@@ -116,133 +110,84 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
       console.error(`Error fetching fresh data for ${type}:`, error);
       setError(`Failed to load ${type.replace('_', ' ')} data`);
     }
-  }, [type, limit]);
+  };
 
-  // Memoized score formatting to prevent recreation
-  const formatScore = useCallback((score: number) => {
+  const formatScore = (score: number) => {
     if (type === 'learning_streak') {
       return `${score} days`;
     }
     return `${score}%`;
-  }, [type]);
-
-  useEffect(() => {
-    fetchMiniLeaderboard();
-  }, [fetchMiniLeaderboard]);
-
-  // Memoized loading skeleton to prevent unnecessary re-renders
-  const loadingSkeleton = useMemo(() => (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm flex items-center gap-2">
-          {icon || <Trophy className="h-4 w-4" />}
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-2">
-          {[...Array(3)].map((_, i) => (
-            <div key={i} className="animate-pulse">
-              <div className="h-8 bg-gray-200 rounded"></div>
-            </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
-  ), [icon, title]);
-
-  // Memoized error state to prevent unnecessary re-renders
-  const errorState = useMemo(() => (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm flex items-center gap-2">
-          {icon || <Trophy className="h-4 w-4" />}
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="text-sm text-red-500 text-center py-2 flex items-center gap-2">
-          <AlertCircle className="h-4 w-4" />
-          {error}
-        </div>
-        <button
-          onClick={fetchMiniLeaderboard}
-          className="text-xs text-blue-600 hover:text-blue-800 mt-2 w-full text-center"
-        >
-          Try Again
-        </button>
-      </CardContent>
-    </Card>
-  ), [icon, title, error, fetchMiniLeaderboard]);
-
-  // Memoized empty state to prevent unnecessary re-renders
-  const emptyState = useMemo(() => (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="text-sm flex items-center gap-2">
-          {icon || <Trophy className="h-4 w-4" />}
-          {title}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="text-sm text-gray-500 text-center py-4">
-          No data available
-          <button
-            onClick={fetchMiniLeaderboard}
-            className="block text-xs text-blue-600 hover:text-blue-800 mt-2 mx-auto"
-          >
-            Refresh Data
-          </button>
-        </div>
-      </CardContent>
-    </Card>
-  ), [icon, title, fetchMiniLeaderboard]);
-
-  // Memoized entries list with optimized class names
-  const entriesList = useMemo(() => {
-    if (entries.length === 0) return null;
-    
-    return entries.map((entry, index) => {
-      // Memoized class name for rank badge
-      const rankBadgeClass = useMemoizedClassName(
-        'w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium',
-        {
-          'bg-yellow-100 text-yellow-800': index === 0,
-          'bg-gray-100 text-gray-700': index === 1,
-          'bg-amber-100 text-amber-800': index === 2,
-          'bg-blue-100 text-blue-800': index >= 3
-        },
-        [index]
-      );
-
-      return (
-        <div key={index} className="flex items-center justify-between text-sm">
-          <div className="flex items-center gap-2">
-            <span className={rankBadgeClass}>
-              {entry.rank_position}
-            </span>
-            <span className="font-medium truncate max-w-[100px]">
-              {entry.user_name}
-            </span>
-          </div>
-          <span className="font-semibold text-gray-900">
-            {formatScore(entry.score)}
-          </span>
-        </div>
-      );
-    });
-  }, [entries, formatScore]);
+  };
 
   if (loading) {
-    return loadingSkeleton;
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2">
+            {icon || <Trophy className="h-4 w-4" />}
+            {title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-2">
+            {[...Array(3)].map((_, i) => (
+              <div key={i} className="animate-pulse">
+                <div className="h-8 bg-gray-200 rounded"></div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   if (error) {
-    return errorState;
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2">
+            {icon || <Trophy className="h-4 w-4" />}
+            {title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-sm text-red-500 text-center py-2 flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" />
+            {error}
+          </div>
+          <button
+            onClick={fetchMiniLeaderboard}
+            className="text-xs text-blue-600 hover:text-blue-800 mt-2 w-full text-center"
+          >
+            Try Again
+          </button>
+        </CardContent>
+      </Card>
+    );
   }
 
   if (entries.length === 0) {
-    return emptyState;
+    return (
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm flex items-center gap-2">
+            {icon || <Trophy className="h-4 w-4" />}
+            {title}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-sm text-gray-500 text-center py-4">
+            No data available
+            <button
+              onClick={fetchMiniLeaderboard}
+              className="block text-xs text-blue-600 hover:text-blue-800 mt-2 mx-auto"
+            >
+              Refresh Data
+            </button>
+          </div>
+        </CardContent>
+      </Card>
+    );
   }
 
   return (
@@ -255,7 +200,26 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {entriesList}
+          {entries.map((entry, index) => (
+            <div key={index} className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2">
+                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium ${
+                  index === 0 ? 'bg-yellow-100 text-yellow-800' :
+                  index === 1 ? 'bg-gray-100 text-gray-700' :
+                  index === 2 ? 'bg-amber-100 text-amber-800' :
+                  'bg-blue-100 text-blue-800'
+                }`}>
+                  {entry.rank_position}
+                </span>
+                <span className="font-medium truncate max-w-[100px]">
+                  {entry.user_name}
+                </span>
+              </div>
+              <span className="font-semibold text-gray-900">
+                {formatScore(entry.score)}
+              </span>
+            </div>
+          ))}
         </div>
         <button
           onClick={fetchMiniLeaderboard}
@@ -268,5 +232,4 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
   );
 };
 
-// Export optimized component with performance boundaries
-export default withPerformanceOptimization(MiniLeaderboard, 'MiniLeaderboard');
+export default MiniLeaderboard;

@@ -10,7 +10,6 @@ import CourseManagementLoading from "./CourseManagementLoading";
 import CreateCourseForm from "./CreateCourseForm";
 import EditCourseForm from "./EditCourseForm";
 import { Tables } from "@/integrations/supabase/types";
-import { logger } from "@/utils/logger";
 
 type Course = Tables<'courses'>;
 
@@ -40,7 +39,7 @@ const CourseManagement = () => {
 
       setCourses(data || []);
     } catch (error) {
-      logger.error('Error fetching courses:', error);
+      console.error('Error fetching courses:', error);
       toast({
         title: "Error",
         description: "Failed to fetch courses",
@@ -68,7 +67,7 @@ const CourseManagement = () => {
         description: "Course deleted successfully",
       });
     } catch (error) {
-      logger.error('Error deleting course:', error);
+      console.error('Error deleting course:', error);
       toast({
         title: "Error",
         description: "Failed to delete course",

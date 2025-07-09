@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -25,8 +25,6 @@ export const useVideoProgress = (unitId: string, courseId: string) => {
     total_duration_seconds: null
   });
   const [loading, setLoading] = useState(true);
-  const updateThrottleRef = useRef<number>(0);
-  const pendingUpdateRef = useRef<NodeJS.Timeout>();
 
   const fetchVideoProgress = useCallback(async () => {
     if (!user || !unitId || !courseId) {
@@ -132,40 +130,12 @@ export const useVideoProgress = (unitId: string, courseId: string) => {
     }
   }, [user, unitId, courseId]);
 
-  // Optimized update with throttling and batching
   const updateVideoProgress = useCallback(async (
     watchedSeconds: number,
     totalSeconds: number,
     watchPercentage: number
   ) => {
     if (!user || !unitId || !courseId) return;
-
-    const now = Date.now();
-    
-    // Throttle updates to prevent excessive database calls (minimum 5 seconds apart)
-    if (now - updateThrottleRef.current < 5000) {
-      // Clear pending update and schedule new one
-      if (pendingUpdateRef.current) {
-        clearTimeout(pendingUpdateRef.current);
-      }
-      
-      // Batch update after delay
-      pendingUpdateRef.current = setTimeout(() => {
-        updateVideoProgress(watchedSeconds, totalSeconds, watchPercentage);
-      }, 5000);
-      
-      return;
-    }
-
-    // Only update if there's a significant change (at least 5% progress or 30 seconds)
-    const progressDiff = Math.abs(watchPercentage - videoProgress.watch_percentage);
-    const timeDiff = Math.abs(watchedSeconds - videoProgress.watched_duration_seconds);
-    
-    if (progressDiff < 5 && timeDiff < 30 && watchPercentage < 95) {
-      return;
-    }
-
-    updateThrottleRef.current = now;
 
     try {
       const progressData = {
@@ -201,7 +171,7 @@ export const useVideoProgress = (unitId: string, courseId: string) => {
     } catch (error) {
       console.error('Error updating video progress:', error);
     }
-  }, [user, unitId, courseId, videoProgress.watch_percentage, videoProgress.watched_duration_seconds]);
+  }, [user, unitId, courseId]);
 
   const markVideoComplete = useCallback(async () => {
     if (!user || !unitId || !courseId) return;
@@ -290,15 +260,6 @@ export const useVideoProgress = (unitId: string, courseId: string) => {
   useEffect(() => {
     fetchVideoProgress();
   }, [fetchVideoProgress]);
-
-  // Cleanup pending updates to prevent memory leaks
-  useEffect(() => {
-    return () => {
-      if (pendingUpdateRef.current) {
-        clearTimeout(pendingUpdateRef.current);
-      }
-    };
-  }, []);
 
   return {
     videoProgress,

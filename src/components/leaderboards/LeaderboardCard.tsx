@@ -1,6 +1,5 @@
 
 import { Crown, Medal, Award } from "lucide-react";
-import { memo, useMemo } from "react";
 import BadgeDisplay from "../badges/BadgeDisplay";
 
 interface LeaderboardCardProps {
@@ -20,7 +19,7 @@ interface LeaderboardCardProps {
   userId?: string;
 }
 
-const LeaderboardCard = memo(({
+const LeaderboardCard = ({
   rank,
   name,
   email,
@@ -29,7 +28,7 @@ const LeaderboardCard = memo(({
   isTopThree = false,
   userId
 }: LeaderboardCardProps) => {
-  const rankIcon = useMemo(() => {
+  const getRankIcon = () => {
     switch (rank) {
       case 1:
         return <Crown className="h-5 w-5 text-yellow-500" />;
@@ -40,9 +39,9 @@ const LeaderboardCard = memo(({
       default:
         return null;
     }
-  }, [rank]);
+  };
 
-  const rankStyle = useMemo(() => {
+  const getRankStyle = () => {
     if (!isTopThree) return "";
     
     switch (rank) {
@@ -55,13 +54,13 @@ const LeaderboardCard = memo(({
       default:
         return "";
     }
-  }, [rank, isTopThree]);
+  };
 
   return (
-    <div className={`flex items-center justify-between p-4 bg-white rounded-lg border hover:shadow-md transition-shadow ${rankStyle}`}>
+    <div className={`flex items-center justify-between p-4 bg-white rounded-lg border hover:shadow-md transition-shadow ${getRankStyle()}`}>
       <div className="flex items-center space-x-4">
         <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gray-100 text-sm font-semibold text-gray-700">
-          {isTopThree ? rankIcon : rank}
+          {isTopThree ? getRankIcon() : rank}
         </div>
         
         <div className="flex-1">
@@ -89,8 +88,6 @@ const LeaderboardCard = memo(({
       </div>
     </div>
   );
-});
-
-LeaderboardCard.displayName = 'LeaderboardCard';
+};
 
 export default LeaderboardCard;

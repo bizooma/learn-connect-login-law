@@ -1,5 +1,5 @@
 
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useState, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
@@ -23,7 +23,6 @@ export const useVideoCompletion = (unitId: string, courseId: string) => {
     completionAttempts: 0
   });
   const completionTimeoutRef = useRef<number>();
-  const lastProgressUpdateRef = useRef<number>(0);
 
   const markVideoCompleteReliable = useCallback(async (forceComplete: boolean = false) => {
     if (!user || !unitId || !courseId) return false;
@@ -150,21 +149,7 @@ export const useVideoCompletion = (unitId: string, courseId: string) => {
   const handleVideoProgress = useCallback((currentTime: number, duration: number) => {
     if (duration <= 0) return;
 
-    const now = Date.now();
-    // Throttle progress updates to prevent excessive state updates (minimum 2 seconds apart)
-    if (now - lastProgressUpdateRef.current < 2000) {
-      return;
-    }
-
     const watchPercentage = Math.min((currentTime / duration) * 100, 100);
-    
-    // Only update if there's a meaningful change (at least 1% progress)
-    const progressDiff = Math.abs(watchPercentage - completionState.watchPercentage);
-    if (progressDiff < 1 && watchPercentage < 95) {
-      return;
-    }
-    
-    lastProgressUpdateRef.current = now;
     
     setCompletionState(prev => ({
       ...prev,
@@ -185,7 +170,7 @@ export const useVideoCompletion = (unitId: string, courseId: string) => {
         markVideoCompleteReliable();
       }, 2000); // 2 second delay to ensure stable playback
     }
-  }, [completionState.isCompleted, completionState.watchPercentage, markVideoCompleteReliable]);
+  }, [completionState.isCompleted, markVideoCompleteReliable]);
 
   const handleVideoEnded = useCallback(() => {
     console.log('🎯 Video ended - triggering completion');
@@ -203,15 +188,6 @@ export const useVideoCompletion = (unitId: string, courseId: string) => {
     console.log('🎯 Force completing video manually');
     return markVideoCompleteReliable(true);
   }, [markVideoCompleteReliable]);
-
-  // Cleanup timeouts to prevent memory leaks
-  useEffect(() => {
-    return () => {
-      if (completionTimeoutRef.current) {
-        clearTimeout(completionTimeoutRef.current);
-      }
-    };
-  }, []);
 
   return {
     completionState,

@@ -11,7 +11,6 @@ import { useCompletionMonitoring } from "@/hooks/useCompletionMonitoring";
 import { Activity, RefreshCw, CheckCircle, AlertTriangle, Database, TrendingUp, Users, BookOpen, Play, Square } from "lucide-react";
 import ProgressBackfillTool from "./ProgressBackfillTool";
 import VideoCompletionManager from "./VideoCompletionManager";
-import { logger } from "@/utils/logger";
 
 interface DiagnosticResults {
   total_users_with_progress: number;
@@ -56,7 +55,7 @@ const CompletionMonitoringDashboard = () => {
         loadCompletionStats()
       ]);
     } catch (error) {
-      logger.error('Error loading dashboard data:', error);
+      console.error('Error loading dashboard data:', error);
     } finally {
       setIsLoadingDiagnostics(false);
     }
@@ -77,7 +76,7 @@ const CompletionMonitoringDashboard = () => {
 
       setDiagnosticResults(data[0]);
     } catch (error) {
-      logger.error('Error running diagnostics:', error);
+      console.error('Error running diagnostics:', error);
     }
   };
 
@@ -115,7 +114,7 @@ const CompletionMonitoringDashboard = () => {
         ]).size
       });
     } catch (error) {
-      logger.error('Error loading completion stats:', error);
+      console.error('Error loading completion stats:', error);
     }
   };
 
@@ -143,7 +142,7 @@ const CompletionMonitoringDashboard = () => {
       setLastRepairRun(new Date().toISOString());
       loadDashboardData(); // Refresh data
     } catch (error) {
-      logger.error('Error running bulk recalculation:', error);
+      console.error('Error running bulk recalculation:', error);
       toast({
         title: "Recalculation Error",
         description: "Failed to run bulk progress recalculation.",
@@ -163,10 +162,10 @@ const CompletionMonitoringDashboard = () => {
       });
 
       if (!result.isValid) {
-        logger.log('Data integrity issues:', result);
+        console.log('Data integrity issues:', result);
       }
     } catch (error) {
-      logger.error('Error running data integrity check:', error);
+      console.error('Error running data integrity check:', error);
     }
   };
 

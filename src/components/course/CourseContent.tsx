@@ -1,8 +1,7 @@
 
 import { Tables } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState, useCallback } from "react";
-import { useUnitRealtimeUpdates } from "@/hooks/useUnitRealtimeUpdates";
+import { useEffect, useState } from "react";
 import CourseVideo from "./CourseVideo";
 import LessonVideo from "./LessonVideo";
 import LessonCard from "./LessonCard";
@@ -14,7 +13,7 @@ import UnitCompletionRequirements from "./UnitCompletionRequirements";
 import { Button } from "@/components/ui/button";
 import { Download, File } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
-import { useUnifiedCourseProgress } from "@/hooks/useUnifiedProgress";
+import { useCourseCompletion } from "@/hooks/useCourseCompletion";
 import MarkdownRenderer from "@/components/ui/markdown-renderer";
 
 type Unit = Tables<'units'>;
@@ -36,72 +35,77 @@ interface CourseContentProps {
 
 const CourseContent = ({ unit, lesson, courseId, courseTitle, onProgressUpdate }: CourseContentProps) => {
   const { user } = useAuth();
-  const { isCompleted, refreshCourseProgress } = useUnifiedCourseProgress(courseId);
-  const loading = false; // The unified system handles loading more efficiently
+  const { isCompleted, loading, refetchCompletion } = useCourseCompletion(courseId);
   const [unitQuiz, setUnitQuiz] = useState<Quiz | null>(null);
   const [quizLoading, setQuizLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
 
-  // Optimized quiz fetching with coordinated real-time updates
-  const fetchUnitQuiz = useCallback(async () => {
-    if (!unit?.id) {
-      setUnitQuiz(null);
-      return;
-    }
-
-    setQuizLoading(true);
-    
-    try {
-      const { data: quizData, error } = await supabase
-        .from('quizzes')
-        .select('*')
-        .eq('unit_id', unit.id)
-        .eq('is_active', true)
-        .eq('is_deleted', false)
-        .is('deleted_at', null)
-        .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching quiz:', error);
+  // Fetch quiz for the current unit with real-time updates
+  useEffect(() => {
+    const fetchUnitQuiz = async () => {
+      if (!unit?.id) {
         setUnitQuiz(null);
-      } else {
-        setUnitQuiz(quizData);
+        return;
       }
-    } catch (error) {
-      console.error('Error in fetchUnitQuiz:', error);
-      setUnitQuiz(null);
-    } finally {
-      setQuizLoading(false);
+
+      setQuizLoading(true);
+      
+      try {
+        const { data: quizData, error } = await supabase
+          .from('quizzes')
+          .select('*')
+          .eq('unit_id', unit.id)
+          .eq('is_active', true)
+          .eq('is_deleted', false)
+          .is('deleted_at', null)
+          .maybeSingle();
+
+        if (error) {
+          console.error('Error fetching quiz:', error);
+          setUnitQuiz(null);
+        } else {
+          setUnitQuiz(quizData);
+        }
+      } catch (error) {
+        console.error('Error in fetchUnitQuiz:', error);
+        setUnitQuiz(null);
+      } finally {
+        setQuizLoading(false);
+      }
+    };
+
+    fetchUnitQuiz();
+
+    // Set up real-time subscription for quiz changes
+    if (unit?.id) {
+      const channel = supabase
+        .channel(`unit-quiz-${unit.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'quizzes',
+            filter: `unit_id=eq.${unit.id}`
+          },
+          () => {
+            fetchUnitQuiz();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
     }
   }, [unit?.id]);
-
-  // Enhanced progress refresh handler with unified system
-  const handleProgressRefresh = useCallback(() => {
-    setRefreshKey(prev => prev + 1);
-    refreshCourseProgress();
-    if (onProgressUpdate) {
-      onProgressUpdate();
-    }
-  }, [refreshCourseProgress, onProgressUpdate]);
-
-  // Unified unit real-time subscriptions with intelligent filtering
-  const { diagnostics } = useUnitRealtimeUpdates({
-    unitId: unit?.id,
-    onQuizUpdate: fetchUnitQuiz,
-    onProgressUpdate: handleProgressRefresh,
-    enableDynamicSubscription: true
-  });
-
-  useEffect(() => {
-    fetchUnitQuiz();
-  }, [fetchUnitQuiz]);
 
   // Refresh completion status when component mounts or courseId changes
   useEffect(() => {
     if (courseId) {
-      refreshCourseProgress();
+      refetchCompletion();
     }
-  }, [courseId, refreshCourseProgress, refreshKey]);
+  }, [courseId, refetchCompletion, refreshKey]);
 
   const handleFileDownload = (fileUrl: string) => {
     window.open(fileUrl, '_blank');
@@ -121,6 +125,13 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle, onProgressUpdate }
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   };
 
+  const handleProgressRefresh = () => {
+    setRefreshKey(prev => prev + 1);
+    refetchCompletion();
+    if (onProgressUpdate) {
+      onProgressUpdate();
+    }
+  };
 
   // Check if this unit has a quiz attached to it
   const hasQuiz = unitQuiz && unitQuiz.is_active && !unitQuiz.is_deleted;

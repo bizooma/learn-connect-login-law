@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Plus, Edit, Trash2, Upload, Download, Eye } from "lucide-react";
-import { logger } from "@/utils/logger";
 
 interface CertificateTemplate {
   id: string;
@@ -49,7 +48,7 @@ const CertificateTemplateManagement = () => {
       if (error) throw error;
       setTemplates(data || []);
     } catch (error: any) {
-      logger.error('Error fetching templates:', error);
+      console.error('Error fetching templates:', error);
       toast({
         title: "Error",
         description: "Failed to load certificate templates",
@@ -118,7 +117,7 @@ const CertificateTemplateManagement = () => {
       setDialogOpen(false);
       fetchTemplates();
     } catch (error: any) {
-      logger.error('Error creating template:', error);
+      console.error('Error creating template:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to create certificate template",
@@ -176,7 +175,7 @@ const CertificateTemplateManagement = () => {
       setDialogOpen(false);
       fetchTemplates();
     } catch (error: any) {
-      logger.error('Error updating template:', error);
+      console.error('Error updating template:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update certificate template",
@@ -204,7 +203,7 @@ const CertificateTemplateManagement = () => {
       });
       fetchTemplates();
     } catch (error: any) {
-      logger.error('Error deleting template:', error);
+      console.error('Error deleting template:', error);
       toast({
         title: "Error",
         description: "Failed to delete certificate template",

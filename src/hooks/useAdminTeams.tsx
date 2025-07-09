@@ -236,36 +236,12 @@ export const useAdminTeams = () => {
 
   const getTeamProgressSummary = async (teamId: string): Promise<TeamProgressSummary | null> => {
     try {
-      const { data, error } = await supabase.rpc('get_optimized_team_progress', {
+      const { data, error } = await supabase.rpc('get_team_progress_summary', {
         p_team_id: teamId
       });
 
       if (error) throw error;
-      
-      // Transform the data to match the expected interface
-      if (!data || !Array.isArray(data) || data.length === 0) {
-        return {
-          total_members: 0,
-          courses_in_progress: 0,
-          courses_completed: 0,
-          average_progress: 0
-        };
-      }
-
-      // Calculate summary from individual member data
-      const totalMembers = data.length;
-      const totalCoursesInProgress = data.reduce((sum: number, member: any) => sum + member.in_progress_courses, 0);
-      const totalCoursesCompleted = data.reduce((sum: number, member: any) => sum + member.completed_courses, 0);
-      const averageProgress = totalMembers > 0 
-        ? Math.round(data.reduce((sum: number, member: any) => sum + member.overall_progress, 0) / totalMembers)
-        : 0;
-
-      return {
-        total_members: totalMembers,
-        courses_in_progress: totalCoursesInProgress,
-        courses_completed: totalCoursesCompleted,
-        average_progress: averageProgress
-      };
+      return data?.[0] || null;
     } catch (err) {
       console.error('Error fetching team progress:', err);
       throw err;

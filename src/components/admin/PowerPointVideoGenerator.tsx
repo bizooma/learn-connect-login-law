@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Textarea } from '@/components/ui/textarea';
 import { Upload, FileText, CheckCircle, AlertCircle, Loader2, Video, Presentation, Edit3 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { logger } from '@/utils/logger';
 
 interface PowerPointVideoGeneratorProps {
   onVideoGenerated: (videoUrl: string) => void;
@@ -124,7 +123,7 @@ const PowerPointVideoGenerator = ({ onVideoGenerated }: PowerPointVideoGenerator
       }
 
     } catch (error) {
-      logger.error('Upload/Script error:', error);
+      console.error('Upload/Script error:', error);
       toast({
         title: "Failed to generate script",
         description: error instanceof Error ? error.message : "Unknown error occurred",
@@ -154,7 +153,7 @@ const PowerPointVideoGenerator = ({ onVideoGenerated }: PowerPointVideoGenerator
         description: "Your edited script has been saved successfully",
       });
     } catch (error) {
-      logger.error('Script save error:', error);
+      console.error('Script save error:', error);
       toast({
         title: "Failed to save script",
         description: error instanceof Error ? error.message : "Unknown error occurred",
@@ -189,7 +188,7 @@ const PowerPointVideoGenerator = ({ onVideoGenerated }: PowerPointVideoGenerator
       }
 
     } catch (error) {
-      logger.error('Video generation error:', error);
+      console.error('Video generation error:', error);
       toast({
         title: "Failed to generate video",
         description: error instanceof Error ? error.message : "Unknown error occurred",

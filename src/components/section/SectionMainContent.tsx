@@ -4,7 +4,6 @@ import { Badge } from "@/components/ui/badge";
 import { Play, Clock } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import UnifiedVideoPlayer from "../video/UnifiedVideoPlayer";
-import { logger } from "@/utils/logger";
 
 type Unit = Tables<'units'>;
 
@@ -17,12 +16,12 @@ interface SectionMainContentProps {
 
 const SectionMainContent = ({ units, selectedUnit, onUnitSelect }: SectionMainContentProps) => {
   const handleVideoProgress = (currentTime: number, duration: number, watchPercentage: number) => {
-    logger.log('Section video progress:', { currentTime, duration, watchPercentage });
+    console.log('Section video progress:', { currentTime, duration, watchPercentage });
     // TODO: Implement section video progress tracking if needed
   };
 
   const handleVideoComplete = () => {
-    logger.log('Section video completed');
+    console.log('Section video completed');
     // TODO: Implement section video completion tracking if needed
   };
 

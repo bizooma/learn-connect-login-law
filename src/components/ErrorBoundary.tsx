@@ -18,30 +18,27 @@ class ErrorBoundary extends Component<Props, State> {
   };
 
   public static getDerivedStateFromError(error: Error): State {
-    // Catch ALL errors for debugging white screen issues
-    console.error('ErrorBoundary caught error:', error);
-    console.error('Error stack:', error.stack);
-    console.error('Error name:', error.name);
-    console.error('Current URL:', window.location.href);
-    console.error('User agent:', navigator.userAgent);
+    // Only catch specific auth-related errors, not general JavaScript errors
+    const isAuthError = error.message?.includes('JWT') || 
+                       error.message?.includes('token') ||
+                       error.message?.includes('unauthorized') ||
+                       error.message?.includes('authentication failed');
     
-    return { hasError: true, error };
+    if (isAuthError) {
+      return { hasError: true, error };
+    }
+    
+    // Let other errors bubble up normally (including null reference errors)
+    throw error;
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
-    console.error('Component stack:', errorInfo.componentStack);
-    console.error('Error boundary triggered at:', new Date().toISOString());
+    console.error('Auth Error Boundary caught an error:', error, errorInfo);
     
-    // Send error details to console for debugging
-    console.group('🚨 Critical Error Details');
-    console.error('Error:', error);
-    console.error('Error Info:', errorInfo);
-    console.error('Props:', this.props);
-    console.error('State:', this.state);
-    console.groupEnd();
-    
-    this.setState({ errorInfo });
+    // Auto-recover after a short delay for auth errors only
+    setTimeout(() => {
+      this.setState({ hasError: false, error: undefined, errorInfo: undefined });
+    }, 1000);
   }
 
   private handleRefresh = () => {
@@ -59,10 +56,10 @@ class ErrorBoundary extends Component<Props, State> {
         <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-red-50 to-orange-100">
           <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
             <h2 className="text-2xl font-bold text-gray-900 mb-4">
-              Application Error
+              Authentication Error
             </h2>
             <p className="text-gray-600 mb-6">
-              Something went wrong. Check the console for details or try refreshing the page.
+              Something went wrong with the authentication system. Please try refreshing the page.
             </p>
             <div className="space-y-4">
               <Button

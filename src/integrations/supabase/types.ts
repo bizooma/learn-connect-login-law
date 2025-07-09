@@ -196,36 +196,6 @@ export type Database = {
         }
         Relationships: []
       }
-      chat_conversations: {
-        Row: {
-          created_at: string
-          id: string
-          messages: Json
-          session_id: string
-          updated_at: string
-          user_id: string | null
-          user_role: string | null
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          messages?: Json
-          session_id: string
-          updated_at?: string
-          user_id?: string | null
-          user_role?: string | null
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          messages?: Json
-          session_id?: string
-          updated_at?: string
-          user_id?: string | null
-          user_role?: string | null
-        }
-        Relationships: []
-      }
       completion_migration_backup: {
         Row: {
           backup_timestamp: string | null
@@ -1264,63 +1234,6 @@ export type Database = {
           },
         ]
       }
-      support_tickets: {
-        Row: {
-          assigned_to: string | null
-          attachments: Json | null
-          category: string
-          conversation_history: Json | null
-          created_at: string
-          description: string
-          id: string
-          priority: string
-          resolved_at: string | null
-          status: string
-          subject: string
-          ticket_number: string
-          updated_at: string
-          user_email: string
-          user_id: string | null
-          user_name: string | null
-        }
-        Insert: {
-          assigned_to?: string | null
-          attachments?: Json | null
-          category: string
-          conversation_history?: Json | null
-          created_at?: string
-          description: string
-          id?: string
-          priority?: string
-          resolved_at?: string | null
-          status?: string
-          subject: string
-          ticket_number?: string
-          updated_at?: string
-          user_email: string
-          user_id?: string | null
-          user_name?: string | null
-        }
-        Update: {
-          assigned_to?: string | null
-          attachments?: Json | null
-          category?: string
-          conversation_history?: Json | null
-          created_at?: string
-          description?: string
-          id?: string
-          priority?: string
-          resolved_at?: string | null
-          status?: string
-          subject?: string
-          ticket_number?: string
-          updated_at?: string
-          user_email?: string
-          user_id?: string | null
-          user_name?: string | null
-        }
-        Relationships: []
-      }
       units: {
         Row: {
           content: string | null
@@ -2027,19 +1940,6 @@ export type Database = {
         }
         Returns: string
       }
-      batch_fetch_user_progress: {
-        Args: { p_user_ids: string[] }
-        Returns: {
-          user_id: string
-          course_id: string
-          course_title: string
-          course_category: string
-          status: string
-          progress_percentage: number
-          completed_at: string
-          last_accessed_at: string
-        }[]
-      }
       bulk_recalculate_course_progress: {
         Args: { p_audit_reason?: string }
         Returns: {
@@ -2049,15 +1949,6 @@ export type Database = {
         }[]
       }
       calculate_reliable_course_progress: {
-        Args: { p_user_id: string; p_course_id: string }
-        Returns: {
-          total_units: number
-          completed_units: number
-          progress_percentage: number
-          status: string
-        }[]
-      }
-      calculate_unit_progress_efficient: {
         Args: { p_user_id: string; p_course_id: string }
         Returns: {
           total_units: number
@@ -2114,16 +2005,13 @@ export type Database = {
           rank_position: number
         }[]
       }
-      get_optimized_team_progress: {
+      get_team_progress_summary: {
         Args: { p_team_id: string }
         Returns: {
-          user_id: string
-          user_email: string
-          user_name: string
-          total_courses: number
-          completed_courses: number
-          in_progress_courses: number
-          overall_progress: number
+          total_members: number
+          courses_in_progress: number
+          courses_completed: number
+          average_progress: number
         }[]
       }
       get_user_law_firm_id: {

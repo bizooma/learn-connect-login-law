@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -83,7 +83,7 @@ export const useLeaderboards = () => {
 
   const refreshCache = async () => {
     try {
-      console.log('Starting optimized leaderboard cache refresh...');
+      console.log('Starting leaderboard cache refresh...');
       
       // Clear existing cache first
       const { error: deleteError } = await supabase
@@ -95,38 +95,52 @@ export const useLeaderboards = () => {
         console.warn('Warning clearing cache:', deleteError);
       }
 
-      // Use optimized SQL functions for all leaderboards in parallel
-      const [streakResult, salesResult, legalResult] = await Promise.allSettled([
-        refreshStreakLeaderboard(),
-        refreshCategoryLeaderboard('Sales', 'sales_training'),
-        refreshCategoryLeaderboard('Legal', 'legal_training')
-      ]);
+      // Refresh learning streak leaderboard
+      const { data: streakData, error: streakError } = await supabase
+        .from('user_learning_streaks')
+        .select(`
+          user_id,
+          current_streak,
+          longest_streak,
+          profiles!inner(first_name, last_name, email, is_deleted)
+        `)
+        .eq('profiles.is_deleted', false)
+        .gte('current_streak', 1)
+        .order('current_streak', { ascending: false })
+        .limit(50);
 
-      // Check results and log any errors
-      let totalEntries = 0;
-      const errors: string[] = [];
+      if (streakError) {
+        console.error('Error fetching streak data:', streakError);
+      } else if (streakData && streakData.length > 0) {
+        const cacheEntries = streakData.map((entry: any, index: number) => ({
+          leaderboard_type: 'learning_streak',
+          user_id: entry.user_id,
+          user_name: `${entry.profiles.first_name} ${entry.profiles.last_name}`,
+          user_email: entry.profiles.email,
+          score: entry.current_streak,
+          rank_position: index + 1,
+          additional_data: {
+            current_streak: entry.current_streak,
+            longest_streak: entry.longest_streak
+          }
+        }));
 
-      if (streakResult.status === 'fulfilled') {
-        totalEntries += streakResult.value;
-      } else {
-        errors.push(`Streak leaderboard: ${streakResult.reason}`);
+        const { error: insertError } = await supabase
+          .from('leaderboard_cache')
+          .insert(cacheEntries);
+
+        if (insertError) {
+          console.error('Error inserting streak cache:', insertError);
+        } else {
+          console.log(`Successfully cached ${cacheEntries.length} streak entries`);
+        }
       }
 
-      if (salesResult.status === 'fulfilled') {
-        totalEntries += salesResult.value;
-      } else {
-        errors.push(`Sales leaderboard: ${salesResult.reason}`);
-      }
-
-      if (legalResult.status === 'fulfilled') {
-        totalEntries += legalResult.value;
-      } else {
-        errors.push(`Legal leaderboard: ${legalResult.reason}`);
-      }
-
-      if (errors.length > 0) {
-        console.warn('Some leaderboards failed to refresh:', errors);
-      }
+      // Refresh category leaderboards for Sales
+      await refreshCategoryLeaderboard('Sales', 'sales_training');
+      
+      // Refresh category leaderboards for Legal
+      await refreshCategoryLeaderboard('Legal', 'legal_training');
 
       const finalCount = await getTotalCacheEntries();
       
@@ -147,107 +161,95 @@ export const useLeaderboards = () => {
     }
   };
 
-  const refreshStreakLeaderboard = async (): Promise<number> => {
+  const refreshCategoryLeaderboard = async (category: string, leaderboardType: string) => {
     try {
-      console.log('Refreshing streak leaderboard with optimized SQL function...');
-      
-      // Use optimized SQL function instead of JavaScript processing
-      const { data: streakData, error: streakError } = await supabase
-        .rpc('generate_learning_streak_leaderboard', { p_limit: 50 });
-
-      if (streakError) {
-        console.error('Error calling streak leaderboard function:', streakError);
-        throw streakError;
-      }
-
-      if (!streakData || streakData.length === 0) {
-        console.log('No streak data available');
-        return 0;
-      }
-
-      // Prepare cache entries from optimized SQL results
-      const cacheEntries = streakData.map((entry: any) => ({
-        leaderboard_type: 'learning_streak',
-        user_id: entry.user_id,
-        user_name: entry.user_name,
-        user_email: entry.user_email,
-        score: entry.current_streak,
-        rank_position: entry.rank_position,
-        additional_data: {
-          current_streak: entry.current_streak,
-          longest_streak: entry.longest_streak
-        }
-      }));
-
-      // Batch insert with transaction support
-      const { error: insertError } = await supabase
-        .from('leaderboard_cache')
-        .insert(cacheEntries);
-
-      if (insertError) {
-        console.error('Error inserting streak cache:', insertError);
-        throw insertError;
-      }
-
-      console.log(`Successfully cached ${cacheEntries.length} streak entries`);
-      return cacheEntries.length;
-    } catch (error) {
-      console.error('Error refreshing streak leaderboard:', error);
-      throw error;
-    }
-  };
-
-  const refreshCategoryLeaderboard = async (category: string, leaderboardType: string): Promise<number> => {
-    try {
-      console.log(`Refreshing ${category} leaderboard with optimized SQL function...`);
-      
-      // Use optimized SQL function instead of JavaScript processing
+      // Get users with course assignments in this category
       const { data: categoryData, error: categoryError } = await supabase
-        .rpc('generate_category_leaderboard', { 
-          p_category: category,
-          p_limit: 50 
-        });
+        .from('course_assignments')
+        .select(`
+          user_id,
+          course_id,
+          courses!inner(category),
+          profiles!inner(first_name, last_name, email, is_deleted),
+          user_course_progress(status)
+        `)
+        .eq('courses.category', category)
+        .eq('profiles.is_deleted', false);
 
-      if (categoryError) {
-        console.error(`Error calling ${category} leaderboard function:`, categoryError);
-        throw categoryError;
+      if (categoryError || !categoryData) {
+        console.warn(`No data found for ${category} category:`, categoryError);
+        return;
       }
 
-      if (!categoryData || categoryData.length === 0) {
-        console.log(`No ${category} data available`);
-        return 0;
-      }
-
-      // Prepare cache entries from optimized SQL results
-      const cacheEntries = categoryData.map((entry: any) => ({
-        leaderboard_type: leaderboardType,
-        user_id: entry.user_id,
-        user_name: entry.user_name,
-        user_email: entry.user_email,
-        score: entry.completion_rate,
-        rank_position: entry.rank_position,
-        additional_data: {
-          courses_completed: entry.courses_completed,
-          total_courses: entry.total_courses,
-          completion_rate: entry.completion_rate
+      // Group by user and calculate completion rates
+      const userStats = new Map();
+      
+      categoryData.forEach((item: any) => {
+        const userId = item.user_id;
+        if (!userStats.has(userId)) {
+          userStats.set(userId, {
+            user_id: userId,
+            user_name: `${item.profiles.first_name} ${item.profiles.last_name}`,
+            user_email: item.profiles.email,
+            total_courses: 0,
+            completed_courses: 0
+          });
         }
-      }));
+        
+        const stats = userStats.get(userId);
+        stats.total_courses++;
+        
+        if (item.user_course_progress && item.user_course_progress.length > 0) {
+          const progress = item.user_course_progress[0];
+          if (progress.status === 'completed') {
+            stats.completed_courses++;
+          }
+        }
+      });
 
-      // Batch insert with transaction support
-      const { error: insertError } = await supabase
-        .from('leaderboard_cache')
-        .insert(cacheEntries);
+      // Convert to array and calculate completion rates
+      const rankedUsers = Array.from(userStats.values())
+        .map((stats: any) => ({
+          ...stats,
+          completion_rate: stats.total_courses > 0 
+            ? Math.round((stats.completed_courses / stats.total_courses) * 100) 
+            : 0
+        }))
+        .sort((a, b) => {
+          if (b.completion_rate !== a.completion_rate) {
+            return b.completion_rate - a.completion_rate;
+          }
+          return b.completed_courses - a.completed_courses;
+        })
+        .slice(0, 50);
 
-      if (insertError) {
-        console.error(`Error inserting ${category} cache:`, insertError);
-        throw insertError;
+      if (rankedUsers.length > 0) {
+        const cacheEntries = rankedUsers.map((user: any, index: number) => ({
+          leaderboard_type: leaderboardType,
+          user_id: user.user_id,
+          user_name: user.user_name,
+          user_email: user.user_email,
+          score: user.completion_rate,
+          rank_position: index + 1,
+          additional_data: {
+            courses_completed: user.completed_courses,
+            total_courses: user.total_courses,
+            completion_rate: user.completion_rate
+          }
+        }));
+
+        const { error: insertError } = await supabase
+          .from('leaderboard_cache')
+          .insert(cacheEntries);
+
+        if (insertError) {
+          console.error(`Error inserting ${category} cache:`, insertError);
+        } else {
+          console.log(`Successfully cached ${cacheEntries.length} ${category} entries`);
+        }
       }
-
-      console.log(`Successfully cached ${cacheEntries.length} ${category} entries`);
-      return cacheEntries.length;
     } catch (error) {
       console.error(`Error refreshing ${category} leaderboard:`, error);
-      throw error;
     }
   };
 

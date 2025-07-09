@@ -1,7 +1,6 @@
 
 import { Tables } from "@/integrations/supabase/types";
 import UnifiedVideoPlayer from "../video/UnifiedVideoPlayer";
-import { logger } from "@/utils/logger";
 
 type Lesson = Tables<'lessons'>;
 
@@ -16,12 +15,12 @@ const LessonVideo = ({ lesson, courseId }: LessonVideoProps) => {
   }
 
   const handleVideoProgress = (currentTime: number, duration: number, watchPercentage: number) => {
-    logger.log('Lesson video progress:', { currentTime, duration, watchPercentage });
+    console.log('Lesson video progress:', { currentTime, duration, watchPercentage });
     // TODO: Implement lesson video progress tracking if needed
   };
 
   const handleVideoComplete = () => {
-    logger.log('Lesson video completed');
+    console.log('Lesson video completed');
     // TODO: Implement lesson video completion tracking if needed
   };
 
