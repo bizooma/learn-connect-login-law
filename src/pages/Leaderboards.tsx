@@ -1,23 +1,32 @@
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trophy, Flame, Target, Users, RefreshCw, AlertCircle, CheckCircle } from "lucide-react";
+import { useRenderPerformanceMonitor } from "@/utils/renderPerformanceMonitor";
 import StreakLeaderboard, { StreakLeaderboardRef } from "@/components/leaderboards/StreakLeaderboard";
 import CategoryLeaderboard, { CategoryLeaderboardRef } from "@/components/leaderboards/CategoryLeaderboard";
 import { useOptimizedLeaderboards } from "@/hooks/useOptimizedLeaderboards";
 import { supabase } from "@/integrations/supabase/client";
 
 const Leaderboards = () => {
+  const { startRender, endRender } = useRenderPerformanceMonitor('LeaderboardsPage');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [cacheStatus, setCacheStatus] = useState<'checking' | 'empty' | 'populated'>('checking');
+
+  // Track render performance
+  useEffect(() => {
+    startRender();
+    return () => endRender();
+  });
   const streakRef = useRef<StreakLeaderboardRef>(null);
   const salesRef = useRef<CategoryLeaderboardRef>(null);
   const legalRef = useRef<CategoryLeaderboardRef>(null);
   const { refreshCache } = useOptimizedLeaderboards();
 
-  const handleRefreshCache = async () => {
+  // Memoized refresh handler to prevent function recreation
+  const handleRefreshCache = useCallback(async () => {
     try {
       setIsRefreshing(true);
       setDebugInfo(null);
@@ -40,9 +49,10 @@ const Leaderboards = () => {
     } finally {
       setIsRefreshing(false);
     }
-  };
+  }, [refreshCache, streakRef, salesRef, legalRef]);
 
-  const checkCacheStatus = async () => {
+  // Memoized cache status check
+  const checkCacheStatus = useCallback(async () => {
     try {
       const { count, error } = await supabase
         .from('leaderboard_cache')
@@ -65,14 +75,15 @@ const Leaderboards = () => {
       console.error('Error checking cache status:', error);
       setCacheStatus('empty');
     }
-  };
+  }, [handleRefreshCache]);
 
   // Auto-refresh on page load if no data exists
   useEffect(() => {
     checkCacheStatus();
-  }, []);
+  }, [checkCacheStatus]);
 
-  const getCacheStatusIcon = () => {
+  // Memoized cache status icon to prevent recreation
+  const getCacheStatusIcon = useMemo(() => {
     switch (cacheStatus) {
       case 'checking':
         return <RefreshCw className="h-3 w-3 animate-spin" />;
@@ -81,9 +92,10 @@ const Leaderboards = () => {
       case 'empty':
         return <AlertCircle className="h-3 w-3 text-orange-600" />;
     }
-  };
+  }, [cacheStatus]);
 
-  const getCacheStatusText = () => {
+  // Memoized cache status text to prevent recreation
+  const getCacheStatusText = useMemo(() => {
     switch (cacheStatus) {
       case 'checking':
         return 'Checking cache...';
@@ -92,7 +104,29 @@ const Leaderboards = () => {
       case 'empty':
         return 'Cache empty - click refresh';
     }
-  };
+  }, [cacheStatus, debugInfo]);
+
+  // Memoized refresh button to prevent recreation
+  const refreshButton = useMemo(() => (
+    <button
+      onClick={handleRefreshCache}
+      disabled={isRefreshing}
+      className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+    >
+      <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+      {isRefreshing ? 'Refreshing...' : 'Refresh Rankings'}
+    </button>
+  ), [handleRefreshCache, isRefreshing]);
+
+  // Memoized status indicator to prevent recreation
+  const statusIndicator = useMemo(() => (
+    <div className="text-xs text-gray-500 bg-gray-100 px-3 py-2 rounded">
+      <div className="flex items-center gap-1">
+        {getCacheStatusIcon}
+        <span>{getCacheStatusText}</span>
+      </div>
+    </div>
+  ), [getCacheStatusIcon, getCacheStatusText]);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -104,20 +138,8 @@ const Leaderboards = () => {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <div className="text-xs text-gray-500 bg-gray-100 px-3 py-2 rounded">
-            <div className="flex items-center gap-1">
-              {getCacheStatusIcon()}
-              <span>{getCacheStatusText()}</span>
-            </div>
-          </div>
-          <button
-            onClick={handleRefreshCache}
-            disabled={isRefreshing}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-          >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {isRefreshing ? 'Refreshing...' : 'Refresh Rankings'}
-          </button>
+          {statusIndicator}
+          {refreshButton}
         </div>
       </div>
 
