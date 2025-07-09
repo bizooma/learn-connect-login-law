@@ -21,6 +21,7 @@ const ChatbotInterface = () => {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showTicketForm, setShowTicketForm] = useState(false);
+  const [imageLoadError, setImageLoadError] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
   const { role } = useUserRole();
@@ -166,7 +167,16 @@ const ChatbotInterface = () => {
                 {message.type === 'user' ? (
                   <User className="w-3 h-3 text-primary-foreground" />
                 ) : (
-                  <img src="/lovable-uploads/ab15ebc6-1049-48d8-b07a-1158eca1abde.png" alt="Support" className="w-6 h-6 rounded-full object-cover" />
+                  !imageLoadError ? (
+                    <img 
+                      src="/lovable-uploads/ab15ebc6-1049-48d8-b07a-1158eca1abde.png" 
+                      alt="Support" 
+                      className="w-6 h-6 rounded-full object-cover" 
+                      onError={() => setImageLoadError(true)}
+                    />
+                  ) : (
+                    <Bot className="w-3 h-3 text-muted-foreground" />
+                  )
                 )}
               </div>
               <div className={`rounded-lg p-3 ${
@@ -204,7 +214,16 @@ const ChatbotInterface = () => {
           <div className="flex justify-start">
             <div className="flex items-center space-x-2">
               <div className="w-6 h-6 rounded-full bg-muted flex items-center justify-center">
-                <img src="/lovable-uploads/ab15ebc6-1049-48d8-b07a-1158eca1abde.png" alt="Support" className="w-6 h-6 rounded-full object-cover" />
+                {!imageLoadError ? (
+                  <img 
+                    src="/lovable-uploads/ab15ebc6-1049-48d8-b07a-1158eca1abde.png" 
+                    alt="Support" 
+                    className="w-6 h-6 rounded-full object-cover" 
+                    onError={() => setImageLoadError(true)}
+                  />
+                ) : (
+                  <Bot className="w-3 h-3 text-muted-foreground" />
+                )}
               </div>
               <div className="bg-muted rounded-lg p-3">
                 <div className="flex space-x-1">
