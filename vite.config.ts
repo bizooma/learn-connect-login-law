@@ -19,4 +19,48 @@ export default defineConfig(({ mode }) => ({
       "@": path.resolve(__dirname, "./src"),
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          // Core React and routing
+          'react-vendor': ['react', 'react-dom', 'react-router-dom'],
+          
+          // UI Components (Radix + Shadcn)
+          'ui-vendor': [
+            '@radix-ui/react-dialog',
+            '@radix-ui/react-dropdown-menu',
+            '@radix-ui/react-toast',
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-select'
+          ],
+          
+          // Heavy libraries
+          'flowchart-vendor': ['@xyflow/react'],
+          'charts-vendor': ['recharts'],
+          'query-vendor': ['@tanstack/react-query'],
+          'supabase-vendor': ['@supabase/supabase-js'],
+          
+          // Admin-specific components
+          'admin-chunk': [
+            'src/components/admin',
+            'src/pages/AdminKnowledgeBase.tsx'
+          ],
+          
+          // Dashboard pages
+          'dashboard-chunk': [
+            'src/pages/OwnerDashboard.tsx',
+            'src/pages/TeamLeaderDashboard.tsx',
+            'src/pages/StudentDashboard.tsx',
+            'src/pages/ClientDashboard.tsx'
+          ]
+        }
+      }
+    },
+    // Enable code splitting and tree shaking
+    minify: 'terser',
+    sourcemap: false,
+    reportCompressedSize: false,
+    chunkSizeWarningLimit: 1000
+  }
 }));

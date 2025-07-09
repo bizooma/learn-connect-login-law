@@ -4,56 +4,75 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Suspense, lazy } from "react";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { useSessionTracking } from "@/hooks/useSessionTracking";
 import { AuthProvider } from "@/hooks/useAuth";
-import Index from "./pages/Index";
-import Course from "./pages/Course";
-import Courses from "./pages/Courses";
-import Section from "./pages/Section";
-import Homepage from "./pages/Homepage";
-import Login from "./pages/Login";
-import ResetPassword from "./pages/ResetPassword";
-import KnowledgeBase from "./pages/KnowledgeBase";
-import AdminKnowledgeBase from "./pages/AdminKnowledgeBase";
-import LMSTree from "./pages/LMSTree";
-import FlowchartLMSTree from "./pages/FlowchartLMSTree";
-import ProtectedFlowchartLMSTree from "./pages/ProtectedFlowchartLMSTree";
-import NotFound from "./pages/NotFound";
-import OwnerDashboard from "./pages/OwnerDashboard";
-import TeamLeaderDashboard from "./pages/TeamLeaderDashboard";
-import StudentDashboard from "./pages/StudentDashboard";
-import ClientDashboard from "./pages/ClientDashboard";
-import FreeDashboard from "./pages/FreeDashboard";
+
+// Lazy load components for better code splitting
+const Index = lazy(() => import("./pages/Index"));
+const Course = lazy(() => import("./pages/Course"));
+const Courses = lazy(() => import("./pages/Courses"));
+const Section = lazy(() => import("./pages/Section"));
+const Homepage = lazy(() => import("./pages/Homepage"));
+const Login = lazy(() => import("./pages/Login"));
+const ResetPassword = lazy(() => import("./pages/ResetPassword"));
+const KnowledgeBase = lazy(() => import("./pages/KnowledgeBase"));
+const AdminKnowledgeBase = lazy(() => import("./pages/AdminKnowledgeBase"));
+const LMSTree = lazy(() => import("./pages/LMSTree"));
+const NotFound = lazy(() => import("./pages/NotFound"));
+
+// Separate admin/owner specific routes into their own chunks
+const OwnerDashboard = lazy(() => import("./pages/OwnerDashboard"));
+const TeamLeaderDashboard = lazy(() => import("./pages/TeamLeaderDashboard"));
+const StudentDashboard = lazy(() => import("./pages/StudentDashboard"));
+const ClientDashboard = lazy(() => import("./pages/ClientDashboard"));
+const FreeDashboard = lazy(() => import("./pages/FreeDashboard"));
+
+// Heavy flowchart components - separate chunk
+const FlowchartLMSTree = lazy(() => import("./pages/FlowchartLMSTree"));
+const ProtectedFlowchartLMSTree = lazy(() => import("./pages/ProtectedFlowchartLMSTree"));
 
 const queryClient = new QueryClient();
+
+// Loading component for better UX during code splitting
+const PageLoader = () => (
+  <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="text-center">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+      <p className="text-gray-600">Loading...</p>
+    </div>
+  </div>
+);
 
 const AppContent = () => {
   // Initialize session tracking
   useSessionTracking();
 
   return (
-    <Routes>
-      <Route path="/" element={<Index />} />
-      <Route path="/dashboard" element={<Navigate to="/" replace />} />
-      <Route path="/homepage" element={<Homepage />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/courses" element={<Courses />} />
-      <Route path="/course/:id" element={<Course />} />
-      <Route path="/section/:id" element={<Section />} />
-      <Route path="/knowledge-base" element={<KnowledgeBase />} />
-      <Route path="/admin-knowledge-base" element={<AdminKnowledgeBase />} />
-      <Route path="/lms-tree" element={<LMSTree />} />
-      <Route path="/flowchart-lms-tree" element={<FlowchartLMSTree />} />
-      <Route path="/protected-flowchart-lms-tree" element={<ProtectedFlowchartLMSTree />} />
-      <Route path="/owner-dashboard" element={<OwnerDashboard />} />
-      <Route path="/team-leader-dashboard" element={<TeamLeaderDashboard />} />
-      <Route path="/student-dashboard" element={<StudentDashboard />} />
-      <Route path="/client-dashboard" element={<ClientDashboard />} />
-      <Route path="/free-dashboard" element={<FreeDashboard />} />
-      <Route path="*" element={<NotFound />} />
-    </Routes>
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        <Route path="/" element={<Index />} />
+        <Route path="/dashboard" element={<Navigate to="/" replace />} />
+        <Route path="/homepage" element={<Homepage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/courses" element={<Courses />} />
+        <Route path="/course/:id" element={<Course />} />
+        <Route path="/section/:id" element={<Section />} />
+        <Route path="/knowledge-base" element={<KnowledgeBase />} />
+        <Route path="/admin-knowledge-base" element={<AdminKnowledgeBase />} />
+        <Route path="/lms-tree" element={<LMSTree />} />
+        <Route path="/flowchart-lms-tree" element={<FlowchartLMSTree />} />
+        <Route path="/protected-flowchart-lms-tree" element={<ProtectedFlowchartLMSTree />} />
+        <Route path="/owner-dashboard" element={<OwnerDashboard />} />
+        <Route path="/team-leader-dashboard" element={<TeamLeaderDashboard />} />
+        <Route path="/student-dashboard" element={<StudentDashboard />} />
+        <Route path="/client-dashboard" element={<ClientDashboard />} />
+        <Route path="/free-dashboard" element={<FreeDashboard />} />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+    </Suspense>
   );
 };
 

@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import AuthPage from "../components/AuthPage";
 import Dashboard from "../components/Dashboard";
-import AdminDashboard from "../components/AdminDashboard";
+import LazyAdminDashboard from "../components/lazy/LazyAdminDashboard";
 import NotificationBanner from "../components/notifications/NotificationBanner";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useRef } from "react";
@@ -117,7 +117,7 @@ const Index = () => {
   return (
     <div>
       <NotificationBanner />
-      {isAdmin ? <AdminDashboard /> : <Dashboard />}
+      {isAdmin ? <LazyAdminDashboard /> : <Dashboard />}
     </div>
   );
 };
