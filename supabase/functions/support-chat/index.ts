@@ -89,8 +89,8 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseKey);
     
-    // Get relevant knowledge base content
-    const knowledgeBase = userRole === 'admin' ? adminKnowledgeBase : studentKnowledgeBase;
+    // Always use student knowledge base for user-facing support
+    const knowledgeBase = studentKnowledgeBase;
     
     // Generate AI response
     const response = await fetch('https://api.openai.com/v1/chat/completions', {

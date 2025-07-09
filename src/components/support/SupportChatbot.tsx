@@ -21,7 +21,7 @@ export const SupportChatbot = () => {
   const handleSendMessage = async () => {
     if (!message.trim()) return;
     
-    await sendMessage(message, isAdmin ? 'admin' : 'student');
+    await sendMessage(message, 'student');
     setMessage('');
   };
 
