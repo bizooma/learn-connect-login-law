@@ -26,25 +26,36 @@ export default defineConfig(({ mode }) => ({
           // Core React and routing
           'react-vendor': ['react', 'react-dom', 'react-router-dom'],
           
-          // UI Components (Radix + Shadcn)
-          'ui-vendor': [
+          // Core UI Components - only most used ones
+          'ui-core': [
             '@radix-ui/react-dialog',
             '@radix-ui/react-dropdown-menu',
-            '@radix-ui/react-toast',
-            '@radix-ui/react-tabs',
-            '@radix-ui/react-select'
+            '@radix-ui/react-toast'
           ],
           
-          // Heavy libraries
+          // Secondary UI Components - loaded when needed
+          'ui-secondary': [
+            '@radix-ui/react-tabs',
+            '@radix-ui/react-select',
+            '@radix-ui/react-alert-dialog',
+            '@radix-ui/react-popover'
+          ],
+          
+          // Heavy libraries - separate chunks for better caching
           'flowchart-vendor': ['@xyflow/react'],
           'charts-vendor': ['recharts'],
+          'markdown-vendor': ['react-markdown', 'remark-gfm'],
+          'date-vendor': ['date-fns'],
           'query-vendor': ['@tanstack/react-query'],
-          'supabase-vendor': ['@supabase/supabase-js']
+          'supabase-vendor': ['@supabase/supabase-js'],
+          
+          // Form and validation libraries
+          'forms-vendor': ['react-hook-form', '@hookform/resolvers', 'zod']
         }
       }
     },
     // Enable code splitting and tree shaking
-    minify: 'terser',
+    minify: 'esbuild', // Use esbuild instead of terser for faster builds
     sourcemap: false,
     reportCompressedSize: false,
     chunkSizeWarningLimit: 1000
