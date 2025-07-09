@@ -11,8 +11,8 @@ const ChatbotWidget = () => {
   const { isAdmin } = useUserRole();
   const { user } = useAuth();
 
-  // Don't show chatbot for admin users or if user is not logged in
-  if (isAdmin || !user) {
+  // Don't show chatbot if user is not logged in (temporarily allowing admins for testing)
+  if (!user) {
     return null;
   }
 
