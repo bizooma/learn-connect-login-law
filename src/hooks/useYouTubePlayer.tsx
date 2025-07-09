@@ -43,6 +43,8 @@ export const useYouTubePlayer = ({
 
   const progressIntervalRef = useRef<number>();
   const playerRef = useRef<any>(null);
+  const cleanupTimeoutRef = useRef<number>();
+  const lastProgressUpdateRef = useRef<number>(0);
 
   // Load YouTube API
   useEffect(() => {
@@ -76,6 +78,65 @@ export const useYouTubePlayer = ({
 
     loadYouTubeAPI();
   }, []);
+
+  // Stop progress tracking function
+  const stopProgressTracking = useCallback(() => {
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+      progressIntervalRef.current = undefined;
+    }
+  }, []);
+
+  // Optimized progress tracking with throttling
+  const startProgressTracking = useCallback(() => {
+    if (progressIntervalRef.current) {
+      clearInterval(progressIntervalRef.current);
+    }
+
+    progressIntervalRef.current = window.setInterval(() => {
+      if (playerRef.current && typeof playerRef.current.getCurrentTime === 'function') {
+        try {
+          const now = Date.now();
+          // Throttle progress updates to prevent excessive calls (minimum 1 second apart)
+          if (now - lastProgressUpdateRef.current < 1000) {
+            return;
+          }
+          
+          const currentTime = playerRef.current.getCurrentTime();
+          const duration = (typeof playerRef.current.getDuration === 'function') 
+            ? playerRef.current.getDuration() 
+            : playerState.duration;
+          
+          // Only update if there's a significant change (0.5 second minimum)
+          const timeDiff = Math.abs(currentTime - playerState.currentTime);
+          if (timeDiff < 0.5 && currentTime !== duration) {
+            return;
+          }
+          
+          lastProgressUpdateRef.current = now;
+          
+          setPlayerState(prev => ({ 
+            ...prev, 
+            currentTime,
+            duration: duration || prev.duration
+          }));
+
+          if (onProgress && duration > 0) {
+            onProgress(currentTime, duration);
+          }
+        } catch (error) {
+          console.warn('Error getting YouTube player time:', error);
+          // Stop tracking on repeated errors to prevent memory leaks
+          if (error instanceof Error && error.message.includes('unavailable')) {
+            stopProgressTracking();
+          }
+        }
+      } else {
+        // Player no longer available, stop tracking
+        stopProgressTracking();
+      }
+    }, 2000); // Update every 2 seconds
+  }, [onProgress, playerState.duration, playerState.currentTime, stopProgressTracking]);
 
   // Initialize player
   const initializePlayer = useCallback(() => {
@@ -168,44 +229,7 @@ export const useYouTubePlayer = ({
     } catch (error) {
       console.error('Error initializing YouTube player:', error);
     }
-  }, [videoId, containerId, onReady, onStateChange, playerState.duration]);
-
-  // Progress tracking
-  const startProgressTracking = useCallback(() => {
-    if (progressIntervalRef.current) {
-      clearInterval(progressIntervalRef.current);
-    }
-
-    progressIntervalRef.current = window.setInterval(() => {
-      if (playerRef.current && typeof playerRef.current.getCurrentTime === 'function') {
-        try {
-          const currentTime = playerRef.current.getCurrentTime();
-          const duration = (typeof playerRef.current.getDuration === 'function') 
-            ? playerRef.current.getDuration() 
-            : playerState.duration;
-          
-          setPlayerState(prev => ({ 
-            ...prev, 
-            currentTime,
-            duration: duration || prev.duration
-          }));
-
-          if (onProgress && duration > 0) {
-            onProgress(currentTime, duration);
-          }
-        } catch (error) {
-          console.warn('Error getting YouTube player time:', error);
-        }
-      }
-    }, 2000); // Update every 2 seconds
-  }, [onProgress, playerState.duration]);
-
-  const stopProgressTracking = useCallback(() => {
-    if (progressIntervalRef.current) {
-      clearInterval(progressIntervalRef.current);
-      progressIntervalRef.current = undefined;
-    }
-  }, []);
+  }, [videoId, containerId, onReady, onStateChange, playerState.duration, startProgressTracking, stopProgressTracking]);
 
   // Initialize player when API is ready
   useEffect(() => {
