@@ -2,6 +2,7 @@
 import { useState, useEffect, useMemo, useCallback, forwardRef, useImperativeHandle } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { optimizationTracker } from "@/utils/algorithmicOptimizationTracker";
 import LeaderboardCard from "./LeaderboardCard";
 
 interface CategoryLeaderboardEntry {
@@ -106,17 +107,37 @@ const CategoryLeaderboard = forwardRef<CategoryLeaderboardRef, CategoryLeaderboa
     );
   }
 
+  // Optimized data transformation with performance tracking
   const formattedEntries = useMemo(() => {
-    return entries.map(entry => ({
-      user_id: entry.user_id,
-      user_name: entry.user_name,
-      user_email: entry.user_email,
-      completion_rate: (entry.additional_data as any)?.completion_rate || entry.score,
-      courses_completed: (entry.additional_data as any)?.courses_completed || 0,
-      total_courses: (entry.additional_data as any)?.total_courses || 0,
-      rank_position: entry.rank_position
-    }));
-  }, [entries]);
+    const start = performance.now();
+    
+    // Optimized single-pass transformation
+    const result = entries.map(entry => {
+      const additionalData = entry.additional_data as any;
+      return {
+        user_id: entry.user_id,
+        user_name: entry.user_name,
+        user_email: entry.user_email,
+        completion_rate: additionalData?.completion_rate ?? entry.score ?? 0,
+        courses_completed: additionalData?.courses_completed ?? 0,
+        total_courses: additionalData?.total_courses ?? 0,
+        rank_position: entry.rank_position
+      };
+    });
+    
+    const duration = performance.now() - start;
+    if (duration > 5) { // Only track if significant processing time
+      optimizationTracker.trackOptimization(
+        `CategoryLeaderboard_${category}_DataTransformation`,
+        'memory_optimization',
+        0,
+        duration,
+        entries.length
+      );
+    }
+    
+    return result;
+  }, [entries, category]);
 
   return (
     <div className="space-y-3">

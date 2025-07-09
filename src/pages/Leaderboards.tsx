@@ -5,7 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Trophy, Flame, Target, Users, RefreshCw, AlertCircle, CheckCircle } from "lucide-react";
 import StreakLeaderboard, { StreakLeaderboardRef } from "@/components/leaderboards/StreakLeaderboard";
 import CategoryLeaderboard, { CategoryLeaderboardRef } from "@/components/leaderboards/CategoryLeaderboard";
-import { useLeaderboards } from "@/hooks/useLeaderboards";
+import { useOptimizedLeaderboards } from "@/hooks/useOptimizedLeaderboards";
 import { supabase } from "@/integrations/supabase/client";
 
 const Leaderboards = () => {
@@ -15,7 +15,7 @@ const Leaderboards = () => {
   const streakRef = useRef<StreakLeaderboardRef>(null);
   const salesRef = useRef<CategoryLeaderboardRef>(null);
   const legalRef = useRef<CategoryLeaderboardRef>(null);
-  const { refreshCache } = useLeaderboards();
+  const { refreshCache } = useOptimizedLeaderboards();
 
   const handleRefreshCache = async () => {
     try {
