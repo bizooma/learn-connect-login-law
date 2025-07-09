@@ -9,6 +9,7 @@ import ErrorBoundary from "@/components/ErrorBoundary";
 import { useSessionTracking } from "@/hooks/useSessionTracking";
 import { usePerformanceTracking } from "@/hooks/usePerformanceTracking";
 import { AuthProvider } from "@/hooks/useAuth";
+import { ProgressProvider } from "@/contexts/ProgressContext";
 
 // Lazy load components for better code splitting
 const Index = lazy(() => import("./pages/Index"));
@@ -85,11 +86,13 @@ const App = () => (
     <TooltipProvider>
       <ErrorBoundary>
         <AuthProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <AppContent />
-          </BrowserRouter>
+          <ProgressProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <AppContent />
+            </BrowserRouter>
+          </ProgressProvider>
         </AuthProvider>
       </ErrorBoundary>
     </TooltipProvider>
