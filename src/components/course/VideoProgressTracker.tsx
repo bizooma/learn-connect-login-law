@@ -26,11 +26,12 @@ const VideoProgressTracker = ({
   const { videoProgress, loading, updateVideoProgress } = useVideoProgress(unitId, courseId);
   const { completionState, handleVideoProgress, handleVideoEnded, forceComplete } = useVideoCompletion(unitId, courseId);
   const progressUpdateRef = useRef<number>();
+  const youtubeIntervalRef = useRef<number>();
+  const cleanupFunctionsRef = useRef<Array<() => void>>([]);
 
-  // Enhanced YouTube player event handling
+  // Enhanced YouTube player event handling with proper cleanup
   useEffect(() => {
     if (videoType === 'youtube' && youtubePlayer) {
-      let progressInterval: number;
       let hasTriggeredCompletion = false;
 
       const handleStateChange = (event: any) => {
@@ -42,8 +43,13 @@ const VideoProgressTracker = ({
           logger.log('🎯 YouTube video ended - triggering completion');
           handleVideoEnded();
         } else if (state === 1) { // Playing
-          // Start enhanced progress tracking
-          progressInterval = window.setInterval(() => {
+          // Clear any existing interval first
+          if (youtubeIntervalRef.current) {
+            clearInterval(youtubeIntervalRef.current);
+          }
+          
+          // Start optimized progress tracking
+          youtubeIntervalRef.current = window.setInterval(() => {
             try {
               const currentTime = youtubePlayer.getCurrentTime();
               const duration = youtubePlayer.getDuration();
@@ -51,18 +57,24 @@ const VideoProgressTracker = ({
               if (duration > 0) {
                 const watchPercentage = (currentTime / duration) * 100;
                 
-                // Update both progress systems
+                // Batch updates for better performance
                 updateVideoProgress(currentTime, duration, watchPercentage);
                 handleVideoProgress(currentTime, duration);
               }
             } catch (error) {
               logger.warn('⚠️ Error tracking YouTube progress:', error);
+              // Clear interval on error to prevent memory leaks
+              if (youtubeIntervalRef.current) {
+                clearInterval(youtubeIntervalRef.current);
+                youtubeIntervalRef.current = undefined;
+              }
             }
-          }, 3000); // Update every 3 seconds
+          }, 3000);
         } else {
           // Paused or other states - stop tracking
-          if (progressInterval) {
-            clearInterval(progressInterval);
+          if (youtubeIntervalRef.current) {
+            clearInterval(youtubeIntervalRef.current);
+            youtubeIntervalRef.current = undefined;
           }
         }
       };
@@ -70,24 +82,38 @@ const VideoProgressTracker = ({
       // Enhanced error handling for YouTube events
       try {
         youtubePlayer.addEventListener('onStateChange', handleStateChange);
+        cleanupFunctionsRef.current.push(() => {
+          try {
+            youtubePlayer.removeEventListener('onStateChange', handleStateChange);
+          } catch (error) {
+            logger.warn('⚠️ Error removing YouTube event listener:', error);
+          }
+        });
       } catch (error) {
         logger.warn('⚠️ Error setting up YouTube progress tracking:', error);
       }
 
       return () => {
-        try {
-          youtubePlayer.removeEventListener('onStateChange', handleStateChange);
-        } catch (error) {
-          logger.warn('⚠️ Error removing YouTube event listener:', error);
+        // Comprehensive cleanup
+        if (youtubeIntervalRef.current) {
+          clearInterval(youtubeIntervalRef.current);
+          youtubeIntervalRef.current = undefined;
         }
-        if (progressInterval) {
-          clearInterval(progressInterval);
-        }
+        
+        // Execute all cleanup functions
+        cleanupFunctionsRef.current.forEach(cleanup => {
+          try {
+            cleanup();
+          } catch (error) {
+            logger.warn('⚠️ Error during cleanup:', error);
+          }
+        });
+        cleanupFunctionsRef.current = [];
       };
     }
   }, [youtubePlayer, videoType, updateVideoProgress, handleVideoProgress, handleVideoEnded, unitId]);
 
-  // Enhanced regular video player event handling
+  // Enhanced regular video player event handling with memory optimization
   useEffect(() => {
     const video = videoElement;
     if (!video || !unitId || videoType !== 'upload') return;
@@ -99,11 +125,18 @@ const VideoProgressTracker = ({
       if (duration > 0) {
         const watchPercentage = (currentTime / duration) * 100;
         
-        // Throttle updates for better performance
-        clearTimeout(progressUpdateRef.current);
+        // Optimized throttling with cleanup
+        if (progressUpdateRef.current) {
+          clearTimeout(progressUpdateRef.current);
+        }
+        
         progressUpdateRef.current = window.setTimeout(() => {
-          updateVideoProgress(currentTime, duration, watchPercentage);
-          handleVideoProgress(currentTime, duration);
+          try {
+            updateVideoProgress(currentTime, duration, watchPercentage);
+            handleVideoProgress(currentTime, duration);
+          } catch (error) {
+            logger.warn('⚠️ Error updating video progress:', error);
+          }
         }, 2000);
       }
     };
@@ -113,16 +146,46 @@ const VideoProgressTracker = ({
       handleVideoEnded();
     };
 
-    // Enhanced event listeners
-    video.addEventListener('timeupdate', handleTimeUpdate);
-    video.addEventListener('ended', handleEnded);
+    // Add event listeners with passive option for better performance
+    video.addEventListener('timeupdate', handleTimeUpdate, { passive: true });
+    video.addEventListener('ended', handleEnded, { passive: true });
 
-    return () => {
+    // Store cleanup functions
+    const cleanup = () => {
       video.removeEventListener('timeupdate', handleTimeUpdate);
       video.removeEventListener('ended', handleEnded);
-      clearTimeout(progressUpdateRef.current);
+      if (progressUpdateRef.current) {
+        clearTimeout(progressUpdateRef.current);
+        progressUpdateRef.current = undefined;
+      }
     };
+    
+    cleanupFunctionsRef.current.push(cleanup);
+
+    return cleanup;
   }, [videoElement, videoType, updateVideoProgress, handleVideoProgress, handleVideoEnded, unitId]);
+
+  // Global cleanup on unmount
+  useEffect(() => {
+    return () => {
+      // Clear all intervals and timeouts
+      if (youtubeIntervalRef.current) {
+        clearInterval(youtubeIntervalRef.current);
+      }
+      if (progressUpdateRef.current) {
+        clearTimeout(progressUpdateRef.current);
+      }
+      
+      // Execute all cleanup functions
+      cleanupFunctionsRef.current.forEach(cleanup => {
+        try {
+          cleanup();
+        } catch (error) {
+          logger.warn('⚠️ Error during global cleanup:', error);
+        }
+      });
+    };
+  }, []);
 
   // Show loading state or when no meaningful progress
   if (loading || (videoProgress.watch_percentage === 0 && videoProgress.watched_duration_seconds === 0)) {
