@@ -28,6 +28,10 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
               src="/lovable-uploads/46508e0c-9266-4e5e-8cfd-cd390ddf40c3.png" 
               alt="Support Avatar" 
               className="w-8 h-8 rounded-full object-cover"
+              onError={(e) => {
+                console.error('Avatar image failed to load:', e);
+                (e.target as HTMLImageElement).style.display = 'none';
+              }}
             />
           )}
         </div>
