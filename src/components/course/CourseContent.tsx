@@ -1,7 +1,8 @@
 
 import { Tables } from "@/integrations/supabase/types";
 import { supabase } from "@/integrations/supabase/client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
+import { useOptimizedRealtimeSubscriptions } from "@/hooks/useOptimizedRealtimeSubscriptions";
 import CourseVideo from "./CourseVideo";
 import LessonVideo from "./LessonVideo";
 import LessonCard from "./LessonCard";
@@ -39,66 +40,63 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle, onProgressUpdate }
   const [unitQuiz, setUnitQuiz] = useState<Quiz | null>(null);
   const [quizLoading, setQuizLoading] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const { subscribe } = useOptimizedRealtimeSubscriptions();
 
-  // Fetch quiz for the current unit with real-time updates
+  // Optimized quiz fetching with coordinated real-time updates
+  const fetchUnitQuiz = useCallback(async () => {
+    if (!unit?.id) {
+      setUnitQuiz(null);
+      return;
+    }
+
+    setQuizLoading(true);
+    
+    try {
+      const { data: quizData, error } = await supabase
+        .from('quizzes')
+        .select('*')
+        .eq('unit_id', unit.id)
+        .eq('is_active', true)
+        .eq('is_deleted', false)
+        .is('deleted_at', null)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching quiz:', error);
+        setUnitQuiz(null);
+      } else {
+        setUnitQuiz(quizData);
+      }
+    } catch (error) {
+      console.error('Error in fetchUnitQuiz:', error);
+      setUnitQuiz(null);
+    } finally {
+      setQuizLoading(false);
+    }
+  }, [unit?.id]);
+
+  // Handle quiz changes from real-time updates
+  const handleQuizUpdate = useCallback((payload: any) => {
+    console.log('Quiz change detected:', payload);
+    fetchUnitQuiz();
+  }, [fetchUnitQuiz]);
+
   useEffect(() => {
-    const fetchUnitQuiz = async () => {
-      if (!unit?.id) {
-        setUnitQuiz(null);
-        return;
-      }
-
-      setQuizLoading(true);
-      
-      try {
-        const { data: quizData, error } = await supabase
-          .from('quizzes')
-          .select('*')
-          .eq('unit_id', unit.id)
-          .eq('is_active', true)
-          .eq('is_deleted', false)
-          .is('deleted_at', null)
-          .maybeSingle();
-
-        if (error) {
-          console.error('Error fetching quiz:', error);
-          setUnitQuiz(null);
-        } else {
-          setUnitQuiz(quizData);
-        }
-      } catch (error) {
-        console.error('Error in fetchUnitQuiz:', error);
-        setUnitQuiz(null);
-      } finally {
-        setQuizLoading(false);
-      }
-    };
-
     fetchUnitQuiz();
 
-    // Set up real-time subscription for quiz changes
+    // Set up optimized real-time subscription for quiz changes
     if (!unit?.id) return;
 
-    const channel = supabase
-      .channel(`unit-quiz-${unit.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'quizzes',
-          filter: `unit_id=eq.${unit.id}`
-        },
-        () => {
-          fetchUnitQuiz();
-        }
-      )
-      .subscribe();
+    const unsubscribe = subscribe({
+      id: `unit-quiz-${unit.id}`,
+      table: 'quizzes',
+      filter: `unit_id=eq.${unit.id}`,
+      events: ['INSERT', 'UPDATE', 'DELETE'],
+      callback: handleQuizUpdate
+    });
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [unit?.id]);
+    return unsubscribe;
+  }, [unit?.id, fetchUnitQuiz, subscribe, handleQuizUpdate]);
 
   // Refresh completion status when component mounts or courseId changes
   useEffect(() => {

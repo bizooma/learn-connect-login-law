@@ -4,8 +4,8 @@ import { useCourse } from "@/hooks/useCourse";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProgress } from "@/hooks/useUserProgress";
-import { useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { useEffect, useCallback } from "react";
+import { useOptimizedRealtimeSubscriptions } from "@/hooks/useOptimizedRealtimeSubscriptions";
 import CourseHeader from "@/components/course/CourseHeader";
 import CourseSidebar from "@/components/course/CourseSidebar";
 import CourseMainContent from "@/components/course/CourseMainContent";
@@ -19,6 +19,7 @@ const Course = () => {
   const { isAdmin } = useUserRole();
   const { course, selectedUnit, setSelectedUnit, loading, error, refreshCourse } = useCourse(courseId!);
   const { updateCourseProgress } = useUserProgress(user?.id);
+  const { subscribe } = useOptimizedRealtimeSubscriptions();
 
   // Safely handle error for logging
   const getErrorMessage = (err: unknown): string => {
@@ -67,61 +68,49 @@ const Course = () => {
     }
   }, [course, user, authLoading, isAdmin, navigate, updateCourseProgress]);
 
-  // Set up real-time subscriptions for course content changes
+  // Optimized real-time subscriptions setup with coordination
+  const handleCourseContentUpdate = useCallback((payload: any) => {
+    console.log('Course content change detected:', payload);
+    refreshCourse();
+  }, [refreshCourse]);
+
   useEffect(() => {
     if (!courseId) return;
 
-    console.log('Setting up real-time subscriptions for course:', courseId);
+    console.log('Setting up optimized real-time subscriptions for course:', courseId);
 
-    // Subscribe to changes in modules, lessons, and units for this course
-    const channel = supabase
-      .channel(`course-${courseId}-changes`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'modules',
-          filter: `course_id=eq.${courseId}`
-        },
-        (payload) => {
-          console.log('Module change detected:', payload);
-          refreshCourse();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'lessons',
-          filter: `course_id=eq.${courseId}`
-        },
-        (payload) => {
-          console.log('Lesson change detected:', payload);
-          refreshCourse();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'units'
-        },
-        (payload) => {
-          console.log('Unit change detected:', payload);
-          // Check if this unit belongs to our course by refreshing
-          refreshCourse();
-        }
-      )
-      .subscribe();
+    // Create coordinated subscriptions using the optimized manager
+    const unsubscribeModules = subscribe({
+      id: `course-modules-${courseId}`,
+      table: 'modules',
+      filter: `course_id=eq.${courseId}`,
+      events: ['INSERT', 'UPDATE', 'DELETE'],
+      callback: handleCourseContentUpdate
+    });
+
+    const unsubscribeLessons = subscribe({
+      id: `course-lessons-${courseId}`,
+      table: 'lessons', 
+      filter: `course_id=eq.${courseId}`,
+      events: ['INSERT', 'UPDATE', 'DELETE'],
+      callback: handleCourseContentUpdate
+    });
+
+    // For units, we need to be more specific since they don't have direct course_id
+    const unsubscribeUnits = subscribe({
+      id: `course-units-${courseId}`,
+      table: 'units',
+      events: ['INSERT', 'UPDATE', 'DELETE'],
+      callback: handleCourseContentUpdate
+    });
 
     return () => {
-      console.log('Cleaning up real-time subscriptions');
-      supabase.removeChannel(channel);
+      unsubscribeModules();
+      unsubscribeLessons();
+      unsubscribeUnits();
+      console.log('Cleaned up optimized course subscriptions');
     };
-  }, [courseId, refreshCourse]);
+  }, [courseId, subscribe, handleCourseContentUpdate]);
 
   if (authLoading || loading) {
     console.log('Course: Showing loading state:', { authLoading, loading });
