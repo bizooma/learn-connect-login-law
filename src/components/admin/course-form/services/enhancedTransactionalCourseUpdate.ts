@@ -45,95 +45,22 @@ export const performEnhancedTransactionalCourseUpdate = async (
   courseData: CourseFormData,
   modules: ModuleData[]
 ): Promise<UpdateResult> => {
-  const startTime = Date.now();
-  const phaseTimings: Record<string, number> = {};
+  // Use the optimized implementation
+  const { performOptimizedTransactionalCourseUpdate } = await import('./optimizedTransactionalCourseUpdate');
+  const optimizedResult = await performOptimizedTransactionalCourseUpdate(courseId, courseData, modules);
   
-  const result: UpdateResult = {
-    success: false,
-    errors: [],
-    warnings: []
+  // Convert optimized result to legacy format for backward compatibility
+  return {
+    success: optimizedResult.success,
+    courseId: optimizedResult.courseId,
+    backupId: optimizedResult.backupId,
+    quizAssignmentsRestored: optimizedResult.quizAssignmentsRestored,
+    errors: optimizedResult.errors,
+    warnings: optimizedResult.warnings,
+    validationSummary: optimizedResult.validationSummary,
+    integrityScore: optimizedResult.integrityScore,
+    performanceMetrics: optimizedResult.performanceMetrics
   };
-
-  try {
-    // Phase 1: Pre-update validation and safety checks
-    const phase1Start = Date.now();
-    
-    const progressValidation = await validateProgressConsistency(courseId);
-    if (!progressValidation.isConsistent) {
-      result.warnings.push(...progressValidation.issues.map(issue => `Pre-update: ${issue}`));
-    }
-    
-    const existingStructure = await fetchExistingCourseStructure(courseId);
-    const quizMappings = await createQuizMappings(existingStructure, modules);
-    
-    phaseTimings.phase1_validation = Date.now() - phase1Start;
-
-    // Phase 2: Update course metadata safely
-    const phase2Start = Date.now();
-    
-    await updateCourseMetadataSafely(courseId, courseData);
-    phaseTimings.phase2_metadata = Date.now() - phase2Start;
-
-    // Phase 3: Perform safe content replacement with transaction safety
-    const phase3Start = Date.now();
-    
-    await performSafeContentReplacementEnhanced(courseId, modules);
-    phaseTimings.phase3_content = Date.now() - phase3Start;
-
-    // Phase 4: Restore quiz assignments using enhanced matching
-    const phase4Start = Date.now();
-    
-    const quizRestoreCount = await restoreQuizAssignmentsByTitleEnhanced(quizMappings);
-    result.quizAssignmentsRestored = quizRestoreCount;
-    
-    phaseTimings.phase4_quizzes = Date.now() - phase4Start;
-
-    // Phase 5: Ensure safe progress creation and final validation
-    const phase5Start = Date.now();
-    
-    // Get all users who should have access to this course
-    const { data: assignedUsers } = await supabase
-      .from('course_assignments')
-      .select('user_id')
-      .eq('course_id', courseId);
-    
-    if (assignedUsers && assignedUsers.length > 0) {
-      const userIds = assignedUsers.map(a => a.user_id);
-      const progressResult = await ensureSafeProgressCreation(courseId, userIds);
-      
-      if (!progressResult.success) {
-        result.errors.push(...progressResult.errors);
-      }
-      result.warnings.push(...progressResult.warnings);
-    }
-    
-    const validation = await validateCourseIntegrityWithDuplicateCheck(courseId);
-    result.validationSummary = validation.summary;
-    result.integrityScore = validation.score;
-    
-    if (validation.issues.length > 0) {
-      result.warnings.push(...validation.issues);
-    }
-    
-    phaseTimings.phase5_validation = Date.now() - phase5Start;
-
-    // Success!
-    result.success = true;
-    result.courseId = courseId;
-    
-    const totalTime = Date.now() - startTime;
-    result.performanceMetrics = {
-      totalDurationMs: totalTime,
-      phaseTimings
-    };
-
-    return result;
-
-  } catch (error) {
-    console.error('Enhanced course update failed:', error);
-    result.errors.push(`Update failed: ${error.message}`);
-    return result;
-  }
 };
 
 const fetchExistingCourseStructure = async (courseId: string) => {
