@@ -11,84 +11,140 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const studentKnowledgeBase = `
+const userKnowledgeBase = `
+GENERAL PLATFORM USAGE (All Users):
+
 Getting Started:
 - Log into your account and navigate to your dashboard
 - View your assigned courses and track progress
-- Switch between Dashboard, Certificates, and Profile tabs
+- Access different sections based on your role and permissions
 
-Course Management:
-- Access courses from Dashboard tab with 'Assigned Courses' and 'Completed Courses'
-- Browse all courses in the Course Catalog
-- Track progress automatically as you complete units
-
-Taking Courses:
+Course Learning:
+- Access courses from your Dashboard
 - Watch course videos with automatic progress tracking
 - Navigate: Course → Units → Modules → Lessons
 - Mark units complete using 'Mark as Complete' button
-- Use LMS Tree for course overview
+- Use LMS Tree for visual course overview
+- Take quizzes and assessments within courses
+- Track your learning progress in real-time
 
-Quizzes & Assessments:
-- Click 'Start Quiz' to begin assessments
-- Use Previous/Next buttons to navigate
-- Review answers before submitting
-- Retake failed quizzes (check with admin for policies)
+Certificates & Achievements:
+- Earn certificates automatically upon course completion
+- View all certificates in Certificates tab
+- Download PDF copies for your records
+- Each certificate has a unique verification number
+- Earn badges for achievements and milestones
 
-Leaderboards:
+Leaderboards & Competition:
 - Learning Streak: Consecutive days of activity (1+ units/day)
 - Category boards: Completion rates in Sales/Legal training
 - Rankings updated regularly based on activity
 - Grace period for streaks if you miss a day
 
-Certificates:
-- Earned automatically upon course completion
-- View all certificates in Certificates tab
-- Download PDF copies for your records
-- Each has unique verification number
+Profile Management:
+- Update personal information in Profile tab
+- Upload professional profile picture
+- Change password and security settings
+- Manage notification preferences
 
-Law Firm Management (for Law Firm Owners):
+LAW FIRM OWNER FEATURES:
+
+Law Firm Setup & Management:
 - Set up your law firm profile in the Settings tab
 - Upload your law firm logo for branding
 - Manage seat allocation for your employees
+- View seat usage vs. total seats purchased
+
+Employee Management:
 - Add employees to your law firm:
-  1. Go to the Employee Management section
+  1. Go to Employee Management section on your dashboard
   2. Click "Add Employee" button
   3. Fill in employee details (name, email, role)
   4. Select their role (student, team_leader, etc.)
   5. Assign them to courses as needed
 - View employee progress and completion rates
 - Remove employees when they leave your firm
-- Track seat usage vs. total seats purchased
+- Track team performance across all employees
 
-Team Leadership (for Team Leaders):
-- View and manage your team members
+Course Assignment (Owners):
+- Assign courses to your employees
+- Monitor completion rates across your firm
+- View detailed progress reports
+- Set up course requirements for different roles
+
+Calendar & Events:
+- Create law firm-specific calendar events
+- Schedule training sessions and meetings
+- Share calendar events with your employees
+
+TEAM LEADER FEATURES:
+
+Team Management:
+- View and manage your assigned team members
 - Monitor team progress across assigned courses
 - Access team performance dashboards
-- Assign courses to team members
-- View individual team member progress
+- View individual team member progress and completion rates
 
-Profile Management:
-- Update personal information in Profile tab
-- Upload professional profile picture
-- Change password and security settings
-- Update law firm association if applicable
-- Manage notification preferences
+Team Leadership Tasks:
+- Assign courses to team members (if authorized)
+- Track team learning goals and deadlines
+- Generate team progress reports
+- Support team members with course completion
 
-Dashboard Navigation:
-- Dashboard: View course progress and statistics
-- Certificates: Download and view earned certificates
-- Profile: Manage personal and professional information
-- Course Catalog: Browse available courses
-- LMS Tree: Visual course structure overview
-- Leaderboards: View competitive rankings
+STUDENT/EMPLOYEE FEATURES:
 
-Common Tasks:
-- How to enroll in courses: Courses are assigned by administrators
-- How to track progress: View Dashboard for real-time progress
-- How to get certificates: Complete all course requirements
+Learning & Development:
+- Access courses assigned by your law firm or team leader
+- Complete required training and continuing education
+- Track your personal learning progress
+- Meet course deadlines and requirements
+- Participate in firm-wide learning initiatives
+
+Career Development:
+- Build your professional skill set through assigned courses
+- Earn certificates for completed training
+- Track your learning achievements and milestones
+- Stay current with legal and professional development requirements
+
+CLIENT FEATURES:
+
+Client Portal Access:
+- Access client-specific resources and materials
+- View training materials relevant to your legal matter
+- Track progress on required client education
+- Access law firm resources and updates
+
+FREE USER FEATURES:
+
+Limited Access:
+- Browse available free content and resources
+- Access basic learning materials
+- View platform features and capabilities
+- Upgrade options for full access
+
+COMMON SUPPORT TASKS (All Roles):
+
+Account & Access:
+- How to reset your password: Use "Forgot Password" on login page
+- How to update your profile information
 - How to contact support: Use this chat or submit a ticket
-- How to reset password: Use "Forgot Password" on login page
-- How to update profile: Go to Profile tab and edit information
+- How to navigate between different dashboard sections
+
+Course Navigation:
+- How to find your assigned courses
+- How to track your learning progress
+- How to download certificates
+- How to use the LMS Tree for course overview
+- How to complete quizzes and assessments
+
+Technical Support:
+- Browser compatibility and requirements
+- Video playback issues and troubleshooting
+- Login and access problems
+- Certificate download issues
+- Progress tracking problems
+
+Note: Administrative functions like user management, system configuration, and advanced settings are not covered in this support system. For those needs, please contact your system administrator directly.
 `;
 
 const adminKnowledgeBase = `
@@ -133,8 +189,8 @@ serve(async (req) => {
     
     const supabase = createClient(supabaseUrl, supabaseKey);
     
-    // Always use student knowledge base for user-facing support
-    const knowledgeBase = studentKnowledgeBase;
+    // Use comprehensive knowledge base for all non-admin roles
+    const knowledgeBase = userKnowledgeBase;
     
     // Generate AI response
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
