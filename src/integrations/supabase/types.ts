@@ -1940,6 +1940,19 @@ export type Database = {
         }
         Returns: string
       }
+      batch_fetch_user_progress: {
+        Args: { p_user_ids: string[] }
+        Returns: {
+          user_id: string
+          course_id: string
+          course_title: string
+          course_category: string
+          status: string
+          progress_percentage: number
+          completed_at: string
+          last_accessed_at: string
+        }[]
+      }
       bulk_recalculate_course_progress: {
         Args: { p_audit_reason?: string }
         Returns: {
@@ -1949,6 +1962,15 @@ export type Database = {
         }[]
       }
       calculate_reliable_course_progress: {
+        Args: { p_user_id: string; p_course_id: string }
+        Returns: {
+          total_units: number
+          completed_units: number
+          progress_percentage: number
+          status: string
+        }[]
+      }
+      calculate_unit_progress_efficient: {
         Args: { p_user_id: string; p_course_id: string }
         Returns: {
           total_units: number
@@ -2005,13 +2027,16 @@ export type Database = {
           rank_position: number
         }[]
       }
-      get_team_progress_summary: {
+      get_optimized_team_progress: {
         Args: { p_team_id: string }
         Returns: {
-          total_members: number
-          courses_in_progress: number
-          courses_completed: number
-          average_progress: number
+          user_id: string
+          user_email: string
+          user_name: string
+          total_courses: number
+          completed_courses: number
+          in_progress_courses: number
+          overall_progress: number
         }[]
       }
       get_user_law_firm_id: {
