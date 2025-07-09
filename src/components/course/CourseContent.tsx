@@ -77,27 +77,27 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle, onProgressUpdate }
     fetchUnitQuiz();
 
     // Set up real-time subscription for quiz changes
-    if (unit?.id) {
-      const channel = supabase
-        .channel(`unit-quiz-${unit.id}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'quizzes',
-            filter: `unit_id=eq.${unit.id}`
-          },
-          () => {
-            fetchUnitQuiz();
-          }
-        )
-        .subscribe();
+    if (!unit?.id) return;
 
-      return () => {
-        supabase.removeChannel(channel);
-      };
-    }
+    const channel = supabase
+      .channel(`unit-quiz-${unit.id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'quizzes',
+          filter: `unit_id=eq.${unit.id}`
+        },
+        () => {
+          fetchUnitQuiz();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [unit?.id]);
 
   // Refresh completion status when component mounts or courseId changes

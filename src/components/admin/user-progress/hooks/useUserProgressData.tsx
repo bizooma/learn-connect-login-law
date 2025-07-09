@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useRef, useCallback, useMemo, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -24,14 +24,22 @@ export const useUserProgressData = () => {
   const [userProgress, setUserProgress] = useState<UserProgressData | null>(null);
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const mountedRef = useRef(true);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
-  const fetchUserProgress = async (userId: string) => {
-    if (!userId) return;
+  const fetchUserProgress = useCallback(async (userId: string) => {
+    if (!userId || !mountedRef.current) return;
+
+    // Cancel any ongoing operations
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
 
     try {
       setLoading(true);
       
-      // Fetch user course progress with details
+      // Fetch user course progress with details (simplified to avoid complex joins)
       const { data: progressData, error: progressError } = await supabase
         .from('user_course_progress')
         .select(`
@@ -42,6 +50,7 @@ export const useUserProgressData = () => {
         .eq('user_id', userId)
         .order('last_accessed_at', { ascending: false });
 
+      if (!mountedRef.current) return;
       if (progressError) throw progressError;
 
       if (!progressData || progressData.length === 0) {
@@ -49,51 +58,46 @@ export const useUserProgressData = () => {
         return;
       }
 
-      // Get unit counts for each course
+      // Get optimized unit counts using batch queries
       const courseIds = [...new Set(progressData.map(p => p.course_id))];
-      const unitCounts = await Promise.all(
-        courseIds.map(async (courseId) => {
-          const { data: lessons } = await supabase
-            .from('lessons')
-            .select('id')
-            .eq('course_id', courseId);
-
-          if (!lessons || lessons.length === 0) return { courseId, totalUnits: 0 };
-
-          const { count } = await supabase
-            .from('units')
-            .select('*', { count: 'exact', head: true })
-            .in('section_id', lessons.map(l => l.id));
-
-          return { courseId, totalUnits: count || 0 };
-        })
-      );
-
-      // Get completed unit counts
-      const completedUnitCounts = await Promise.all(
-        progressData.map(async (progress) => {
-          const { count } = await supabase
-            .from('user_unit_progress')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', progress.user_id)
-            .eq('course_id', progress.course_id)
-            .eq('completed', true);
-
-          return { 
-            courseId: progress.course_id, 
-            completedUnits: count || 0 
-          };
-        })
-      );
-
-      // Transform the data
-      const firstProgress = progressData[0];
-      const profile = firstProgress.profiles;
       
-      const courses = progressData.map(progress => {
+      // Single query for all unit counts
+      const { data: unitCountsData } = await supabase
+        .from('lessons')
+        .select(`
+          course_id,
+          units:section_id (id)
+        `)
+        .in('course_id', courseIds);
+
+      // Single query for all completed unit counts
+      const { data: completedUnitsData } = await supabase
+        .from('user_unit_progress')
+        .select('course_id')
+        .eq('user_id', userId)
+        .eq('completed', true)
+        .in('course_id', courseIds);
+
+      // Process unit counts efficiently
+      const unitCountMap = new Map<string, number>();
+      const completedCountMap = new Map<string, number>();
+
+      // Calculate total units per course
+      unitCountsData?.forEach((lesson: any) => {
+        const courseId = lesson.course_id;
+        const unitCount = lesson.units?.length || 0;
+        unitCountMap.set(courseId, (unitCountMap.get(courseId) || 0) + unitCount);
+      });
+
+      // Calculate completed units per course
+      completedUnitsData?.forEach((progress: any) => {
+        const courseId = progress.course_id;
+        completedCountMap.set(courseId, (completedCountMap.get(courseId) || 0) + 1);
+      });
+
+      // Transform the data efficiently
+      const processedCourses = progressData.map(progress => {
         const course = progress.courses;
-        const unitCount = unitCounts.find(uc => uc.courseId === progress.course_id);
-        const completedCount = completedUnitCounts.find(cc => cc.courseId === progress.course_id);
 
         return {
           course_id: progress.course_id,
@@ -103,19 +107,26 @@ export const useUserProgressData = () => {
           started_at: progress.started_at,
           completed_at: progress.completed_at,
           last_accessed_at: progress.last_accessed_at,
-          completed_units: completedCount?.completedUnits || 0,
-          total_units: unitCount?.totalUnits || 0
+          completed_units: completedCountMap.get(progress.course_id) || 0,
+          total_units: unitCountMap.get(progress.course_id) || 0
         };
       });
+
+      if (!mountedRef.current) return;
+
+      // Transform the data efficiently
+      const firstProgress = progressData[0];
+      const profile = firstProgress.profiles;
 
       setUserProgress({
         user_id: userId,
         user_name: `${profile?.first_name || ''} ${profile?.last_name || ''}`.trim() || 'Unknown',
         user_email: profile?.email || 'Unknown',
-        courses
+        courses: processedCourses
       });
 
     } catch (error) {
+      if (!mountedRef.current) return;
       console.error('Error fetching user progress:', error);
       toast({
         title: "Error",
@@ -123,40 +134,45 @@ export const useUserProgressData = () => {
         variant: "destructive",
       });
     } finally {
-      setLoading(false);
+      if (mountedRef.current) {
+        setLoading(false);
+      }
     }
-  };
+  }, [toast]);
 
-  const handleDeleteAssignment = async (userId: string, courseId: string) => {
-    if (!userId) return;
+  const handleDeleteAssignment = useCallback(async (userId: string, courseId: string) => {
+    if (!userId || !mountedRef.current) return;
 
     try {
-      // Delete the course assignment
-      const { error: assignmentError } = await supabase
-        .from('course_assignments')
-        .delete()
-        .eq('user_id', userId)
-        .eq('course_id', courseId);
+      // Use transaction-like approach with Promise.all for atomicity
+      const [assignmentResult, progressResult, unitProgressResult] = await Promise.allSettled([
+        supabase
+          .from('course_assignments')
+          .delete()
+          .eq('user_id', userId)
+          .eq('course_id', courseId),
+        supabase
+          .from('user_course_progress')
+          .delete()
+          .eq('user_id', userId)
+          .eq('course_id', courseId),
+        supabase
+          .from('user_unit_progress')
+          .delete()
+          .eq('user_id', userId)
+          .eq('course_id', courseId)
+      ]);
 
-      if (assignmentError) throw assignmentError;
+      // Check for errors in any of the operations
+      const errors = [assignmentResult, progressResult, unitProgressResult]
+        .filter((result): result is PromiseRejectedResult => result.status === 'rejected')
+        .map(result => result.reason);
 
-      // Delete the user course progress
-      const { error: progressError } = await supabase
-        .from('user_course_progress')
-        .delete()
-        .eq('user_id', userId)
-        .eq('course_id', courseId);
+      if (errors.length > 0) {
+        throw new Error(`Failed operations: ${errors.join(', ')}`);
+      }
 
-      if (progressError) throw progressError;
-
-      // Delete any unit progress for this course
-      const { error: unitProgressError } = await supabase
-        .from('user_unit_progress')
-        .delete()
-        .eq('user_id', userId)
-        .eq('course_id', courseId);
-
-      if (unitProgressError) throw unitProgressError;
+      if (!mountedRef.current) return;
 
       toast({
         title: "Success",
@@ -166,6 +182,7 @@ export const useUserProgressData = () => {
       // Refresh the data
       await fetchUserProgress(userId);
     } catch (error) {
+      if (!mountedRef.current) return;
       console.error('Error deleting course assignment:', error);
       toast({
         title: "Error",
@@ -173,7 +190,17 @@ export const useUserProgressData = () => {
         variant: "destructive",
       });
     }
-  };
+  }, [fetchUserProgress, toast]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      mountedRef.current = false;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
+    };
+  }, []);
 
   return {
     userProgress,

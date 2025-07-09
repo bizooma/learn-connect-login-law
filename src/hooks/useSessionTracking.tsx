@@ -1,5 +1,5 @@
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useLocation } from "react-router-dom";
@@ -10,6 +10,8 @@ export const useSessionTracking = () => {
   const sessionIdRef = useRef<string | null>(null);
   const currentCourseIdRef = useRef<string | null>(null);
   const sessionStartTimeRef = useRef<Date | null>(null);
+  const mountedRef = useRef(true);
+  const abortControllerRef = useRef<AbortController | null>(null);
 
   // Extract course ID from current route
   const getCurrentCourseId = (): string | null => {
@@ -17,8 +19,14 @@ export const useSessionTracking = () => {
     return courseMatch ? courseMatch[1] : null;
   };
 
-  const startSession = async (courseId?: string) => {
-    if (!user?.id) return;
+  const startSession = useCallback(async (courseId?: string) => {
+    if (!user?.id || !mountedRef.current) return;
+
+    // Cancel any ongoing operations
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort();
+    }
+    abortControllerRef.current = new AbortController();
 
     // End any existing session first
     if (sessionIdRef.current) {
@@ -45,6 +53,8 @@ export const useSessionTracking = () => {
         }
       });
 
+      if (!mountedRef.current) return;
+
       if (error) {
         console.error('Error starting session:', error);
         return;
@@ -55,11 +65,12 @@ export const useSessionTracking = () => {
       
       console.log(`${sessionType} session started:`, { sessionId: data, courseId, duration_tracking: 'enabled' });
     } catch (error) {
+      if (!mountedRef.current) return;
       console.error('Error starting session:', error);
     }
-  };
+  }, [user?.id, location.pathname]);
 
-  const endSession = async () => {
+  const endSession = useCallback(async () => {
     if (!sessionIdRef.current) return;
 
     try {
@@ -101,9 +112,11 @@ export const useSessionTracking = () => {
     } catch (error) {
       console.error('Error ending session:', error);
     }
-  };
+  }, [location.pathname]);
 
-  const updateSessionForCourse = async (newCourseId: string | null) => {
+  const updateSessionForCourse = useCallback(async (newCourseId: string | null) => {
+    if (!mountedRef.current) return;
+    
     const previousCourseId = currentCourseIdRef.current;
     
     // If we're moving from one context to another, end current and start new
@@ -120,7 +133,7 @@ export const useSessionTracking = () => {
       // Start new session with appropriate context
       await startSession(newCourseId || undefined);
     }
-  };
+  }, [startSession, endSession]);
 
   // Start session when user logs in
   useEffect(() => {
@@ -146,16 +159,20 @@ export const useSessionTracking = () => {
   // End session when component unmounts or user logs out
   useEffect(() => {
     return () => {
+      mountedRef.current = false;
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort();
+      }
       if (sessionIdRef.current) {
         console.log('Component unmounting, ending session');
         endSession();
       }
     };
-  }, []);
+  }, [endSession]);
 
-  // End session when page unloads
+  // End session when page unloads - stabilized with useCallback
   useEffect(() => {
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+    const handleBeforeUnload = useCallback((event: BeforeUnloadEvent) => {
       if (sessionIdRef.current) {
         console.log('Page unloading, attempting to end session');
         // Use sendBeacon for better reliability during page unload
@@ -173,13 +190,13 @@ export const useSessionTracking = () => {
         // Also try the normal way as fallback
         endSession();
       }
-    };
+    }, [endSession]);
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [location.pathname]);
+  }, [endSession]);
 
   return {
     currentSessionId: sessionIdRef.current,

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -13,7 +13,7 @@ export const useEnrollmentCounts = () => {
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
-  const fetchEnrollmentCounts = async () => {
+  const fetchEnrollmentCounts = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -65,7 +65,7 @@ export const useEnrollmentCounts = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
 
   useEffect(() => {
     fetchEnrollmentCounts();
@@ -100,7 +100,7 @@ export const useEnrollmentCounts = () => {
     return () => {
       supabase.removeChannel(assignmentChannel);
     };
-  }, []);
+  }, [fetchEnrollmentCounts]);
 
   return {
     enrollmentCounts,
