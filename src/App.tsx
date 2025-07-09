@@ -53,38 +53,8 @@ const PageLoader = () => (
 );
 
 const AppContent = () => {
-  console.log('🚀 AppContent rendering at:', new Date().toISOString());
-  console.log('🌐 Current URL:', window.location.href);
-  console.log('🔧 User Agent:', navigator.userAgent);
+  console.log('🚀 AppContent rendering...');
   
-  try {
-    // Initialize session tracking
-    console.log('📊 Initializing session tracking...');
-    useSessionTracking();
-    
-    // Initialize performance tracking
-    console.log('⚡ Initializing performance tracking...');
-    usePerformanceTracking();
-    
-    console.log('✅ App hooks initialized successfully');
-  } catch (error) {
-    console.error('❌ Error in App hooks:', error);
-    throw error;
-  }
-
-  // Run diagnostic on first load
-  React.useEffect(() => {
-    const runDiagnostic = async () => {
-      try {
-        await runFullDiagnostic();
-      } catch (error) {
-        console.error('❌ Diagnostic failed:', error);
-      }
-    };
-    
-    runDiagnostic();
-  }, []);
-
   return (
     <Suspense fallback={<PageLoader />}>
       <Routes>
