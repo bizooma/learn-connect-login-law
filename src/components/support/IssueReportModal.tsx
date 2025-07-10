@@ -186,7 +186,10 @@ const IssueReportModal = ({ open, onOpenChange }: IssueReportModalProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🔧 Starting issue report submission...', { user: user?.id, role });
+    
     if (!formData.name || !formData.email || !formData.description) {
+      console.log('❌ Validation failed - missing required fields', formData);
       toast({
         title: "Missing Information",
         description: "Please fill in all required fields.",
@@ -202,6 +205,13 @@ const IssueReportModal = ({ open, onOpenChange }: IssueReportModalProps) => {
       const selectedCourse = courses.find(c => c.id === formData.courseId);
       const selectedUnit = units.find(u => u.id === formData.unitId);
       
+      console.log('📚 Course context:', { 
+        selectedCourse: selectedCourse?.title, 
+        selectedUnit: selectedUnit?.title,
+        totalCourses: courses.length,
+        totalUnits: units.length 
+      });
+      
       let contextDescription = formData.description;
       if (selectedCourse || selectedUnit) {
         contextDescription += '\n\nContext:';
@@ -213,18 +223,24 @@ const IssueReportModal = ({ open, onOpenChange }: IssueReportModalProps) => {
         }
       }
 
+      const requestBody = {
+        userId: user?.id,
+        userName: formData.name,
+        userEmail: formData.email,
+        userRole: role || 'student',
+        subject: `Issue Report: ${selectedCourse?.title || 'General Issue'}`,
+        description: contextDescription,
+        category: 'issue_report',
+        priority: formData.priority,
+      };
+
+      console.log('📤 Sending support ticket request:', requestBody);
+
       const { data, error } = await supabase.functions.invoke('submit-support-ticket', {
-        body: {
-          userId: user?.id,
-          userName: formData.name,
-          userEmail: formData.email,
-          userRole: role || 'student',
-          subject: `Issue Report: ${selectedCourse?.title || 'General Issue'}`,
-          description: contextDescription,
-          category: 'issue_report',
-          priority: formData.priority,
-        },
+        body: requestBody,
       });
+
+      console.log('📥 Support ticket response:', { data, error });
 
       if (error) throw error;
 
