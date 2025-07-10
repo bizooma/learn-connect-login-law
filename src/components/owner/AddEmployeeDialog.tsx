@@ -102,14 +102,63 @@ const AddEmployeeDialog = ({
         if (updateError) throw updateError;
         employeeProfile = updatedProfile;
       } else {
-        // Create invitation for new user (simplified - in real implementation you'd send an email invitation)
-        toast({
-          title: "Feature Coming Soon",
-          description: "Employee invitation system is under development. For now, employees need to register first, then you can add them.",
-          variant: "default",
+        // Create new user using edge function
+        console.log('User does not exist, creating new user:', formData.email);
+
+        // Get the current session to ensure we have an auth token
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+          throw new Error('You must be logged in to create users');
+        }
+
+        // Call the edge function to create the user
+        const { data: createUserData, error: createUserError } = await supabase.functions.invoke('create-single-user', {
+          body: {
+            email: formData.email,
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            role: 'student'
+          },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          }
         });
-        setLoading(false);
-        return;
+
+        console.log('Create user response:', { createUserData, createUserError });
+
+        if (createUserError) {
+          throw new Error(createUserError.message || 'Failed to create user');
+        }
+
+        if (createUserData?.error) {
+          throw new Error(createUserData.error);
+        }
+
+        // Get the newly created user's profile
+        const { data: newProfile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('email', formData.email.toLowerCase())
+          .single();
+
+        if (profileError || !newProfile) {
+          throw new Error('Failed to retrieve newly created user profile');
+        }
+
+        // Update the new profile with law firm info
+        const { data: updatedProfile, error: updateError } = await supabase
+          .from('profiles')
+          .update({
+            law_firm_id: lawFirm.id,
+            first_name: formData.firstName,
+            last_name: formData.lastName
+          })
+          .eq('id', newProfile.id)
+          .select()
+          .single();
+
+        if (updateError) throw updateError;
+        employeeProfile = updatedProfile;
       }
 
       // 2. Assign the role (always student for employees)
