@@ -26,22 +26,25 @@ const VideoProgressTracker = ({
   const { completionState, handleVideoProgress, handleVideoEnded, forceComplete } = useVideoCompletion(unitId, courseId);
   const progressUpdateRef = useRef<number>();
 
-  // Enhanced YouTube player event handling
+  // Enhanced YouTube player event handling with better memory management
   useEffect(() => {
     if (videoType === 'youtube' && youtubePlayer) {
-      let progressInterval: number;
+      let progressInterval: number | undefined;
       let hasTriggeredCompletion = false;
 
       const handleStateChange = (event: any) => {
         const state = event.data;
-        console.log('🎵 YouTube state change:', state, 'for unit:', unitId);
         
         if (state === 0 && !hasTriggeredCompletion) { // Video ended
           hasTriggeredCompletion = true;
-          console.log('🎯 YouTube video ended - triggering completion');
           handleVideoEnded();
         } else if (state === 1) { // Playing
-          // Start enhanced progress tracking
+          // Clear any existing interval first
+          if (progressInterval) {
+            clearInterval(progressInterval);
+          }
+          
+          // Start optimized progress tracking (reduced frequency)
           progressInterval = window.setInterval(() => {
             try {
               const currentTime = youtubePlayer.getCurrentTime();
@@ -57,11 +60,12 @@ const VideoProgressTracker = ({
             } catch (error) {
               console.warn('⚠️ Error tracking YouTube progress:', error);
             }
-          }, 3000); // Update every 3 seconds
+          }, 5000); // Reduced frequency: Update every 5 seconds
         } else {
           // Paused or other states - stop tracking
           if (progressInterval) {
             clearInterval(progressInterval);
+            progressInterval = undefined;
           }
         }
       };
@@ -79,14 +83,16 @@ const VideoProgressTracker = ({
         } catch (error) {
           console.warn('⚠️ Error removing YouTube event listener:', error);
         }
-        if (progressInterval) {
+        // Ensure interval is properly cleared
+        if (progressInterval !== undefined) {
           clearInterval(progressInterval);
+          progressInterval = undefined;
         }
       };
     }
   }, [youtubePlayer, videoType, updateVideoProgress, handleVideoProgress, handleVideoEnded, unitId]);
 
-  // Enhanced regular video player event handling
+  // Enhanced regular video player event handling with debouncing
   useEffect(() => {
     const video = videoElement;
     if (!video || !unitId || videoType !== 'upload') return;
@@ -98,17 +104,18 @@ const VideoProgressTracker = ({
       if (duration > 0) {
         const watchPercentage = (currentTime / duration) * 100;
         
-        // Throttle updates for better performance
-        clearTimeout(progressUpdateRef.current);
+        // Debounce updates for better performance (increased delay)
+        if (progressUpdateRef.current) {
+          clearTimeout(progressUpdateRef.current);
+        }
         progressUpdateRef.current = window.setTimeout(() => {
           updateVideoProgress(currentTime, duration, watchPercentage);
           handleVideoProgress(currentTime, duration);
-        }, 2000);
+        }, 3000); // Increased debounce time to 3 seconds
       }
     };
 
     const handleEnded = () => {
-      console.log('🎯 Regular video ended - triggering completion');
       handleVideoEnded();
     };
 
@@ -119,7 +126,11 @@ const VideoProgressTracker = ({
     return () => {
       video.removeEventListener('timeupdate', handleTimeUpdate);
       video.removeEventListener('ended', handleEnded);
-      clearTimeout(progressUpdateRef.current);
+      // Ensure timeout is properly cleared
+      if (progressUpdateRef.current) {
+        clearTimeout(progressUpdateRef.current);
+        progressUpdateRef.current = undefined;
+      }
     };
   }, [videoElement, videoType, updateVideoProgress, handleVideoProgress, handleVideoEnded, unitId]);
 

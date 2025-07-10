@@ -209,29 +209,28 @@ export const useEnhancedYouTubePlayer = ({
           console.warn('Error getting YouTube player time:', error);
         }
       }
-    }, 2000); // Update every 2 seconds for better performance
+    }, 5000); // Optimized: Update every 5 seconds for better performance
   }, [onProgress]);
 
   const stopProgressTracking = useCallback(() => {
-    if (progressIntervalRef.current) {
+    if (progressIntervalRef.current !== undefined) {
       clearInterval(progressIntervalRef.current);
       progressIntervalRef.current = undefined;
     }
   }, []);
 
-  // Retry mechanism for failed loads
+  // Retry mechanism for failed loads with better cleanup
   const scheduleRetry = useCallback(() => {
-    if (retryTimeoutRef.current) {
+    if (retryTimeoutRef.current !== undefined) {
       clearTimeout(retryTimeoutRef.current);
     }
 
     retryTimeoutRef.current = window.setTimeout(() => {
-      console.log('Retrying YouTube player initialization for:', videoId);
       recordRetry();
       updatePlayerState('retrying');
       initializePlayer();
     }, 3000); // Retry after 3 seconds
-  }, [initializePlayer, videoId, recordRetry, updatePlayerState]);
+  }, [initializePlayer, recordRetry, updatePlayerState]);
 
   // Initialize player when dependencies change
   useEffect(() => {
@@ -241,12 +240,18 @@ export const useEnhancedYouTubePlayer = ({
 
     return () => {
       stopProgressTracking();
-      if (retryTimeoutRef.current) {
+      
+      // Clean up retry timeout
+      if (retryTimeoutRef.current !== undefined) {
         clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = undefined;
       }
+      
+      // Clean up player
       if (playerRef.current && typeof playerRef.current.destroy === 'function') {
         try {
           playerRef.current.destroy();
+          playerRef.current = null;
         } catch (error) {
           console.warn('Error destroying YouTube player:', error);
         }
