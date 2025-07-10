@@ -45,6 +45,12 @@ const Index = () => {
     // Only redirect authenticated users with confirmed roles
     if (user && !authLoading && !roleLoading) {
       try {
+        // Redirect admins to their dedicated dashboard (highest priority)
+        if (isAdmin) {
+          hasRedirected.current = true;
+          navigate("/admin-dashboard", { replace: true });
+          return;
+        }
         // Redirect owners to their dedicated dashboard
         if (isOwner) {
           hasRedirected.current = true;
@@ -75,8 +81,9 @@ const Index = () => {
           navigate("/free-dashboard", { replace: true });
           return;
         }
-        // If no specific role determined, stay on main dashboard
+        // Fallback: if no specific role determined, redirect to general dashboard
         hasRedirected.current = true;
+        navigate("/dashboard", { replace: true });
       } catch (error) {
         console.error('Navigation error:', error);
         hasRedirected.current = false;
@@ -114,10 +121,12 @@ const Index = () => {
   if (!user) {
     return <AuthPage />;
   }
+
+  // For authenticated users without specific role redirects, show default dashboard
   return (
     <div>
       <NotificationBanner />
-      {isAdmin ? <AdminDashboard /> : <Dashboard />}
+      <Dashboard />
     </div>
   );
 };

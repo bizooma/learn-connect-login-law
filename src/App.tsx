@@ -26,6 +26,7 @@ import TeamLeaderDashboard from "./pages/TeamLeaderDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
 import ClientDashboard from "./pages/ClientDashboard";
 import FreeDashboard from "./pages/FreeDashboard";
+import AdminDashboard from "./components/AdminDashboard";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const AppContent = () => {
         <Route path="/student-dashboard" element={<StudentDashboard />} />
         <Route path="/client-dashboard" element={<ClientDashboard />} />
         <Route path="/free-dashboard" element={<FreeDashboard />} />
+        <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <ChatbotWidget />
