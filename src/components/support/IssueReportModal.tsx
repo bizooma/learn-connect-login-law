@@ -87,7 +87,7 @@ const IssueReportModal = ({ open, onOpenChange }: IssueReportModalProps) => {
     }
   }, [open, user]);
 
-  // Fetch user's assigned courses
+  // Fetch user's assigned courses and courses with progress
   const fetchUserCourses = async () => {
     if (!user) {
       console.log('No user found');
@@ -97,34 +97,50 @@ const IssueReportModal = ({ open, onOpenChange }: IssueReportModalProps) => {
     console.log('Fetching courses for user:', user.id);
 
     try {
-      // First, get assignments with course IDs
-      const { data: assignments, error: assignmentsError } = await supabase
-        .from('course_assignments')
-        .select('course_id')
-        .eq('user_id', user.id);
+      // Get course IDs from both assignments and progress tables
+      const [assignmentsResponse, progressResponse] = await Promise.all([
+        supabase
+          .from('course_assignments')
+          .select('course_id')
+          .eq('user_id', user.id),
+        supabase
+          .from('user_course_progress')
+          .select('course_id')
+          .eq('user_id', user.id)
+      ]);
+
+      const { data: assignments, error: assignmentsError } = assignmentsResponse;
+      const { data: progress, error: progressError } = progressResponse;
 
       if (assignmentsError) {
         console.error('Error fetching assignments:', assignmentsError);
-        return;
+      }
+
+      if (progressError) {
+        console.error('Error fetching progress:', progressError);
       }
 
       console.log('Assignments found:', assignments);
+      console.log('Progress found:', progress);
 
-      if (!assignments || assignments.length === 0) {
-        console.log('No course assignments found for user');
+      // Combine course IDs from both sources and remove duplicates
+      const assignmentCourseIds = assignments?.map(a => a.course_id) || [];
+      const progressCourseIds = progress?.map(p => p.course_id) || [];
+      const allCourseIds = [...new Set([...assignmentCourseIds, ...progressCourseIds])];
+
+      console.log('Combined course IDs:', allCourseIds);
+
+      if (allCourseIds.length === 0) {
+        console.log('No courses found for user (assignments or progress)');
         setCourses([]);
         return;
       }
-
-      // Get unique course IDs
-      const courseIds = [...new Set(assignments.map(a => a.course_id))];
-      console.log('Course IDs:', courseIds);
 
       // Fetch course details
       const { data: coursesData, error: coursesError } = await supabase
         .from('courses')
         .select('id, title')
-        .in('id', courseIds);
+        .in('id', allCourseIds);
 
       if (coursesError) {
         console.error('Error fetching courses:', coursesError);
