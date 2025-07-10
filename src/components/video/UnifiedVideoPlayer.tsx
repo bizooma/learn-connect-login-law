@@ -109,9 +109,15 @@ const UnifiedVideoPlayer = ({
     return (
       <div className={`bg-gray-100 rounded-lg flex items-center justify-center ${className}`}>
         <div className="text-center p-6">
-          <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
-          <p className="text-gray-600">Unable to load video</p>
-          <p className="text-sm text-gray-500 mt-1">Please check the video URL or try again later</p>
+          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-3" />
+          <p className="text-gray-600 font-medium mb-2">Unable to load video</p>
+          <p className="text-sm text-gray-500 mb-4">Please check the video URL or try again later</p>
+          <button 
+            onClick={handleRetry}
+            className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
+          >
+            Try Again
+          </button>
         </div>
       </div>
     );

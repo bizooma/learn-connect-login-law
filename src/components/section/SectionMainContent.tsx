@@ -96,6 +96,7 @@ const SectionMainContent = ({ units, selectedUnit, onUnitSelect }: SectionMainCo
                       onProgress={handleVideoProgress}
                       onComplete={handleVideoComplete}
                       className="aspect-video bg-gray-100 rounded-lg"
+                      autoLoad={true}
                     />
                   </div>
                 )}

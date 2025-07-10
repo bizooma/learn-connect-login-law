@@ -100,7 +100,7 @@ const VideoThumbnail = ({
             <RefreshCw className="h-8 w-8 text-gray-800 animate-spin" />
           </div>
         ) : (
-          <div className="bg-white bg-opacity-90 rounded-full p-4 group-hover:bg-opacity-100 transition-all duration-200">
+          <div className="bg-white bg-opacity-90 rounded-full p-4 group-hover:bg-opacity-100 transition-all duration-200 shadow-lg">
             <Play className="h-8 w-8 text-gray-800" />
           </div>
         )}
