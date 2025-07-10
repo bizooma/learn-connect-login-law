@@ -1,6 +1,7 @@
 
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { Button } from '@/components/ui/button';
+import { logger } from '@/utils/logger';
 
 interface Props {
   children: ReactNode;
@@ -33,7 +34,7 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('Auth Error Boundary caught an error:', error, errorInfo);
+    logger.error('Auth Error Boundary caught an error', { error, errorInfo });
     
     // Auto-recover after a short delay for auth errors only
     setTimeout(() => {

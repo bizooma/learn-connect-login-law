@@ -9,6 +9,7 @@ import LMSTreeFooter from "./lms-tree/LMSTreeFooter";
 import DashboardStats from "./dashboard/DashboardStats";
 import FreeDashboardContent from "./free/FreeDashboardContent";
 import IssueReportButton from "./support/IssueReportButton";
+import { logger } from "@/utils/logger";
 
 const FreeDashboard = () => {
   const { user, signOut } = useAuth();
@@ -59,7 +60,7 @@ const FreeDashboard = () => {
         });
       }
     } catch (error) {
-      console.error('Error fetching profile:', error);
+      logger.error('Error fetching profile', { error });
     } finally {
       setProfileLoading(false);
     }
