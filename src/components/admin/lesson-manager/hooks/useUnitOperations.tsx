@@ -56,18 +56,22 @@ export const useUnitOperations = ({ lessons, onLessonsChange }: UseUnitOperation
   };
 
   const deleteUnit = (lessonIndex: number, unitIndex: number) => {
+    console.log('Deleting unit:', lessonIndex, unitIndex);
+    
     const updatedLessons = lessons.map((lesson, i) => 
       i === lessonIndex 
         ? { 
             ...lesson, 
             units: lesson.units.map((unit, j) => 
               j === unitIndex 
-                ? { ...unit, _deletedInForm: true }  // Mark as deleted instead of removing
+                ? { ...unit, _deletedInForm: true, is_draft: true }  // Mark as deleted AND draft
                 : unit
             )
           }
         : lesson
     );
+    
+    console.log('Updated lessons after unit deletion:', updatedLessons);
     onLessonsChange(updatedLessons);
   };
 

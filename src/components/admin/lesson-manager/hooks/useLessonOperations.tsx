@@ -30,7 +30,15 @@ export const useLessonOperations = ({ lessons, onLessonsChange }: UseLessonOpera
   };
 
   const deleteLesson = (lessonIndex: number) => {
-    const updatedLessons = lessons.filter((_, index) => index !== lessonIndex);
+    console.log('Deleting lesson:', lessonIndex);
+    
+    const updatedLessons = lessons.map((lesson, index) => 
+      index === lessonIndex 
+        ? { ...lesson, _deletedInForm: true, is_draft: true }  // Mark as deleted AND draft
+        : lesson
+    );
+    
+    console.log('Updated lessons after lesson deletion:', updatedLessons);
     onLessonsChange(updatedLessons);
   };
 

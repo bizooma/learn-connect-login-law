@@ -449,8 +449,36 @@ const updateUnitsEnhanced = async (
     .eq('section_id', lessonId)
     .order('sort_order', { ascending: true });
 
-  for (let i = 0; i < units.length; i++) {
-    const unitData = units[i];
+  // First, handle units marked for deletion in the form
+  const unitsToDelete = units.filter(unit => unit._deletedInForm);
+  for (const unitToDelete of unitsToDelete) {
+    console.log(`Marking unit as draft: ${unitToDelete.title}`);
+    
+    // Find the existing unit by ID or title
+    const existingUnit = existingUnits?.find(eu => 
+      (unitToDelete.id && eu.id === unitToDelete.id) ||
+      (eu.title === unitToDelete.title)
+    );
+    
+    if (existingUnit) {
+      const { error } = await supabase
+        .from('units')
+        .update({ is_draft: true })
+        .eq('id', existingUnit.id);
+        
+      if (error) {
+        console.error(`Failed to mark unit as draft: ${error.message}`);
+      } else {
+        console.log(`✅ Unit "${unitToDelete.title}" marked as draft`);
+      }
+    }
+  }
+
+  // Process only non-deleted units
+  const activeUnits = units.filter(unit => !unit._deletedInForm);
+  
+  for (let i = 0; i < activeUnits.length; i++) {
+    const unitData = activeUnits[i];
     
     // Determine the quiz assignment for this unit
     const quizKey = `${moduleTitle}:${lessonTitle}:${unitData.title}`;
@@ -459,10 +487,12 @@ const updateUnitsEnhanced = async (
     
     console.log(`Unit "${unitData.title}" - Form quiz: ${unitData.quiz_id}, Preserved quiz: ${preservedQuizId}, Final: ${finalQuizId}`);
     
-    // Find existing unit by ID or title+position
+    // Find existing unit by ID or title+position (only among active units)
     const existingUnit = existingUnits?.find(eu => 
-      (unitData.id && eu.id === unitData.id) ||
-      (eu.title === unitData.title && eu.sort_order === i)
+      !eu.is_draft && (
+        (unitData.id && eu.id === unitData.id) ||
+        (eu.title === unitData.title && eu.sort_order === i)
+      )
     );
 
     if (existingUnit) {
@@ -496,6 +526,7 @@ const updateExistingUnitEnhanced = async (
       file_url: unitData.file_url,
       file_name: unitData.file_name,
       file_size: unitData.file_size,
+      is_draft: false,  // Ensure active units are not drafts
       updated_at: new Date().toISOString()
     })
     .eq('id', unitId);
@@ -539,7 +570,8 @@ const createNewUnitEnhanced = async (
       files: unitData.files,
       file_url: unitData.file_url,
       file_name: unitData.file_name,
-      file_size: unitData.file_size
+      file_size: unitData.file_size,
+      is_draft: false  // New units are active by default
     })
     .select()
     .single();

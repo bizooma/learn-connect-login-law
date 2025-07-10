@@ -127,21 +127,26 @@ const SimpleLessonManager = ({ lessons, onLessonsChange }: SimpleLessonManagerPr
       />
       
       <div className="space-y-4">
-        {lessons.map((lesson, lessonIndex) => (
-          <SimpleLessonCard
-            key={lessonIndex}
-            lesson={lesson}
-            lessonIndex={lessonIndex}
-            isExpanded={expandedLessons.has(lessonIndex)}
-            onToggleExpanded={() => toggleExpanded(lessonIndex)}
-            onUpdate={(field, value) => updateLesson(lessonIndex, field, value)}
-            onDelete={() => deleteLesson(lessonIndex)}
-            onAddUnit={() => handleAddUnitToLesson(lessonIndex)}
-            onUpdateUnit={(unitIndex, field, value) => updateUnit(lessonIndex, unitIndex, field, value)}
-            onDeleteUnit={(unitIndex) => deleteUnit(lessonIndex, unitIndex)}
-            onVideoFileChange={(unitIndex, file) => handleVideoFileChange(lessonIndex, unitIndex, file)}
-          />
-        ))}
+        {lessons.filter(lesson => !lesson._deletedInForm).map((lesson, displayIndex) => {
+          // Find the original index in the unfiltered array
+          const originalIndex = lessons.findIndex(l => l === lesson);
+          
+          return (
+            <SimpleLessonCard
+              key={originalIndex}
+              lesson={lesson}
+              lessonIndex={originalIndex}
+              isExpanded={expandedLessons.has(originalIndex)}
+              onToggleExpanded={() => toggleExpanded(originalIndex)}
+              onUpdate={(field, value) => updateLesson(originalIndex, field, value)}
+              onDelete={() => deleteLesson(originalIndex)}
+              onAddUnit={() => handleAddUnitToLesson(originalIndex)}
+              onUpdateUnit={(unitIndex, field, value) => updateUnit(originalIndex, unitIndex, field, value)}
+              onDeleteUnit={(unitIndex) => deleteUnit(originalIndex, unitIndex)}
+              onVideoFileChange={(unitIndex, file) => handleVideoFileChange(originalIndex, unitIndex, file)}
+            />
+          );
+        })}
       </div>
     </div>
   );
