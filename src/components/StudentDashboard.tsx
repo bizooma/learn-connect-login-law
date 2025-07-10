@@ -19,6 +19,7 @@ import Confetti from "./ui/confetti";
 import WelcomeModal from "./modals/WelcomeModal";
 import IssueReportButton from "./support/IssueReportButton";
 import { useFirstTimeUser } from "@/hooks/useFirstTimeUser";
+import { logger } from "@/utils/logger";
 
 const StudentDashboard = () => {
   const { user, signOut } = useAuth();
@@ -36,7 +37,7 @@ const StudentDashboard = () => {
   } = useFirstTimeUser();
 
   useEffect(() => {
-    console.log('StudentDashboard: useEffect triggered with:', {
+    logger.debug('StudentDashboard: useEffect triggered', {
       user: !!user,
       isStudent,
       roleLoading,
@@ -45,14 +46,14 @@ const StudentDashboard = () => {
 
     // If no user, redirect immediately
     if (!user) {
-      console.log('StudentDashboard: No user found, redirecting to home');
+      logger.debug('StudentDashboard: No user found, redirecting to home');
       navigate("/", { replace: true });
       return;
     }
 
     // Only redirect if role loading is complete AND user is definitely not a student
     if (!roleLoading && user && !isStudent) {
-      console.log('StudentDashboard: User is not a student, redirecting to main dashboard');
+      logger.debug('StudentDashboard: User is not a student, redirecting to main dashboard');
       navigate("/", { replace: true });
       return;
     }
@@ -60,7 +61,7 @@ const StudentDashboard = () => {
 
   // Show loading while checking roles or fetching data
   if (roleLoading || statsLoading || !user) {
-    console.log('StudentDashboard: Showing loading state, roleLoading:', roleLoading, 'statsLoading:', statsLoading, 'hasUser:', !!user);
+    logger.debug('StudentDashboard: Showing loading state', { roleLoading, statsLoading, hasUser: !!user });
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
@@ -73,11 +74,11 @@ const StudentDashboard = () => {
 
   // Don't render anything if user is not a student (redirect will happen in useEffect)
   if (!isStudent) {
-    console.log('StudentDashboard: User is not a student, returning null');
+    logger.debug('StudentDashboard: User is not a student, returning null');
     return null;
   }
 
-  console.log('StudentDashboard: Rendering dashboard for student');
+  logger.debug('StudentDashboard: Rendering dashboard for student');
 
   const studentStats = [
     {

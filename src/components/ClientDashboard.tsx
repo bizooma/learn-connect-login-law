@@ -11,6 +11,7 @@ import DashboardStats from "./dashboard/DashboardStats";
 import DashboardContent from "./dashboard/DashboardContent";
 import IssueReportButton from "./support/IssueReportButton";
 import { useDashboardStats } from "@/hooks/useDashboardStats";
+import { logger } from "@/utils/logger";
 
 const ClientDashboard = () => {
   const { user, signOut } = useAuth();
@@ -20,7 +21,7 @@ const ClientDashboard = () => {
   const { stats, loading: statsLoading } = useDashboardStats();
 
   useEffect(() => {
-    console.log('ClientDashboard: useEffect triggered with:', {
+    logger.debug('ClientDashboard: useEffect triggered', {
       user: !!user,
       isClient,
       roleLoading,
@@ -29,20 +30,20 @@ const ClientDashboard = () => {
 
     // If no user, redirect immediately
     if (!user) {
-      console.log('ClientDashboard: No user found, redirecting to home');
+      logger.debug('ClientDashboard: No user found, redirecting to home');
       navigate("/", { replace: true });
       return;
     }
 
     // Don't redirect if we're still loading roles
     if (roleLoading) {
-      console.log('ClientDashboard: Still loading roles, waiting...');
+      logger.debug('ClientDashboard: Still loading roles, waiting...');
       return;
     }
 
     // If user exists but is not a client, redirect
     if (user && !isClient) {
-      console.log('ClientDashboard: User is not a client, redirecting to main dashboard');
+      logger.debug('ClientDashboard: User is not a client, redirecting to main dashboard');
       navigate("/dashboard", { replace: true });
       return;
     }
@@ -50,7 +51,7 @@ const ClientDashboard = () => {
 
   // Show loading while checking role or fetching stats
   if (roleLoading || statsLoading || !user) {
-    console.log('ClientDashboard: Showing loading state, roleLoading:', roleLoading, 'statsLoading:', statsLoading, 'hasUser:', !!user);
+    logger.debug('ClientDashboard: Showing loading state', { roleLoading, statsLoading, hasUser: !!user });
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-purple-50 to-indigo-100">
         <div className="text-center">
@@ -63,11 +64,11 @@ const ClientDashboard = () => {
 
   // Don't render anything if user is not a client (redirect will happen in useEffect)
   if (!isClient) {
-    console.log('ClientDashboard: User is not a client, returning null');
+    logger.debug('ClientDashboard: User is not a client, returning null');
     return null;
   }
 
-  console.log('ClientDashboard: Rendering dashboard for client');
+  logger.debug('ClientDashboard: Rendering dashboard for client');
 
   const clientStats = [
     {
