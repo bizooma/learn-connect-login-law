@@ -75,6 +75,7 @@ const AddEmployeeDialog = ({
       if (profileCheckError) throw profileCheckError;
 
       let employeeProfile;
+      let isNewEmployeeToLawFirm = false;
 
       if (existingProfile) {
         // User exists - check if they're already part of another law firm
@@ -86,6 +87,9 @@ const AddEmployeeDialog = ({
           });
           return;
         }
+
+        // Check if this user is not yet part of this law firm
+        isNewEmployeeToLawFirm = !existingProfile.law_firm_id || existingProfile.law_firm_id !== lawFirm.id;
 
         // Update existing profile with law firm info
         const { data: updatedProfile, error: updateError } = await supabase
@@ -104,6 +108,7 @@ const AddEmployeeDialog = ({
       } else {
         // Create new user using edge function
         console.log('User does not exist, creating new user:', formData.email);
+        isNewEmployeeToLawFirm = true;
 
         // Get the current session to ensure we have an auth token
         const { data: { session } } = await supabase.auth.getSession();
@@ -178,13 +183,18 @@ const AddEmployeeDialog = ({
 
       if (newRoleError) throw newRoleError;
 
-      // 3. Update law firm seat count
-      const { error: seatError } = await supabase
-        .from('law_firms')
-        .update({ used_seats: lawFirm.used_seats + 1 })
-        .eq('id', lawFirm.id);
+      // 3. Update law firm seat count (only if adding a new employee)
+      if (isNewEmployeeToLawFirm) {
+        console.log('Incrementing seat count for new employee to law firm');
+        const { error: seatError } = await supabase
+          .from('law_firms')
+          .update({ used_seats: lawFirm.used_seats + 1 })
+          .eq('id', lawFirm.id);
 
-      if (seatError) throw seatError;
+        if (seatError) throw seatError;
+      } else {
+        console.log('Not incrementing seat count - employee already belongs to this law firm');
+      }
 
       // 4. Create notification for admins
       const { error: notificationError } = await supabase
