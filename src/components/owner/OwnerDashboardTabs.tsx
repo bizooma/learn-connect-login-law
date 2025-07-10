@@ -69,7 +69,7 @@ const OwnerDashboardTabs = ({ lawFirm, onUpdateLawFirm }: OwnerDashboardTabsProp
       </TabsContent>
 
       <TabsContent value="team">
-        <EmployeeManagement lawFirm={lawFirm} />
+        <EmployeeManagement lawFirm={lawFirm} onLawFirmUpdated={() => onUpdateLawFirm({})} />
       </TabsContent>
 
       <TabsContent value="assignments">

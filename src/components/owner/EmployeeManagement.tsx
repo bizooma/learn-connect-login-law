@@ -14,11 +14,17 @@ type LawFirm = Tables<'law_firms'>;
 
 interface EmployeeManagementProps {
   lawFirm: LawFirm;
+  onLawFirmUpdated: () => void;
 }
 
-const EmployeeManagement = ({ lawFirm }: EmployeeManagementProps) => {
+const EmployeeManagement = ({ lawFirm, onLawFirmUpdated }: EmployeeManagementProps) => {
   const { employees, loading, fetchEmployees } = useEmployees(lawFirm.id);
   const [showAddDialog, setShowAddDialog] = useState(false);
+
+  const handleEmployeeAdded = () => {
+    fetchEmployees();
+    onLawFirmUpdated();
+  };
 
   const availableSeats = lawFirm.total_seats - lawFirm.used_seats;
   const canAddEmployee = availableSeats > 0;
@@ -90,7 +96,7 @@ const EmployeeManagement = ({ lawFirm }: EmployeeManagementProps) => {
                   key={employee.id}
                   employee={employee}
                   lawFirm={lawFirm}
-                  onEmployeeUpdated={fetchEmployees}
+                  onEmployeeUpdated={handleEmployeeAdded}
                 />
               ))}
             </div>
@@ -102,7 +108,7 @@ const EmployeeManagement = ({ lawFirm }: EmployeeManagementProps) => {
         open={showAddDialog}
         onOpenChange={setShowAddDialog}
         lawFirm={lawFirm}
-        onEmployeeAdded={fetchEmployees}
+        onEmployeeAdded={handleEmployeeAdded}
         canAddEmployee={canAddEmployee}
       />
     </div>
