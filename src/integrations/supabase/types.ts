@@ -2190,6 +2190,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      recalculate_law_firm_seat_counts: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       reclassify_section_to_module: {
         Args: { p_section_id: string; p_course_id: string }
         Returns: string
