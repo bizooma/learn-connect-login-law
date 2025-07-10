@@ -8,6 +8,7 @@ import AddEmployeeDialog from "./AddEmployeeDialog";
 import { useState } from "react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tables } from "@/integrations/supabase/types";
+import { logger } from "@/utils/logger";
 
 type LawFirm = Tables<'law_firms'>;
 

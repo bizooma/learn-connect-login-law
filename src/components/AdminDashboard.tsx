@@ -11,6 +11,7 @@ import Confetti from "./ui/confetti";
 import WelcomeModal from "./modals/WelcomeModal";
 import { useFirstTimeUser } from "@/hooks/useFirstTimeUser";
 import { useAuth } from "@/hooks/useAuth";
+import { logger } from "@/utils/logger";
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState("courses");
@@ -72,7 +73,7 @@ const AdminDashboard = () => {
         averageProgress
       });
     } catch (error) {
-      console.error('Error fetching stats:', error);
+      logger.error('Error fetching stats:', error);
     }
   };
 
