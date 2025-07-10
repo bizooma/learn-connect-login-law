@@ -4,8 +4,8 @@ import { useCourse } from "@/hooks/useCourse";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProgress } from "@/hooks/useUserProgress";
+import { useCourseRealtimeManager } from "@/hooks/useCourseRealtimeManager";
 import { useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
 import CourseHeader from "@/components/course/CourseHeader";
 import CourseSidebar from "@/components/course/CourseSidebar";
 import CourseMainContent from "@/components/course/CourseMainContent";
@@ -67,61 +67,11 @@ const Course = () => {
     }
   }, [course, user, authLoading, isAdmin, navigate, updateCourseProgress]);
 
-  // Set up real-time subscriptions for course content changes
-  useEffect(() => {
-    if (!courseId) return;
-
-    console.log('Setting up real-time subscriptions for course:', courseId);
-
-    // Subscribe to changes in modules, lessons, and units for this course
-    const channel = supabase
-      .channel(`course-${courseId}-changes`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'modules',
-          filter: `course_id=eq.${courseId}`
-        },
-        (payload) => {
-          console.log('Module change detected:', payload);
-          refreshCourse();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'lessons',
-          filter: `course_id=eq.${courseId}`
-        },
-        (payload) => {
-          console.log('Lesson change detected:', payload);
-          refreshCourse();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'units'
-        },
-        (payload) => {
-          console.log('Unit change detected:', payload);
-          // Check if this unit belongs to our course by refreshing
-          refreshCourse();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      console.log('Cleaning up real-time subscriptions');
-      supabase.removeChannel(channel);
-    };
-  }, [courseId, refreshCourse]);
+  // Set up centralized real-time subscriptions for course content changes
+  useCourseRealtimeManager({
+    courseId: courseId!,
+    onCourseStructureChange: refreshCourse
+  });
 
   if (authLoading || loading) {
     console.log('Course: Showing loading state:', { authLoading, loading });
