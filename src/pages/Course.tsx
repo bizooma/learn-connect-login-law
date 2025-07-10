@@ -6,6 +6,7 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { useUserProgress } from "@/hooks/useUserProgress";
 import { useCourseRealtimeManager } from "@/hooks/useCourseRealtimeManager";
 import { useEffect } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import CourseHeader from "@/components/course/CourseHeader";
 import CourseSidebar from "@/components/course/CourseSidebar";
 import CourseMainContent from "@/components/course/CourseMainContent";
@@ -19,6 +20,27 @@ const Course = () => {
   const { isAdmin } = useUserRole();
   const { course, selectedUnit, setSelectedUnit, loading, error, refreshCourse } = useCourse(courseId!);
   const { updateCourseProgress } = useUserProgress(user?.id);
+
+  // Function to check if user is assigned to course before creating progress
+  const checkCourseAssignment = async (courseId: string, userId: string) => {
+    try {
+      const { data: assignment } = await supabase
+        .from('course_assignments')
+        .select('id')
+        .eq('user_id', userId)
+        .eq('course_id', courseId)
+        .single();
+
+      if (assignment) {
+        console.log('Course: User is assigned, updating progress');
+        updateCourseProgress(courseId, 'in_progress', 0);
+      } else {
+        console.log('Course: User not assigned to this course, no progress record created');
+      }
+    } catch (error) {
+      console.log('Course: User not assigned to this course');
+    }
+  };
 
   // Safely handle error for logging
   const getErrorMessage = (err: unknown): string => {
@@ -61,9 +83,10 @@ const Course = () => {
       return;
     }
 
-    if (course && user) {
-      console.log('Course: Updating course progress for user');
-      updateCourseProgress(course.id, 'in_progress', 0);
+    // Only update progress if user has been assigned this course
+    if (course && user && !isAdmin) {
+      // Check if user is assigned to this course before creating progress
+      checkCourseAssignment(course.id, user.id);
     }
   }, [course, user, authLoading, isAdmin, navigate, updateCourseProgress]);
 

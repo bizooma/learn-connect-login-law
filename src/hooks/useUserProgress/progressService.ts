@@ -28,7 +28,7 @@ export const progressService = {
 
     const assignedCourseIds = assignments.map(a => a.course_id);
 
-    // Get progress data for assigned courses
+    // Get progress data ONLY for assigned courses
     const { data: progressData, error: progressError } = await supabase
       .from('user_course_progress')
       .select(`
@@ -51,20 +51,9 @@ export const progressService = {
     const missingCourseIds = assignedCourseIds.filter(id => !existingCourseIds.includes(id));
 
     if (missingCourseIds.length > 0) {
-      logger.log('progressService: Creating progress entries for missing courses:', missingCourseIds);
+      logger.log('progressService: Creating progress entries for assigned courses without progress:', missingCourseIds);
       
-      // Get course details for missing courses
-      const { data: missingCourses, error: coursesError } = await supabase
-        .from('courses')
-        .select('*')
-        .in('id', missingCourseIds);
-
-      if (coursesError) {
-        logger.error('Error fetching missing courses:', coursesError);
-        throw coursesError;
-      }
-
-      // Create progress entries for missing courses with improved error handling
+      // Create progress entries ONLY for assigned courses that don't have progress
       for (const courseId of missingCourseIds) {
         try {
           const { error: createError } = await supabase
@@ -82,16 +71,14 @@ export const progressService = {
             });
 
           if (createError) {
-            logger.warn('Error creating progress entry for course:', courseId, createError);
-            // Continue with other courses even if one fails
+            logger.warn('Error creating progress entry for assigned course:', courseId, createError);
           }
         } catch (error) {
-          logger.warn('Exception creating progress entry for course:', courseId, error);
-          // Continue processing other courses
+          logger.warn('Exception creating progress entry for assigned course:', courseId, error);
         }
       }
 
-      // Fetch updated progress data
+      // Fetch updated progress data for assigned courses only
       const { data: updatedProgressData } = await supabase
         .from('user_course_progress')
         .select(`

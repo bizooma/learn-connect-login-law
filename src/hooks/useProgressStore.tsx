@@ -88,6 +88,19 @@ export const useProgressStore = (userId?: string) => {
     queryFn: async (): Promise<CourseWithProgress[]> => {
       if (!userId) return [];
 
+      // First get assigned courses to ensure we only show assigned course progress
+      const { data: assignments } = await supabase
+        .from('course_assignments')
+        .select('course_id')
+        .eq('user_id', userId);
+
+      if (!assignments || assignments.length === 0) {
+        return [];
+      }
+
+      const assignedCourseIds = assignments.map(a => a.course_id);
+
+      // Only fetch progress for assigned courses
       const { data, error } = await supabase
         .from('user_course_progress')
         .select(`
@@ -95,6 +108,7 @@ export const useProgressStore = (userId?: string) => {
           courses (*)
         `)
         .eq('user_id', userId)
+        .in('course_id', assignedCourseIds)
         .order('last_accessed_at', { ascending: false });
 
       if (error) throw error;
