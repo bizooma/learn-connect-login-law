@@ -4,6 +4,7 @@ import { Tables } from "@/integrations/supabase/types";
 import LawFirmLogoUpload from "./LawFirmLogoUpload";
 import LawFirmInfoSection from "./LawFirmInfoSection";
 import PersonalProfileSection from "./PersonalProfileSection";
+import PasswordChangeSection from "@/components/shared/PasswordChangeSection";
 
 type LawFirm = Tables<'law_firms'>;
 
@@ -26,6 +27,8 @@ const ProfileTab = ({ lawFirm, onUpdateLawFirm }: ProfileTabProps) => {
       />
 
       <PersonalProfileSection />
+
+      <PasswordChangeSection />
     </div>
   );
 };
