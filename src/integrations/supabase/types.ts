@@ -2035,6 +2035,10 @@ export type Database = {
           status: string
         }[]
       }
+      cancel_owner_account: {
+        Args: { p_owner_id: string; p_reason?: string }
+        Returns: Json
+      }
       cleanup_old_drafts: {
         Args: Record<PropertyKey, never>
         Returns: undefined

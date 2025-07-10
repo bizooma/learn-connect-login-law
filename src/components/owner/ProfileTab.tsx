@@ -5,6 +5,7 @@ import LawFirmLogoUpload from "./LawFirmLogoUpload";
 import LawFirmInfoSection from "./LawFirmInfoSection";
 import PersonalProfileSection from "./PersonalProfileSection";
 import PasswordChangeSection from "@/components/shared/PasswordChangeSection";
+import CancelAccountSection from "./CancelAccountSection";
 
 type LawFirm = Tables<'law_firms'>;
 
@@ -29,6 +30,8 @@ const ProfileTab = ({ lawFirm, onUpdateLawFirm }: ProfileTabProps) => {
       <PersonalProfileSection />
 
       <PasswordChangeSection />
+
+      <CancelAccountSection />
     </div>
   );
 };
