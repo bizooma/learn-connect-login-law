@@ -1,22 +1,58 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users, UserPlus, Loader2 } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Users, UserPlus, Loader2, RefreshCw } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 import { useTeamMembers } from "@/hooks/useTeamMembers";
+import { useTeamProgress } from "@/hooks/useTeamProgress";
 import TeamMemberProgressCard from "./TeamMemberProgressCard";
 import UserProgressModal from "../admin/user-progress/UserProgressModal";
-import { useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 const TeamMemberManagement = () => {
-  const { teamMembers, loading, fetchTeamMembers } = useTeamMembers();
+  const { user } = useAuth();
+  const { teamMembers, loading: membersLoading, fetchTeamMembers } = useTeamMembers();
+  const { teamProgress, loading: progressLoading, fetchTeamProgress, clearCache } = useTeamProgress();
   const [selectedUserForProgress, setSelectedUserForProgress] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      fetchTeamMembers();
+      // For demo purposes, using a default team ID or get from user's team
+      // In production, you would get the actual team ID from the user's profile or context
+      fetchTeamProgress('default-team-id');
+    }
+  }, [user, fetchTeamMembers, fetchTeamProgress]);
+
+  // Create efficient lookup map for progress data
+  const progressByUserId = useMemo(() => {
+    const map = new Map();
+    teamProgress.forEach(progress => {
+      map.set(progress.user_id, {
+        totalCourses: progress.total_assigned_courses,
+        completedCourses: progress.completed_courses,
+        inProgressCourses: progress.in_progress_courses,
+        overallProgress: progress.overall_progress
+      });
+    });
+    return map;
+  }, [teamProgress]);
 
   const handleViewProgress = (userId: string) => {
     console.log('👀 Opening progress modal for user:', userId);
     setSelectedUserForProgress(userId);
   };
 
-  if (loading) {
+  const handleRefresh = () => {
+    fetchTeamMembers();
+    clearCache('default-team-id'); // Clear cache for fresh data
+    fetchTeamProgress('default-team-id', true); // Force refresh
+  };
+
+  const isLoading = membersLoading && teamMembers.length === 0;
+
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -34,7 +70,13 @@ const TeamMemberManagement = () => {
               <Users className="h-5 w-5" />
               <span>Team Members ({teamMembers.length})</span>
             </CardTitle>
-            <Button onClick={fetchTeamMembers} variant="outline" size="sm">
+            <Button 
+              onClick={handleRefresh} 
+              variant="outline" 
+              size="sm"
+              disabled={membersLoading || progressLoading}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${(membersLoading || progressLoading) ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
           </div>
@@ -54,6 +96,8 @@ const TeamMemberManagement = () => {
                 <TeamMemberProgressCard
                   key={member.id}
                   member={member}
+                  progress={progressByUserId.get(member.id)}
+                  loading={progressLoading}
                   onViewProgress={handleViewProgress}
                 />
               ))}

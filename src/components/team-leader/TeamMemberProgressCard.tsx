@@ -5,105 +5,31 @@ import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { User, BookOpen, Trophy, Clock, Eye } from "lucide-react";
 import { TeamMember } from "@/hooks/useTeamMembers";
-import { useState, useEffect } from "react";
-import { supabase } from "@/integrations/supabase/client";
+import { memo } from "react";
 
 interface TeamMemberProgressCardProps {
   member: TeamMember;
+  progress?: {
+    totalCourses: number;
+    completedCourses: number;
+    inProgressCourses: number;
+    overallProgress: number;
+  };
+  loading?: boolean;
   onViewProgress: (userId: string) => void;
 }
 
-interface MemberProgress {
-  totalCourses: number;
-  completedCourses: number;
-  inProgressCourses: number;
-  overallProgress: number;
-}
-
-const TeamMemberProgressCard = ({ member, onViewProgress }: TeamMemberProgressCardProps) => {
-  const [progress, setProgress] = useState<MemberProgress>({
+const TeamMemberProgressCard = memo(({ 
+  member, 
+  progress = {
     totalCourses: 0,
     completedCourses: 0,
     inProgressCourses: 0,
     overallProgress: 0
-  });
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchMemberProgress = async () => {
-      try {
-        setLoading(true);
-        console.log('📊 Fetching progress for member:', member.email);
-
-        // Get course assignments and progress for this member
-        const { data: assignments, error: assignmentsError } = await supabase
-          .from('course_assignments')
-          .select('course_id')
-          .eq('user_id', member.id);
-
-        if (assignmentsError) {
-          console.error('❌ Error fetching assignments:', assignmentsError);
-          return;
-        }
-
-        if (!assignments || assignments.length === 0) {
-          console.log('📝 No assignments found for member:', member.email);
-          setProgress({
-            totalCourses: 0,
-            completedCourses: 0,
-            inProgressCourses: 0,
-            overallProgress: 0
-          });
-          return;
-        }
-
-        const courseIds = assignments.map(a => a.course_id);
-        
-        // Get progress for assigned courses
-        const { data: courseProgress, error: progressError } = await supabase
-          .from('user_course_progress')
-          .select('status, progress_percentage')
-          .eq('user_id', member.id)
-          .in('course_id', courseIds);
-
-        if (progressError) {
-          console.error('❌ Error fetching progress:', progressError);
-          return;
-        }
-
-        const totalCourses = assignments.length;
-        const completedCourses = courseProgress?.filter(p => p.status === 'completed').length || 0;
-        const inProgressCourses = courseProgress?.filter(p => p.status === 'in_progress').length || 0;
-        
-        // Calculate overall progress as average of all course progress percentages
-        const overallProgress = courseProgress && courseProgress.length > 0
-          ? Math.round(courseProgress.reduce((sum, p) => sum + (p.progress_percentage || 0), 0) / courseProgress.length)
-          : 0;
-
-        console.log('📈 Member progress calculated:', {
-          member: member.email,
-          totalCourses,
-          completedCourses,
-          inProgressCourses,
-          overallProgress
-        });
-
-        setProgress({
-          totalCourses,
-          completedCourses,
-          inProgressCourses,
-          overallProgress
-        });
-
-      } catch (error) {
-        console.error('❌ Error calculating member progress:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchMemberProgress();
-  }, [member.id, member.email]);
+  }, 
+  loading = false, 
+  onViewProgress 
+}: TeamMemberProgressCardProps) => {
 
   return (
     <Card className="hover:shadow-md transition-shadow">
@@ -197,6 +123,8 @@ const TeamMemberProgressCard = ({ member, onViewProgress }: TeamMemberProgressCa
       </CardContent>
     </Card>
   );
-};
+});
+
+TeamMemberProgressCard.displayName = 'TeamMemberProgressCard';
 
 export default TeamMemberProgressCard;

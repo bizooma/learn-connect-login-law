@@ -95,52 +95,79 @@ export const useLeaderboards = () => {
         console.warn('Warning clearing cache:', deleteError);
       }
 
-      // Refresh learning streak leaderboard
-      const { data: streakData, error: streakError } = await supabase
-        .from('user_learning_streaks')
-        .select(`
-          user_id,
-          current_streak,
-          longest_streak,
-          profiles!inner(first_name, last_name, email, is_deleted)
-        `)
-        .eq('profiles.is_deleted', false)
-        .gte('current_streak', 1)
-        .order('current_streak', { ascending: false })
-        .limit(50);
+      // Parallel execution for better performance
+      const [streakResult, salesResult, legalResult] = await Promise.allSettled([
+        // Refresh learning streak leaderboard
+        supabase
+          .from('user_learning_streaks')
+          .select(`
+            user_id,
+            current_streak,
+            longest_streak,
+            profiles!inner(first_name, last_name, email, is_deleted)
+          `)
+          .eq('profiles.is_deleted', false)
+          .gte('current_streak', 1)
+          .order('current_streak', { ascending: false })
+          .limit(50)
+          .then(async ({ data: streakData, error: streakError }) => {
+            if (streakError) {
+              console.error('Error fetching streak data:', streakError);
+              return null;
+            }
+            
+            if (streakData && streakData.length > 0) {
+              const cacheEntries = streakData.map((entry: any, index: number) => ({
+                leaderboard_type: 'learning_streak',
+                user_id: entry.user_id,
+                user_name: `${entry.profiles.first_name} ${entry.profiles.last_name}`,
+                user_email: entry.profiles.email,
+                score: entry.current_streak,
+                rank_position: index + 1,
+                additional_data: {
+                  current_streak: entry.current_streak,
+                  longest_streak: entry.longest_streak
+                }
+              }));
 
-      if (streakError) {
-        console.error('Error fetching streak data:', streakError);
-      } else if (streakData && streakData.length > 0) {
-        const cacheEntries = streakData.map((entry: any, index: number) => ({
-          leaderboard_type: 'learning_streak',
-          user_id: entry.user_id,
-          user_name: `${entry.profiles.first_name} ${entry.profiles.last_name}`,
-          user_email: entry.profiles.email,
-          score: entry.current_streak,
-          rank_position: index + 1,
-          additional_data: {
-            current_streak: entry.current_streak,
-            longest_streak: entry.longest_streak
-          }
-        }));
+              const { error: insertError } = await supabase
+                .from('leaderboard_cache')
+                .insert(cacheEntries);
 
-        const { error: insertError } = await supabase
-          .from('leaderboard_cache')
-          .insert(cacheEntries);
+              if (insertError) {
+                console.error('Error inserting streak cache:', insertError);
+                return null;
+              }
+              
+              console.log(`Successfully cached ${cacheEntries.length} streak entries`);
+              return cacheEntries.length;
+            }
+            return 0;
+          }),
+        
+        // Refresh category leaderboards in parallel
+        refreshCategoryLeaderboard('Sales', 'sales_training'),
+        refreshCategoryLeaderboard('Legal', 'legal_training')
+      ]);
 
-        if (insertError) {
-          console.error('Error inserting streak cache:', insertError);
-        } else {
-          console.log(`Successfully cached ${cacheEntries.length} streak entries`);
-        }
+      // Log results
+      if (streakResult.status === 'fulfilled') {
+        console.log('✅ Streak leaderboard refreshed');
+      } else {
+        console.error('❌ Streak leaderboard failed:', streakResult.reason);
       }
-
-      // Refresh category leaderboards for Sales
-      await refreshCategoryLeaderboard('Sales', 'sales_training');
       
-      // Refresh category leaderboards for Legal
-      await refreshCategoryLeaderboard('Legal', 'legal_training');
+      if (salesResult.status === 'fulfilled') {
+        console.log('✅ Sales leaderboard refreshed');
+      } else {
+        console.error('❌ Sales leaderboard failed:', salesResult.reason);
+      }
+      
+      if (legalResult.status === 'fulfilled') {
+        console.log('✅ Legal leaderboard refreshed');
+      } else {
+        console.error('❌ Legal leaderboard failed:', legalResult.reason);
+      }
 
       const finalCount = await getTotalCacheEntries();
       
