@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -81,7 +81,7 @@ export const useLeaderboards = () => {
     }
   };
 
-  const refreshCache = async () => {
+  const refreshCache = useCallback(async () => {
     try {
       console.log('Starting leaderboard cache refresh...');
       
@@ -159,9 +159,9 @@ export const useLeaderboards = () => {
       });
       throw error;
     }
-  };
+  }, [toast]);
 
-  const refreshCategoryLeaderboard = async (category: string, leaderboardType: string) => {
+  const refreshCategoryLeaderboard = useCallback(async (category: string, leaderboardType: string) => {
     try {
       // Get users with course assignments in this category
       const { data: categoryData, error: categoryError } = await supabase
@@ -181,47 +181,53 @@ export const useLeaderboards = () => {
         return;
       }
 
-      // Group by user and calculate completion rates
-      const userStats = new Map();
-      
-      categoryData.forEach((item: any) => {
-        const userId = item.user_id;
-        if (!userStats.has(userId)) {
-          userStats.set(userId, {
-            user_id: userId,
-            user_name: `${item.profiles.first_name} ${item.profiles.last_name}`,
-            user_email: item.profiles.email,
-            total_courses: 0,
-            completed_courses: 0
-          });
-        }
+      // Group by user and calculate completion rates - optimized with memoization
+      const userStats = useMemo(() => {
+        const stats = new Map();
         
-        const stats = userStats.get(userId);
-        stats.total_courses++;
-        
-        if (item.user_course_progress && item.user_course_progress.length > 0) {
-          const progress = item.user_course_progress[0];
-          if (progress.status === 'completed') {
-            stats.completed_courses++;
+        categoryData.forEach((item: any) => {
+          const userId = item.user_id;
+          if (!stats.has(userId)) {
+            stats.set(userId, {
+              user_id: userId,
+              user_name: `${item.profiles.first_name} ${item.profiles.last_name}`,
+              user_email: item.profiles.email,
+              total_courses: 0,
+              completed_courses: 0
+            });
           }
-        }
-      });
+          
+          const userStat = stats.get(userId);
+          userStat.total_courses++;
+          
+          if (item.user_course_progress && item.user_course_progress.length > 0) {
+            const progress = item.user_course_progress[0];
+            if (progress.status === 'completed') {
+              userStat.completed_courses++;
+            }
+          }
+        });
+        
+        return stats;
+      }, [categoryData]);
 
-      // Convert to array and calculate completion rates
-      const rankedUsers = Array.from(userStats.values())
-        .map((stats: any) => ({
-          ...stats,
-          completion_rate: stats.total_courses > 0 
-            ? Math.round((stats.completed_courses / stats.total_courses) * 100) 
-            : 0
-        }))
-        .sort((a, b) => {
-          if (b.completion_rate !== a.completion_rate) {
-            return b.completion_rate - a.completion_rate;
-          }
-          return b.completed_courses - a.completed_courses;
-        })
-        .slice(0, 50);
+      // Convert to array and calculate completion rates - memoized
+      const rankedUsers = useMemo(() => {
+        return Array.from(userStats.values())
+          .map((stats: any) => ({
+            ...stats,
+            completion_rate: stats.total_courses > 0 
+              ? Math.round((stats.completed_courses / stats.total_courses) * 100) 
+              : 0
+          }))
+          .sort((a, b) => {
+            if (b.completion_rate !== a.completion_rate) {
+              return b.completion_rate - a.completion_rate;
+            }
+            return b.completed_courses - a.completed_courses;
+          })
+          .slice(0, 50);
+      }, [userStats]);
 
       if (rankedUsers.length > 0) {
         const cacheEntries = rankedUsers.map((user: any, index: number) => ({
@@ -251,7 +257,7 @@ export const useLeaderboards = () => {
     } catch (error) {
       console.error(`Error refreshing ${category} leaderboard:`, error);
     }
-  };
+  }, []);
 
   const getTotalCacheEntries = async () => {
     try {
@@ -267,7 +273,7 @@ export const useLeaderboards = () => {
     }
   };
 
-  const initializeStreaks = async () => {
+  const initializeStreaks = useCallback(async () => {
     try {
       console.log('Initializing learning streaks...');
       
@@ -278,16 +284,21 @@ export const useLeaderboards = () => {
         .eq('completed', true);
 
       if (usersWithProgress && usersWithProgress.length > 0) {
-        // Get unique user IDs and check which ones don't have streaks
-        const uniqueUserIds = [...new Set(usersWithProgress.map(u => u.user_id))];
+        // Get unique user IDs and check which ones don't have streaks - memoized
+        const uniqueUserIds = useMemo(() => 
+          [...new Set(usersWithProgress.map(u => u.user_id))], 
+          [usersWithProgress]
+        );
         
         const { data: existingStreaks } = await supabase
           .from('user_learning_streaks')
           .select('user_id')
           .in('user_id', uniqueUserIds);
 
-        const existingUserIds = new Set(existingStreaks?.map(s => s.user_id) || []);
-        const newUserIds = uniqueUserIds.filter(id => !existingUserIds.has(id));
+        const newUserIds = useMemo(() => {
+          const existingUserIds = new Set(existingStreaks?.map(s => s.user_id) || []);
+          return uniqueUserIds.filter(id => !existingUserIds.has(id));
+        }, [uniqueUserIds, existingStreaks]);
 
         if (newUserIds.length > 0) {
           const streakRecords = newUserIds
@@ -327,7 +338,7 @@ export const useLeaderboards = () => {
       });
       throw error;
     }
-  };
+  }, [toast]);
 
   return {
     userStreak,

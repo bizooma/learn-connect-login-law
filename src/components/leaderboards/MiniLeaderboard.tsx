@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Trophy, TrendingUp, AlertCircle } from "lucide-react";
@@ -23,11 +23,7 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    fetchMiniLeaderboard();
-  }, [type]);
-
-  const fetchMiniLeaderboard = async () => {
+  const fetchMiniLeaderboard = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -63,9 +59,14 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
     } finally {
       setLoading(false);
     }
-  };
+  }, [type, limit]);
 
-  const fetchFreshData = async () => {
+  useEffect(() => {
+    fetchMiniLeaderboard();
+  }, [fetchMiniLeaderboard]);
+
+
+  const fetchFreshData = useCallback(async () => {
     try {
       console.log(`Fetching fresh data for ${type}`);
       
@@ -90,15 +91,18 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
 
         console.log(`Found ${data?.length || 0} fresh streak entries`);
 
-        const formattedData = data?.map((entry: any, index: number) => ({
-          user_name: `${entry.profiles.first_name} ${entry.profiles.last_name}`,
-          score: entry.current_streak,
-          rank_position: index + 1,
-          additional_data: {
-            current_streak: entry.current_streak,
-            longest_streak: entry.longest_streak
-          }
-        })) || [];
+        // Memoize the formatted data transformation
+        const formattedData = useMemo(() => {
+          return data?.map((entry: any, index: number) => ({
+            user_name: `${entry.profiles.first_name} ${entry.profiles.last_name}`,
+            score: entry.current_streak,
+            rank_position: index + 1,
+            additional_data: {
+              current_streak: entry.current_streak,
+              longest_streak: entry.longest_streak
+            }
+          })) || [];
+        }, [data]);
 
         setEntries(formattedData);
       } else {
@@ -110,14 +114,15 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
       console.error(`Error fetching fresh data for ${type}:`, error);
       setError(`Failed to load ${type.replace('_', ' ')} data`);
     }
-  };
+  }, [type, limit]);
 
-  const formatScore = (score: number) => {
+  // Memoize the score formatting function
+  const formatScore = useCallback((score: number) => {
     if (type === 'learning_streak') {
       return `${score} days`;
     }
     return `${score}%`;
-  };
+  }, [type]);
 
   if (loading) {
     return (
@@ -200,26 +205,28 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {entries.map((entry, index) => (
-            <div key={index} className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2">
-                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium ${
-                  index === 0 ? 'bg-yellow-100 text-yellow-800' :
-                  index === 1 ? 'bg-gray-100 text-gray-700' :
-                  index === 2 ? 'bg-amber-100 text-amber-800' :
-                  'bg-blue-100 text-blue-800'
-                }`}>
-                  {entry.rank_position}
-                </span>
-                <span className="font-medium truncate max-w-[100px]">
-                  {entry.user_name}
+          {useMemo(() => 
+            entries.map((entry, index) => (
+              <div key={index} className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <span className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium ${
+                    index === 0 ? 'bg-yellow-100 text-yellow-800' :
+                    index === 1 ? 'bg-gray-100 text-gray-700' :
+                    index === 2 ? 'bg-amber-100 text-amber-800' :
+                    'bg-blue-100 text-blue-800'
+                  }`}>
+                    {entry.rank_position}
+                  </span>
+                  <span className="font-medium truncate max-w-[100px]">
+                    {entry.user_name}
+                  </span>
+                </div>
+                <span className="font-semibold text-gray-900">
+                  {formatScore(entry.score)}
                 </span>
               </div>
-              <span className="font-semibold text-gray-900">
-                {formatScore(entry.score)}
-              </span>
-            </div>
-          ))}
+            )), [entries, formatScore]
+          )}
         </div>
         <button
           onClick={fetchMiniLeaderboard}

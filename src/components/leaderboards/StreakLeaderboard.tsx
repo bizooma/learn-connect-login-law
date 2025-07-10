@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import LeaderboardCard from "./LeaderboardCard";
@@ -18,11 +18,7 @@ const StreakLeaderboard = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchStreakLeaderboard();
-  }, []);
-
-  const fetchStreakLeaderboard = async () => {
+  const fetchStreakLeaderboard = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -69,7 +65,12 @@ const StreakLeaderboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast]);
+
+  useEffect(() => {
+    fetchStreakLeaderboard();
+  }, [fetchStreakLeaderboard]);
+
 
   if (loading) {
     return (
@@ -94,27 +95,32 @@ const StreakLeaderboard = () => {
     );
   }
 
+  // Memoize the rendered leaderboard cards to prevent unnecessary re-renders
+  const leaderboardCards = useMemo(() => {
+    return entries.map((entry, index) => (
+      <LeaderboardCard
+        key={entry.user_id}
+        rank={entry.rank_position}
+        name={entry.user_name}
+        email={entry.user_email}
+        primaryStat={{
+          label: "Current Streak",
+          value: `${entry.current_streak} days`,
+          icon: "🔥"
+        }}
+        secondaryStat={{
+          label: "Longest Streak",
+          value: `${entry.longest_streak} days`
+        }}
+        isTopThree={index < 3}
+        userId={entry.user_id}
+      />
+    ));
+  }, [entries]);
+
   return (
     <div className="space-y-3">
-      {entries.map((entry, index) => (
-        <LeaderboardCard
-          key={entry.user_id}
-          rank={entry.rank_position}
-          name={entry.user_name}
-          email={entry.user_email}
-          primaryStat={{
-            label: "Current Streak",
-            value: `${entry.current_streak} days`,
-            icon: "🔥"
-          }}
-          secondaryStat={{
-            label: "Longest Streak",
-            value: `${entry.longest_streak} days`
-          }}
-          isTopThree={index < 3}
-          userId={entry.user_id}
-        />
-      ))}
+      {leaderboardCards}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import LeaderboardCard from "./LeaderboardCard";
@@ -23,11 +23,7 @@ const CategoryLeaderboard = ({ category }: CategoryLeaderboardProps) => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
-  useEffect(() => {
-    fetchCategoryLeaderboard();
-  }, [category]);
-
-  const fetchCategoryLeaderboard = async () => {
+  const fetchCategoryLeaderboard = useCallback(async () => {
     try {
       setLoading(true);
       
@@ -80,7 +76,12 @@ const CategoryLeaderboard = ({ category }: CategoryLeaderboardProps) => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [category, toast]);
+
+  useEffect(() => {
+    fetchCategoryLeaderboard();
+  }, [fetchCategoryLeaderboard]);
+
 
   if (loading) {
     return (
@@ -105,27 +106,32 @@ const CategoryLeaderboard = ({ category }: CategoryLeaderboardProps) => {
     );
   }
 
+  // Memoize the rendered leaderboard cards to prevent unnecessary re-renders
+  const leaderboardCards = useMemo(() => {
+    return entries.map((entry, index) => (
+      <LeaderboardCard
+        key={entry.user_id}
+        rank={entry.rank_position}
+        name={entry.user_name}
+        email={entry.user_email}
+        primaryStat={{
+          label: "Completion Rate",
+          value: `${entry.completion_rate}%`,
+          icon: "🎯"
+        }}
+        secondaryStat={{
+          label: "Courses",
+          value: `${entry.courses_completed}/${entry.total_courses}`
+        }}
+        isTopThree={index < 3}
+        userId={entry.user_id}
+      />
+    ));
+  }, [entries]);
+
   return (
     <div className="space-y-3">
-      {entries.map((entry, index) => (
-        <LeaderboardCard
-          key={entry.user_id}
-          rank={entry.rank_position}
-          name={entry.user_name}
-          email={entry.user_email}
-          primaryStat={{
-            label: "Completion Rate",
-            value: `${entry.completion_rate}%`,
-            icon: "🎯"
-          }}
-          secondaryStat={{
-            label: "Courses",
-            value: `${entry.courses_completed}/${entry.total_courses}`
-          }}
-          isTopThree={index < 3}
-          userId={entry.user_id}
-        />
-      ))}
+      {leaderboardCards}
     </div>
   );
 };
