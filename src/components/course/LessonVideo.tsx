@@ -34,6 +34,7 @@ const LessonVideo = ({ lesson, courseId }: LessonVideoProps) => {
         onProgress={handleVideoProgress}
         onComplete={handleVideoComplete}
         className="aspect-video bg-gray-100 rounded-lg overflow-hidden"
+        autoLoad={true}
       />
       
       {lesson.duration_minutes && (

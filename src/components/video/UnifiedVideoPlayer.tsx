@@ -21,7 +21,7 @@ const UnifiedVideoPlayer = ({
   onProgress, 
   onComplete, 
   className = "aspect-video",
-  autoLoad = false
+  autoLoad = true
 }: UnifiedVideoPlayerProps) => {
   console.log('🎥 UnifiedVideoPlayer: Rendering with props:', { videoUrl, title, autoLoad, hasVideoUrl: !!videoUrl });
   
