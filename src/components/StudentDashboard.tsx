@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
-import { BookOpen, Award, GraduationCap, User } from "lucide-react";
+import { BookOpen, Award, GraduationCap, User, Calendar } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import NotificationBanner from "./notifications/NotificationBanner";
@@ -20,6 +20,7 @@ import WelcomeModal from "./modals/WelcomeModal";
 import IssueReportButton from "./support/IssueReportButton";
 import { useFirstTimeUser } from "@/hooks/useFirstTimeUser";
 import { logger } from "@/utils/logger";
+import StudentCalendarTab from "./student/StudentCalendarTab";
 
 const StudentDashboard = () => {
   const { user, signOut } = useAuth();
@@ -140,7 +141,7 @@ const StudentDashboard = () => {
           
           <Tabs value={mainTab} onValueChange={setMainTab} className="w-full">
             <TabsList 
-              className="grid w-full grid-cols-3 mb-8"
+              className="grid w-full grid-cols-4 mb-8"
               style={{ backgroundColor: '#FFDA00' }}
             >
               <TabsTrigger 
@@ -149,6 +150,14 @@ const StudentDashboard = () => {
                 style={{ color: 'black' }}
               >
                 Dashboard
+              </TabsTrigger>
+              <TabsTrigger 
+                value="calendar"
+                className="flex items-center data-[state=active]:bg-white data-[state=active]:text-black"
+                style={{ color: 'black' }}
+              >
+                <Calendar className="h-4 w-4 mr-1" />
+                Calendar
               </TabsTrigger>
               <TabsTrigger 
                 value="certificates"
@@ -180,6 +189,10 @@ const StudentDashboard = () => {
                 completedTabLabel="Completed Courses"
                 yellowTabs={true}
               />
+            </TabsContent>
+
+            <TabsContent value="calendar">
+              <StudentCalendarTab />
             </TabsContent>
 
             <TabsContent value="certificates">
