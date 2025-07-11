@@ -46,19 +46,41 @@ const EmployeeProgressModal = ({ employee, isOpen, onClose }: EmployeeProgressMo
     try {
       setLoading(true);
       
-      // Fetch employee course progress
+      // First fetch course assignments (all assigned courses)
+      const { data: assignments, error: assignmentsError } = await supabase
+        .from('course_assignments')
+        .select(`
+          course_id,
+          assigned_at,
+          due_date,
+          is_mandatory,
+          courses!inner(
+            id,
+            title,
+            category
+          )
+        `)
+        .eq('user_id', employee.id);
+
+      if (assignmentsError) throw assignmentsError;
+
+      // Then fetch progress for those courses
       const { data: progressData, error: progressError } = await supabase
         .from('user_course_progress')
         .select(`
-          *,
-          courses:course_id (title)
+          course_id,
+          progress_percentage,
+          status,
+          started_at,
+          completed_at,
+          last_accessed_at
         `)
-        .eq('user_id', employee.id)
-        .order('last_accessed_at', { ascending: false });
+        .eq('user_id', employee.id);
 
       if (progressError) throw progressError;
 
-      if (!progressData || progressData.length === 0) {
+      // If no assignments, show empty state
+      if (!assignments || assignments.length === 0) {
         setProgressData({
           user_id: employee.id,
           user_name: `${employee.first_name || ''} ${employee.last_name || ''}`.trim() || 'Unknown',
@@ -68,8 +90,14 @@ const EmployeeProgressModal = ({ employee, isOpen, onClose }: EmployeeProgressMo
         return;
       }
 
-      // Get unit counts for each course
-      const courseIds = [...new Set(progressData.map(p => p.course_id))];
+      // Create a map of progress by course_id for efficient lookup
+      const progressMap = new Map();
+      (progressData || []).forEach(progress => {
+        progressMap.set(progress.course_id, progress);
+      });
+
+      // Get unit counts for all assigned courses
+      const courseIds = assignments.map(a => a.course_id);
       const unitCounts = await Promise.all(
         courseIds.map(async (courseId) => {
           const { data: lessons } = await supabase
@@ -88,37 +116,37 @@ const EmployeeProgressModal = ({ employee, isOpen, onClose }: EmployeeProgressMo
         })
       );
 
-      // Get completed unit counts
+      // Get completed unit counts for all courses
       const completedUnitCounts = await Promise.all(
-        progressData.map(async (progress) => {
+        courseIds.map(async (courseId) => {
           const { count } = await supabase
             .from('user_unit_progress')
             .select('*', { count: 'exact', head: true })
-            .eq('user_id', progress.user_id)
-            .eq('course_id', progress.course_id)
+            .eq('user_id', employee.id)
+            .eq('course_id', courseId)
             .eq('completed', true);
 
           return { 
-            courseId: progress.course_id, 
+            courseId, 
             completedUnits: count || 0 
           };
         })
       );
 
-      // Transform the data
-      const courses = progressData.map(progress => {
-        const course = progress.courses;
-        const unitCount = unitCounts.find(uc => uc.courseId === progress.course_id);
-        const completedCount = completedUnitCounts.find(cc => cc.courseId === progress.course_id);
+      // Transform the data - combine assignments with progress
+      const courses = assignments.map(assignment => {
+        const progressInfo = progressMap.get(assignment.course_id);
+        const unitCount = unitCounts.find(uc => uc.courseId === assignment.course_id);
+        const completedCount = completedUnitCounts.find(cc => cc.courseId === assignment.course_id);
 
         return {
-          course_id: progress.course_id,
-          course_title: course?.title || 'Unknown Course',
-          status: progress.status,
-          progress_percentage: progress.progress_percentage,
-          started_at: progress.started_at,
-          completed_at: progress.completed_at,
-          last_accessed_at: progress.last_accessed_at,
+          course_id: assignment.course_id,
+          course_title: assignment.courses?.title || 'Unknown Course',
+          status: progressInfo?.status || 'not_started',
+          progress_percentage: progressInfo?.progress_percentage || 0,
+          started_at: progressInfo?.started_at || null,
+          completed_at: progressInfo?.completed_at || null,
+          last_accessed_at: progressInfo?.last_accessed_at || null,
           completed_units: completedCount?.completedUnits || 0,
           total_units: unitCount?.totalUnits || 0
         };
