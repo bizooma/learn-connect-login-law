@@ -104,12 +104,6 @@ const QuickStartModal = ({ open, onOpenChange }: QuickStartModalProps) => {
                   </div>
                 </div>
 
-                <Button 
-                  onClick={() => onOpenChange(false)} 
-                  className="w-full"
-                >
-                  Go to Team Members
-                </Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -183,12 +177,6 @@ const QuickStartModal = ({ open, onOpenChange }: QuickStartModalProps) => {
                   </div>
                 </div>
 
-                <Button 
-                  onClick={() => onOpenChange(false)} 
-                  className="w-full"
-                >
-                  Go to Assignments
-                </Button>
               </CardContent>
             </Card>
           </TabsContent>
@@ -286,12 +274,6 @@ const QuickStartModal = ({ open, onOpenChange }: QuickStartModalProps) => {
                   </div>
                 </div>
 
-                <Button 
-                  onClick={() => onOpenChange(false)} 
-                  className="w-full"
-                >
-                  Go to Team Management
-                </Button>
               </CardContent>
             </Card>
           </TabsContent>
