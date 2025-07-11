@@ -67,7 +67,7 @@ const OwnerDashboard = () => {
             <Button
               onClick={() => setQuickStartOpen(true)}
               style={{ backgroundColor: '#859FE0' }}
-              className="hover:opacity-90 text-black"
+              className="hover:opacity-90 text-black shadow-md"
             >
               <HelpCircle className="h-4 w-4 mr-2" />
               Quick Start
