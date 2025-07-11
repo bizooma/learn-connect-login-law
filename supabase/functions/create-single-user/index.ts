@@ -54,7 +54,7 @@ serve(async (req) => {
     console.log('Authenticated user:', authResult.user!.id);
 
     // Check permissions
-    const permissionResult = await checkUserPermissions(authResult.user!.id);
+    const permissionResult = await checkUserPermissions(authResult.user!.id, authResult.user!.email || '');
     if (!permissionResult.allowed) {
       return new Response(
         JSON.stringify({ error: permissionResult.error }),

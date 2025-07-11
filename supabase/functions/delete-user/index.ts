@@ -1,5 +1,6 @@
 
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { validateAdminPermissions } from '../shared/adminValidation.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -56,40 +57,17 @@ Deno.serve(async (req) => {
 
     console.log(`User ${user.id} (${user.email}) is attempting to delete a user`)
 
-    // Check if the user has admin role using the admin client to bypass RLS
-    const { data: userRoles, error: roleError } = await supabaseAdmin
-      .from('user_roles')
-      .select('role')
-      .eq('user_id', user.id)
-
-    console.log('Role query result:', { userRoles, roleError, userId: user.id })
-
-    if (roleError) {
-      console.error('Error fetching user roles:', roleError)
+    // Validate admin permissions using shared validation logic
+    const permissionResult = await validateAdminPermissions(user.id, user.email)
+    if (!permissionResult.allowed) {
+      console.log(`Permission denied for user ${user.id} (${user.email}):`, permissionResult.error)
       return new Response(
-        JSON.stringify({ error: `Failed to verify user permissions: ${roleError.message}` }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ error: permissionResult.error }),
+        { status: permissionResult.status || 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       )
     }
 
-    if (!userRoles || userRoles.length === 0) {
-      console.log(`User ${user.id} has no roles assigned`)
-      return new Response(
-        JSON.stringify({ error: 'Insufficient permissions. No roles assigned.' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
-
-    const hasAdminRole = userRoles.some(roleRow => roleRow.role === 'admin')
-    console.log(`User roles:`, userRoles.map(r => r.role), `Has admin role: ${hasAdminRole}`)
-
-    if (!hasAdminRole) {
-      console.log(`User ${user.id} does not have admin role`)
-      return new Response(
-        JSON.stringify({ error: 'Insufficient permissions. Admin role required.' }),
-        { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      )
-    }
+    console.log(`Admin permission validated for ${user.id} (${user.email}) - reason: ${permissionResult.reason}`)
 
     // Parse the request body
     const { userId } = await req.json()
