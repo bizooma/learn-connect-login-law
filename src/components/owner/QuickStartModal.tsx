@@ -21,7 +21,7 @@ const QuickStartModal = ({ open, onOpenChange }: QuickStartModalProps) => {
         </DialogHeader>
 
         <Tabs defaultValue="add-employees" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="add-employees" className="flex items-center gap-2">
               <UserPlus className="h-4 w-4" />
               Add Employees
@@ -33,6 +33,10 @@ const QuickStartModal = ({ open, onOpenChange }: QuickStartModalProps) => {
             <TabsTrigger value="substitute-employee" className="flex items-center gap-2">
               <UserMinus className="h-4 w-4" />
               Substitute Employee
+            </TabsTrigger>
+            <TabsTrigger value="employee-progress" className="flex items-center gap-2">
+              <CheckCircle className="h-4 w-4" />
+              Employee Progress
             </TabsTrigger>
           </TabsList>
 
@@ -269,6 +273,80 @@ const QuickStartModal = ({ open, onOpenChange }: QuickStartModalProps) => {
                         <li>• Seat allocation is immediately updated</li>
                         <li>• New employee needs fresh course assignments</li>
                         <li>• Consider role and permission requirements</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="employee-progress" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <CheckCircle className="h-5 w-5" />
+                  Monitor Employee Learning Progress
+                </CardTitle>
+                <CardDescription>
+                  Track your employees' course completion and performance
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-3">
+                  <div className="flex items-start gap-3">
+                    <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">1</span>
+                    <div>
+                      <h4 className="font-medium">Access Progress Dashboard</h4>
+                      <p className="text-sm text-muted-foreground">Navigate to the "Progress Tracking" tab to view comprehensive analytics</p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-3">
+                    <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">2</span>
+                    <div>
+                      <h4 className="font-medium">View Individual Progress</h4>
+                      <p className="text-sm text-muted-foreground">See completion rates, time spent, quiz scores, and certificates earned by each employee</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">3</span>
+                    <div>
+                      <h4 className="font-medium">Filter & Search</h4>
+                      <p className="text-sm text-muted-foreground">Filter progress by employee name, course, completion status, or department</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">4</span>
+                    <div>
+                      <h4 className="font-medium">Generate Reports</h4>
+                      <p className="text-sm text-muted-foreground">Download detailed progress reports for compliance or HR documentation</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">5</span>
+                    <div>
+                      <h4 className="font-medium">Set Up Notifications</h4>
+                      <p className="text-sm text-muted-foreground">Configure automatic email alerts for course completions or overdue assignments</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <div className="flex items-start gap-2">
+                    <CheckCircle className="h-5 w-5 text-purple-600 mt-0.5" />
+                    <div>
+                      <h5 className="font-medium text-purple-800">Progress Monitoring Benefits:</h5>
+                      <ul className="text-sm text-purple-700 space-y-1 mt-1">
+                        <li>• Ensure compliance training deadlines are met</li>
+                        <li>• Identify employees who need additional support</li>
+                        <li>• Track ROI on training investments</li>
+                        <li>• Generate audit-ready compliance reports</li>
+                        <li>• Recognize high-performing team members</li>
                       </ul>
                     </div>
                   </div>
