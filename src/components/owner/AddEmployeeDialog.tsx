@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Tables } from "@/integrations/supabase/types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { AlertCircle, UserPlus } from "lucide-react";
+import { AlertCircle, UserPlus, Eye, EyeOff } from "lucide-react";
 
 type LawFirm = Tables<'law_firms'>;
 
@@ -35,8 +35,11 @@ const AddEmployeeDialog = ({
     email: "",
     firstName: "",
     lastName: "",
+    password: "",
+    confirmPassword: "",
     role: "student"
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,10 +56,28 @@ const AddEmployeeDialog = ({
       return;
     }
 
-    if (!formData.email.trim() || !formData.firstName.trim() || !formData.lastName.trim()) {
+    if (!formData.email.trim() || !formData.firstName.trim() || !formData.lastName.trim() || !formData.password.trim()) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords do not match",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 8 characters long",
         variant: "destructive",
       });
       return;
@@ -122,6 +143,7 @@ const AddEmployeeDialog = ({
             email: formData.email,
             firstName: formData.firstName,
             lastName: formData.lastName,
+            password: formData.password,
             role: 'student'
           },
           headers: {
@@ -224,6 +246,8 @@ const AddEmployeeDialog = ({
         email: "",
         firstName: "",
         lastName: "",
+        password: "",
+        confirmPassword: "",
         role: "student"
       });
     } catch (error: any) {
@@ -301,6 +325,49 @@ const AddEmployeeDialog = ({
                 disabled={loading || !canAddEmployee}
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password">Password *</Label>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={formData.password}
+                onChange={(e) => handleChange("password", e.target.value)}
+                placeholder="At least 8 characters"
+                required
+                disabled={loading || !canAddEmployee}
+                className="pr-10"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={loading || !canAddEmployee}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Confirm Password *</Label>
+            <Input
+              id="confirmPassword"
+              type={showPassword ? "text" : "password"}
+              value={formData.confirmPassword}
+              onChange={(e) => handleChange("confirmPassword", e.target.value)}
+              placeholder="Confirm password"
+              required
+              disabled={loading || !canAddEmployee}
+            />
           </div>
 
           <div className="space-y-2">
