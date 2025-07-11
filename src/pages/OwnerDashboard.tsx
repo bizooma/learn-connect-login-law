@@ -10,13 +10,16 @@ import OwnerDashboardTabs from "@/components/owner/OwnerDashboardTabs";
 import NotificationBanner from "@/components/notifications/NotificationBanner";
 import LMSTreeFooter from "@/components/lms-tree/LMSTreeFooter";
 import IssueReportButton from "@/components/support/IssueReportButton";
-import { useEffect } from "react";
+import QuickStartModal from "@/components/owner/QuickStartModal";
+import { useEffect, useState } from "react";
+import { HelpCircle } from "lucide-react";
 
 const OwnerDashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { isOwner, loading: roleLoading } = useUserRole();
   const { lawFirm, loading: lawFirmLoading, updateLawFirm } = useLawFirm();
+  const [quickStartOpen, setQuickStartOpen] = useState(false);
 
   useEffect(() => {
     // If no user, redirect immediately
@@ -60,7 +63,14 @@ const OwnerDashboard = () => {
           {/* Notification Banner */}
           <NotificationBanner />
           
-          <div className="mb-8 flex justify-end">
+          <div className="mb-8 flex justify-end gap-4">
+            <Button
+              onClick={() => setQuickStartOpen(true)}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            >
+              <HelpCircle className="h-4 w-4 mr-2" />
+              Quick Start
+            </Button>
             <IssueReportButton />
           </div>
 
@@ -68,6 +78,12 @@ const OwnerDashboard = () => {
           {lawFirm && <OwnerDashboardTabs lawFirm={lawFirm} onUpdateLawFirm={updateLawFirm} />}
         </div>
       </div>
+      
+      <QuickStartModal 
+        open={quickStartOpen} 
+        onOpenChange={setQuickStartOpen} 
+      />
+      
       <LMSTreeFooter />
     </div>
   );
