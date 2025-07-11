@@ -12,12 +12,13 @@ export async function createUserAccount(userData: CreateUserRequest) {
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   );
 
-  const tempPassword = generateTempPassword();
+  // Use provided password or generate a temporary one
+  const password = userData.password || generateTempPassword();
 
   // Create user in auth
   const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
     email: userData.email,
-    password: tempPassword,
+    password: password,
     email_confirm: true,
     user_metadata: {
       first_name: userData.firstName,
@@ -63,7 +64,7 @@ export async function createUserAccount(userData: CreateUserRequest) {
   return {
     success: true,
     userId: authData.user.id,
-    tempPassword,
+    tempPassword: password,
     email: userData.email
   };
 }

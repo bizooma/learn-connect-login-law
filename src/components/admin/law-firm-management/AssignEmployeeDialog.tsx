@@ -10,7 +10,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { Tables } from '@/integrations/supabase/types';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, UserPlus } from 'lucide-react';
+import { AlertCircle, UserPlus, Eye, EyeOff } from 'lucide-react';
 
 type LawFirm = Tables<'law_firms'> & {
   owner?: {
@@ -40,8 +40,11 @@ const AssignEmployeeDialog = ({
     email: "",
     firstName: "",
     lastName: "",
+    password: "",
+    confirmPassword: "",
     role: "student"
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const canAddEmployee = lawFirm.used_seats < lawFirm.total_seats;
@@ -60,10 +63,28 @@ const AssignEmployeeDialog = ({
       return;
     }
 
-    if (!formData.email.trim() || !formData.firstName.trim() || !formData.lastName.trim()) {
+    if (!formData.email.trim() || !formData.firstName.trim() || !formData.lastName.trim() || !formData.password.trim()) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        title: "Error",
+        description: "Passwords do not match",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      toast({
+        title: "Error",
+        description: "Password must be at least 8 characters long",
         variant: "destructive",
       });
       return;
@@ -109,14 +130,54 @@ const AssignEmployeeDialog = ({
         if (updateError) throw updateError;
         employeeProfile = updatedProfile;
       } else {
-        // Create invitation for new user (simplified - in real implementation you'd send an email invitation)
-        toast({
-          title: "Feature Coming Soon",
-          description: "Employee invitation system is under development. For now, employees need to register first, then you can add them.",
-          variant: "default",
+        // Create new user via edge function
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.access_token) {
+          throw new Error('You must be logged in to create users');
+        }
+
+        const { data, error } = await supabase.functions.invoke('create-single-user', {
+          body: {
+            email: formData.email,
+            firstName: formData.firstName,
+            lastName: formData.lastName,
+            password: formData.password
+          },
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+          }
         });
-        setLoading(false);
-        return;
+
+        if (error) {
+          throw new Error(error.message || 'Failed to create user');
+        }
+
+        if (data?.error) {
+          throw new Error(data.error);
+        }
+
+        // Get the created user's profile
+        const { data: newProfile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('email', formData.email.toLowerCase())
+          .single();
+
+        if (profileError) throw profileError;
+        employeeProfile = newProfile;
+
+        // Update profile with law firm info
+        const { data: updatedProfile, error: updateError } = await supabase
+          .from('profiles')
+          .update({
+            law_firm_id: lawFirm.id
+          })
+          .eq('id', employeeProfile.id)
+          .select()
+          .single();
+
+        if (updateError) throw updateError;
+        employeeProfile = updatedProfile;
       }
 
       // 2. Assign the role (always student for employees)
@@ -162,7 +223,8 @@ const AssignEmployeeDialog = ({
 
       toast({
         title: "Success",
-        description: `${formData.firstName} ${formData.lastName} has been assigned to ${lawFirm.name} as a student.`,
+        description: `${formData.firstName} ${formData.lastName} has been created and assigned to ${lawFirm.name}. Password: ${formData.password}`,
+        duration: 10000, // Show longer so owner can copy password
       });
       
       onEmployeeAdded();
@@ -173,6 +235,8 @@ const AssignEmployeeDialog = ({
         email: "",
         firstName: "",
         lastName: "",
+        password: "",
+        confirmPassword: "",
         role: "student"
       });
     } catch (error: any) {
@@ -250,6 +314,49 @@ const AssignEmployeeDialog = ({
                 disabled={loading || !canAddEmployee}
               />
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="password">Password *</Label>
+            <div className="relative">
+              <Input
+                id="password"
+                type={showPassword ? "text" : "password"}
+                value={formData.password}
+                onChange={(e) => handleChange("password", e.target.value)}
+                placeholder="At least 8 characters"
+                required
+                disabled={loading || !canAddEmployee}
+                className="pr-10"
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                onClick={() => setShowPassword(!showPassword)}
+                disabled={loading || !canAddEmployee}
+              >
+                {showPassword ? (
+                  <EyeOff className="h-4 w-4" />
+                ) : (
+                  <Eye className="h-4 w-4" />
+                )}
+              </Button>
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="confirmPassword">Confirm Password *</Label>
+            <Input
+              id="confirmPassword"
+              type={showPassword ? "text" : "password"}
+              value={formData.confirmPassword}
+              onChange={(e) => handleChange("confirmPassword", e.target.value)}
+              placeholder="Confirm password"
+              required
+              disabled={loading || !canAddEmployee}
+            />
           </div>
 
           <div className="space-y-2">
