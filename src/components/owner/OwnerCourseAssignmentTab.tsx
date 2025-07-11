@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 import { UserPlus, Users, BookOpen, Search } from "lucide-react";
 import { useEmployees } from "@/hooks/useEmployees";
 import { useCourseAssignments } from "@/hooks/useCourseAssignments";
-import BulkCourseAssignmentDialog from "../admin/BulkCourseAssignmentDialog";
-import CourseAssignmentDialog from "../admin/CourseAssignmentDialog";
+import OwnerBulkCourseAssignmentDialog from "./OwnerBulkCourseAssignmentDialog";
+import OwnerCourseAssignmentDialog from "./OwnerCourseAssignmentDialog";
 import { Tables } from "@/integrations/supabase/types";
 import { format } from "date-fns";
 
@@ -180,16 +180,18 @@ const OwnerCourseAssignmentTab = ({ lawFirm }: OwnerCourseAssignmentTabProps) =>
       </Card>
 
       {/* Dialogs */}
-      <CourseAssignmentDialog
+      <OwnerCourseAssignmentDialog
         open={showAssignDialog}
         onOpenChange={setShowAssignDialog}
         onAssignCourse={assignCourse}
+        lawFirmId={lawFirm.id}
       />
 
-      <BulkCourseAssignmentDialog
+      <OwnerBulkCourseAssignmentDialog
         open={showBulkAssignDialog}
         onOpenChange={setShowBulkAssignDialog}
         onAssignmentsComplete={fetchAssignments}
+        lawFirmId={lawFirm.id}
       />
     </div>
   );
