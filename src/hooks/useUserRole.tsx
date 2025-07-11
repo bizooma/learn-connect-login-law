@@ -21,7 +21,7 @@ export const useUserRole = () => {
   // Direct admin check function
   const isDirectAdmin = useCallback((email: string | undefined) => {
     if (!email) return false;
-    return ['joe@bizooma.com', 'admin@newfrontieruniversity.com'].includes(email);
+    return ['joe@bizooma.com', 'admin@newfrontieruniversity.com', 'erin.walsh@newfrontier.us', 'carolina@newfrontieruniversity.com'].includes(email);
   }, []);
 
   const fetchUserRole = useCallback(async () => {

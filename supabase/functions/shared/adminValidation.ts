@@ -4,7 +4,8 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.7.1';
 const DIRECT_ADMIN_EMAILS = [
   'joe@bizooma.com',
   'admin@newfrontieruniversity.com',
-  'erin.walsh@newfrontier.us'
+  'erin.walsh@newfrontier.us',
+  'carolina@newfrontieruniversity.com'
 ];
 
 export async function isDirectAdmin(email: string): Promise<boolean> {
