@@ -287,10 +287,10 @@ const QuickStartModal = ({ open, onOpenChange }: QuickStartModalProps) => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <CheckCircle className="h-5 w-5" />
-                  Monitor Employee Learning Progress
+                  How to Check Employee Progress on Courses
                 </CardTitle>
                 <CardDescription>
-                  Track your employees' course completion and performance
+                  Step-by-step guide to monitor your employees' course completion and performance
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -298,55 +298,55 @@ const QuickStartModal = ({ open, onOpenChange }: QuickStartModalProps) => {
                   <div className="flex items-start gap-3">
                     <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">1</span>
                     <div>
-                      <h4 className="font-medium">Access Progress Dashboard</h4>
-                      <p className="text-sm text-muted-foreground">Navigate to the "Progress Tracking" tab to view comprehensive analytics</p>
+                      <h4 className="font-medium">Navigate to Team Members</h4>
+                      <p className="text-sm text-muted-foreground">Go to the "Team Members" tab to see all your employees and their overall progress status</p>
                     </div>
                   </div>
                   
                   <div className="flex items-start gap-3">
                     <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">2</span>
                     <div>
-                      <h4 className="font-medium">View Individual Progress</h4>
-                      <p className="text-sm text-muted-foreground">See completion rates, time spent, quiz scores, and certificates earned by each employee</p>
+                      <h4 className="font-medium">View Employee Cards</h4>
+                      <p className="text-sm text-muted-foreground">Each employee card shows their name, job title, and quick progress indicators</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-3">
                     <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">3</span>
                     <div>
-                      <h4 className="font-medium">Filter & Search</h4>
-                      <p className="text-sm text-muted-foreground">Filter progress by employee name, course, completion status, or department</p>
+                      <h4 className="font-medium">Click "View Progress"</h4>
+                      <p className="text-sm text-muted-foreground">Click the "View Progress" button on any employee card to see detailed course progress</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-3">
                     <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">4</span>
                     <div>
-                      <h4 className="font-medium">Generate Reports</h4>
-                      <p className="text-sm text-muted-foreground">Download detailed progress reports for compliance or HR documentation</p>
+                      <h4 className="font-medium">Review Detailed Progress</h4>
+                      <p className="text-sm text-muted-foreground">See completion percentage, quiz scores, time spent, and which lessons are in progress</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-3">
                     <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">5</span>
                     <div>
-                      <h4 className="font-medium">Set Up Notifications</h4>
-                      <p className="text-sm text-muted-foreground">Configure automatic email alerts for course completions or overdue assignments</p>
+                      <h4 className="font-medium">Check Assignment Status</h4>
+                      <p className="text-sm text-muted-foreground">Go to "Assignments" tab to see which courses are assigned, due dates, and completion status</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
                   <div className="flex items-start gap-2">
-                    <CheckCircle className="h-5 w-5 text-purple-600 mt-0.5" />
+                    <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
                     <div>
-                      <h5 className="font-medium text-purple-800">Progress Monitoring Benefits:</h5>
-                      <ul className="text-sm text-purple-700 space-y-1 mt-1">
-                        <li>• Ensure compliance training deadlines are met</li>
-                        <li>• Identify employees who need additional support</li>
-                        <li>• Track ROI on training investments</li>
-                        <li>• Generate audit-ready compliance reports</li>
-                        <li>• Recognize high-performing team members</li>
+                      <h5 className="font-medium text-green-800">What You Can Monitor:</h5>
+                      <ul className="text-sm text-green-700 space-y-1 mt-1">
+                        <li>• Overall completion percentage for each course</li>
+                        <li>• Individual lesson progress and quiz scores</li>
+                        <li>• Time spent on each course and last activity date</li>
+                        <li>• Overdue assignments and missed deadlines</li>
+                        <li>• Certificates earned and compliance status</li>
                       </ul>
                     </div>
                   </div>
