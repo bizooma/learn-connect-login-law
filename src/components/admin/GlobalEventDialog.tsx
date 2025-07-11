@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { X } from "lucide-react";
+import { X, Search } from "lucide-react";
 
 interface Course {
   id: string;
@@ -45,6 +45,7 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
   });
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -90,146 +91,194 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
 
   const selectedCourseDetails = courses.filter(course => selectedCourses.includes(course.id));
 
+  // Filter courses based on search term
+  const filteredCourses = useMemo(() => {
+    if (!searchTerm) return courses;
+    return courses.filter(course => 
+      course.title.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }, [courses, searchTerm]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[80vh] flex flex-col">
-        <DialogHeader>
-          <DialogTitle>Create Global Event</DialogTitle>
-        </DialogHeader>
+      <DialogContent className="w-[95vw] max-w-4xl h-[90vh] max-h-[800px] flex flex-col p-0">
+        <div className="p-6 pb-0">
+          <DialogHeader>
+            <DialogTitle>Create Global Event</DialogTitle>
+          </DialogHeader>
+        </div>
         
-        <form onSubmit={handleSubmit} className="space-y-4 flex-1 overflow-hidden flex flex-col">
-          <div className="grid grid-cols-2 gap-4">
+        <div className="flex-1 overflow-hidden px-6">
+          <form onSubmit={handleSubmit} className="h-full flex flex-col gap-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="title">Title *</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="event_type">Event Type</Label>
+                <Select value={formData.event_type} onValueChange={(value) => setFormData(prev => ({ ...prev, event_type: value }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="general">General</SelectItem>
+                    <SelectItem value="meeting">Meeting</SelectItem>
+                    <SelectItem value="lecture">Lecture</SelectItem>
+                    <SelectItem value="workshop">Workshop</SelectItem>
+                    <SelectItem value="exam">Exam</SelectItem>
+                    <SelectItem value="deadline">Deadline</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
             <div>
-              <Label htmlFor="title">Title *</Label>
-              <Input
-                id="title"
-                value={formData.title}
-                onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                required
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                rows={2}
+                className="resize-none"
               />
             </div>
-            
-            <div>
-              <Label htmlFor="event_type">Event Type</Label>
-              <Select value={formData.event_type} onValueChange={(value) => setFormData(prev => ({ ...prev, event_type: value }))}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="general">General</SelectItem>
-                  <SelectItem value="meeting">Meeting</SelectItem>
-                  <SelectItem value="lecture">Lecture</SelectItem>
-                  <SelectItem value="workshop">Workshop</SelectItem>
-                  <SelectItem value="exam">Exam</SelectItem>
-                  <SelectItem value="deadline">Deadline</SelectItem>
-                </SelectContent>
-              </Select>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div>
+                <Label htmlFor="event_date">Date *</Label>
+                <Input
+                  id="event_date"
+                  type="date"
+                  value={formData.event_date}
+                  onChange={(e) => setFormData(prev => ({ ...prev, event_date: e.target.value }))}
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="start_time">Start Time</Label>
+                <Input
+                  id="start_time"
+                  type="time"
+                  value={formData.start_time}
+                  onChange={(e) => setFormData(prev => ({ ...prev, start_time: e.target.value }))}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="end_time">End Time</Label>
+                <Input
+                  id="end_time"
+                  type="time"
+                  value={formData.end_time}
+                  onChange={(e) => setFormData(prev => ({ ...prev, end_time: e.target.value }))}
+                />
+              </div>
             </div>
-          </div>
 
-          <div>
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              rows={3}
-            />
-          </div>
-
-          <div className="grid grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="event_date">Date *</Label>
+              <Label htmlFor="meeting_link">Meeting Link</Label>
               <Input
-                id="event_date"
-                type="date"
-                value={formData.event_date}
-                onChange={(e) => setFormData(prev => ({ ...prev, event_date: e.target.value }))}
-                required
+                id="meeting_link"
+                type="url"
+                value={formData.meeting_link}
+                onChange={(e) => setFormData(prev => ({ ...prev, meeting_link: e.target.value }))}
+                placeholder="https://..."
               />
             </div>
-            
-            <div>
-              <Label htmlFor="start_time">Start Time</Label>
-              <Input
-                id="start_time"
-                type="time"
-                value={formData.start_time}
-                onChange={(e) => setFormData(prev => ({ ...prev, start_time: e.target.value }))}
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="end_time">End Time</Label>
-              <Input
-                id="end_time"
-                type="time"
-                value={formData.end_time}
-                onChange={(e) => setFormData(prev => ({ ...prev, end_time: e.target.value }))}
-              />
-            </div>
-          </div>
 
-          <div>
-            <Label htmlFor="meeting_link">Meeting Link</Label>
-            <Input
-              id="meeting_link"
-              type="url"
-              value={formData.meeting_link}
-              onChange={(e) => setFormData(prev => ({ ...prev, meeting_link: e.target.value }))}
-              placeholder="https://..."
-            />
-          </div>
-
-          <div className="space-y-3">
-            <Label>Select Courses</Label>
-            
-            {selectedCourseDetails.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {selectedCourseDetails.map(course => (
-                  <Badge key={course.id} variant="secondary" className="flex items-center gap-1">
-                    {course.title}
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
-                      onClick={() => removeCourse(course.id)}
-                    >
-                      <X className="h-3 w-3" />
-                    </Button>
+            <div className="flex-1 flex flex-col space-y-3 min-h-0">
+              <div className="flex items-center justify-between">
+                <Label>Select Courses</Label>
+                {selectedCourses.length > 0 && (
+                  <Badge variant="outline" className="text-xs">
+                    {selectedCourses.length} course{selectedCourses.length !== 1 ? 's' : ''} selected
                   </Badge>
-                ))}
+                )}
               </div>
-            )}
-            
-            <ScrollArea className="h-48 border rounded-md p-3">
-              <div className="space-y-2">
-                {courses.map(course => (
-                  <div key={course.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={course.id}
-                      checked={selectedCourses.includes(course.id)}
-                      onCheckedChange={() => handleCourseToggle(course.id)}
-                    />
-                    <Label htmlFor={course.id} className="flex-1 cursor-pointer">
-                      {course.title} ({course.actual_enrollment_count} students)
-                    </Label>
-                  </div>
-                ))}
+              
+              {selectedCourseDetails.length > 0 && (
+                <div className="flex flex-wrap gap-2 max-h-20 overflow-y-auto">
+                  {selectedCourseDetails.map(course => (
+                    <Badge key={course.id} variant="secondary" className="flex items-center gap-1 text-xs">
+                      <span className="truncate max-w-32">{course.title}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground ml-1"
+                        onClick={() => removeCourse(course.id)}
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </Badge>
+                  ))}
+                </div>
+              )}
+              
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Search courses..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
               </div>
-            </ScrollArea>
-          </div>
+              
+              <ScrollArea className="flex-1 border rounded-md min-h-[200px] max-h-[300px]">
+                <div className="p-3 space-y-3">
+                  {filteredCourses.length === 0 ? (
+                    <div className="text-center text-muted-foreground py-8">
+                      {searchTerm ? 'No courses found matching your search.' : 'No courses available.'}
+                    </div>
+                  ) : (
+                    filteredCourses.map(course => (
+                      <div key={course.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted/50 transition-colors">
+                        <Checkbox
+                          id={course.id}
+                          checked={selectedCourses.includes(course.id)}
+                          onCheckedChange={() => handleCourseToggle(course.id)}
+                          className="min-w-[20px]"
+                        />
+                        <Label htmlFor={course.id} className="flex-1 cursor-pointer leading-5">
+                          <div className="font-medium">{course.title}</div>
+                          <div className="text-xs text-muted-foreground mt-0.5">
+                            {course.actual_enrollment_count} student{course.actual_enrollment_count !== 1 ? 's' : ''}
+                          </div>
+                        </Label>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </ScrollArea>
+            </div>
 
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+          </form>
+        </div>
+        
+        <div className="border-t bg-muted/20 px-6 py-4">
+          <div className="flex flex-col sm:flex-row justify-end gap-3">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="min-w-[100px]">
               Cancel
             </Button>
-            <Button type="submit" disabled={isSubmitting || !formData.title || !formData.event_date}>
+            <Button 
+              type="submit" 
+              disabled={isSubmitting || !formData.title || !formData.event_date}
+              onClick={handleSubmit}
+              className="min-w-[100px]"
+            >
               {isSubmitting ? "Creating..." : "Create Event"}
             </Button>
           </div>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
   );
