@@ -149,16 +149,16 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="w-[95vw] max-w-4xl h-[90vh] max-h-[800px] flex flex-col p-0">
+      <DialogContent className="w-[95vw] max-w-4xl h-[95vh] max-h-[900px] flex flex-col p-0">
         <div className="p-6 pb-0">
           <DialogHeader>
             <DialogTitle>Create Global Event</DialogTitle>
           </DialogHeader>
         </div>
         
-        <div className="flex-1 overflow-hidden px-6">
-          <form onSubmit={handleSubmit} className="h-full flex flex-col gap-4">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        <div className="flex-1 px-6">
+          <form onSubmit={handleSubmit} className="h-full flex flex-col gap-3">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
               <div>
                 <Label htmlFor="title">Title *</Label>
                 <Input
@@ -198,7 +198,7 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
               />
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
                 <Label htmlFor="event_date">Date *</Label>
                 <Input
@@ -242,7 +242,7 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
               />
             </div>
 
-            <div className="flex-1 flex flex-col space-y-3 min-h-0">
+            <div className="flex-1 flex flex-col space-y-2 min-h-0">
               <Label>Event Targeting</Label>
               
               <Tabs value={targetingMode} onValueChange={(value) => setTargetingMode(value as "courses" | "roles" | "email_domains")} className="flex-1 flex flex-col">
@@ -252,7 +252,7 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
                   <TabsTrigger value="email_domains">Target Email Domains</TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="courses" className="flex-1 flex flex-col space-y-3 mt-3">
+                <TabsContent value="courses" className="flex-1 flex flex-col space-y-2 mt-2">
                   <div className="flex items-center justify-between">
                     <Label>Select Courses</Label>
                     {selectedCourses.length > 0 && (
@@ -263,7 +263,7 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
                   </div>
                   
                   {selectedCourseDetails.length > 0 && (
-                    <div className="flex flex-wrap gap-2 max-h-20 overflow-y-auto">
+                    <div className="flex flex-wrap gap-2 max-h-16 overflow-y-auto">
                       {selectedCourseDetails.map(course => (
                         <Badge key={course.id} variant="secondary" className="flex items-center gap-1 text-xs">
                           <span className="truncate max-w-32">{course.title}</span>
@@ -291,7 +291,7 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
                     />
                   </div>
                   
-                  <ScrollArea className="flex-1 border rounded-md min-h-[200px] max-h-[400px]">
+                  <ScrollArea className="flex-1 border rounded-md h-[300px]">
                     <div className="p-3 space-y-3">
                       {filteredCourses.length === 0 ? (
                         <div className="text-center text-muted-foreground py-8">
@@ -319,7 +319,7 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
                   </ScrollArea>
                 </TabsContent>
                 
-                <TabsContent value="roles" className="flex-1 flex flex-col space-y-3 mt-3">
+                <TabsContent value="roles" className="flex-1 flex flex-col space-y-2 mt-2">
                   <div className="flex items-center justify-between">
                     <Label>Select User Roles</Label>
                     {selectedRoles.length > 0 && (
@@ -330,7 +330,7 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
                   </div>
                   
                   {selectedRoleDetails.length > 0 && (
-                    <div className="flex flex-wrap gap-2 max-h-20 overflow-y-auto">
+                    <div className="flex flex-wrap gap-2 max-h-16 overflow-y-auto">
                       {selectedRoleDetails.map(role => (
                         <Badge key={role.id} variant="secondary" className="flex items-center gap-1 text-xs">
                           <span className="truncate max-w-32">{role.name}</span>
@@ -348,7 +348,7 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
                     </div>
                   )}
                   
-                  <ScrollArea className="flex-1 border rounded-md min-h-[200px] max-h-[400px]">
+                  <ScrollArea className="flex-1 border rounded-md h-[300px]">
                     <div className="p-3 space-y-3">
                       {availableRoles.map(role => (
                         <div key={role.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted/50 transition-colors">
@@ -370,7 +370,7 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
                   </ScrollArea>
                 </TabsContent>
                 
-                <TabsContent value="email_domains" className="flex-1 flex flex-col space-y-3 mt-3">
+                <TabsContent value="email_domains" className="flex-1 flex flex-col space-y-2 mt-2">
                   <div className="flex items-center justify-between">
                     <Label>Select Email Domains</Label>
                     {selectedEmailDomains.length > 0 && (
@@ -381,7 +381,7 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
                   </div>
                   
                   {selectedEmailDomainDetails.length > 0 && (
-                    <div className="flex flex-wrap gap-2 max-h-20 overflow-y-auto">
+                    <div className="flex flex-wrap gap-2 max-h-16 overflow-y-auto">
                       {selectedEmailDomainDetails.map(domain => (
                         <Badge key={domain.id} variant="secondary" className="flex items-center gap-1 text-xs">
                           <span className="truncate max-w-32">{domain.name}</span>
@@ -399,7 +399,7 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
                     </div>
                   )}
                   
-                  <ScrollArea className="flex-1 border rounded-md min-h-[200px] max-h-[400px]">
+                  <ScrollArea className="flex-1 border rounded-md h-[300px]">
                     <div className="p-3 space-y-3">
                       {availableEmailDomains.map(domain => (
                         <div key={domain.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted/50 transition-colors">
