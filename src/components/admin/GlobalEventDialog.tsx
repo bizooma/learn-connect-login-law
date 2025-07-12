@@ -1,16 +1,14 @@
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { X, Search } from "lucide-react";
+import { X, ChevronDown } from "lucide-react";
 
 interface Course {
   id: string;
@@ -51,7 +49,6 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
   const [selectedEmailDomains, setSelectedEmailDomains] = useState<string[]>([]);
   const [targetingMode, setTargetingMode] = useState<"courses" | "roles" | "email_domains">("courses");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
 
   const availableRoles = [
     { id: "owner", name: "Law Firm Owners", description: "All law firm owners" },
@@ -139,13 +136,6 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
   const selectedRoleDetails = availableRoles.filter(role => selectedRoles.includes(role.id));
   const selectedEmailDomainDetails = availableEmailDomains.filter(domain => selectedEmailDomains.includes(domain.id));
 
-  // Filter courses based on search term
-  const filteredCourses = useMemo(() => {
-    if (!searchTerm) return courses;
-    return courses.filter(course => 
-      course.title.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [courses, searchTerm]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -242,183 +232,175 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
               />
             </div>
 
-            <div className="flex-1 flex flex-col space-y-2 min-h-0">
+            <div className="space-y-4">
               <Label>Event Targeting</Label>
               
-              <Tabs value={targetingMode} onValueChange={(value) => setTargetingMode(value as "courses" | "roles" | "email_domains")} className="flex-1 flex flex-col">
+              <Tabs value={targetingMode} onValueChange={(value) => setTargetingMode(value as "courses" | "roles" | "email_domains")}>
                 <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="courses">Target Courses</TabsTrigger>
                   <TabsTrigger value="roles">Target User Roles</TabsTrigger>
                   <TabsTrigger value="email_domains">Target Email Domains</TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="courses" className="flex-1 flex flex-col space-y-2 mt-2">
-                  <div className="flex items-center justify-between">
-                    <Label>Select Courses</Label>
-                    {selectedCourses.length > 0 && (
-                      <Badge variant="outline" className="text-xs">
-                        {selectedCourses.length} course{selectedCourses.length !== 1 ? 's' : ''} selected
-                      </Badge>
-                    )}
+                <TabsContent value="courses" className="space-y-3 mt-4">
+                  <div>
+                    <Label className="text-sm font-medium">Select Courses</Label>
+                    <Select onValueChange={handleCourseToggle}>
+                      <SelectTrigger className="w-full mt-1">
+                        <SelectValue placeholder={
+                          selectedCourses.length > 0 
+                            ? `${selectedCourses.length} course${selectedCourses.length !== 1 ? 's' : ''} selected`
+                            : "Choose courses to target..."
+                        } />
+                        <ChevronDown className="h-4 w-4 opacity-50" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[300px]">
+                        {courses.map(course => (
+                          <SelectItem key={course.id} value={course.id}>
+                            <div className="flex items-center justify-between w-full">
+                              <div>
+                                <div className="font-medium">{course.title}</div>
+                                <div className="text-xs text-muted-foreground">
+                                  {course.actual_enrollment_count} student{course.actual_enrollment_count !== 1 ? 's' : ''}
+                                </div>
+                              </div>
+                              {selectedCourses.includes(course.id) && (
+                                <Badge variant="secondary" className="ml-2 text-xs">Selected</Badge>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   {selectedCourseDetails.length > 0 && (
-                    <div className="flex flex-wrap gap-2 max-h-16 overflow-y-auto">
-                      {selectedCourseDetails.map(course => (
-                        <Badge key={course.id} variant="secondary" className="flex items-center gap-1 text-xs">
-                          <span className="truncate max-w-32">{course.title}</span>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground ml-1"
-                            onClick={() => removeCourse(course.id)}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </Badge>
-                      ))}
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Selected Courses:</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedCourseDetails.map(course => (
+                          <Badge key={course.id} variant="secondary" className="flex items-center gap-1">
+                            <span className="truncate max-w-32">{course.title}</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground ml-1"
+                              onClick={() => removeCourse(course.id)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
                   )}
-                  
-                  <div className="relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                    <Input
-                      placeholder="Search courses..."
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                      className="pl-10"
-                    />
-                  </div>
-                  
-                  <ScrollArea className="flex-1 border rounded-md h-[300px] pointer-events-auto">
-                    <div className="p-3 space-y-3">
-                      {filteredCourses.length === 0 ? (
-                        <div className="text-center text-muted-foreground py-8">
-                          {searchTerm ? 'No courses found matching your search.' : 'No courses available.'}
-                        </div>
-                      ) : (
-                        filteredCourses.map(course => (
-                          <div key={course.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted/50 transition-colors">
-                            <Checkbox
-                              id={course.id}
-                              checked={selectedCourses.includes(course.id)}
-                              onCheckedChange={() => handleCourseToggle(course.id)}
-                              className="min-w-[20px]"
-                            />
-                            <Label htmlFor={course.id} className="flex-1 cursor-pointer leading-5">
-                              <div className="font-medium">{course.title}</div>
-                              <div className="text-xs text-muted-foreground mt-0.5">
-                                {course.actual_enrollment_count} student{course.actual_enrollment_count !== 1 ? 's' : ''}
-                              </div>
-                            </Label>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </ScrollArea>
                 </TabsContent>
                 
-                <TabsContent value="roles" className="flex-1 flex flex-col space-y-2 mt-2">
-                  <div className="flex items-center justify-between">
-                    <Label>Select User Roles</Label>
-                    {selectedRoles.length > 0 && (
-                      <Badge variant="outline" className="text-xs">
-                        {selectedRoles.length} role{selectedRoles.length !== 1 ? 's' : ''} selected
-                      </Badge>
-                    )}
+                <TabsContent value="roles" className="space-y-3 mt-4">
+                  <div>
+                    <Label className="text-sm font-medium">Select User Roles</Label>
+                    <Select onValueChange={handleRoleToggle}>
+                      <SelectTrigger className="w-full mt-1">
+                        <SelectValue placeholder={
+                          selectedRoles.length > 0 
+                            ? `${selectedRoles.length} role${selectedRoles.length !== 1 ? 's' : ''} selected`
+                            : "Choose user roles to target..."
+                        } />
+                        <ChevronDown className="h-4 w-4 opacity-50" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableRoles.map(role => (
+                          <SelectItem key={role.id} value={role.id}>
+                            <div className="flex items-center justify-between w-full">
+                              <div>
+                                <div className="font-medium">{role.name}</div>
+                                <div className="text-xs text-muted-foreground">{role.description}</div>
+                              </div>
+                              {selectedRoles.includes(role.id) && (
+                                <Badge variant="secondary" className="ml-2 text-xs">Selected</Badge>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   {selectedRoleDetails.length > 0 && (
-                    <div className="flex flex-wrap gap-2 max-h-16 overflow-y-auto">
-                      {selectedRoleDetails.map(role => (
-                        <Badge key={role.id} variant="secondary" className="flex items-center gap-1 text-xs">
-                          <span className="truncate max-w-32">{role.name}</span>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground ml-1"
-                            onClick={() => removeRole(role.id)}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </Badge>
-                      ))}
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Selected Roles:</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedRoleDetails.map(role => (
+                          <Badge key={role.id} variant="secondary" className="flex items-center gap-1">
+                            <span className="truncate max-w-32">{role.name}</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground ml-1"
+                              onClick={() => removeRole(role.id)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
                   )}
-                  
-                  <ScrollArea className="flex-1 border rounded-md h-[300px] pointer-events-auto">
-                    <div className="p-3 space-y-3">
-                      {availableRoles.map(role => (
-                        <div key={role.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted/50 transition-colors">
-                          <Checkbox
-                            id={role.id}
-                            checked={selectedRoles.includes(role.id)}
-                            onCheckedChange={() => handleRoleToggle(role.id)}
-                            className="min-w-[20px]"
-                          />
-                          <Label htmlFor={role.id} className="flex-1 cursor-pointer leading-5">
-                            <div className="font-medium">{role.name}</div>
-                            <div className="text-xs text-muted-foreground mt-0.5">
-                              {role.description}
-                            </div>
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
                 </TabsContent>
                 
-                <TabsContent value="email_domains" className="flex-1 flex flex-col space-y-2 mt-2">
-                  <div className="flex items-center justify-between">
-                    <Label>Select Email Domains</Label>
-                    {selectedEmailDomains.length > 0 && (
-                      <Badge variant="outline" className="text-xs">
-                        {selectedEmailDomains.length} domain{selectedEmailDomains.length !== 1 ? 's' : ''} selected
-                      </Badge>
-                    )}
+                <TabsContent value="email_domains" className="space-y-3 mt-4">
+                  <div>
+                    <Label className="text-sm font-medium">Select Email Domains</Label>
+                    <Select onValueChange={handleEmailDomainToggle}>
+                      <SelectTrigger className="w-full mt-1">
+                        <SelectValue placeholder={
+                          selectedEmailDomains.length > 0 
+                            ? `${selectedEmailDomains.length} domain${selectedEmailDomains.length !== 1 ? 's' : ''} selected`
+                            : "Choose email domains to target..."
+                        } />
+                        <ChevronDown className="h-4 w-4 opacity-50" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {availableEmailDomains.map(domain => (
+                          <SelectItem key={domain.id} value={domain.id}>
+                            <div className="flex items-center justify-between w-full">
+                              <div>
+                                <div className="font-medium">{domain.name}</div>
+                                <div className="text-xs text-muted-foreground">{domain.description}</div>
+                              </div>
+                              {selectedEmailDomains.includes(domain.id) && (
+                                <Badge variant="secondary" className="ml-2 text-xs">Selected</Badge>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   
                   {selectedEmailDomainDetails.length > 0 && (
-                    <div className="flex flex-wrap gap-2 max-h-16 overflow-y-auto">
-                      {selectedEmailDomainDetails.map(domain => (
-                        <Badge key={domain.id} variant="secondary" className="flex items-center gap-1 text-xs">
-                          <span className="truncate max-w-32">{domain.name}</span>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground ml-1"
-                            onClick={() => removeEmailDomain(domain.id)}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </Badge>
-                      ))}
+                    <div className="space-y-2">
+                      <Label className="text-xs text-muted-foreground">Selected Domains:</Label>
+                      <div className="flex flex-wrap gap-2">
+                        {selectedEmailDomainDetails.map(domain => (
+                          <Badge key={domain.id} variant="secondary" className="flex items-center gap-1">
+                            <span className="truncate max-w-32">{domain.name}</span>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground ml-1"
+                              onClick={() => removeEmailDomain(domain.id)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
                   )}
-                  
-                  <ScrollArea className="flex-1 border rounded-md h-[300px] pointer-events-auto">
-                    <div className="p-3 space-y-3">
-                      {availableEmailDomains.map(domain => (
-                        <div key={domain.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted/50 transition-colors">
-                          <Checkbox
-                            id={domain.id}
-                            checked={selectedEmailDomains.includes(domain.id)}
-                            onCheckedChange={() => handleEmailDomainToggle(domain.id)}
-                            className="min-w-[20px]"
-                          />
-                          <Label htmlFor={domain.id} className="flex-1 cursor-pointer leading-5">
-                            <div className="font-medium">{domain.name}</div>
-                            <div className="text-xs text-muted-foreground mt-0.5">
-                              {domain.description}
-                            </div>
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </ScrollArea>
                 </TabsContent>
               </Tabs>
             </div>
