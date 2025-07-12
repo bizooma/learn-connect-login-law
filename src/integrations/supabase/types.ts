@@ -553,6 +553,35 @@ export type Database = {
           },
         ]
       }
+      global_event_email_domains: {
+        Row: {
+          created_at: string
+          email_domain: string
+          global_event_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          email_domain: string
+          global_event_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          email_domain?: string
+          global_event_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "global_event_email_domains_global_event_id_fkey"
+            columns: ["global_event_id"]
+            isOneToOne: false
+            referencedRelation: "global_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       global_event_roles: {
         Row: {
           created_at: string

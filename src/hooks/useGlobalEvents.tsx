@@ -130,6 +130,7 @@ export const useGlobalEvents = () => {
     meeting_link?: string;
     course_ids: string[];
     target_roles: string[];
+    target_email_domains: string[];
   }) => {
     if (!user) {
       toast({
@@ -185,6 +186,20 @@ export const useGlobalEvents = () => {
           .insert(roleLinks);
 
         if (roleLinkError) throw roleLinkError;
+      }
+
+      // Link the event to selected email domains
+      if (eventData.target_email_domains.length > 0) {
+        const emailDomainLinks = eventData.target_email_domains.map(domain => ({
+          global_event_id: eventResult.id,
+          email_domain: domain,
+        }));
+
+        const { error: emailDomainLinkError } = await supabase
+          .from('global_event_email_domains')
+          .insert(emailDomainLinks);
+
+        if (emailDomainLinkError) throw emailDomainLinkError;
       }
 
       toast({

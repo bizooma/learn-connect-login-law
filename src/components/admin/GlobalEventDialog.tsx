@@ -32,6 +32,7 @@ interface GlobalEventDialogProps {
     meeting_link?: string;
     course_ids: string[];
     target_roles: string[];
+    target_email_domains: string[];
   }) => Promise<any>;
 }
 
@@ -47,7 +48,8 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
   });
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
   const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
-  const [targetingMode, setTargetingMode] = useState<"courses" | "roles">("courses");
+  const [selectedEmailDomains, setSelectedEmailDomains] = useState<string[]>([]);
+  const [targetingMode, setTargetingMode] = useState<"courses" | "roles" | "email_domains">("courses");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -56,6 +58,10 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
     { id: "student", name: "Students", description: "All students" },
     { id: "admin", name: "Administrators", description: "All administrators" },
     { id: "team_leader", name: "Team Leaders", description: "All team leaders" },
+  ];
+
+  const availableEmailDomains = [
+    { id: "newfrontier.us", name: "New Frontier Users", description: "All users with @newfrontier.us email addresses" },
   ];
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -68,6 +74,7 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
         ...formData,
         course_ids: targetingMode === "courses" ? selectedCourses : [],
         target_roles: targetingMode === "roles" ? selectedRoles : [],
+        target_email_domains: targetingMode === "email_domains" ? selectedEmailDomains : [],
       });
       
       // Reset form
@@ -82,6 +89,7 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
       });
       setSelectedCourses([]);
       setSelectedRoles([]);
+      setSelectedEmailDomains([]);
       setTargetingMode("courses");
       onOpenChange(false);
     } catch (error) {
@@ -115,8 +123,21 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
     setSelectedRoles(prev => prev.filter(id => id !== roleId));
   };
 
+  const handleEmailDomainToggle = (domainId: string) => {
+    setSelectedEmailDomains(prev =>
+      prev.includes(domainId)
+        ? prev.filter(id => id !== domainId)
+        : [...prev, domainId]
+    );
+  };
+
+  const removeEmailDomain = (domainId: string) => {
+    setSelectedEmailDomains(prev => prev.filter(id => id !== domainId));
+  };
+
   const selectedCourseDetails = courses.filter(course => selectedCourses.includes(course.id));
   const selectedRoleDetails = availableRoles.filter(role => selectedRoles.includes(role.id));
+  const selectedEmailDomainDetails = availableEmailDomains.filter(domain => selectedEmailDomains.includes(domain.id));
 
   // Filter courses based on search term
   const filteredCourses = useMemo(() => {
@@ -224,10 +245,11 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
             <div className="flex-1 flex flex-col space-y-3 min-h-0">
               <Label>Event Targeting</Label>
               
-              <Tabs value={targetingMode} onValueChange={(value) => setTargetingMode(value as "courses" | "roles")} className="flex-1 flex flex-col">
-                <TabsList className="grid w-full grid-cols-2">
+              <Tabs value={targetingMode} onValueChange={(value) => setTargetingMode(value as "courses" | "roles" | "email_domains")} className="flex-1 flex flex-col">
+                <TabsList className="grid w-full grid-cols-3">
                   <TabsTrigger value="courses">Target Courses</TabsTrigger>
                   <TabsTrigger value="roles">Target User Roles</TabsTrigger>
+                  <TabsTrigger value="email_domains">Target Email Domains</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="courses" className="flex-1 flex flex-col space-y-3 mt-3">
@@ -347,6 +369,57 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
                     </div>
                   </ScrollArea>
                 </TabsContent>
+                
+                <TabsContent value="email_domains" className="flex-1 flex flex-col space-y-3 mt-3">
+                  <div className="flex items-center justify-between">
+                    <Label>Select Email Domains</Label>
+                    {selectedEmailDomains.length > 0 && (
+                      <Badge variant="outline" className="text-xs">
+                        {selectedEmailDomains.length} domain{selectedEmailDomains.length !== 1 ? 's' : ''} selected
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  {selectedEmailDomainDetails.length > 0 && (
+                    <div className="flex flex-wrap gap-2 max-h-20 overflow-y-auto">
+                      {selectedEmailDomainDetails.map(domain => (
+                        <Badge key={domain.id} variant="secondary" className="flex items-center gap-1 text-xs">
+                          <span className="truncate max-w-32">{domain.name}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground ml-1"
+                            onClick={() => removeEmailDomain(domain.id)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <ScrollArea className="flex-1 border rounded-md min-h-[200px] max-h-[250px]">
+                    <div className="p-3 space-y-3">
+                      {availableEmailDomains.map(domain => (
+                        <div key={domain.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted/50 transition-colors">
+                          <Checkbox
+                            id={domain.id}
+                            checked={selectedEmailDomains.includes(domain.id)}
+                            onCheckedChange={() => handleEmailDomainToggle(domain.id)}
+                            className="min-w-[20px]"
+                          />
+                          <Label htmlFor={domain.id} className="flex-1 cursor-pointer leading-5">
+                            <div className="font-medium">{domain.name}</div>
+                            <div className="text-xs text-muted-foreground mt-0.5">
+                              {domain.description}
+                            </div>
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </TabsContent>
               </Tabs>
             </div>
 
@@ -360,7 +433,10 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
             </Button>
             <Button 
               type="submit" 
-              disabled={isSubmitting || !formData.title || !formData.event_date || (targetingMode === "courses" && selectedCourses.length === 0) || (targetingMode === "roles" && selectedRoles.length === 0)}
+              disabled={isSubmitting || !formData.title || !formData.event_date || 
+                (targetingMode === "courses" && selectedCourses.length === 0) || 
+                (targetingMode === "roles" && selectedRoles.length === 0) ||
+                (targetingMode === "email_domains" && selectedEmailDomains.length === 0)}
               onClick={handleSubmit}
               className="min-w-[100px]"
             >
