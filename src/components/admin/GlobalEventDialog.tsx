@@ -291,7 +291,7 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
                     />
                   </div>
                   
-                  <ScrollArea className="flex-1 border rounded-md min-h-[200px] max-h-[250px]">
+                  <ScrollArea className="flex-1 border rounded-md min-h-[200px] max-h-[400px]">
                     <div className="p-3 space-y-3">
                       {filteredCourses.length === 0 ? (
                         <div className="text-center text-muted-foreground py-8">
@@ -348,7 +348,7 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
                     </div>
                   )}
                   
-                  <ScrollArea className="flex-1 border rounded-md min-h-[200px] max-h-[250px]">
+                  <ScrollArea className="flex-1 border rounded-md min-h-[200px] max-h-[400px]">
                     <div className="p-3 space-y-3">
                       {availableRoles.map(role => (
                         <div key={role.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted/50 transition-colors">
@@ -399,7 +399,7 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
                     </div>
                   )}
                   
-                  <ScrollArea className="flex-1 border rounded-md min-h-[200px] max-h-[250px]">
+                  <ScrollArea className="flex-1 border rounded-md min-h-[200px] max-h-[400px]">
                     <div className="p-3 space-y-3">
                       {availableEmailDomains.map(domain => (
                         <div key={domain.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted/50 transition-colors">
