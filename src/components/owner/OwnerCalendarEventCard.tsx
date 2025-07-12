@@ -7,9 +7,14 @@ import { format, parseISO } from "date-fns";
 import MeetingLink from "@/components/calendar/MeetingLink";
 
 type LawFirmCalendarEvent = Tables<'law_firm_calendars'>;
+type GlobalEvent = Tables<'global_events'>;
+
+// Combined event type for display
+type CalendarEvent = (LawFirmCalendarEvent & { event_source: 'law_firm' }) | 
+                   (GlobalEvent & { event_source: 'global' });
 
 interface OwnerCalendarEventCardProps {
-  event: LawFirmCalendarEvent;
+  event: CalendarEvent;
 }
 
 const OwnerCalendarEventCard = ({ event }: OwnerCalendarEventCardProps) => {
@@ -52,9 +57,14 @@ const OwnerCalendarEventCard = ({ event }: OwnerCalendarEventCardProps) => {
             </div>
           )}
         </div>
-        <Badge className={getEventTypeColor(event.event_type)}>
-          {event.event_type}
-        </Badge>
+        <div className="flex flex-col gap-1">
+          <Badge className={getEventTypeColor(event.event_type)}>
+            {event.event_type}
+          </Badge>
+          <Badge variant="outline" className="text-xs">
+            {event.event_source === 'global' ? 'Global' : 'Law Firm'}
+          </Badge>
+        </div>
       </div>
     </Card>
   );

@@ -553,6 +553,35 @@ export type Database = {
           },
         ]
       }
+      global_event_roles: {
+        Row: {
+          created_at: string
+          global_event_id: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          created_at?: string
+          global_event_id: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          created_at?: string
+          global_event_id?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "global_event_roles_global_event_id_fkey"
+            columns: ["global_event_id"]
+            isOneToOne: false
+            referencedRelation: "global_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       global_events: {
         Row: {
           created_at: string

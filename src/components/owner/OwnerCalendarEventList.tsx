@@ -4,10 +4,15 @@ import { format } from "date-fns";
 import OwnerCalendarEventCard from "./OwnerCalendarEventCard";
 
 type LawFirmCalendarEvent = Tables<'law_firm_calendars'>;
+type GlobalEvent = Tables<'global_events'>;
+
+// Combined event type for display
+type CalendarEvent = (LawFirmCalendarEvent & { event_source: 'law_firm' }) | 
+                   (GlobalEvent & { event_source: 'global' });
 
 interface OwnerCalendarEventListProps {
   selectedDate: Date | undefined;
-  selectedEvents: LawFirmCalendarEvent[];
+  selectedEvents: CalendarEvent[];
 }
 
 const OwnerCalendarEventList = ({ selectedDate, selectedEvents }: OwnerCalendarEventListProps) => {
@@ -19,7 +24,7 @@ const OwnerCalendarEventList = ({ selectedDate, selectedEvents }: OwnerCalendarE
       <div className="space-y-3">
         {selectedEvents.length > 0 ? (
           selectedEvents.map((event) => (
-            <OwnerCalendarEventCard key={event.id} event={event} />
+            <OwnerCalendarEventCard key={`${event.event_source}-${event.id}`} event={event} />
           ))
         ) : (
           <p className="text-gray-500 text-sm">No events scheduled for this date.</p>

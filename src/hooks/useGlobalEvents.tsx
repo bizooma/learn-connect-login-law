@@ -129,6 +129,7 @@ export const useGlobalEvents = () => {
     end_time?: string;
     meeting_link?: string;
     course_ids: string[];
+    target_roles: string[];
   }) => {
     if (!user) {
       toast({
@@ -170,6 +171,20 @@ export const useGlobalEvents = () => {
           .insert(courseLinks);
 
         if (linkError) throw linkError;
+      }
+
+      // Link the event to selected user roles
+      if (eventData.target_roles.length > 0) {
+        const roleLinks = eventData.target_roles.map(role => ({
+          global_event_id: eventResult.id,
+          role: role as 'admin' | 'owner' | 'student' | 'client' | 'free' | 'team_leader',
+        }));
+
+        const { error: roleLinkError } = await supabase
+          .from('global_event_roles')
+          .insert(roleLinks);
+
+        if (roleLinkError) throw roleLinkError;
       }
 
       toast({

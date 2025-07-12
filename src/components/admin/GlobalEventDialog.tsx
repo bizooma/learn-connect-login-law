@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { X, Search } from "lucide-react";
 
 interface Course {
@@ -30,6 +31,7 @@ interface GlobalEventDialogProps {
     end_time?: string;
     meeting_link?: string;
     course_ids: string[];
+    target_roles: string[];
   }) => Promise<any>;
 }
 
@@ -44,8 +46,17 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
     meeting_link: "",
   });
   const [selectedCourses, setSelectedCourses] = useState<string[]>([]);
+  const [selectedRoles, setSelectedRoles] = useState<string[]>([]);
+  const [targetingMode, setTargetingMode] = useState<"courses" | "roles">("courses");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+
+  const availableRoles = [
+    { id: "owner", name: "Law Firm Owners", description: "All law firm owners" },
+    { id: "student", name: "Students", description: "All students" },
+    { id: "admin", name: "Administrators", description: "All administrators" },
+    { id: "team_leader", name: "Team Leaders", description: "All team leaders" },
+  ];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +66,8 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
     try {
       await onSubmit({
         ...formData,
-        course_ids: selectedCourses,
+        course_ids: targetingMode === "courses" ? selectedCourses : [],
+        target_roles: targetingMode === "roles" ? selectedRoles : [],
       });
       
       // Reset form
@@ -69,6 +81,8 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
         meeting_link: "",
       });
       setSelectedCourses([]);
+      setSelectedRoles([]);
+      setTargetingMode("courses");
       onOpenChange(false);
     } catch (error) {
       console.error('Error submitting event:', error);
@@ -89,7 +103,20 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
     setSelectedCourses(prev => prev.filter(id => id !== courseId));
   };
 
+  const handleRoleToggle = (roleId: string) => {
+    setSelectedRoles(prev =>
+      prev.includes(roleId)
+        ? prev.filter(id => id !== roleId)
+        : [...prev, roleId]
+    );
+  };
+
+  const removeRole = (roleId: string) => {
+    setSelectedRoles(prev => prev.filter(id => id !== roleId));
+  };
+
   const selectedCourseDetails = courses.filter(course => selectedCourses.includes(course.id));
+  const selectedRoleDetails = availableRoles.filter(role => selectedRoles.includes(role.id));
 
   // Filter courses based on search term
   const filteredCourses = useMemo(() => {
@@ -195,70 +222,132 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
             </div>
 
             <div className="flex-1 flex flex-col space-y-3 min-h-0">
-              <div className="flex items-center justify-between">
-                <Label>Select Courses</Label>
-                {selectedCourses.length > 0 && (
-                  <Badge variant="outline" className="text-xs">
-                    {selectedCourses.length} course{selectedCourses.length !== 1 ? 's' : ''} selected
-                  </Badge>
-                )}
-              </div>
+              <Label>Event Targeting</Label>
               
-              {selectedCourseDetails.length > 0 && (
-                <div className="flex flex-wrap gap-2 max-h-20 overflow-y-auto">
-                  {selectedCourseDetails.map(course => (
-                    <Badge key={course.id} variant="secondary" className="flex items-center gap-1 text-xs">
-                      <span className="truncate max-w-32">{course.title}</span>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground ml-1"
-                        onClick={() => removeCourse(course.id)}
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </Badge>
-                  ))}
-                </div>
-              )}
-              
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  placeholder="Search courses..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              
-              <ScrollArea className="flex-1 border rounded-md min-h-[200px] max-h-[300px]">
-                <div className="p-3 space-y-3">
-                  {filteredCourses.length === 0 ? (
-                    <div className="text-center text-muted-foreground py-8">
-                      {searchTerm ? 'No courses found matching your search.' : 'No courses available.'}
+              <Tabs value={targetingMode} onValueChange={(value) => setTargetingMode(value as "courses" | "roles")} className="flex-1 flex flex-col">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="courses">Target Courses</TabsTrigger>
+                  <TabsTrigger value="roles">Target User Roles</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="courses" className="flex-1 flex flex-col space-y-3 mt-3">
+                  <div className="flex items-center justify-between">
+                    <Label>Select Courses</Label>
+                    {selectedCourses.length > 0 && (
+                      <Badge variant="outline" className="text-xs">
+                        {selectedCourses.length} course{selectedCourses.length !== 1 ? 's' : ''} selected
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  {selectedCourseDetails.length > 0 && (
+                    <div className="flex flex-wrap gap-2 max-h-20 overflow-y-auto">
+                      {selectedCourseDetails.map(course => (
+                        <Badge key={course.id} variant="secondary" className="flex items-center gap-1 text-xs">
+                          <span className="truncate max-w-32">{course.title}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground ml-1"
+                            onClick={() => removeCourse(course.id)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </Badge>
+                      ))}
                     </div>
-                  ) : (
-                    filteredCourses.map(course => (
-                      <div key={course.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted/50 transition-colors">
-                        <Checkbox
-                          id={course.id}
-                          checked={selectedCourses.includes(course.id)}
-                          onCheckedChange={() => handleCourseToggle(course.id)}
-                          className="min-w-[20px]"
-                        />
-                        <Label htmlFor={course.id} className="flex-1 cursor-pointer leading-5">
-                          <div className="font-medium">{course.title}</div>
-                          <div className="text-xs text-muted-foreground mt-0.5">
-                            {course.actual_enrollment_count} student{course.actual_enrollment_count !== 1 ? 's' : ''}
-                          </div>
-                        </Label>
-                      </div>
-                    ))
                   )}
-                </div>
-              </ScrollArea>
+                  
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                    <Input
+                      placeholder="Search courses..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="pl-10"
+                    />
+                  </div>
+                  
+                  <ScrollArea className="flex-1 border rounded-md min-h-[200px] max-h-[250px]">
+                    <div className="p-3 space-y-3">
+                      {filteredCourses.length === 0 ? (
+                        <div className="text-center text-muted-foreground py-8">
+                          {searchTerm ? 'No courses found matching your search.' : 'No courses available.'}
+                        </div>
+                      ) : (
+                        filteredCourses.map(course => (
+                          <div key={course.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted/50 transition-colors">
+                            <Checkbox
+                              id={course.id}
+                              checked={selectedCourses.includes(course.id)}
+                              onCheckedChange={() => handleCourseToggle(course.id)}
+                              className="min-w-[20px]"
+                            />
+                            <Label htmlFor={course.id} className="flex-1 cursor-pointer leading-5">
+                              <div className="font-medium">{course.title}</div>
+                              <div className="text-xs text-muted-foreground mt-0.5">
+                                {course.actual_enrollment_count} student{course.actual_enrollment_count !== 1 ? 's' : ''}
+                              </div>
+                            </Label>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  </ScrollArea>
+                </TabsContent>
+                
+                <TabsContent value="roles" className="flex-1 flex flex-col space-y-3 mt-3">
+                  <div className="flex items-center justify-between">
+                    <Label>Select User Roles</Label>
+                    {selectedRoles.length > 0 && (
+                      <Badge variant="outline" className="text-xs">
+                        {selectedRoles.length} role{selectedRoles.length !== 1 ? 's' : ''} selected
+                      </Badge>
+                    )}
+                  </div>
+                  
+                  {selectedRoleDetails.length > 0 && (
+                    <div className="flex flex-wrap gap-2 max-h-20 overflow-y-auto">
+                      {selectedRoleDetails.map(role => (
+                        <Badge key={role.id} variant="secondary" className="flex items-center gap-1 text-xs">
+                          <span className="truncate max-w-32">{role.name}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground ml-1"
+                            onClick={() => removeRole(role.id)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                  
+                  <ScrollArea className="flex-1 border rounded-md min-h-[200px] max-h-[250px]">
+                    <div className="p-3 space-y-3">
+                      {availableRoles.map(role => (
+                        <div key={role.id} className="flex items-center space-x-3 p-2 rounded-md hover:bg-muted/50 transition-colors">
+                          <Checkbox
+                            id={role.id}
+                            checked={selectedRoles.includes(role.id)}
+                            onCheckedChange={() => handleRoleToggle(role.id)}
+                            className="min-w-[20px]"
+                          />
+                          <Label htmlFor={role.id} className="flex-1 cursor-pointer leading-5">
+                            <div className="font-medium">{role.name}</div>
+                            <div className="text-xs text-muted-foreground mt-0.5">
+                              {role.description}
+                            </div>
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </ScrollArea>
+                </TabsContent>
+              </Tabs>
             </div>
 
           </form>
@@ -271,7 +360,7 @@ const GlobalEventDialog = ({ open, onOpenChange, courses, onSubmit }: GlobalEven
             </Button>
             <Button 
               type="submit" 
-              disabled={isSubmitting || !formData.title || !formData.event_date}
+              disabled={isSubmitting || !formData.title || !formData.event_date || (targetingMode === "courses" && selectedCourses.length === 0) || (targetingMode === "roles" && selectedRoles.length === 0)}
               onClick={handleSubmit}
               className="min-w-[100px]"
             >

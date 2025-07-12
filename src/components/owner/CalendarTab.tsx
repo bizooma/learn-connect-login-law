@@ -12,11 +12,16 @@ import OwnerCalendarEventDialog from "./OwnerCalendarEventDialog";
 import OwnerCalendarEventList from "./OwnerCalendarEventList";
 
 type LawFirmCalendarEvent = Tables<'law_firm_calendars'>;
+type GlobalEvent = Tables<'global_events'>;
+
+// Combined event type for display
+type CalendarEvent = (LawFirmCalendarEvent & { event_source: 'law_firm' }) | 
+                   (GlobalEvent & { event_source: 'global' });
 
 const CalendarTab = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [events, setEvents] = useState<LawFirmCalendarEvent[]>([]);
-  const [selectedEvents, setSelectedEvents] = useState<LawFirmCalendarEvent[]>([]);
+  const [events, setEvents] = useState<CalendarEvent[]>([]);
+  const [selectedEvents, setSelectedEvents] = useState<CalendarEvent[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { lawFirm } = useLawFirm();
@@ -52,21 +57,47 @@ const CalendarTab = () => {
     try {
       console.log('Fetching calendar events for law firm:', lawFirm.id);
       
-      const { data, error } = await supabase
+      // Fetch law firm specific events
+      const { data: lawFirmEvents, error: lawFirmError } = await supabase
         .from('law_firm_calendars')
         .select('*')
         .eq('law_firm_id', lawFirm.id)
         .order('event_date', { ascending: true });
 
-      if (error) {
-        console.error('Error fetching calendar events:', error);
-        throw error;
+      if (lawFirmError) {
+        console.error('Error fetching law firm calendar events:', lawFirmError);
+        throw lawFirmError;
       }
 
-      console.log('Calendar events fetched:', data);
-      setEvents(data || []);
+      // Fetch global events targeted at owners
+      const { data: globalEvents, error: globalError } = await supabase
+        .from('global_events')
+        .select('*')
+        .in('id', 
+          // Subquery to get global events that target the 'owner' role
+          (await supabase
+            .from('global_event_roles')
+            .select('global_event_id')
+            .eq('role', 'owner')
+          ).data?.map(item => item.global_event_id) || []
+        )
+        .order('event_date', { ascending: true });
+
+      if (globalError) {
+        console.error('Error fetching global events:', globalError);
+        // Don't throw here, just log - we can still show law firm events
+      }
+
+      // Combine and format events
+      const combinedEvents: CalendarEvent[] = [
+        ...(lawFirmEvents || []).map(event => ({ ...event, event_source: 'law_firm' as const })),
+        ...(globalEvents || []).map(event => ({ ...event, event_source: 'global' as const }))
+      ];
+
+      console.log('All calendar events fetched:', { lawFirmEvents, globalEvents, combinedEvents });
+      setEvents(combinedEvents);
     } catch (error) {
-      console.error('Error fetching law firm calendar events:', error);
+      console.error('Error fetching calendar events:', error);
       toast({
         title: "Error",
         description: "Failed to load calendar events",
