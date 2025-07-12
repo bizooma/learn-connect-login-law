@@ -42,7 +42,6 @@ export const useGlobalEvents = () => {
       const { data, error } = await supabase
         .from('courses')
         .select('id, title')
-        .eq('is_draft', false)
         .order('title');
 
       if (error) throw error;
