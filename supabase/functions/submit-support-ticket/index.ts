@@ -66,9 +66,10 @@ serve(async (req) => {
     const emailText = generateSupportEmailText(ticket);
 
     // Send notification emails to support team
+    console.log('Sending notification emails to support team:', supportTeam);
     const emailPromises = supportTeam.map(email => 
       resend.emails.send({
-        from: 'New Frontier University Support <support@newfrontieruniversity.com>',
+        from: 'New Frontier University Support <onboarding@resend.dev>',
         to: [email],
         subject: `New Support Ticket: ${subject}`,
         html: emailHtml,
@@ -77,9 +78,10 @@ serve(async (req) => {
     );
 
     // Send confirmation email to user
+    console.log('Sending confirmation email to user:', userEmail);
     emailPromises.push(
       resend.emails.send({
-        from: 'New Frontier University Support <support@newfrontieruniversity.com>',
+        from: 'New Frontier University Support <onboarding@resend.dev>',
         to: [userEmail],
         subject: `Support Ticket Submitted: ${subject}`,
         html: generateConfirmationEmailHtml(ticket),
@@ -87,7 +89,8 @@ serve(async (req) => {
       })
     );
 
-    await Promise.all(emailPromises);
+    const emailResults = await Promise.all(emailPromises);
+    console.log('Email sending results:', emailResults);
 
     return new Response(JSON.stringify({ 
       success: true,
