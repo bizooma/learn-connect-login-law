@@ -116,9 +116,8 @@ function generateSupportEmailHtml(ticket: any) {
   
   return `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-      <div style="background: #1e40af; color: white; padding: 20px; display: flex; align-items: center; justify-content: center;">
-        <img src="https://via.placeholder.com/120x40/1e40af/ffffff?text=NFU" alt="New Frontier University" style="height: 40px; margin-right: 15px;" />
-        <h1 style="margin: 0;">New Support Ticket</h1>
+      <div style="background: #1e40af; color: white; padding: 20px; text-align: center;">
+        <h1>New Support Ticket</h1>
       </div>
       
       <div style="padding: 20px; background: #f8fafc;">
