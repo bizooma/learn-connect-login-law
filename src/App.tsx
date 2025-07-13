@@ -37,9 +37,9 @@ const AppContent = () => {
   return (
     <>
       <Routes>
-        <Route path="/" element={<Index />} />
+        <Route path="/" element={<Homepage />} />
         <Route path="/dashboard" element={<Navigate to="/" replace />} />
-        <Route path="/homepage" element={<Homepage />} />
+        <Route path="/index" element={<Index />} />
         <Route path="/login" element={<Login />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/courses" element={<Courses />} />
