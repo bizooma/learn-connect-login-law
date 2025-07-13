@@ -12,7 +12,9 @@ const supabaseUrl = Deno.env.get('SUPABASE_URL');
 const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
 
 const supportTeam = [
-  'joe@bizooma.com'
+  'joe@bizooma.com',
+  'carolina@newfrontieruniversity.com',
+  'erin.walsh@newfrontier.us'
 ];
 
 serve(async (req) => {
