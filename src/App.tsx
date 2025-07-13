@@ -38,7 +38,7 @@ const AppContent = () => {
     <>
       <Routes>
         <Route path="/" element={<Homepage />} />
-        <Route path="/dashboard" element={<Navigate to="/" replace />} />
+        <Route path="/dashboard" element={<Navigate to="/index" replace />} />
         <Route path="/homepage" element={<Navigate to="/" replace />} />
         <Route path="/index" element={<Index />} />
         <Route path="/login" element={<Login />} />
