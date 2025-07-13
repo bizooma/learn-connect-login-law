@@ -1,5 +1,5 @@
 
-import { BookOpen, Users, ClipboardList, Shield, BarChart3, Settings, Trophy } from "lucide-react";
+import { BookOpen, Users, ClipboardList, Shield, BarChart3, Settings, Trophy, Brain, Calendar } from "lucide-react";
 
 export interface StudentKnowledgeBaseItem {
   title: string;
@@ -32,6 +32,14 @@ export const studentKnowledgeBaseSections: StudentKnowledgeBaseSection[] = [
       {
         title: "Navigating Between Sections",
         content: "Use the yellow tabs to switch between Dashboard (course overview), Certificates (your earned awards), and Profile (personal information management)."
+      },
+      {
+        title: "Using the AI Support Assistant",
+        content: "Click the chat bubble icon in the bottom-right corner to access the AI-powered support assistant. The chatbot can answer questions about using the platform, guide you through features, and help you submit support tickets when needed. It's available 24/7 and learns from your interactions to provide better assistance over time."
+      },
+      {
+        title: "Getting Help and Support",
+        content: "The platform offers multiple ways to get help: Use the AI chatbot for instant answers, access the Knowledge Base for detailed guides, or submit a support ticket for technical issues. The chatbot can help you find relevant information quickly and escalate complex issues to human support when necessary."
       }
     ]
   },
@@ -74,8 +82,12 @@ export const studentKnowledgeBaseSections: StudentKnowledgeBaseSection[] = [
         content: "Courses are organized as: Course → Units → Modules → Lessons. Use the sidebar to navigate between sections, or use the LMS Tree for a full overview."
       },
       {
-        title: "Marking Units Complete",
-        content: "After finishing all content in a unit, mark it as complete using the 'Mark as Complete' button. This updates your progress and unlocks the next section."
+        title: "Smart Completion System",
+        content: "The platform features intelligent completion tracking that automatically marks units complete based on content type. Video units complete when watched to 95%, quiz units complete when you pass, and units with both require completion of all components. Text-based units use manual completion buttons."
+      },
+      {
+        title: "Understanding Completion Requirements",
+        content: "Each unit shows clear completion indicators: green badges for completed components, gray badges for pending requirements. Video progress bars show your watching progress, and quiz completion is automatic when you achieve the passing score. The system tracks all your progress automatically."
       },
       {
         title: "Using the LMS Tree",
@@ -164,6 +176,54 @@ export const studentKnowledgeBaseSections: StudentKnowledgeBaseSection[] = [
     ]
   },
   {
+    id: "chatbot-support",
+    title: "AI Chatbot & Support",
+    icon: Brain,
+    color: "text-cyan-600",
+    items: [
+      {
+        title: "Using the AI Support Assistant",
+        content: "The AI chatbot appears as a floating chat bubble in the bottom-right corner of your screen. Click it to ask questions about platform features, get help with courses, or receive guidance on completing assignments. The assistant provides instant, context-aware responses to help you learn more effectively."
+      },
+      {
+        title: "Getting Instant Help",
+        content: "The chatbot can answer common questions like 'How do I complete a unit?', 'Where are my certificates?', or 'How do I track my progress?'. It understands natural language, so ask questions the way you normally would. The assistant learns from interactions to provide increasingly helpful responses."
+      },
+      {
+        title: "Submitting Support Tickets",
+        content: "For complex issues that require human assistance, the chatbot can help you submit a support ticket directly. It will gather relevant information about your issue and route it to the appropriate support team. You'll receive updates on your ticket via email and through the platform."
+      },
+      {
+        title: "AI Learning and Improvements",
+        content: "The AI assistant continuously learns from user interactions to improve its responses. It can provide personalized guidance based on your learning patterns and help identify the most relevant resources for your specific questions. The more you interact with it, the better it becomes at helping you."
+      }
+    ]
+  },
+  {
+    id: "calendar-events",
+    title: "Calendar & Events",
+    icon: Calendar,
+    color: "text-rose-600",
+    items: [
+      {
+        title: "Viewing Your Learning Calendar",
+        content: "Access your personalized calendar to see upcoming events, deadlines, and training sessions. The calendar shows global events that apply to your courses, role-based events, and law firm-specific activities. Use the calendar to plan your learning schedule and stay on track with important dates."
+      },
+      {
+        title: "Understanding Event Types",
+        content: "Events are categorized as General (platform-wide announcements), Training (educational sessions), Deadline (course completion dates), or Meeting (live sessions). Each event type has distinct visual indicators and may include meeting links, descriptions, and additional resources."
+      },
+      {
+        title: "Global and Targeted Events",
+        content: "You'll see events targeted to your assigned courses, user role, or email domain. Global events appear for all relevant users, while targeted events are specific to your learning path. This ensures you see only the most relevant information for your training requirements."
+      },
+      {
+        title: "Event Notifications and Reminders",
+        content: "The platform sends notifications for upcoming events and deadlines. Check your calendar regularly to stay informed about training sessions, compliance deadlines, and other important dates. Meeting links are included for virtual events when applicable."
+      }
+    ]
+  },
+  {
     id: "profile-management",
     title: "Profile Management",
     icon: Settings,
@@ -180,6 +240,10 @@ export const studentKnowledgeBaseSections: StudentKnowledgeBaseSection[] = [
       {
         title: "Law Firm Information",
         content: "If you're associated with a law firm, update your firm name and details in your profile. This information may appear on your certificates and in your profile."
+      },
+      {
+        title: "Badge Collection and Achievements",
+        content: "View your earned badges and achievements in your profile section. Badges are awarded for completing courses, maintaining learning streaks, and achieving milestones. Each badge shows when it was earned and why, creating a visual record of your learning accomplishments."
       }
     ]
   }

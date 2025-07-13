@@ -1,5 +1,5 @@
 
-import { BookOpen, Users, ClipboardList, Shield, BarChart3, Settings, Brain, Award, Building, UserCheck, Activity, Trophy, Calendar, FileText, TrendingUp } from "lucide-react";
+import { BookOpen, Users, ClipboardList, Shield, BarChart3, Settings, Brain, Award, Building, UserCheck, Activity, Trophy, Calendar, FileText, TrendingUp, MessageCircle, Globe } from "lucide-react";
 
 export interface AdminKnowledgeBaseItem {
   title: string;
@@ -416,6 +416,66 @@ export const adminKnowledgeBaseSections: AdminKnowledgeBaseSection[] = [
       {
         title: "Intervention and Support Strategies",
         content: "Identify users who may need additional support based on completion patterns and engagement metrics. Use the monitoring dashboard to trigger automated reminders, assign additional resources, or escalate issues to human trainers. Implement data-driven intervention strategies to improve success rates."
+      }
+    ]
+  },
+  {
+    id: "chatbot-management",
+    title: "AI Chatbot Administration",
+    icon: MessageCircle,
+    color: "text-cyan-600",
+    items: [
+      {
+        title: "Chatbot System Overview",
+        content: "The AI-powered chatbot provides 24/7 support to all platform users through a floating chat widget. The system uses advanced natural language processing to understand user questions and provide contextual responses about platform features, course navigation, and technical support. Monitor chatbot interactions through the analytics dashboard."
+      },
+      {
+        title: "Managing Chatbot Interactions",
+        content: "Review chatbot conversation logs to understand common user questions and identify areas where the system can be improved. The chatbot tracks user satisfaction through feedback mechanisms and escalates complex issues to human support when needed. Use interaction data to optimize platform usability."
+      },
+      {
+        title: "Support Ticket Integration",
+        content: "The chatbot seamlessly integrates with the support ticket system, allowing users to escalate issues that require human intervention. When users need additional help, the chatbot collects relevant information and creates properly categorized support tickets. Monitor ticket volume and resolution times through the admin dashboard."
+      },
+      {
+        title: "Customizing Chatbot Responses",
+        content: "Configure chatbot behavior and response patterns through the admin interface. Update knowledge base articles that the chatbot references, and adjust response templates for common questions. The system learns from admin feedback to improve response accuracy and relevance over time."
+      },
+      {
+        title: "Chatbot Analytics and Performance",
+        content: "Track chatbot effectiveness through comprehensive analytics including response accuracy, user satisfaction scores, and escalation rates. Monitor which topics generate the most questions to identify platform areas that may need better documentation or user interface improvements."
+      }
+    ]
+  },
+  {
+    id: "global-event-management",
+    title: "Global Event Management",
+    icon: Globe,
+    color: "text-emerald-600",
+    items: [
+      {
+        title: "Creating Global Events",
+        content: "Create events that appear across multiple course calendars using the Global Event Management system. Events can be targeted to specific courses, user roles (admin, student, owner), or email domains. Use the intuitive dropdown-based interface to select targeting criteria and ensure events reach the right audience."
+      },
+      {
+        title: "Event Targeting Strategies",
+        content: "Target events using multiple criteria: Course-based targeting (events appear for users assigned to specific courses), Role-based targeting (events for admins, students, etc.), and Email domain targeting (events for users from specific organizations). Combine targeting methods for precise audience control."
+      },
+      {
+        title: "Multi-Select Event Configuration",
+        content: "Use the improved multi-select dropdown interface to efficiently choose courses, roles, and email domains for event targeting. The system shows selected items as removable tags and includes search functionality for large lists. Selected targeting criteria are clearly displayed for easy review and modification."
+      },
+      {
+        title: "Event Types and Categories",
+        content: "Create different event types including General announcements, Training sessions, Deadlines, and Meetings. Each type has specific display characteristics and can include meeting links, detailed descriptions, and time specifications. Events integrate seamlessly with user calendars across the platform."
+      },
+      {
+        title: "Calendar Integration and Management",
+        content: "Global events automatically populate relevant user calendars based on targeting criteria. Users see events in their personalized calendar views, ensuring important information reaches the right audience. Monitor event visibility and engagement through the analytics dashboard."
+      },
+      {
+        title: "Event Analytics and Effectiveness",
+        content: "Track global event performance including view rates, engagement metrics, and user responses. Use analytics to optimize event targeting and improve communication effectiveness. Monitor which event types and targeting strategies generate the best user engagement and course completion rates."
       }
     ]
   }
