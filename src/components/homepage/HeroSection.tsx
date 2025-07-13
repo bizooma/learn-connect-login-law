@@ -5,7 +5,7 @@ const HeroSection = () => {
       className="relative"
       style={{
         background: 'linear-gradient(to bottom, #213C82 0%, rgba(255, 255, 255, 0.1) 100%)',
-        minHeight: 'calc(100vh - 400px)'
+        minHeight: 'calc(100vh - 500px)'
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20">
