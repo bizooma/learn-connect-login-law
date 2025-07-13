@@ -94,10 +94,32 @@ const IssueReportModal = ({ open, onOpenChange }: IssueReportModalProps) => {
       return;
     }
 
-    console.log('Fetching courses for user:', user.id);
+    console.log('Fetching courses for user:', user.id, 'Role:', role);
 
     try {
-      // Get course IDs from both assignments and progress tables
+      // If user is an owner, fetch ALL courses
+      if (role === 'owner') {
+        console.log('Owner role detected - fetching all courses');
+        
+        const { data: coursesData, error: coursesError } = await supabase
+          .from('courses')
+          .select('id, title')
+          .order('title');
+
+        if (coursesError) {
+          console.error('Error fetching all courses:', coursesError);
+          return;
+        }
+
+        console.log('All courses data for owner:', coursesData);
+
+        if (coursesData) {
+          setCourses(coursesData);
+        }
+        return;
+      }
+
+      // For non-owners, use existing logic - get course IDs from both assignments and progress tables
       const [assignmentsResponse, progressResponse] = await Promise.all([
         supabase
           .from('course_assignments')
