@@ -971,6 +971,42 @@ export type Database = {
         }
         Relationships: []
       }
+      orphaned_progress_backup: {
+        Row: {
+          backed_up_at: string | null
+          backup_type: string
+          course_id: string | null
+          id: string
+          original_data: Json
+          original_table: string
+          reason: string | null
+          unit_id: string | null
+          user_id: string
+        }
+        Insert: {
+          backed_up_at?: string | null
+          backup_type: string
+          course_id?: string | null
+          id?: string
+          original_data: Json
+          original_table: string
+          reason?: string | null
+          unit_id?: string | null
+          user_id: string
+        }
+        Update: {
+          backed_up_at?: string | null
+          backup_type?: string
+          course_id?: string | null
+          id?: string
+          original_data?: Json
+          original_table?: string
+          reason?: string | null
+          unit_id?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       powerpoint_imports: {
         Row: {
           created_at: string
