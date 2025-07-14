@@ -165,19 +165,31 @@ const UserProgressManagement = () => {
 
       setUserProgress(formattedProgress);
       
-      // Extract unique courses for filter
-      const uniqueCourses = [...new Set(progressData?.map(p => ({ 
-        id: p.course_id, 
-        title: getCourseDisplayTitle(p.courses?.title)
-      })))];
+      // Extract unique courses for filter using Map-based deduplication
+      const courseMap = new Map();
+      progressData?.forEach(p => {
+        if (!courseMap.has(p.course_id)) {
+          courseMap.set(p.course_id, {
+            id: p.course_id,
+            title: getCourseDisplayTitle(p.courses?.title)
+          });
+        }
+      });
+      const uniqueCourses = Array.from(courseMap.values());
       setCourses(uniqueCourses);
 
-      // Extract unique users for filter
-      const uniqueUsers = [...new Set(progressData?.map(p => ({
-        id: p.user_id,
-        name: `${p.profiles?.first_name || ''} ${p.profiles?.last_name || ''}`.trim() || 'Unknown',
-        email: p.profiles?.email || 'Unknown'
-      })))];
+      // Extract unique users for filter using Map-based deduplication
+      const userMap = new Map();
+      progressData?.forEach(p => {
+        if (!userMap.has(p.user_id)) {
+          userMap.set(p.user_id, {
+            id: p.user_id,
+            name: `${p.profiles?.first_name || ''} ${p.profiles?.last_name || ''}`.trim() || 'Unknown',
+            email: p.profiles?.email || 'Unknown'
+          });
+        }
+      });
+      const uniqueUsers = Array.from(userMap.values());
       setUsers(uniqueUsers);
 
     } catch (error) {
