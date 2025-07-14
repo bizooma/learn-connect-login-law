@@ -15,7 +15,7 @@ interface CourseHeaderProps {
 
 const CourseHeader = ({ course }: CourseHeaderProps) => {
   const navigate = useNavigate();
-  const { enrollmentCounts } = useEnrollmentCounts();
+  const { enrollmentCounts } = useEnrollmentCounts(false); // Disable realtime for course header
 
   // Get actual enrollment count
   const enrollmentCount = enrollmentCounts[course.id] || 0;

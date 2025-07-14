@@ -35,7 +35,7 @@ export const useGlobalEvents = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const { user } = useAuth();
-  const { enrollmentCounts } = useEnrollmentCounts();
+  const { enrollmentCounts } = useEnrollmentCounts(false); // Disable realtime for events page
 
   const fetchCourses = async () => {
     try {

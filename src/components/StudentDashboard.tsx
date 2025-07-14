@@ -23,6 +23,7 @@ import { logger } from "@/utils/logger";
 import StudentCalendarTab from "./student/StudentCalendarTab";
 import StudentDashboardErrorBoundary from "./ErrorBoundary/StudentDashboardErrorBoundary";
 import StudentDashboardFallback from "./ErrorBoundary/StudentDashboardFallback";
+import { RealtimeStatus } from "./debug/RealtimeStatus";
 
 const StudentDashboard = () => {
   const { user, signOut } = useAuth();
@@ -131,6 +132,15 @@ const StudentDashboard = () => {
         onClose={markWelcomeAsSeen}
         userFirstName={user?.user_metadata?.first_name}
       />
+
+      {/* Debug: Realtime Status - Only show in development */}
+      {process.env.NODE_ENV === 'development' && (
+        <RealtimeStatus 
+          connections={[
+            { id: 'student-dashboard', status: 'optimized', isConnected: true }
+          ]} 
+        />
+      )}
 
       <StudentMainHeader />
       <StudentDashboardHeader onSignOut={signOut} />

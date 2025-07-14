@@ -1,12 +1,13 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { RealtimeChannel } from '@supabase/supabase-js';
+import { useRealtimeManager } from './useRealtimeManager';
 
 interface CourseRealtimeManagerOptions {
   courseId: string;
   onCourseStructureChange?: () => void;
   onQuizChange?: (unitId: string) => void;
   debounceMs?: number;
+  enabled?: boolean; // Allow disabling realtime for certain pages
 }
 
 interface PendingUpdates {
@@ -18,13 +19,17 @@ export const useCourseRealtimeManager = ({
   courseId,
   onCourseStructureChange,
   onQuizChange,
-  debounceMs = 300
+  debounceMs = 300,
+  enabled = true
 }: CourseRealtimeManagerOptions) => {
-  const channelRef = useRef<RealtimeChannel | null>(null);
   const debounceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const pendingUpdatesRef = useRef<PendingUpdates>({
     courseStructure: false,
     quizzes: new Set()
+  });
+
+  const { createChannel, removeChannel, connectionStatus } = useRealtimeManager({
+    enabled
   });
 
   const processPendingUpdates = useCallback(() => {
@@ -100,57 +105,39 @@ export const useCourseRealtimeManager = ({
   }, [courseId, scheduleUpdate]);
 
   useEffect(() => {
-    if (!courseId) return;
+    if (!courseId || !enabled) return;
 
-    console.log('Setting up centralized real-time subscriptions for course:', courseId);
+    console.log('Setting up optimized real-time subscriptions for course:', courseId);
 
-    // Create single channel for all course-related changes
-    const channel = supabase
-      .channel(`course-${courseId}-realtime`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'modules',
-          filter: `course_id=eq.${courseId}`
-        },
-        handleCourseStructureChange
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'lessons',
-          filter: `course_id=eq.${courseId}`
-        },
-        handleCourseStructureChange
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'units'
-        },
-        handleUnitChange
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'quizzes'
-        },
-        handleQuizChange
-      )
-      .subscribe();
-
-    channelRef.current = channel;
+    // Create channel with all subscriptions
+    const channelId = `course-${courseId}-realtime`;
+    createChannel(channelId, [
+      {
+        event: '*',
+        table: 'modules',
+        filter: `course_id=eq.${courseId}`,
+        callback: handleCourseStructureChange
+      },
+      {
+        event: '*',
+        table: 'lessons',
+        filter: `course_id=eq.${courseId}`,
+        callback: handleCourseStructureChange
+      },
+      {
+        event: '*',
+        table: 'units',
+        callback: handleUnitChange
+      },
+      {
+        event: '*',
+        table: 'quizzes',
+        callback: handleQuizChange
+      }
+    ]);
 
     return () => {
-      console.log('Cleaning up centralized real-time subscriptions');
+      console.log('Cleaning up optimized real-time subscriptions');
       
       // Clear any pending debounced updates
       if (debounceTimeoutRef.current) {
@@ -165,16 +152,16 @@ export const useCourseRealtimeManager = ({
       };
       
       // Remove channel
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
+      const channelId = `course-${courseId}-realtime`;
+      removeChannel(channelId);
     };
-  }, [courseId, handleCourseStructureChange, handleUnitChange, handleQuizChange]);
+  }, [courseId, enabled, createChannel, removeChannel, handleCourseStructureChange, handleUnitChange, handleQuizChange]);
 
   // Return subscription status for debugging
   return {
-    isConnected: channelRef.current?.state === 'joined',
-    channelState: channelRef.current?.state
+    isConnected: connectionStatus.isConnected,
+    channelState: connectionStatus.state,
+    error: connectionStatus.error,
+    enabled
   };
 };

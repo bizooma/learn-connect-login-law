@@ -2,16 +2,18 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useRealtimeManager } from "./useRealtimeManager";
 
 interface EnrollmentCount {
   course_id: string;
   enrollment_count: number;
 }
 
-export const useEnrollmentCounts = () => {
+export const useEnrollmentCounts = (enabled: boolean = true) => {
   const [enrollmentCounts, setEnrollmentCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+  const { createChannel, removeChannel } = useRealtimeManager({ enabled });
 
   const fetchEnrollmentCounts = async () => {
     try {
@@ -70,37 +72,30 @@ export const useEnrollmentCounts = () => {
   useEffect(() => {
     fetchEnrollmentCounts();
 
-    // Set up real-time subscription for course assignments
-    const assignmentChannel = supabase
-      .channel('enrollment-updates')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'course_assignments'
-        },
-        () => {
-          fetchEnrollmentCounts();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'user_course_progress'
-        },
-        () => {
-          fetchEnrollmentCounts();
-        }
-      )
-      .subscribe();
+    if (!enabled) {
+      console.log('Enrollment counts realtime disabled');
+      return;
+    }
+
+    // Set up optimized real-time subscription
+    const channelId = 'enrollment-updates';
+    createChannel(channelId, [
+      {
+        event: '*',
+        table: 'course_assignments',
+        callback: () => fetchEnrollmentCounts()
+      },
+      {
+        event: '*',
+        table: 'user_course_progress',
+        callback: () => fetchEnrollmentCounts()
+      }
+    ]);
 
     return () => {
-      supabase.removeChannel(assignmentChannel);
+      removeChannel(channelId);
     };
-  }, []);
+  }, [enabled, createChannel, removeChannel]);
 
   return {
     enrollmentCounts,

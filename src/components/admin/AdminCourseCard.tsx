@@ -25,7 +25,7 @@ interface AdminCourseCardProps {
 const AdminCourseCard = ({ course, onDelete, onEdit, onStatusChange }: AdminCourseCardProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { enrollmentCounts } = useEnrollmentCounts();
+  const { enrollmentCounts } = useEnrollmentCounts(true); // Keep realtime for admin views
   const [isToggling, setIsToggling] = useState(false);
 
   const handleViewCourse = () => {

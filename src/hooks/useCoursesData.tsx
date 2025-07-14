@@ -16,7 +16,7 @@ interface CourseWithEnrollment extends Course {
 export const useCoursesData = () => {
   const { toast } = useToast();
   const { isAdmin } = useUserRole();
-  const { enrollmentCounts } = useEnrollmentCounts();
+  const { enrollmentCounts } = useEnrollmentCounts(isAdmin); // Only enable realtime for admins
   const [courses, setCourses] = useState<CourseWithEnrollment[]>([]);
   const [levels, setLevels] = useState<Level[]>([]);
   const [filteredCourses, setFilteredCourses] = useState<CourseWithEnrollment[]>([]);
