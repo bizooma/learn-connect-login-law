@@ -95,7 +95,6 @@ const RegisterForm = ({ selectedPlan }: RegisterFormProps) => {
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
           data: {
             first_name: formData.firstName,
             last_name: formData.lastName,
@@ -115,19 +114,37 @@ const RegisterForm = ({ selectedPlan }: RegisterFormProps) => {
       } else {
         toast({
           title: "Registration Successful",
-          description: "Please check your email to confirm your account.",
+          description: "Account created successfully! Redirecting to payment...",
         });
 
-        // If a plan was selected and user is created, redirect to payment
+        // If a plan was selected and user is created, immediately redirect to payment
         if (selectedPlan && authData.user) {
-          // Store plan selection in localStorage for after email confirmation
-          localStorage.setItem('pendingPlanId', selectedPlan);
-          localStorage.setItem('pendingUserEmail', formData.email);
-          
-          toast({
-            title: "Next Step",
-            description: "Please confirm your email, then return to complete your subscription.",
-          });
+          // Small delay to ensure auth is settled, then create checkout
+          setTimeout(async () => {
+            try {
+              const { data, error: checkoutError } = await supabase.functions.invoke('create-subscription-checkout', {
+                body: { planId: selectedPlan },
+              });
+
+              if (checkoutError) {
+                console.error('Checkout error:', checkoutError);
+                toast({
+                  title: "Checkout Error",
+                  description: "Failed to create checkout session. Please try again.",
+                  variant: "destructive",
+                });
+              } else if (data?.url) {
+                window.location.href = data.url;
+              }
+            } catch (checkoutError) {
+              console.error('Unexpected checkout error:', checkoutError);
+              toast({
+                title: "Error",
+                description: "Please try selecting your plan again.",
+                variant: "destructive",
+              });
+            }
+          }, 1000);
         }
       }
     } catch (error) {
