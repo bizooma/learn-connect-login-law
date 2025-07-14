@@ -1,8 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { BookOpen, LogOut } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -13,7 +12,6 @@ interface StudentDashboardHeaderProps {
 
 const StudentDashboardHeader = ({ onSignOut }: StudentDashboardHeaderProps) => {
   const { user } = useAuth();
-  const navigate = useNavigate();
   const [profile, setProfile] = useState<{
     first_name?: string;
     last_name?: string;
@@ -44,9 +42,6 @@ const StudentDashboardHeader = ({ onSignOut }: StudentDashboardHeaderProps) => {
     }
   };
 
-  const handleCourseCatalogClick = () => {
-    navigate("/courses");
-  };
 
   const getInitials = () => {
     const firstName = profile.first_name || user?.user_metadata?.first_name || "";
@@ -87,15 +82,6 @@ const StudentDashboardHeader = ({ onSignOut }: StudentDashboardHeaderProps) => {
 
           {/* Right side - Actions */}
           <div className="flex items-center space-x-4">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleCourseCatalogClick}
-              className="flex items-center space-x-2 border-gray-300 text-gray-700 hover:bg-gray-50"
-            >
-              <BookOpen className="h-4 w-4" />
-              <span>Course Catalog</span>
-            </Button>
             
             <Button
               variant="ghost"

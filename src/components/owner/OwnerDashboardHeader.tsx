@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Building2, BookOpen, LogOut } from "lucide-react";
+import { ArrowLeft, Building2, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { Tables } from "@/integrations/supabase/types";
@@ -99,17 +99,7 @@ const OwnerDashboardHeader = ({ lawFirm }: OwnerDashboardHeaderProps) => {
                 </div>
               </div>
               
-              {/* Course Catalog Link */}
-              <div className="flex items-center">
-                <Button
-                  variant="outline"
-                  onClick={() => navigate("/courses")}
-                  className="flex items-center"
-                >
-                  <BookOpen className="h-4 w-4 mr-2" />
-                  Course Catalog
-                </Button>
-              </div>
+              {/* Removed Course Catalog Link */}
             </div>
           </div>
         </div>
