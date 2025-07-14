@@ -87,89 +87,30 @@ const IssueReportModal = ({ open, onOpenChange }: IssueReportModalProps) => {
     }
   }, [open, user]);
 
-  // Fetch user's assigned courses and courses with progress
+  // Fetch all courses for any user role
   const fetchUserCourses = async () => {
     if (!user) {
       console.log('No user found');
       return;
     }
 
-    console.log('Fetching courses for user:', user.id, 'Role:', role);
+    console.log('Fetching all courses for user:', user.id, 'Role:', role);
 
     try {
-      // If user is an owner, fetch ALL courses
-      if (role === 'owner') {
-        console.log('Owner role detected - fetching all courses');
-        
-        const { data: coursesData, error: coursesError } = await supabase
-          .from('courses')
-          .select('id, title')
-          .order('title');
-
-        if (coursesError) {
-          console.error('Error fetching all courses:', coursesError);
-          return;
-        }
-
-        console.log('All courses data for owner:', coursesData);
-
-        if (coursesData) {
-          setCourses(coursesData);
-        }
-        return;
-      }
-
-      // For non-owners, use existing logic - get course IDs from both assignments and progress tables
-      const [assignmentsResponse, progressResponse] = await Promise.all([
-        supabase
-          .from('course_assignments')
-          .select('course_id')
-          .eq('user_id', user.id),
-        supabase
-          .from('user_course_progress')
-          .select('course_id')
-          .eq('user_id', user.id)
-      ]);
-
-      const { data: assignments, error: assignmentsError } = assignmentsResponse;
-      const { data: progress, error: progressError } = progressResponse;
-
-      if (assignmentsError) {
-        console.error('Error fetching assignments:', assignmentsError);
-      }
-
-      if (progressError) {
-        console.error('Error fetching progress:', progressError);
-      }
-
-      console.log('Assignments found:', assignments);
-      console.log('Progress found:', progress);
-
-      // Combine course IDs from both sources and remove duplicates
-      const assignmentCourseIds = assignments?.map(a => a.course_id) || [];
-      const progressCourseIds = progress?.map(p => p.course_id) || [];
-      const allCourseIds = [...new Set([...assignmentCourseIds, ...progressCourseIds])];
-
-      console.log('Combined course IDs:', allCourseIds);
-
-      if (allCourseIds.length === 0) {
-        console.log('No courses found for user (assignments or progress)');
-        setCourses([]);
-        return;
-      }
-
-      // Fetch course details
+      // Fetch ALL courses for everyone - needed for proper issue reporting
+      console.log('Fetching all courses for issue reporting');
+      
       const { data: coursesData, error: coursesError } = await supabase
         .from('courses')
         .select('id, title')
-        .in('id', allCourseIds);
+        .order('title');
 
       if (coursesError) {
-        console.error('Error fetching courses:', coursesError);
+        console.error('Error fetching all courses:', coursesError);
         return;
       }
 
-      console.log('Courses data:', coursesData);
+      console.log('All courses data:', coursesData);
 
       if (coursesData) {
         setCourses(coursesData);
