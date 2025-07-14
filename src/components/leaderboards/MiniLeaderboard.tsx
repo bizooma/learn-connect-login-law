@@ -91,18 +91,16 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
 
         console.log(`Found ${data?.length || 0} fresh streak entries`);
 
-        // Memoize the formatted data transformation
-        const formattedData = useMemo(() => {
-          return data?.map((entry: any, index: number) => ({
-            user_name: `${entry.profiles.first_name} ${entry.profiles.last_name}`,
-            score: entry.current_streak,
-            rank_position: index + 1,
-            additional_data: {
-              current_streak: entry.current_streak,
-              longest_streak: entry.longest_streak
-            }
-          })) || [];
-        }, [data]);
+        // Format the data transformation
+        const formattedData = data?.map((entry: any, index: number) => ({
+          user_name: `${entry.profiles.first_name} ${entry.profiles.last_name}`,
+          score: entry.current_streak,
+          rank_position: index + 1,
+          additional_data: {
+            current_streak: entry.current_streak,
+            longest_streak: entry.longest_streak
+          }
+        })) || [];
 
         setEntries(formattedData);
       } else {
