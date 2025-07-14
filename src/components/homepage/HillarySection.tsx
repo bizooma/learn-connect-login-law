@@ -1,5 +1,5 @@
 
-import { Button } from "@/components/ui/button";
+import { ContactForm } from "./ContactForm";
 
 const HillarySection = () => {
   return (
@@ -34,12 +34,7 @@ const HillarySection = () => {
               </p>
             </div>
 
-            <a 
-              href="mailto:sales@newfrontieruniversity.com?subject=I want to learn more about New Frontier University"
-              className="inline-flex items-center justify-center bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-8 py-4 text-lg rounded-md transition-colors"
-            >
-              Book a Call to Learn More
-            </a>
+            <ContactForm />
           </div>
 
           {/* Right Side - Hillary's Image and Logo */}
