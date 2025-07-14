@@ -1,7 +1,10 @@
 
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const PricingSection = () => {
+  const navigate = useNavigate();
+
   const pricingPlans = [
     {
       name: "Starter Package",
@@ -12,9 +15,10 @@ const PricingSection = () => {
         "Requires 12 month subscription",
         "1 Live Coaching Session Per Month"
       ],
-      buttonText: "Click Here",
+      buttonText: "Get Started",
       description: "Click the button above if you're ready to transform your immigration law firm!",
-      isPopular: false
+      isPopular: false,
+      planId: "starter"
     },
     {
       name: "Law Firms",
@@ -25,9 +29,10 @@ const PricingSection = () => {
         "Requires 12 month subscription",
         "1 Live Coaching Session Per Month"
       ],
-      buttonText: "Click Here",
+      buttonText: "Get Started",
       description: "Click the button above if you're ready to transform your immigration law firm!",
-      isPopular: true
+      isPopular: true,
+      planId: "law-firms"
     },
     {
       name: "Enterprise",
@@ -38,11 +43,16 @@ const PricingSection = () => {
         "Requires 12 month subscription",
         "1 Live Coaching Session Per Month"
       ],
-      buttonText: "Click Here",
+      buttonText: "Get Started",
       description: "Click the button above if you're ready to transform your immigration law firm!",
-      isPopular: false
+      isPopular: false,
+      planId: "enterprise"
     }
   ];
+
+  const handlePlanSelect = (planId: string) => {
+    navigate(`/auth?plan=${planId}`);
+  };
 
   return (
     <section className="bg-white py-20">
@@ -104,6 +114,7 @@ const PricingSection = () => {
                     style={{ backgroundColor: '#FFDA00' }}
                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E6C400'}
                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#FFDA00'}
+                    onClick={() => handlePlanSelect(plan.planId)}
                   >
                     {plan.buttonText}
                   </Button>

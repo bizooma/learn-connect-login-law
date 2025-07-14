@@ -1,10 +1,20 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import LoginForm from "./LoginForm";
 import RegisterForm from "./RegisterForm";
 
 const AuthPage = () => {
+  const [searchParams] = useSearchParams();
+  const selectedPlan = searchParams.get('plan');
   const [activeTab, setActiveTab] = useState("login");
+
+  useEffect(() => {
+    // If a plan is selected, automatically switch to register tab
+    if (selectedPlan) {
+      setActiveTab("register");
+    }
+  }, [selectedPlan]);
 
   return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#213C82' }}>
@@ -29,7 +39,7 @@ const AuthPage = () => {
           </TabsContent>
           
           <TabsContent value="register" className="mt-6">
-            <RegisterForm />
+            <RegisterForm selectedPlan={selectedPlan} />
           </TabsContent>
         </Tabs>
       </div>

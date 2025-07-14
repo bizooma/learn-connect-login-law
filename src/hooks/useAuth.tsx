@@ -48,6 +48,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           setSession(session);
           setUser(session?.user ?? null);
+          
+          // Handle pending subscription after successful login
+          if (event === 'SIGNED_IN') {
+            handlePendingSubscription(session.user);
+          }
         } else {
           setSession(session);
           setUser(session?.user ?? null);
@@ -128,6 +133,50 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       subscription.unsubscribe();
     };
   }, []);
+
+  const handlePendingSubscription = async (user: User) => {
+    const pendingPlanId = localStorage.getItem('pendingPlanId');
+    const pendingUserEmail = localStorage.getItem('pendingUserEmail');
+    
+    if (pendingPlanId && pendingUserEmail === user.email) {
+      console.log('Processing pending subscription for plan:', pendingPlanId);
+      
+      toast({
+        title: "Welcome!",
+        description: "Let's complete your subscription setup.",
+      });
+
+      // Small delay to ensure auth is fully settled, then create checkout
+      setTimeout(async () => {
+        try {
+          const { data, error } = await supabase.functions.invoke('create-subscription-checkout', {
+            body: { planId: pendingPlanId },
+          });
+
+          if (error) {
+            console.error('Checkout error:', error);
+            toast({
+              title: "Checkout Error",
+              description: "Failed to create checkout session. Please try again from the pricing page.",
+              variant: "destructive",
+            });
+          } else if (data?.url) {
+            // Clear pending data and redirect to checkout
+            localStorage.removeItem('pendingPlanId');
+            localStorage.removeItem('pendingUserEmail');
+            window.location.href = data.url;
+          }
+        } catch (error) {
+          console.error('Unexpected checkout error:', error);
+          toast({
+            title: "Error",
+            description: "Please try selecting your plan again from the pricing page.",
+            variant: "destructive",
+          });
+        }
+      }, 2000);
+    }
+  };
 
   const signOut = async () => {
     try {
