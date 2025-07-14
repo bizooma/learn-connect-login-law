@@ -202,15 +202,10 @@ const LoginForm = () => {
           {isLoading ? "Signing in..." : "Sign In"}
         </Button>
 
-        <div className="text-center">
-          <button
-            type="button"
-            className="text-sm text-blue-600 hover:underline"
-            onClick={() => setShowForgotPassword(true)}
-            disabled={isLoading}
-          >
-            Forgot your password?
-          </button>
+        <div className="text-center mt-4">
+          <p className="text-sm text-gray-600">
+            If you forgot your password, contact sales@newfrontieruniversity.com to have it reset.
+          </p>
         </div>
       </form>
 
