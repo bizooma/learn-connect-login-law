@@ -2,7 +2,7 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
-import { BookOpen, Award, GraduationCap, User, Calendar } from "lucide-react";
+import { BookOpen, Award, GraduationCap, User, Calendar, HelpCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import NotificationBanner from "./notifications/NotificationBanner";
@@ -24,6 +24,8 @@ import StudentCalendarTab from "./student/StudentCalendarTab";
 import StudentDashboardErrorBoundary from "./ErrorBoundary/StudentDashboardErrorBoundary";
 import StudentDashboardFallback from "./ErrorBoundary/StudentDashboardFallback";
 import { RealtimeStatus } from "./debug/RealtimeStatus";
+import StudentQuickStartModal from "./student/StudentQuickStartModal";
+import { Button } from "@/components/ui/button";
 
 const StudentDashboard = () => {
   const { user, signOut } = useAuth();
@@ -31,6 +33,7 @@ const StudentDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("assigned");
   const [mainTab, setMainTab] = useState("dashboard");
+  const [quickStartOpen, setQuickStartOpen] = useState(false);
   const { stats, loading: statsLoading, refetch: refetchStats } = useDashboardStats();
   
   // First-time user experience
@@ -154,7 +157,17 @@ const StudentDashboard = () => {
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Student Dashboard</h1>
               <p className="text-gray-600">Welcome back! Continue your learning journey.</p>
             </div>
-            <IssueReportButton />
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                onClick={() => setQuickStartOpen(true)}
+                className="flex items-center gap-2"
+              >
+                <HelpCircle className="h-4 w-4" />
+                Quick Start
+              </Button>
+              <IssueReportButton />
+            </div>
           </div>
           
           <Tabs value={mainTab} onValueChange={setMainTab} className="w-full">
@@ -223,6 +236,12 @@ const StudentDashboard = () => {
           </Tabs>
         </div>
       </div>
+      
+      <StudentQuickStartModal 
+        open={quickStartOpen} 
+        onOpenChange={setQuickStartOpen} 
+      />
+      
       <LMSTreeFooter />
       </div>
     </StudentDashboardErrorBoundary>
