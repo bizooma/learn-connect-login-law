@@ -10,13 +10,7 @@ export const useUserRole = () => {
   const retryCountRef = useRef(0);
   const fetchingRef = useRef(false);
 
-  console.log('useUserRole: Hook called with user:', {
-    user: user,
-    userId: user?.id,
-    userEmail: user?.email,
-    hasUser: !!user,
-    authLoading
-  });
+  // Reduced logging for performance
 
   // Direct admin check function
   const isDirectAdmin = useCallback((email: string | undefined) => {
@@ -94,12 +88,10 @@ export const useUserRole = () => {
   }, [user?.id, user?.email, authLoading, isDirectAdmin]);
 
   useEffect(() => {
-    console.log('useUserRole: useEffect triggered', {
-      user: user,
-      userId: user?.id,
-      userExists: !!user,
-      authLoading
-    });
+    // Only log on critical state changes
+    if (!authLoading && user?.id) {
+      console.log('useUserRole: Fetching role for user', user.id);
+    }
     
     fetchUserRole();
   }, [fetchUserRole]);

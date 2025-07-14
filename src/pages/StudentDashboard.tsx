@@ -1,8 +1,13 @@
 
 import StudentDashboard from "@/components/StudentDashboard";
+import ErrorBoundary from "@/components/ErrorBoundary";
 
 const StudentDashboardPage = () => {
-  return <StudentDashboard />;
+  return (
+    <ErrorBoundary>
+      <StudentDashboard />
+    </ErrorBoundary>
+  );
 };
 
 export default StudentDashboardPage;

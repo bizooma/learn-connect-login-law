@@ -29,13 +29,15 @@ export const useDashboardStats = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchStats = async () => {
-    if (!user) {
+    if (!user?.id) {
+      console.log('useDashboardStats: No user ID, skipping fetch');
       setLoading(false);
       return;
     }
 
     try {
       setLoading(true);
+      console.log('useDashboardStats: Fetching stats for user', user.id, { isAdmin, isOwner, isStudent, isClient });
 
       if (isAdmin || isOwner) {
         // Admin/Owner stats - system-wide
@@ -110,13 +112,30 @@ export const useDashboardStats = () => {
 
     } catch (error) {
       console.error('Error fetching dashboard stats:', error);
+      // Set fallback stats on error
+      setStats({
+        totalCourses: 0,
+        assignedCourses: 0,
+        completedCourses: 0,
+        inProgressCourses: 0,
+        certificatesEarned: 0,
+        averageProgress: 0
+      });
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchStats();
+    // Only fetch if we have user ID and role is determined
+    if (user?.id && (isAdmin || isOwner || isStudent || isClient)) {
+      fetchStats();
+    } else {
+      console.log('useDashboardStats: Waiting for user and role', { 
+        hasUserId: !!user?.id, 
+        hasRole: !!(isAdmin || isOwner || isStudent || isClient) 
+      });
+    }
   }, [user?.id, isAdmin, isOwner, isStudent, isClient]);
 
   return { stats, loading, refetch: fetchStats };

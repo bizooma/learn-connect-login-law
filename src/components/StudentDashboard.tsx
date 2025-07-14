@@ -21,6 +21,8 @@ import IssueReportButton from "./support/IssueReportButton";
 import { useFirstTimeUser } from "@/hooks/useFirstTimeUser";
 import { logger } from "@/utils/logger";
 import StudentCalendarTab from "./student/StudentCalendarTab";
+import StudentDashboardErrorBoundary from "./ErrorBoundary/StudentDashboardErrorBoundary";
+import StudentDashboardFallback from "./ErrorBoundary/StudentDashboardFallback";
 
 const StudentDashboard = () => {
   const { user, signOut } = useAuth();
@@ -28,7 +30,7 @@ const StudentDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("assigned");
   const [mainTab, setMainTab] = useState("dashboard");
-  const { stats, loading: statsLoading } = useDashboardStats();
+  const { stats, loading: statsLoading, refetch: refetchStats } = useDashboardStats();
   
   // First-time user experience
   const {
@@ -60,17 +62,22 @@ const StudentDashboard = () => {
     }
   }, [isStudent, roleLoading, user, navigate]);
 
-  // Show loading while checking roles or fetching data
-  if (roleLoading || statsLoading || !user) {
-    logger.debug('StudentDashboard: Showing loading state', { roleLoading, statsLoading, hasUser: !!user });
+  // Show loading while checking roles - more resilient loading state
+  if (roleLoading || !user) {
+    logger.debug('StudentDashboard: Showing loading state', { roleLoading, hasUser: !!user });
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">Loading your dashboard...</p>
         </div>
       </div>
     );
+  }
+
+  // Show fallback if stats are still loading but we can show basic UI
+  if (statsLoading && user && isStudent) {
+    return <StudentDashboardFallback onRetry={refetchStats} />;
   }
 
   // Don't render anything if user is not a student (redirect will happen in useEffect)
@@ -84,28 +91,28 @@ const StudentDashboard = () => {
   const studentStats = [
     {
       title: "Assigned Courses",
-      value: stats.assignedCourses.toString(),
+      value: (stats?.assignedCourses ?? 0).toString(),
       description: "Courses assigned to you",
       icon: BookOpen,
       color: "text-blue-600",
     },
     {
       title: "In Progress",
-      value: stats.inProgressCourses.toString(),
+      value: (stats?.inProgressCourses ?? 0).toString(),
       description: "Currently studying",
       icon: GraduationCap,
       color: "text-orange-600",
     },
     {
       title: "Completed",
-      value: stats.completedCourses.toString(),
+      value: (stats?.completedCourses ?? 0).toString(),
       description: "Courses completed",
       icon: Award,
       color: "text-green-600",
     },
     {
       title: "Certificates",
-      value: stats.certificatesEarned.toString(),
+      value: (stats?.certificatesEarned ?? 0).toString(),
       description: "Certificates earned",
       icon: User,
       color: "text-purple-600",
@@ -113,7 +120,8 @@ const StudentDashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 flex flex-col">
+    <StudentDashboardErrorBoundary>
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-100 flex flex-col">
       {/* Confetti Animation */}
       <Confetti active={showConfetti} />
       
@@ -206,7 +214,8 @@ const StudentDashboard = () => {
         </div>
       </div>
       <LMSTreeFooter />
-    </div>
+      </div>
+    </StudentDashboardErrorBoundary>
   );
 };
 
