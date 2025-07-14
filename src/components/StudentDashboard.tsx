@@ -158,12 +158,12 @@ const StudentDashboard = () => {
               <p className="text-gray-600">Welcome back! Continue your learning journey.</p>
             </div>
             <div className="flex gap-2">
-              <Button 
-                variant="outline" 
+              <Button
                 onClick={() => setQuickStartOpen(true)}
-                className="flex items-center gap-2"
+                style={{ backgroundColor: '#859FE0' }}
+                className="hover:opacity-90 text-black shadow-md"
               >
-                <HelpCircle className="h-4 w-4" />
+                <HelpCircle className="h-4 w-4 mr-2" />
                 Quick Start
               </Button>
               <IssueReportButton />
