@@ -34,16 +34,12 @@ const HillarySection = () => {
               </p>
             </div>
 
-            <Button 
-              asChild
-              className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-8 py-4 text-lg rounded-md"
+            <a 
+              href="mailto:sales@newfrontieruniversity.com?subject=I want to learn more about New Frontier University"
+              className="inline-flex items-center justify-center bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-8 py-4 text-lg rounded-md transition-colors"
             >
-              <a 
-                href="mailto:sales@newfrontieruniversity.com?subject=I want to learn more about New Frontier University"
-              >
-                Book a Call to Learn More
-              </a>
-            </Button>
+              Book a Call to Learn More
+            </a>
           </div>
 
           {/* Right Side - Hillary's Image and Logo */}
