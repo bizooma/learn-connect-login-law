@@ -56,40 +56,48 @@ const StudentQuickStartModal = ({ open, onOpenChange }: StudentQuickStartModalPr
                   <div className="flex items-start gap-3">
                     <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">1</span>
                     <div>
-                      <h4 className="font-medium">Dashboard Stats Overview</h4>
-                      <p className="text-sm text-muted-foreground">The top section shows your key metrics: assigned courses, courses in progress, completed courses, and certificates earned</p>
+                      <h4 className="font-medium">Dashboard Stats Cards (Top Section)</h4>
+                      <p className="text-sm text-muted-foreground">Look at the colored cards at the top: "Assigned Courses" (total courses given to you), "In Progress" (courses you've started), "Completed" (finished courses), and "Certificates" (earned certificates). Click any card to filter your course view.</p>
                     </div>
                   </div>
                   
                   <div className="flex items-start gap-3">
                     <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">2</span>
                     <div>
-                      <h4 className="font-medium">Navigation Tabs</h4>
-                      <p className="text-sm text-muted-foreground">Use the main tabs to switch between Dashboard, Calendar, Certificates, and Profile sections</p>
+                      <h4 className="font-medium">Main Navigation Tabs</h4>
+                      <p className="text-sm text-muted-foreground">Use the four main tabs below the header: "Dashboard" (your learning overview), "Calendar" (law firm events), "Certificates" (your achievements), and "Profile" (personal settings). Click any tab to switch views.</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-3">
                     <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">3</span>
                     <div>
-                      <h4 className="font-medium">Badge Section</h4>
-                      <p className="text-sm text-muted-foreground">View your earned badges and achievements in the badges section of your dashboard</p>
+                      <h4 className="font-medium">Course View Switcher</h4>
+                      <p className="text-sm text-muted-foreground">In the main content area, toggle between "Assigned Courses" and "Completed Courses" tabs to see different course lists. Click course cards to start learning or resume where you left off.</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-3">
                     <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">4</span>
                     <div>
-                      <h4 className="font-medium">Course Sections</h4>
-                      <p className="text-sm text-muted-foreground">Switch between "Assigned Courses" and "Completed Courses" to see different views of your learning journey</p>
+                      <h4 className="font-medium">Badges & Achievements Section</h4>
+                      <p className="text-sm text-muted-foreground">Scroll down to see your earned badges displayed in colorful cards. These appear automatically when you complete milestones. Click badges to see their descriptions.</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-3">
                     <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">5</span>
                     <div>
-                      <h4 className="font-medium">Profile & Help</h4>
-                      <p className="text-sm text-muted-foreground">Access your profile settings and report issues using the buttons in the top right corner</p>
+                      <h4 className="font-medium">Help & Quick Actions (Top Right)</h4>
+                      <p className="text-sm text-muted-foreground">Look for the "Quick Start" button (opens this guide) and "Report Issue" button in the top right corner. Use "Report Issue" if you encounter problems or need support.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">6</span>
+                    <div>
+                      <h4 className="font-medium">Course Cards Actions</h4>
+                      <p className="text-sm text-muted-foreground">Each course card shows a progress bar, title, and description. Click anywhere on the card to enter the course. Look for "Continue" or "Start" indicators to know your status.</p>
                     </div>
                   </div>
                 </div>
@@ -98,12 +106,12 @@ const StudentQuickStartModal = ({ open, onOpenChange }: StudentQuickStartModalPr
                   <div className="flex items-start gap-2">
                     <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
                     <div>
-                      <h5 className="font-medium text-blue-800">Navigation Tips:</h5>
+                      <h5 className="font-medium text-blue-800">Quick Navigation Tips:</h5>
                       <ul className="text-sm text-blue-700 space-y-1 mt-1">
-                        <li>• Use the main tabs for quick navigation between sections</li>
-                        <li>• Click on course cards to start learning or continue where you left off</li>
-                        <li>• Check your progress regularly to stay motivated</li>
-                        <li>• Use the help button if you encounter any issues</li>
+                        <li>• Click the stats cards at the top to quickly filter your courses</li>
+                        <li>• Use browser back button to return to dashboard from any page</li>
+                        <li>• Your current location is always highlighted in the navigation</li>
+                        <li>• Course progress saves automatically as you complete lessons</li>
                       </ul>
                     </div>
                   </div>
@@ -275,40 +283,48 @@ const StudentQuickStartModal = ({ open, onOpenChange }: StudentQuickStartModalPr
                   <div className="flex items-start gap-3">
                     <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">1</span>
                     <div>
-                      <h4 className="font-medium">Dashboard Overview</h4>
-                      <p className="text-sm text-muted-foreground">The main dashboard shows your overall progress with stats cards displaying key metrics</p>
+                      <h4 className="font-medium">Check Dashboard Stats Cards</h4>
+                      <p className="text-sm text-muted-foreground">At the top of your dashboard, the four colored cards show: Total assigned courses, courses you've started (In Progress), fully completed courses, and certificates earned. These numbers update automatically as you progress.</p>
                     </div>
                   </div>
                   
                   <div className="flex items-start gap-3">
                     <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">2</span>
                     <div>
-                      <h4 className="font-medium">Course Progress Bars</h4>
-                      <p className="text-sm text-muted-foreground">Each course card shows a progress bar indicating how much you've completed</p>
+                      <h4 className="font-medium">View Individual Course Progress</h4>
+                      <p className="text-sm text-muted-foreground">Each course card displays a colored progress bar underneath the title. Green bars show completed courses (100%), blue/orange bars show partial progress. The percentage indicates how much of the course you've finished.</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-3">
                     <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">3</span>
                     <div>
-                      <h4 className="font-medium">Certificates Tab</h4>
-                      <p className="text-sm text-muted-foreground">Navigate to the Certificates tab to view all your earned certificates and achievements</p>
+                      <h4 className="font-medium">Access the Certificates Tab</h4>
+                      <p className="text-sm text-muted-foreground">Click the "Certificates" tab at the top of your dashboard. Here you'll see all certificates you've earned, displayed as downloadable cards with course names, completion dates, and certificate numbers.</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-3">
                     <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">4</span>
                     <div>
-                      <h4 className="font-medium">Assignment Status</h4>
-                      <p className="text-sm text-muted-foreground">See which courses are assigned, in progress, or completed with clear status indicators</p>
+                      <h4 className="font-medium">Monitor Assignment Status</h4>
+                      <p className="text-sm text-muted-foreground">Use the "Assigned Courses" and "Completed Courses" tabs in the main content area. Assigned courses show what you need to work on, completed courses show your achievements. Look for due dates if any are set.</p>
                     </div>
                   </div>
 
                   <div className="flex items-start gap-3">
                     <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">5</span>
                     <div>
-                      <h4 className="font-medium">Badge Collection</h4>
-                      <p className="text-sm text-muted-foreground">View earned badges and achievements that recognize your learning milestones</p>
+                      <h4 className="font-medium">View Earned Badges</h4>
+                      <p className="text-sm text-muted-foreground">Scroll down on your dashboard to see the badges section. Badges appear as colorful cards when you reach milestones like completing your first course, finishing multiple courses, or achieving learning streaks.</p>
+                    </div>
+                  </div>
+
+                  <div className="flex items-start gap-3">
+                    <span className="bg-primary text-primary-foreground rounded-full w-6 h-6 flex items-center justify-center text-sm font-medium">6</span>
+                    <div>
+                      <h4 className="font-medium">Track Learning Inside Courses</h4>
+                      <p className="text-sm text-muted-foreground">When you click into a course, you'll see module progress on the left sidebar and unit completion checkmarks. Green checkmarks indicate completed lessons, gray circles show pending lessons.</p>
                     </div>
                   </div>
                 </div>
@@ -319,10 +335,10 @@ const StudentQuickStartModal = ({ open, onOpenChange }: StudentQuickStartModalPr
                     <div>
                       <h5 className="font-medium text-purple-800">Progress Tracking Tips:</h5>
                       <ul className="text-sm text-purple-700 space-y-1 mt-1">
-                        <li>• Set personal learning goals and track them regularly</li>
-                        <li>• Complete courses fully to earn certificates</li>
-                        <li>• Use progress data to identify areas for improvement</li>
-                        <li>• Celebrate milestones and achievements along the way</li>
+                        <li>• Progress is saved automatically - you can pause and resume anytime</li>
+                        <li>• Complete all lessons and quizzes in a course to earn a certificate</li>
+                        <li>• Check your dashboard weekly to stay on track with assignments</li>
+                        <li>• Download certificates from the Certificates tab for your records</li>
                       </ul>
                     </div>
                   </div>
