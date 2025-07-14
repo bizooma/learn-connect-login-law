@@ -39,9 +39,7 @@ const HillarySection = () => {
               className="bg-yellow-400 hover:bg-yellow-500 text-black font-semibold px-8 py-4 text-lg rounded-md"
             >
               <a 
-                href="https://outlook.office365.com/book/SalesTrainerNFU@newfrontier.us/"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="mailto:sales@newfrontieruniversity.com?subject=I want to learn more about New Frontier University"
               >
                 Book a Call to Learn More
               </a>
