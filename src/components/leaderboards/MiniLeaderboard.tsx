@@ -2,7 +2,8 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
-import { Trophy, TrendingUp, AlertCircle } from "lucide-react";
+import { Trophy, TrendingUp, AlertCircle, RefreshCw } from "lucide-react";
+import { useCacheManager } from "@/hooks/useCacheManager";
 
 interface MiniLeaderboardProps {
   type: 'learning_streak' | 'sales_training' | 'legal_training';
@@ -22,6 +23,7 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
   const [entries, setEntries] = useState<MiniLeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { autoRefreshIfNeeded, isRefreshing } = useCacheManager();
 
   const fetchMiniLeaderboard = useCallback(async () => {
     try {
@@ -48,8 +50,26 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
       console.log(`Found ${data?.length || 0} entries for ${type}`);
 
       if (!data || data.length === 0) {
-        // Try to fetch fresh data directly from tables
-        await fetchFreshData();
+        // Auto-refresh cache if needed, then try again
+        const refreshed = await autoRefreshIfNeeded();
+        if (refreshed) {
+          // Retry fetching from cache after refresh
+          const { data: refreshedData } = await supabase
+            .from('leaderboard_cache')
+            .select('user_name, score, rank_position, additional_data')
+            .eq('leaderboard_type', type)
+            .gt('expires_at', new Date().toISOString())
+            .order('rank_position', { ascending: true })
+            .limit(limit);
+          
+          if (refreshedData && refreshedData.length > 0) {
+            setEntries(refreshedData);
+          } else {
+            await fetchFreshData();
+          }
+        } else {
+          await fetchFreshData();
+        }
       } else {
         setEntries(data || []);
       }
@@ -184,8 +204,10 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
           </div>
           <button
             onClick={fetchMiniLeaderboard}
-            className="text-xs text-blue-600 hover:text-blue-800 mt-2 w-full text-center"
+            disabled={isRefreshing}
+            className="text-xs text-blue-600 hover:text-blue-800 mt-2 w-full text-center disabled:opacity-50 flex items-center justify-center gap-1"
           >
+            {isRefreshing && <RefreshCw className="h-3 w-3 animate-spin" />}
             Try Again
           </button>
         </CardContent>
@@ -207,8 +229,10 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
             No data available
             <button
               onClick={fetchMiniLeaderboard}
-              className="block text-xs text-blue-600 hover:text-blue-800 mt-2 mx-auto"
+              disabled={isRefreshing}
+              className="block text-xs text-blue-600 hover:text-blue-800 mt-2 mx-auto disabled:opacity-50 flex items-center gap-1"
             >
+              {isRefreshing && <RefreshCw className="h-3 w-3 animate-spin" />}
               Refresh Data
             </button>
           </div>
@@ -231,8 +255,10 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
         </div>
         <button
           onClick={fetchMiniLeaderboard}
-          className="text-xs text-gray-500 hover:text-gray-700 mt-2 w-full text-center"
+          disabled={isRefreshing}
+          className="text-xs text-gray-500 hover:text-gray-700 mt-2 w-full text-center disabled:opacity-50 flex items-center justify-center gap-1"
         >
+          {isRefreshing && <RefreshCw className="h-3 w-3 animate-spin" />}
           Refresh
         </button>
       </CardContent>
