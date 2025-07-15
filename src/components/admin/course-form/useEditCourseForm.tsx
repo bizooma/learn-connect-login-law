@@ -28,10 +28,11 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
         *,
         lessons:lessons(
           *,
-          units:units(*)
+          units:units!units_section_id_fkey(*)
         )
       `)
       .eq('course_id', courseId)
+      .eq('units.is_draft', false)
       .order('sort_order', { ascending: true });
 
     if (modulesError) {
