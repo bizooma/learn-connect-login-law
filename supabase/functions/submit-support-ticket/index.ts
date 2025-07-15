@@ -34,32 +34,50 @@ serve(async (req) => {
       priority 
     } = await req.json();
 
+    console.log('=== SUPPORT TICKET SUBMISSION ===');
+    console.log('User ID:', userId);
+    console.log('User Name:', userName);
+    console.log('User Email:', userEmail);
+    console.log('User Role:', userRole);
+    console.log('Subject:', subject);
+    console.log('Category:', category);
+    console.log('Priority:', priority);
+
     // Validate required fields
     if (!userId || !userName || !userEmail || !subject || !description) {
+      console.error('Missing required fields:', { userId, userName, userEmail, subject, description });
       throw new Error('Missing required fields');
     }
 
     // Create ticket in database
     const supabase = createClient(supabaseUrl!, supabaseServiceKey!);
     
+    console.log('Creating ticket in database...');
+    const ticketData = {
+      user_id: userId,
+      user_name: userName,
+      user_email: userEmail,
+      user_role: userRole || 'student',
+      subject,
+      description,
+      category: category || 'general',
+      priority: priority || 'medium'
+    };
+    console.log('Ticket data to insert:', ticketData);
+    
     const { data: ticket, error: ticketError } = await supabase
       .from('support_tickets')
-      .insert({
-        user_id: userId,
-        user_name: userName,
-        user_email: userEmail,
-        user_role: userRole || 'student',
-        subject,
-        description,
-        category: category || 'general',
-        priority: priority || 'medium'
-      })
+      .insert(ticketData)
       .select()
       .single();
 
     if (ticketError) {
+      console.error('Database insertion error:', ticketError);
       throw ticketError;
     }
+
+    console.log('Ticket created successfully:', ticket);
+    console.log('Ticket ID:', ticket.id);
 
     // Generate email content
     const emailHtml = generateSupportEmailHtml(ticket);
@@ -67,15 +85,16 @@ serve(async (req) => {
 
     // Send notification emails to support team
     console.log('Sending notification emails to support team:', supportTeam);
-    const emailPromises = supportTeam.map(email => 
-      resend.emails.send({
+    const emailPromises = supportTeam.map((email, index) => {
+      console.log(`Preparing email ${index + 1} to support team member: ${email}`);
+      return resend.emails.send({
         from: 'New Frontier University Support <onboarding@resend.dev>',
         to: [email],
         subject: `New Support Ticket: ${subject}`,
         html: emailHtml,
         text: emailText
-      })
-    );
+      });
+    });
 
     // Send confirmation email to user
     console.log('Sending confirmation email to user:', userEmail);
@@ -89,8 +108,18 @@ serve(async (req) => {
       })
     );
 
+    console.log(`Total email promises created: ${emailPromises.length}`);
     const emailResults = await Promise.all(emailPromises);
     console.log('Email sending results:', emailResults);
+    
+    // Log individual email results
+    emailResults.forEach((result, index) => {
+      if (index < supportTeam.length) {
+        console.log(`Support email ${index + 1} to ${supportTeam[index]}:`, result);
+      } else {
+        console.log(`Confirmation email to ${userEmail}:`, result);
+      }
+    });
 
     return new Response(JSON.stringify({ 
       success: true,
