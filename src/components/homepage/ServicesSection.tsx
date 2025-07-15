@@ -1,7 +1,9 @@
 
 import { Button } from "@/components/ui/button";
+import { useNavigate } from "react-router-dom";
 
 const ServicesSection = () => {
+  const navigate = useNavigate();
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-12 mb-16">
       {/* Law Firms */}
@@ -18,6 +20,7 @@ const ServicesSection = () => {
           New Frontier University offers comprehensive immigration law firm training courses designed to enhance the efficiency, compliance, and strategic growth of legal practices.
         </p>
         <Button 
+          onClick={() => navigate('/law-firm-training')}
           className="text-black font-semibold px-8 py-3 rounded-md transition-colors"
           style={{ backgroundColor: '#FFDA00' }}
           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E6C400'}
@@ -41,6 +44,7 @@ const ServicesSection = () => {
           New Frontier University's immigration law firm onboarding training is designed to equip new employees with the knowledge and skills needed to navigate the complexities of immigration law practice efficiently.
         </p>
         <Button 
+          onClick={() => navigate('/law-firm-staff-training')}
           className="text-black font-semibold px-8 py-3 rounded-md transition-colors"
           style={{ backgroundColor: '#FFDA00' }}
           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E6C400'}
@@ -64,6 +68,7 @@ const ServicesSection = () => {
           Understanding the complexities of immigration law requires a deep dive into ever-evolving policies, legal frameworks, and procedural nuances that impact individuals and businesses navigating the immigration system.
         </p>
         <Button 
+          onClick={() => navigate('/immigration-law-training')}
           className="text-black font-semibold px-8 py-3 rounded-md transition-colors"
           style={{ backgroundColor: '#FFDA00' }}
           onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#E6C400'}
