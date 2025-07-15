@@ -1,64 +1,33 @@
 
-import { Button } from "@/components/ui/button";
-import { Play, Pause, Podcast } from "lucide-react";
-import { useState } from "react";
+import { Play, Pause, Podcast, Loader2 } from "lucide-react";
+import { usePodcastEpisodes } from "@/hooks/usePodcastEpisodes";
+import { useAudioPlayer } from "@/hooks/useAudioPlayer";
 
 const PodcastSection = () => {
-  const [playingEpisode, setPlayingEpisode] = useState<number | null>(null);
+  const { data: episodes = [], isLoading, error } = usePodcastEpisodes();
+  const { play, currentEpisodeId, audioState } = useAudioPlayer();
 
-  const episodes = [
-    {
-      id: 1,
-      title: "#26 Turning Crisis Into Opportunity",
-      duration: "28:15",
-      description: "Let's Get Rich by Hillary & Shawn Walsh"
-    },
-    {
-      id: 2,
-      title: "#25 Building Systems That Scale",
-      duration: "31:42",
-      description: "Let's Get Rich by Hillary & Shawn Walsh"
-    },
-    {
-      id: 3,
-      title: "#24 The Power of Delegation",
-      duration: "26:18",
-      description: "Let's Get Rich by Hillary & Shawn Walsh"
-    },
-    {
-      id: 4,
-      title: "#23 Season Finale: Theory of Constraints",
-      duration: "18:27",
-      description: "Let's Get Rich by Hillary & Shawn Walsh"
-    },
-    {
-      id: 5,
-      title: "#22 Mastering Client Relationships",
-      duration: "24:33",
-      description: "Let's Get Rich by Hillary & Shawn Walsh"
-    },
-    {
-      id: 6,
-      title: "#21 Financial Planning for Law Firms",
-      duration: "29:07",
-      description: "Let's Get Rich by Hillary & Shawn Walsh"
-    },
-    {
-      id: 7,
-      title: "#20 Technology in Modern Practice",
-      duration: "22:54",
-      description: "Let's Get Rich by Hillary & Shawn Walsh"
-    },
-    {
-      id: 8,
-      title: "#19 Using Frustration as Fuel for Growth",
-      duration: "16:33",
-      description: "Let's Get Rich by Hillary & Shawn Walsh"
+  const handlePlayPause = (episodeId: string, audioUrl: string) => {
+    play(episodeId, audioUrl);
+  };
+
+  const formatDuration = (duration: string | number) => {
+    if (typeof duration === 'string' && duration.includes(':')) {
+      return duration;
     }
-  ];
+    if (typeof duration === 'number') {
+      const minutes = Math.floor(duration / 60);
+      const seconds = Math.floor(duration % 60);
+      return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+    return duration || '';
+  };
 
-  const togglePlay = (episodeId: number) => {
-    setPlayingEpisode(playingEpisode === episodeId ? null : episodeId);
+  const getProgressPercentage = (episodeId: string) => {
+    if (currentEpisodeId === episodeId && audioState.duration > 0) {
+      return (audioState.currentTime / audioState.duration) * 100;
+    }
+    return 0;
   };
 
   return (
@@ -87,7 +56,20 @@ const PodcastSection = () => {
 
           {/* Right Side - Episode List */}
           <div className="space-y-4">
-            {episodes.map((episode) => (
+            {isLoading && (
+              <div className="flex items-center justify-center p-8">
+                <Loader2 className="w-6 h-6 animate-spin text-gray-600" />
+                <span className="ml-2 text-gray-600">Loading podcast episodes...</span>
+              </div>
+            )}
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                <p className="text-red-600 text-sm">Failed to load podcast episodes. Please try again later.</p>
+              </div>
+            )}
+
+            {!isLoading && !error && episodes.map((episode) => (
               <div key={episode.id} className="bg-gray-900 rounded-lg p-4 text-white">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center space-x-3">
@@ -96,16 +78,19 @@ const PodcastSection = () => {
                     </div>
                     <div className="flex-1">
                       <h3 className="font-semibold text-sm mb-1">{episode.title}</h3>
-                      <p className="text-gray-400 text-xs">{episode.description}</p>
+                      <p className="text-gray-400 text-xs line-clamp-2">{episode.description}</p>
                     </div>
                   </div>
                   <div className="flex items-center space-x-3">
-                    <span className="text-gray-400 text-xs">{episode.duration}</span>
+                    <span className="text-gray-400 text-xs">{formatDuration(episode.duration)}</span>
                     <button
-                      onClick={() => togglePlay(episode.id)}
-                      className="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors"
+                      onClick={() => handlePlayPause(episode.id, episode.audioUrl)}
+                      disabled={!episode.audioUrl}
+                      className="w-8 h-8 bg-white rounded-full flex items-center justify-center hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                      {playingEpisode === episode.id ? (
+                      {currentEpisodeId === episode.id && audioState.isLoading ? (
+                        <Loader2 className="w-4 h-4 text-black animate-spin" />
+                      ) : currentEpisodeId === episode.id && audioState.isPlaying ? (
                         <Pause className="w-4 h-4 text-black" />
                       ) : (
                         <Play className="w-4 h-4 text-black ml-0.5" />
@@ -115,11 +100,17 @@ const PodcastSection = () => {
                 </div>
                 
                 {/* Progress bar for playing episode */}
-                {playingEpisode === episode.id && (
+                {currentEpisodeId === episode.id && (
                   <div className="mt-3">
                     <div className="w-full h-1 bg-gray-700 rounded">
-                      <div className="w-1/4 h-full bg-yellow-400 rounded"></div>
+                      <div 
+                        className="h-full bg-yellow-400 rounded transition-all duration-300" 
+                        style={{ width: `${getProgressPercentage(episode.id)}%` }}
+                      ></div>
                     </div>
+                    {audioState.error && (
+                      <p className="text-red-400 text-xs mt-1">{audioState.error}</p>
+                    )}
                   </div>
                 )}
               </div>
