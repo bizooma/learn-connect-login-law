@@ -1,7 +1,7 @@
-import LawFirmTraining from "@/components/LawFirmTraining";
+import LawFirmStaffTraining from "@/components/LawFirmStaffTraining";
 
-const LawFirmStaffTraining = () => {
-  return <LawFirmTraining />;
+const LawFirmStaffTrainingPage = () => {
+  return <LawFirmStaffTraining />;
 };
 
-export default LawFirmStaffTraining;
+export default LawFirmStaffTrainingPage;
