@@ -20,6 +20,9 @@ const LawFirmHeroSection = () => {
             <h1 className="text-5xl md:text-6xl font-bold mb-8 leading-tight">
               Immigration Law Firm Training
             </h1>
+            <p className="text-xl md:text-2xl mb-8 max-w-4xl mx-auto leading-relaxed">
+              I created this training platform for immigration law firms to help YOU help more immigrants, without putting anything else on your plate.
+            </p>
           </div>
         </div>
       </div>
