@@ -19,7 +19,7 @@ const ImmigrationLawHeroSection = () => {
           <div className="text-white text-center max-w-xs sm:max-w-sm md:max-w-2xl lg:max-w-4xl mx-auto px-4">
             <h1 className="text-lg sm:text-xl md:text-3xl lg:text-5xl xl:text-6xl font-bold mb-4 md:mb-8 leading-tight">
               <span className="block">Immigration Law</span>
-              <span className="block">Training</span>
+              <span className="block">Firm Training</span>
             </h1>
           </div>
         </div>
