@@ -46,7 +46,7 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                <a href="https://rss.com/podcasts/letsgetrich/1710197/" target="_blank" rel="noopener noreferrer" className="text-gray-400 hover:text-white transition-colors">
                   Podcast
                 </a>
               </li>
