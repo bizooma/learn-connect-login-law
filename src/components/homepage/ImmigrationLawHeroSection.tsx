@@ -17,9 +17,8 @@ const ImmigrationLawHeroSection = () => {
         <div className="flex items-center justify-center min-h-[50vh] md:min-h-[60vh]">
           {/* Center Content */}
           <div className="text-white text-center max-w-xs sm:max-w-sm md:max-w-2xl lg:max-w-4xl mx-auto px-4">
-            <h1 className="text-lg sm:text-xl md:text-3xl lg:text-5xl xl:text-6xl font-bold mb-4 md:mb-8 leading-tight">
-              <span className="block">Immigration Law</span>
-              <span className="block">Firm Training</span>
+            <h1 className="text-5xl md:text-6xl font-bold mb-8 leading-tight">
+              Immigration Law Training
             </h1>
           </div>
         </div>
