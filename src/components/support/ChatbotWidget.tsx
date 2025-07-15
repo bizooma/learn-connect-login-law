@@ -22,7 +22,7 @@ const ChatbotWidget = () => {
       {!isOpen && (
         <Button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 h-12 w-12 rounded-full bg-primary text-primary-foreground shadow-lg hover:bg-primary/90 z-50"
+          className="fixed bottom-6 right-6 h-12 w-12 rounded-full bg-yellow-400 text-black shadow-lg hover:bg-yellow-500 z-50"
           size="sm"
         >
           <MessageCircle className="h-6 w-6" />
@@ -36,7 +36,7 @@ const ChatbotWidget = () => {
         } w-80`}>
           <div className="bg-background border border-border rounded-lg shadow-2xl h-full flex flex-col">
             {/* Header */}
-            <div className="bg-primary text-primary-foreground p-3 rounded-t-lg flex items-center justify-between">
+            <div className="bg-yellow-400 text-black p-3 rounded-t-lg flex items-center justify-between">
               <div className="flex items-center space-x-2">
                 <MessageCircle className="h-4 w-4" />
                 <span className="font-medium text-sm">Support Assistant</span>
@@ -46,7 +46,7 @@ const ChatbotWidget = () => {
                   onClick={() => setIsMinimized(!isMinimized)}
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-6 p-0 text-primary-foreground hover:bg-primary-foreground/20"
+                  className="h-6 w-6 p-0 text-black hover:bg-black/20"
                 >
                   <Minimize2 className="h-3 w-3" />
                 </Button>
@@ -54,7 +54,7 @@ const ChatbotWidget = () => {
                   onClick={() => setIsOpen(false)}
                   variant="ghost"
                   size="sm"
-                  className="h-6 w-6 p-0 text-primary-foreground hover:bg-primary-foreground/20"
+                  className="h-6 w-6 p-0 text-black hover:bg-black/20"
                 >
                   <X className="h-3 w-3" />
                 </Button>
