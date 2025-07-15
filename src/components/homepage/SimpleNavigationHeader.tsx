@@ -1,6 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const SimpleNavigationHeader = () => {
   const navigate = useNavigate();
@@ -23,18 +23,18 @@ const SimpleNavigationHeader = () => {
           
           <div className="hidden md:block">
             <div className="ml-10 flex items-baseline space-x-8">
-              <a href="#home" className="text-white hover:text-blue-400 px-3 py-2 text-sm font-medium">
+              <Link to="/" className="text-white hover:text-blue-400 px-3 py-2 text-sm font-medium">
                 Home
-              </a>
-              <a href="#law-firms" className="text-gray-300 hover:text-blue-400 px-3 py-2 text-sm font-medium">
+              </Link>
+              <Link to="/law-firm-training" className="text-gray-300 hover:text-blue-400 px-3 py-2 text-sm font-medium">
                 Law Firms
-              </a>
-              <a href="#staff-training" className="text-gray-300 hover:text-blue-400 px-3 py-2 text-sm font-medium">
+              </Link>
+              <Link to="/law-firm-staff-training" className="text-gray-300 hover:text-blue-400 px-3 py-2 text-sm font-medium">
                 Staff Training
-              </a>
-              <a href="#immigration-law" className="text-gray-300 hover:text-blue-400 px-3 py-2 text-sm font-medium">
+              </Link>
+              <Link to="/immigration-law-training" className="text-gray-300 hover:text-blue-400 px-3 py-2 text-sm font-medium">
                 Immigration Law
-              </a>
+              </Link>
               <a href="https://rss.com/podcasts/letsgetrich/1710197/" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-blue-400 px-3 py-2 text-sm font-medium">
                 Podcast
               </a>
