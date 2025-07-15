@@ -17,7 +17,7 @@ const ImmigrationLawHeroSection = () => {
         <div className="flex items-center justify-center min-h-[50vh] md:min-h-[60vh]">
           {/* Center Content */}
           <div className="text-white text-center">
-            <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-8 leading-tight px-2 sm:px-4">
+            <h1 className="text-xl sm:text-2xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-8 leading-tight px-2 sm:px-4">
               Immigration Law Training
             </h1>
           </div>
