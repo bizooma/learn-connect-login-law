@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { MessageCircle, X, Minimize2 } from 'lucide-react';
+import { X, Minimize2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useAuth } from '@/hooks/useAuth';
@@ -25,7 +25,7 @@ const ChatbotWidget = () => {
           className="fixed bottom-6 right-6 h-24 w-24 rounded-full bg-yellow-400 text-black shadow-lg hover:bg-yellow-500 z-50"
           size="sm"
         >
-          <MessageCircle className="h-12 w-12" />
+          <img src="/lovable-uploads/c4eeb4bc-3c15-4969-9eda-a0a3a1d338d3.png" alt="Chat" className="h-12 w-12" />
         </Button>
       )}
 
@@ -38,7 +38,7 @@ const ChatbotWidget = () => {
             {/* Header */}
             <div className="bg-yellow-400 text-black p-3 rounded-t-lg flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <MessageCircle className="h-4 w-4" />
+                <img src="/lovable-uploads/c4eeb4bc-3c15-4969-9eda-a0a3a1d338d3.png" alt="Chat" className="h-4 w-4" />
                 <span className="font-medium text-sm">Support Assistant</span>
               </div>
               <div className="flex items-center space-x-1">
