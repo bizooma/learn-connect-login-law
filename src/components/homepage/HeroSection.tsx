@@ -12,7 +12,7 @@ const HeroSection = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start" style={{ minHeight: 'calc(80vh - 400px)' }}>
           {/* Left Side - Content */}
           <div className="text-white">
-            <h1 className="text-5xl md:text-6xl font-bold mb-8 leading-tight">
+            <h1 className="text-5xl md:text-6xl mb-8 leading-tight">
               <span className="block">Immigration Law</span>
               <span className="block">Firm Training</span>
             </h1>
@@ -72,7 +72,7 @@ const HeroSection = () => {
       <div className="absolute bottom-0 left-0 right-0 z-10">
         <div className="bg-gray-900 text-white py-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-            <h2 className="text-3xl md:text-4xl font-bold mb-4">
+            <h2 className="text-3xl md:text-4xl mb-4">
               Our Courses Are Designed For <span style={{ color: '#FFDA00' }}>YOU!</span>
             </h2>
           </div>
