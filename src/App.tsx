@@ -31,6 +31,7 @@ import AuthPage from "./components/AuthPage";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
 import LawFirmTraining from "./pages/LawFirmTraining";
+import LawFirmStaffTraining from "./pages/LawFirmStaffTraining";
 
 const queryClient = new QueryClient();
 
@@ -66,6 +67,7 @@ const AppContent = () => {
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/payment-cancelled" element={<PaymentCancelled />} />
         <Route path="/law-firm-training" element={<LawFirmTraining />} />
+        <Route path="/law-firm-staff-training" element={<LawFirmStaffTraining />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <ChatbotWidget />
