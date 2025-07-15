@@ -31,7 +31,7 @@ const Footer = () => {
             <h3 className="text-lg font-semibold mb-4 text-gray-300">Courses for Everyone</h3>
             <ul className="space-y-3">
               <li>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                <a href="/law-firm-training" className="text-gray-400 hover:text-white transition-colors">
                   Law Firms
                 </a>
               </li>

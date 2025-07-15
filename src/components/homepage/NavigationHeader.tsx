@@ -34,7 +34,7 @@ const NavigationHeader = () => {
               <a href="#home" className="text-gray-900 hover:text-blue-600 px-3 py-2 text-sm font-medium">
                 Home
               </a>
-              <a href="#law-firms" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">
+              <a href="/law-firm-training" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">
                 Law Firms
               </a>
               <a href="/law-firm-staff-training" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">
