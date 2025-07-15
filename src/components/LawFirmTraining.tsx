@@ -1,5 +1,5 @@
 import SimpleNavigationHeader from "./homepage/SimpleNavigationHeader";
-import HeroSection from "./homepage/HeroSection";
+import LawFirmHeroSection from "./homepage/LawFirmHeroSection";
 import ServicesSection from "./homepage/ServicesSection";
 import BenefitsSection from "./homepage/BenefitsSection";
 import AboutSection from "./homepage/AboutSection";
@@ -15,7 +15,7 @@ const LawFirmTraining = () => {
   return (
     <div className="min-h-screen">
       <SimpleNavigationHeader />
-      <HeroSection />
+      <LawFirmHeroSection />
 
       {/* Services Section */}
       <section className="bg-white py-20">
