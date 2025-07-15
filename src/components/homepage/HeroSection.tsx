@@ -12,8 +12,9 @@ const HeroSection = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-start" style={{ minHeight: 'calc(80vh - 400px)' }}>
           {/* Left Side - Content */}
           <div className="text-white">
-            <h1 className="text-5xl md:text-6xl font-bold mb-8 leading-tight whitespace-nowrap">
-              Immigration Law Firm Training
+            <h1 className="text-5xl md:text-6xl font-bold mb-8 leading-tight">
+              <span className="block">Immigration Law</span>
+              <span className="block">Firm Training</span>
             </h1>
             
             {/* Category Cards - Single row with Legal Training */}
