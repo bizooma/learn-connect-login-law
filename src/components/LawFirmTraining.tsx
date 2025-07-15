@@ -17,9 +17,6 @@ const LawFirmTraining = () => {
       <SimpleNavigationHeader />
       <LawFirmHeroSection />
 
-      {/* Hillary Section */}
-      <HillarySection />
-
       {/* Trusted Brands Section */}
       <TrustedBrandsSection />
 
