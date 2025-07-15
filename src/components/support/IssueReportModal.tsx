@@ -177,6 +177,18 @@ const IssueReportModal = ({ open, onOpenChange }: IssueReportModalProps) => {
       return;
     }
 
+    // Validate email domain - prevent test domains that Resend blocks
+    const testDomains = ['test.com', 'example.com', 'example.org', 'domain.com'];
+    const emailDomain = formData.email.split('@')[1]?.toLowerCase();
+    if (emailDomain && testDomains.includes(emailDomain)) {
+      toast({
+        title: "Invalid Email Domain",
+        description: "Please use a real email address. Test domains like 'test.com' are not supported.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
