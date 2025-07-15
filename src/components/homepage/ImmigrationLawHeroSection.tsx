@@ -7,14 +7,14 @@ const ImmigrationLawHeroSection = () => {
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat',
-        minHeight: 'calc(100vh - 300px)'
+        minHeight: 'calc(100vh - 500px)'
       }}
     >
       {/* Dark overlay for better text readability */}
       <div className="absolute inset-0 bg-black/50"></div>
       
       <div className="relative z-10 max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-12 md:py-20">
-        <div className="flex items-center justify-center min-h-[50vh] md:min-h-[60vh]">
+        <div className="flex items-center justify-center" style={{ minHeight: 'calc(80vh - 400px)' }}>
           {/* Center Content */}
           <div className="text-white text-center max-w-xs sm:max-w-sm md:max-w-2xl lg:max-w-4xl mx-auto px-4">
             <h1 className="text-5xl md:text-6xl font-bold mb-8 leading-tight">
