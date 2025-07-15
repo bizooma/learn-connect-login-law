@@ -1,5 +1,5 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import AdminNavigationDropdown from "./AdminNavigationDropdown";
 import CourseManagement from "./CourseManagement";
 import UserManagementTabs from "./user-management/UserManagementTabs";
@@ -16,8 +16,28 @@ import CompletionMonitoringDashboard from "./CompletionMonitoringDashboard";
 import BadgeManagement from "./BadgeManagement";
 import CertificateTemplateManagement from "./CertificateTemplateManagement";
 
-const AdminManagementTabs = () => {
-  const [activeTab, setActiveTab] = useState("courses");
+interface AdminManagementTabsProps {
+  activeTab?: string;
+  onTabChange?: (tab: string) => void;
+  quizId?: string | null;
+}
+
+const AdminManagementTabs = ({ 
+  activeTab: initialActiveTab = "courses", 
+  onTabChange,
+  quizId 
+}: AdminManagementTabsProps) => {
+  const [activeTab, setActiveTab] = useState(initialActiveTab);
+
+  // Update internal tab when prop changes
+  useEffect(() => {
+    setActiveTab(initialActiveTab);
+  }, [initialActiveTab]);
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    onTabChange?.(tab);
+  };
 
   const renderContent = () => {
     switch (activeTab) {
@@ -42,7 +62,7 @@ const AdminManagementTabs = () => {
       case "certificates":
         return <CertificateTemplateManagement />;
       case "quizzes":
-        return <QuizManagement />;
+        return <QuizManagement quizId={quizId} />;
       case "notifications":
         return <NotificationManagement />;
       case "events":
@@ -58,7 +78,7 @@ const AdminManagementTabs = () => {
     <div className="space-y-6">
       <AdminNavigationDropdown 
         activeTab={activeTab} 
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
       />
       
       <div className="space-y-4">

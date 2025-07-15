@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import AdminDashboardHeader from "./admin/AdminDashboardHeader";
 import AdminStatsCards from "./admin/AdminStatsCards";
@@ -14,7 +15,22 @@ import { useAuth } from "@/hooks/useAuth";
 import { logger } from "@/utils/logger";
 
 const AdminDashboard = () => {
-  const [activeTab, setActiveTab] = useState("courses");
+  const [searchParams] = useSearchParams();
+  const urlTab = searchParams.get('tab');
+  const quizId = searchParams.get('quizId');
+  
+  // Map URL tab names to internal tab names
+  const getInternalTab = (urlTab: string | null) => {
+    if (!urlTab) return "courses";
+    switch (urlTab) {
+      case "quiz-questions":
+        return "quizzes";
+      default:
+        return urlTab;
+    }
+  };
+  
+  const [activeTab, setActiveTab] = useState(getInternalTab(urlTab));
   const { user } = useAuth();
   const {
     showWelcome,
@@ -100,7 +116,11 @@ const AdminDashboard = () => {
             <RecentActivity />
           </div>
           
-          <AdminManagementTabs />
+          <AdminManagementTabs 
+            activeTab={activeTab} 
+            onTabChange={setActiveTab}
+            quizId={quizId}
+          />
         </div>
       </div>
       <LMSTreeFooter />

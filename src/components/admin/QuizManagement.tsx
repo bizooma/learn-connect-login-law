@@ -8,10 +8,18 @@ import QuizManagementHeader from "./quiz-management/QuizManagementHeader";
 import QuizBrowseTab from "./quiz-management/QuizBrowseTab";
 import QuizManagementLoading from "./quiz-management/QuizManagementLoading";
 import DeletedQuizzesTab from "./quiz-management/DeletedQuizzesTab";
+import QuestionManagement from "./quiz-management/QuestionManagement";
 import { useQuizManagement } from "./quiz-management/useQuizManagement";
 import { useQuizImportManager } from "./quiz-management/QuizImportManager";
+import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
-const QuizManagement = () => {
+interface QuizManagementProps {
+  quizId?: string | null;
+}
+
+const QuizManagement = ({ quizId }: QuizManagementProps) => {
+  const navigate = useNavigate();
   const {
     searchTerm,
     setSearchTerm,
@@ -43,6 +51,14 @@ const QuizManagement = () => {
     setImportedQuizData,
     setActiveTab
   });
+
+  // If quizId is provided, show the question management component
+  if (quizId && quizzes) {
+    const quiz = quizzes.find(q => q.id === quizId);
+    if (quiz) {
+      return <QuestionManagement quizId={quizId} quizTitle={quiz.title} />;
+    }
+  }
 
   if (isLoading) {
     return <QuizManagementLoading />;
