@@ -13,11 +13,11 @@ const ImmigrationLawHeroSection = () => {
       {/* Dark overlay for better text readability */}
       <div className="absolute inset-0 bg-black/50"></div>
       
-      <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 md:py-20">
+      <div className="relative z-10 max-w-7xl mx-auto px-2 sm:px-4 lg:px-8 py-12 md:py-20">
         <div className="flex items-center justify-center min-h-[50vh] md:min-h-[60vh]">
           {/* Center Content */}
-          <div className="text-white text-center">
-            <h1 className="text-xl sm:text-2xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-8 leading-tight px-2 sm:px-4">
+          <div className="text-white text-center max-w-4xl mx-auto">
+            <h1 className="text-lg xs:text-xl sm:text-2xl md:text-5xl lg:text-6xl font-bold mb-4 md:mb-8 leading-relaxed whitespace-normal break-words px-1 sm:px-2">
               Immigration Law Training
             </h1>
           </div>
