@@ -28,11 +28,10 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
         *,
         lessons:lessons(
           *,
-          units:units!units_section_id_fkey(*)
+          units:units(*)
         )
       `)
       .eq('course_id', courseId)
-      .eq('units.is_draft', false)
       .order('sort_order', { ascending: true });
 
     if (modulesError) {
@@ -120,7 +119,9 @@ const fetchExistingModules = async (courseId: string): Promise<ModuleData[]> => 
         file_name: lesson.file_name || '',
         file_size: lesson.file_size || 0,
         sort_order: lesson.sort_order !== null && lesson.sort_order !== undefined ? lesson.sort_order : lessonIndex,
-        units: lesson.units?.map((unit, unitIndex) => {
+        units: lesson.units
+          ?.filter(unit => !unit.is_draft) // Filter out draft units in JavaScript
+          ?.map((unit, unitIndex) => {
           const files = parseFilesFromDatabase(unit.files);
           
           console.log('Unit files parsed in edit form:', unit.title, 'Files:', files);
