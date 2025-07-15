@@ -40,7 +40,7 @@ const NavigationHeader = () => {
               <a href="#staff-training" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">
                 Staff Training
               </a>
-              <a href="#immigration-law" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">
+              <a href="/immigration-law-training" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">
                 Immigration Law
               </a>
               <a href="#podcast" className="text-gray-700 hover:text-blue-600 px-3 py-2 text-sm font-medium">

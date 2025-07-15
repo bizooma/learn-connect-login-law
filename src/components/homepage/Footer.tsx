@@ -41,7 +41,7 @@ const Footer = () => {
                 </a>
               </li>
               <li>
-                <a href="#" className="text-gray-400 hover:text-white transition-colors">
+                <a href="/immigration-law-training" className="text-gray-400 hover:text-white transition-colors">
                   Immigration Law
                 </a>
               </li>
