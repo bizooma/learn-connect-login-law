@@ -18,7 +18,7 @@ const ImmigrationLawHeroSection = () => {
           {/* Center Content */}
           <div className="text-white text-center">
             <h1 className="text-5xl md:text-6xl font-bold mb-8 leading-tight">
-              Immigration Law Firm Staff Training
+              Immigration Law Training
             </h1>
           </div>
         </div>
