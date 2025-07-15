@@ -68,6 +68,9 @@ const TrustedBrandsSection = () => {
           <h2 className="text-4xl md:text-5xl font-bold text-gray-700 mb-4">
             Immigration Law Firm Owners
           </h2>
+          <p className="text-lg text-gray-600 max-w-4xl mx-auto leading-relaxed">
+            New Frontier University's training courses are expertly designed to streamline the onboarding process and elevate employee training for law firms. Our curriculum combines industry-leading best practices with engaging, interactive content that addresses the unique challenges of the legal environment. Developed by experienced legal professionals, our courses provide comprehensive insights into essential areas such as regulatory compliance, legal procedures, and effective communication, ensuring that new hires quickly gain the skills and confidence needed to excel.
+          </p>
         </div>
 
       </div>
