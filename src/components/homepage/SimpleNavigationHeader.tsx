@@ -35,7 +35,7 @@ const SimpleNavigationHeader = () => {
               <a href="#immigration-law" className="text-gray-300 hover:text-blue-400 px-3 py-2 text-sm font-medium">
                 Immigration Law
               </a>
-              <a href="#podcast" className="text-gray-300 hover:text-blue-400 px-3 py-2 text-sm font-medium">
+              <a href="https://rss.com/podcasts/letsgetrich/1710197/" target="_blank" rel="noopener noreferrer" className="text-gray-300 hover:text-blue-400 px-3 py-2 text-sm font-medium">
                 Podcast
               </a>
             </div>
