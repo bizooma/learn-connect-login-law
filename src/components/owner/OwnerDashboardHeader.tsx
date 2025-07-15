@@ -1,7 +1,6 @@
 
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, Building2, LogOut } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { Building2, LogOut } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { Tables } from "@/integrations/supabase/types";
 
@@ -12,7 +11,6 @@ interface OwnerDashboardHeaderProps {
 }
 
 const OwnerDashboardHeader = ({ lawFirm }: OwnerDashboardHeaderProps) => {
-  const navigate = useNavigate();
   const { signOut } = useAuth();
 
   return (
@@ -22,14 +20,6 @@ const OwnerDashboardHeader = ({ lawFirm }: OwnerDashboardHeaderProps) => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/")}
-                className="text-white hover:bg-white/10"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
               <a 
                 href="https://newfrontieruniversity.com" 
                 target="_blank" 
