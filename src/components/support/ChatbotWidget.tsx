@@ -22,18 +22,18 @@ const ChatbotWidget = () => {
       {!isOpen && (
         <Button
           onClick={() => setIsOpen(true)}
-          className="fixed bottom-6 right-6 h-12 w-12 rounded-full bg-yellow-400 text-black shadow-lg hover:bg-yellow-500 z-50"
+          className="fixed bottom-6 right-6 h-24 w-24 rounded-full bg-yellow-400 text-black shadow-lg hover:bg-yellow-500 z-50"
           size="sm"
         >
-          <MessageCircle className="h-6 w-6" />
+          <MessageCircle className="h-12 w-12" />
         </Button>
       )}
 
       {/* Chat window */}
       {isOpen && (
         <div className={`fixed bottom-6 right-6 z-50 transition-all duration-300 ${
-          isMinimized ? 'h-14' : 'h-96'
-        } w-80`}>
+          isMinimized ? 'h-28' : 'h-[48rem]'
+        } w-[40rem]`}>
           <div className="bg-background border border-border rounded-lg shadow-2xl h-full flex flex-col">
             {/* Header */}
             <div className="bg-yellow-400 text-black p-3 rounded-t-lg flex items-center justify-between">
