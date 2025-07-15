@@ -17,19 +17,6 @@ const LawFirmTraining = () => {
       <SimpleNavigationHeader />
       <LawFirmHeroSection />
 
-      {/* Services Section */}
-      <section className="bg-white py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <ServicesSection />
-
-          {/* Divider Line */}
-          <div className="border-t border-gray-300 mb-16"></div>
-
-          <BenefitsSection />
-          <AboutSection />
-        </div>
-      </section>
-
       {/* Hillary Section */}
       <HillarySection />
 
