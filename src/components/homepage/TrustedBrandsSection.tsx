@@ -70,31 +70,6 @@ const TrustedBrandsSection = () => {
           </h2>
         </div>
 
-        <div className="relative">
-          <Carousel
-            opts={{
-              align: "start",
-              loop: true,
-            }}
-            className="w-full max-w-5xl mx-auto"
-          >
-            <CarouselContent className="-ml-2 md:-ml-4">
-              {brands.map((brand, index) => (
-                <CarouselItem key={index} className="pl-2 md:pl-4 md:basis-1/3 lg:basis-1/4">
-                  <div className="bg-white p-8 rounded-lg shadow-sm border border-gray-200 h-32 flex items-center justify-center">
-                    <img
-                      src={brand.logo}
-                      alt={brand.alt}
-                      className="max-w-full max-h-16 object-contain grayscale hover:grayscale-0 transition-all duration-300"
-                    />
-                  </div>
-                </CarouselItem>
-              ))}
-            </CarouselContent>
-            <CarouselPrevious className="left-4" />
-            <CarouselNext className="right-4" />
-          </Carousel>
-        </div>
       </div>
     </section>
   );
