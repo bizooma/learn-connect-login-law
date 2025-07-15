@@ -1,10 +1,11 @@
 
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Plus, Edit, Trash2 } from "lucide-react";
+import { Plus, Edit, Trash2, ArrowLeft } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import CreateQuestionForm from "./CreateQuestionForm";
 import EditQuestionForm from "./EditQuestionForm";
@@ -28,6 +29,11 @@ const QuestionManagement = ({ quizId, quizTitle }: QuestionManagementProps) => {
   const [editFormOpen, setEditFormOpen] = useState(false);
   const [selectedQuestion, setSelectedQuestion] = useState<QuestionWithOptions | null>(null);
   const { toast } = useToast();
+  const navigate = useNavigate();
+
+  const handleBackToQuizzes = () => {
+    navigate('/admin?tab=quizzes');
+  };
 
   useEffect(() => {
     fetchQuestions();
@@ -168,9 +174,19 @@ const QuestionManagement = ({ quizId, quizTitle }: QuestionManagementProps) => {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">Questions for "{quizTitle}"</h3>
-          <p className="text-sm text-gray-600">{questions.length} questions</p>
+        <div className="flex items-center space-x-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleBackToQuizzes}
+            className="p-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+          <div>
+            <h3 className="text-lg font-semibold">Questions for "{quizTitle}"</h3>
+            <p className="text-sm text-muted-foreground">{questions.length} questions</p>
+          </div>
         </div>
         <Button onClick={handleCreateFormOpen}>
           <Plus className="h-4 w-4 mr-2" />
