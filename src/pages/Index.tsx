@@ -17,6 +17,13 @@ const Index = () => {
   const lastUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
+    // CRITICAL FIX: Only handle routing if we're actually on the index route
+    // This prevents interference with users who are directly accessing dashboard routes
+    if (location.pathname !== '/' && location.pathname !== '/index') {
+      console.log('Not on index route, skipping redirect logic:', location.pathname);
+      return;
+    }
+
     // Track user changes to detect fresh logins
     const currentUserId = user?.id || null;
     const userChanged = currentUserId !== lastUserIdRef.current;
@@ -27,30 +34,16 @@ const Index = () => {
       console.log('User changed:', { from: lastUserIdRef.current, to: currentUserId });
     }
 
-    // CRITICAL: Don't redirect users away from protected routes during auth loading
-    // This prevents the refresh redirect issue where students get sent back to homepage
-    const isOnProtectedRoute = location.pathname.includes('-dashboard');
-    
     // Wait for both auth and role loading to complete before making decisions
     if (authLoading || roleLoading) {
       console.log('Still loading:', { authLoading, roleLoading, userId: user?.id, currentPath: location.pathname });
-      
-      // If we're on a protected route and have a user, don't navigate away during loading
-      if (isOnProtectedRoute && user) {
-        console.log('Staying on protected route during auth loading');
-        return;
-      }
       return;
     }
 
-    // If no user after loading is complete, only redirect if not on a protected route already
+    // If no user after loading is complete, stay on homepage for auth
     if (!user) {
       hasRedirected.current = false;
       console.log('No user, staying on auth page');
-      // Only navigate to home if we're not already there and not on a protected route
-      if (location.pathname !== '/' && !isOnProtectedRoute) {
-        navigate('/', { replace: true });
-      }
       return;
     }
 
@@ -60,7 +53,7 @@ const Index = () => {
       return;
     }
 
-    // Check if user is already on the correct dashboard route
+    // Get the correct dashboard route for this user
     const getUserDashboardRoute = () => {
       if (isAdmin) return '/admin-dashboard';
       if (isOwner) return '/owner-dashboard';
@@ -73,16 +66,9 @@ const Index = () => {
 
     const correctRoute = getUserDashboardRoute();
     
-    // If user is already on their correct dashboard, don't redirect
-    if (location.pathname === correctRoute) {
-      console.log('User already on correct dashboard:', correctRoute);
-      hasRedirected.current = true;
-      return;
-    }
-
-    // Add session validation before redirecting
-    if (user && !authLoading && !roleLoading && location.pathname === '/') {
-      console.log('Ready to redirect:', { 
+    // Only redirect if we have a user and we're on the homepage
+    if (user && !authLoading && !roleLoading) {
+      console.log('Ready to redirect from homepage:', { 
         userId: user.id, 
         isAdmin, isOwner, isTeamLeader, isStudent, isClient, isFree,
         currentPath: location.pathname,
@@ -90,7 +76,6 @@ const Index = () => {
       });
       
       try {
-        // Only redirect if we're on the homepage (not if they're already on a dashboard)
         console.log(`Redirecting to ${correctRoute}`);
         hasRedirected.current = true;
         navigate(correctRoute, { replace: true });
