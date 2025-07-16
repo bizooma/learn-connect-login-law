@@ -89,30 +89,7 @@ const CategoryLeaderboard = ({ category }: CategoryLeaderboardProps) => {
     fetchCategoryLeaderboard();
   }, [fetchCategoryLeaderboard]);
 
-
-  if (loading) {
-    return (
-      <div className="space-y-4">
-        {[...Array(5)].map((_, i) => (
-          <div key={i} className="animate-pulse">
-            <div className="h-16 bg-gray-200 rounded-lg"></div>
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  if (entries.length === 0) {
-    return (
-      <div className="text-center py-8">
-        <div className="text-gray-500 text-lg">No {category.toLowerCase()} leaders yet!</div>
-        <p className="text-gray-400 mt-2">
-          Complete {category.toLowerCase()} courses to compete for the top spots.
-        </p>
-      </div>
-    );
-  }
-
+  // CRITICAL: All hooks must be called before any conditional rendering
   // Memoize the rendered leaderboard cards to prevent unnecessary re-renders
   const leaderboardCards = useMemo(() => {
     console.log(`Rendering ${category} leaderboard with ${entries.length} entries`);
@@ -136,6 +113,30 @@ const CategoryLeaderboard = ({ category }: CategoryLeaderboardProps) => {
       />
     ));
   }, [entries, category]);
+
+  // Now we can do conditional rendering AFTER all hooks are called
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        {[...Array(5)].map((_, i) => (
+          <div key={i} className="animate-pulse">
+            <div className="h-16 bg-gray-200 rounded-lg"></div>
+          </div>
+        ))}
+      </div>
+    );
+  }
+
+  if (entries.length === 0) {
+    return (
+      <div className="text-center py-8">
+        <div className="text-gray-500 text-lg">No {category.toLowerCase()} leaders yet!</div>
+        <p className="text-gray-400 mt-2">
+          Complete {category.toLowerCase()} courses to compete for the top spots.
+        </p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
