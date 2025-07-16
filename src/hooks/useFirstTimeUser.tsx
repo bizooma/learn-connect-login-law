@@ -1,9 +1,12 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { toast } from '@/hooks/use-toast';
 
 export const useFirstTimeUser = () => {
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const [isFirstTime, setIsFirstTime] = useState(false);
   const [showWelcome, setShowWelcome] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -54,9 +57,19 @@ export const useFirstTimeUser = () => {
 
   const triggerDemo = () => {
     console.log('useFirstTimeUser: triggerDemo called');
-    setShowConfetti(true);
-    setShowWelcome(true);
-    setIsFirstTime(true); // Set this to true to ensure proper state
+    
+    if (isMobile) {
+      // On mobile, show a toast notification instead of the popup
+      toast({
+        title: "Welcome! 🎉",
+        description: "Thanks for trying the demo! Explore the dashboard features.",
+      });
+    } else {
+      // On desktop, show the full welcome experience
+      setShowConfetti(true);
+      setShowWelcome(true);
+      setIsFirstTime(true); // Set this to true to ensure proper state
+    }
   };
 
   return {
