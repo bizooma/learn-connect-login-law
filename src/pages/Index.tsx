@@ -24,64 +24,80 @@ const Index = () => {
     if (userChanged) {
       hasRedirected.current = false;
       lastUserIdRef.current = currentUserId;
+      console.log('User changed:', { from: lastUserIdRef.current, to: currentUserId });
     }
 
     // Wait for both auth and role loading to complete before making decisions
     if (authLoading || roleLoading) {
+      console.log('Still loading:', { authLoading, roleLoading, userId: user?.id });
       return;
     }
 
     // If no user after loading is complete, ensure we stay on auth page
     if (!user) {
       hasRedirected.current = false;
+      console.log('No user, staying on auth page');
       return;
     }
 
     // Prevent multiple redirects for the same user session
     if (hasRedirected.current && !userChanged) {
+      console.log('Already redirected for this user session');
       return;
     }
 
-    // Only redirect authenticated users with confirmed roles
+    // Add session validation before redirecting
     if (user && !authLoading && !roleLoading) {
+      console.log('Ready to redirect:', { 
+        userId: user.id, 
+        isAdmin, isOwner, isTeamLeader, isStudent, isClient, isFree 
+      });
+      
       try {
         // Redirect admins to their dedicated dashboard (highest priority)
         if (isAdmin) {
+          console.log('Redirecting admin to dashboard');
           hasRedirected.current = true;
           navigate("/admin-dashboard", { replace: true });
           return;
         }
         // Redirect owners to their dedicated dashboard
         if (isOwner) {
+          console.log('Redirecting owner to dashboard');
           hasRedirected.current = true;
           navigate("/owner-dashboard", { replace: true });
           return;
         }
         // Redirect team leaders to their dedicated dashboard
         if (isTeamLeader) {
+          console.log('Redirecting team leader to dashboard');
           hasRedirected.current = true;
           navigate("/team-leader-dashboard", { replace: true });
           return;
         }
         // Redirect students to their dedicated dashboard
         if (isStudent) {
+          console.log('Redirecting student to dashboard');
           hasRedirected.current = true;
           navigate("/student-dashboard", { replace: true });
           return;
         }
         // Redirect clients to their dedicated dashboard
         if (isClient) {
+          console.log('Redirecting client to dashboard');
           hasRedirected.current = true;
           navigate("/client-dashboard", { replace: true });
           return;
         }
         // Redirect free users to their dedicated dashboard
         if (isFree) {
+          console.log('Redirecting free user to dashboard');
           hasRedirected.current = true;
           navigate("/free-dashboard", { replace: true });
           return;
         }
         // Fallback: if no specific role determined, redirect to general dashboard
+        console.log('Redirecting to general dashboard as fallback');
         hasRedirected.current = true;
         navigate("/dashboard", { replace: true });
       } catch (error) {

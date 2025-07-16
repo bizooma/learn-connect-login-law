@@ -42,16 +42,50 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       if (!mounted) return;
       
       try {
+        logger.info(`Auth state change: ${event}`, { 
+          hasSession: !!session, 
+          userId: session?.user?.id,
+          expiresAt: session?.expires_at 
+        });
+
         if (event === 'SIGNED_OUT' || !session) {
           setSession(null);
           setUser(null);
         } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-          setSession(session);
-          setUser(session?.user ?? null);
-          
+          // Additional validation for session stability
+          if (session && session.expires_at * 1000 > Date.now() + 30000) { // 30 second buffer
+            setSession(session);
+            setUser(session?.user ?? null);
+            logger.info('Session established successfully', { userId: session.user?.id });
+          } else {
+            logger.warn('Received session is expired or expires too soon', { 
+              expiresAt: session?.expires_at, 
+              now: Date.now() / 1000 
+            });
+            // Don't set an expired session - try to refresh instead
+            if (session) {
+              supabase.auth.refreshSession().then(({ data, error }) => {
+                if (!error && data.session && mounted) {
+                  setSession(data.session);
+                  setUser(data.session.user);
+                } else {
+                  logger.error('Failed to refresh expired session', error);
+                  setSession(null);
+                  setUser(null);
+                }
+              });
+            }
+          }
         } else {
-          setSession(session);
-          setUser(session?.user ?? null);
+          // Validate any other session before setting
+          if (session && session.expires_at * 1000 > Date.now() + 30000) {
+            setSession(session);
+            setUser(session?.user ?? null);
+          } else {
+            logger.warn('Session validation failed for event', { event, expiresAt: session?.expires_at });
+            setSession(null);
+            setUser(null);
+          }
         }
         
         if (initializationComplete) {
@@ -69,31 +103,75 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     const initializeAuth = async () => {
       try {
-        const { data: { session }, error } = await supabase.auth.getSession();
+        logger.info('Initializing auth...');
+        
+        // Add retry mechanism for rate limit issues
+        let retryCount = 0;
+        const maxRetries = 3;
+        let session = null;
+        let error = null;
+
+        while (retryCount < maxRetries) {
+          const response = await supabase.auth.getSession();
+          session = response.data?.session;
+          error = response.error;
+
+          if (!error) break;
+          
+          // If rate limited, wait and retry
+          if (error.message?.includes('rate limit') || error.message?.includes('429')) {
+            retryCount++;
+            logger.warn(`Rate limit hit, retrying ${retryCount}/${maxRetries}`, error);
+            await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+          } else {
+            break;
+          }
+        }
         
         if (!mounted) return;
         
         if (error) {
-          logger.error('Auth session error:', error);
+          logger.error('Auth session error after retries:', error);
           try {
-            await supabase.auth.refreshSession();
+            // Only try refresh if not rate limited
+            if (!error.message?.includes('rate limit') && !error.message?.includes('429')) {
+              const refreshResponse = await supabase.auth.refreshSession();
+              if (!refreshResponse.error && refreshResponse.data.session) {
+                session = refreshResponse.data.session;
+                error = null;
+              }
+            }
           } catch (recoveryError) {
             logger.error('Auth recovery failed:', recoveryError);
             setSession(null);
             setUser(null);
           }
-        } else {
-          // Validate session is not expired
-          if (session && session.expires_at * 1000 > Date.now()) {
+        }
+
+        if (!error && session) {
+          // Validate session with buffer time (5 minutes)
+          const bufferTime = 5 * 60 * 1000; // 5 minutes in milliseconds
+          const sessionExpiry = session.expires_at * 1000;
+          const now = Date.now();
+          
+          if (sessionExpiry > now + bufferTime) {
             setSession(session);
             setUser(session?.user ?? null);
-          } else if (session) {
+            logger.info('Valid session found', { 
+              userId: session.user?.id, 
+              expiresIn: Math.round((sessionExpiry - now) / 1000 / 60) + ' minutes'
+            });
+          } else if (sessionExpiry > now) {
+            // Session expires soon, try to refresh
+            logger.info('Session expires soon, attempting refresh');
             try {
               const { data: { session: refreshedSession }, error: refreshError } = await supabase.auth.refreshSession();
               if (!refreshError && refreshedSession) {
                 setSession(refreshedSession);
                 setUser(refreshedSession.user);
+                logger.info('Session refreshed successfully');
               } else {
+                logger.warn('Session refresh failed', refreshError);
                 setSession(null);
                 setUser(null);
               }
@@ -103,9 +181,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
               setUser(null);
             }
           } else {
+            logger.warn('Session already expired, clearing');
             setSession(null);
             setUser(null);
           }
+        } else {
+          setSession(null);
+          setUser(null);
         }
       } catch (error) {
         if (!mounted) return;
@@ -118,6 +200,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           initializationComplete = true;
           setIsInitialized(true);
           setLoading(false);
+          logger.info('Auth initialization complete');
         }
       }
     };
