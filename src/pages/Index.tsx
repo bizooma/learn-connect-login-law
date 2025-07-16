@@ -27,16 +27,30 @@ const Index = () => {
       console.log('User changed:', { from: lastUserIdRef.current, to: currentUserId });
     }
 
+    // CRITICAL: Don't redirect users away from protected routes during auth loading
+    // This prevents the refresh redirect issue where students get sent back to homepage
+    const isOnProtectedRoute = location.pathname.includes('-dashboard');
+    
     // Wait for both auth and role loading to complete before making decisions
     if (authLoading || roleLoading) {
-      console.log('Still loading:', { authLoading, roleLoading, userId: user?.id });
+      console.log('Still loading:', { authLoading, roleLoading, userId: user?.id, currentPath: location.pathname });
+      
+      // If we're on a protected route and have a user, don't navigate away during loading
+      if (isOnProtectedRoute && user) {
+        console.log('Staying on protected route during auth loading');
+        return;
+      }
       return;
     }
 
-    // If no user after loading is complete, ensure we stay on auth page
+    // If no user after loading is complete, only redirect if not on a protected route already
     if (!user) {
       hasRedirected.current = false;
       console.log('No user, staying on auth page');
+      // Only navigate to home if we're not already there and not on a protected route
+      if (location.pathname !== '/' && !isOnProtectedRoute) {
+        navigate('/', { replace: true });
+      }
       return;
     }
 
@@ -46,60 +60,40 @@ const Index = () => {
       return;
     }
 
+    // Check if user is already on the correct dashboard route
+    const getUserDashboardRoute = () => {
+      if (isAdmin) return '/admin-dashboard';
+      if (isOwner) return '/owner-dashboard';
+      if (isTeamLeader) return '/team-leader-dashboard';
+      if (isStudent) return '/student-dashboard';
+      if (isClient) return '/client-dashboard';
+      if (isFree) return '/free-dashboard';
+      return '/dashboard';
+    };
+
+    const correctRoute = getUserDashboardRoute();
+    
+    // If user is already on their correct dashboard, don't redirect
+    if (location.pathname === correctRoute) {
+      console.log('User already on correct dashboard:', correctRoute);
+      hasRedirected.current = true;
+      return;
+    }
+
     // Add session validation before redirecting
-    if (user && !authLoading && !roleLoading) {
+    if (user && !authLoading && !roleLoading && location.pathname === '/') {
       console.log('Ready to redirect:', { 
         userId: user.id, 
-        isAdmin, isOwner, isTeamLeader, isStudent, isClient, isFree 
+        isAdmin, isOwner, isTeamLeader, isStudent, isClient, isFree,
+        currentPath: location.pathname,
+        targetRoute: correctRoute
       });
       
       try {
-        // Redirect admins to their dedicated dashboard (highest priority)
-        if (isAdmin) {
-          console.log('Redirecting admin to dashboard');
-          hasRedirected.current = true;
-          navigate("/admin-dashboard", { replace: true });
-          return;
-        }
-        // Redirect owners to their dedicated dashboard
-        if (isOwner) {
-          console.log('Redirecting owner to dashboard');
-          hasRedirected.current = true;
-          navigate("/owner-dashboard", { replace: true });
-          return;
-        }
-        // Redirect team leaders to their dedicated dashboard
-        if (isTeamLeader) {
-          console.log('Redirecting team leader to dashboard');
-          hasRedirected.current = true;
-          navigate("/team-leader-dashboard", { replace: true });
-          return;
-        }
-        // Redirect students to their dedicated dashboard
-        if (isStudent) {
-          console.log('Redirecting student to dashboard');
-          hasRedirected.current = true;
-          navigate("/student-dashboard", { replace: true });
-          return;
-        }
-        // Redirect clients to their dedicated dashboard
-        if (isClient) {
-          console.log('Redirecting client to dashboard');
-          hasRedirected.current = true;
-          navigate("/client-dashboard", { replace: true });
-          return;
-        }
-        // Redirect free users to their dedicated dashboard
-        if (isFree) {
-          console.log('Redirecting free user to dashboard');
-          hasRedirected.current = true;
-          navigate("/free-dashboard", { replace: true });
-          return;
-        }
-        // Fallback: if no specific role determined, redirect to general dashboard
-        console.log('Redirecting to general dashboard as fallback');
+        // Only redirect if we're on the homepage (not if they're already on a dashboard)
+        console.log(`Redirecting to ${correctRoute}`);
         hasRedirected.current = true;
-        navigate("/dashboard", { replace: true });
+        navigate(correctRoute, { replace: true });
       } catch (error) {
         console.error('Navigation error:', error);
         hasRedirected.current = false;

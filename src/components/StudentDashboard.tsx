@@ -51,9 +51,16 @@ const StudentDashboard = () => {
       userEmail: user?.email
     });
 
-    // If no user, redirect immediately
+    // CRITICAL: Don't redirect immediately on page refresh when session might still be loading
+    // Wait for role loading to complete before making redirect decisions
+    if (roleLoading) {
+      logger.debug('StudentDashboard: Role still loading, waiting...');
+      return;
+    }
+
+    // If no user after role loading is complete, redirect to auth
     if (!user) {
-      logger.debug('StudentDashboard: No user found, redirecting to home');
+      logger.debug('StudentDashboard: No user found after role loading complete, redirecting to home');
       navigate("/", { replace: true });
       return;
     }
@@ -63,6 +70,11 @@ const StudentDashboard = () => {
       logger.debug('StudentDashboard: User is not a student, redirecting to main dashboard');
       navigate("/", { replace: true });
       return;
+    }
+
+    // If we have a user and they are a student, stay on dashboard
+    if (user && isStudent) {
+      logger.debug('StudentDashboard: Valid student user, staying on dashboard');
     }
   }, [isStudent, roleLoading, user, navigate]);
 

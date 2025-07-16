@@ -32,6 +32,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isSessionRestored, setIsSessionRestored] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -53,9 +54,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setUser(null);
         } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           // Additional validation for session stability
-          if (session && session.expires_at * 1000 > Date.now() + 30000) { // 30 second buffer
+        if (session && session.expires_at * 1000 > Date.now() + 30000) { // 30 second buffer
             setSession(session);
             setUser(session?.user ?? null);
+            setIsSessionRestored(true);
             logger.info('Session established successfully', { userId: session.user?.id });
           } else {
             logger.warn('Received session is expired or expires too soon', { 
@@ -157,6 +159,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           if (sessionExpiry > now + bufferTime) {
             setSession(session);
             setUser(session?.user ?? null);
+            setIsSessionRestored(true);
             logger.info('Valid session found', { 
               userId: session.user?.id, 
               expiresIn: Math.round((sessionExpiry - now) / 1000 / 60) + ' minutes'
@@ -281,7 +284,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const actualLoading = loading || !isInitialized;
+  // More conservative loading state - only consider loaded when both auth is initialized AND session is properly restored
+  const actualLoading = loading || !isInitialized || (!isSessionRestored && !!session);
 
   return (
     <AuthContext.Provider value={{ user, session, loading: actualLoading, signOut }}>
