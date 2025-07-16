@@ -21,7 +21,7 @@ const Course = () => {
   const { course, selectedUnit, setSelectedUnit, loading, error, refreshCourse } = useCourse(courseId!);
   const { updateCourseProgress } = useUserProgress(user?.id);
 
-  // Function to check if user is assigned to course before creating progress
+  // Function to check if user is assigned to course and ensure progress exists without overwriting
   const checkCourseAssignment = async (courseId: string, userId: string) => {
     try {
       const { data: assignment } = await supabase
@@ -32,8 +32,27 @@ const Course = () => {
         .single();
 
       if (assignment) {
-        console.log('Course: User is assigned, updating progress');
-        updateCourseProgress(courseId, 'in_progress', 0);
+        console.log('Course: User is assigned, checking if progress record exists');
+        
+        // Check if progress record already exists
+        const { data: existingProgress } = await supabase
+          .from('user_course_progress')
+          .select('id, progress_percentage, status')
+          .eq('user_id', userId)
+          .eq('course_id', courseId)
+          .maybeSingle();
+
+        if (!existingProgress) {
+          console.log('Course: No progress record exists, creating initial progress');
+          // Only create initial progress if none exists - don't overwrite existing progress
+          updateCourseProgress(courseId, 'not_started', 0);
+        } else {
+          console.log('Course: Progress record already exists, preserving current values:', {
+            progress: existingProgress.progress_percentage,
+            status: existingProgress.status
+          });
+          // Don't overwrite existing progress - let it remain as calculated by bulk tool
+        }
       } else {
         console.log('Course: User not assigned to this course, no progress record created');
       }
