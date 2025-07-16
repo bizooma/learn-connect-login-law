@@ -41,10 +41,15 @@ const BadgeDisplay = ({ userId, showAll = false, className = "" }: BadgeDisplayP
         .eq('is_badge', true)
         .order('earned_at', { ascending: false });
 
-      if (error) throw error;
-      setBadges(data || []);
+      if (error) {
+        console.error('Error fetching badges:', error);
+        setBadges([]); // Set empty array on error to prevent render issues
+      } else {
+        setBadges(data || []);
+      }
     } catch (error) {
       console.error('Error fetching badges:', error);
+      setBadges([]); // Set empty array on error to prevent render issues
     } finally {
       setLoading(false);
     }

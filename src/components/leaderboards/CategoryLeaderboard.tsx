@@ -26,8 +26,10 @@ const CategoryLeaderboard = ({ category }: CategoryLeaderboardProps) => {
   const fetchCategoryLeaderboard = useCallback(async () => {
     try {
       setLoading(true);
+      console.log(`Fetching ${category} leaderboard...`);
       
       const leaderboardType = category.toLowerCase() + '_training';
+      console.log(`Looking for leaderboard type: ${leaderboardType}`);
       
       // First try to get from cache
       const { data: cachedData, error: cacheError } = await supabase
@@ -42,6 +44,7 @@ const CategoryLeaderboard = ({ category }: CategoryLeaderboardProps) => {
       }
 
       if (cachedData && cachedData.length > 0) {
+        console.log(`Found ${cachedData.length} cached entries for ${category}`);
         const formattedData = cachedData.map(entry => ({
           user_id: entry.user_id,
           user_name: entry.user_name,
@@ -53,6 +56,7 @@ const CategoryLeaderboard = ({ category }: CategoryLeaderboardProps) => {
         }));
         setEntries(formattedData);
       } else {
+        console.log(`No cached data, generating fresh ${category} leaderboard`);
         // If no cache, generate fresh data
         const { data: freshData, error: freshError } = await supabase
           .rpc('generate_category_leaderboard', { 
@@ -61,13 +65,16 @@ const CategoryLeaderboard = ({ category }: CategoryLeaderboardProps) => {
           });
 
         if (freshError) {
+          console.error('Error generating fresh leaderboard:', freshError);
           throw freshError;
         }
 
+        console.log(`Generated ${freshData?.length || 0} fresh entries for ${category}`);
         setEntries(freshData || []);
       }
     } catch (error) {
-      console.error('Error fetching category leaderboard:', error);
+      console.error(`Error fetching ${category} leaderboard:`, error);
+      setEntries([]); // Set empty array on error to show "no leaders" message
       toast({
         title: "Error",
         description: `Failed to load ${category} leaderboard`,
@@ -108,6 +115,7 @@ const CategoryLeaderboard = ({ category }: CategoryLeaderboardProps) => {
 
   // Memoize the rendered leaderboard cards to prevent unnecessary re-renders
   const leaderboardCards = useMemo(() => {
+    console.log(`Rendering ${category} leaderboard with ${entries.length} entries`);
     return entries.map((entry, index) => (
       <LeaderboardCard
         key={entry.user_id}
@@ -127,7 +135,7 @@ const CategoryLeaderboard = ({ category }: CategoryLeaderboardProps) => {
         userId={entry.user_id}
       />
     ));
-  }, [entries]);
+  }, [entries, category]);
 
   return (
     <div className="space-y-3">
