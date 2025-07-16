@@ -17,10 +17,19 @@ const Index = () => {
   const lastUserIdRef = useRef<string | null>(null);
 
   useEffect(() => {
+    console.log('Index: useEffect triggered', { 
+      pathname: location.pathname, 
+      authLoading, 
+      roleLoading, 
+      userId: user?.id,
+      isStudent,
+      hasRedirected: hasRedirected.current
+    });
+
     // CRITICAL FIX: Only handle routing if we're actually on the index route
     // This prevents interference with users who are directly accessing dashboard routes
     if (location.pathname !== '/' && location.pathname !== '/index') {
-      console.log('Not on index route, skipping redirect logic:', location.pathname);
+      console.log('Index: Not on index route, skipping redirect logic:', location.pathname);
       return;
     }
 
@@ -31,36 +40,38 @@ const Index = () => {
     if (userChanged) {
       hasRedirected.current = false;
       lastUserIdRef.current = currentUserId;
-      console.log('User changed:', { from: lastUserIdRef.current, to: currentUserId });
+      console.log('Index: User changed:', { from: lastUserIdRef.current, to: currentUserId });
     }
 
     // Wait for both auth and role loading to complete before making decisions
     if (authLoading || roleLoading) {
-      console.log('Still loading:', { authLoading, roleLoading, userId: user?.id, currentPath: location.pathname });
+      console.log('Index: Still loading:', { authLoading, roleLoading, userId: user?.id, currentPath: location.pathname });
       return;
     }
 
     // If no user after loading is complete, stay on homepage for auth
     if (!user) {
       hasRedirected.current = false;
-      console.log('No user, staying on auth page');
+      console.log('Index: No user, staying on auth page');
       return;
     }
 
     // Prevent multiple redirects for the same user session
     if (hasRedirected.current && !userChanged) {
-      console.log('Already redirected for this user session');
+      console.log('Index: Already redirected for this user session');
       return;
     }
 
     // Get the correct dashboard route for this user
     const getUserDashboardRoute = () => {
+      console.log('Index: Determining route for user roles:', { isAdmin, isOwner, isTeamLeader, isStudent, isClient, isFree });
       if (isAdmin) return '/admin-dashboard';
       if (isOwner) return '/owner-dashboard';
       if (isTeamLeader) return '/team-leader-dashboard';
       if (isStudent) return '/student-dashboard';
       if (isClient) return '/client-dashboard';
       if (isFree) return '/free-dashboard';
+      console.log('Index: No specific role found, using default dashboard');
       return '/dashboard';
     };
 
@@ -68,37 +79,49 @@ const Index = () => {
     
     // Only redirect if we have a user and we're on the homepage
     if (user && !authLoading && !roleLoading) {
-      console.log('Ready to redirect from homepage:', { 
+      console.log('Index: Ready to redirect from homepage:', { 
         userId: user.id, 
+        email: user.email,
         isAdmin, isOwner, isTeamLeader, isStudent, isClient, isFree,
         currentPath: location.pathname,
         targetRoute: correctRoute
       });
       
       try {
-        console.log(`Redirecting to ${correctRoute}`);
+        console.log(`Index: Executing redirect to ${correctRoute}`);
         hasRedirected.current = true;
         navigate(correctRoute, { replace: true });
       } catch (error) {
-        console.error('Navigation error:', error);
+        console.error('Index: Navigation error:', error);
         hasRedirected.current = false;
       }
     }
   }, [user?.id, isOwner, isTeamLeader, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate, location.pathname]);
 
-  // Add timeout fallback to prevent infinite loading
+  // Add emergency redirect fallback specifically for student users stuck on index
   useEffect(() => {
-    const timeout = setTimeout(() => {
-      if (authLoading || (user && roleLoading)) {
-        console.warn('Loading timeout reached');
-        if (user && !hasRedirected.current) {
+    const emergencyTimeout = setTimeout(() => {
+      console.warn('Index: Emergency timeout reached - checking if student needs redirect');
+      
+      if (user && !hasRedirected.current && (location.pathname === '/' || location.pathname === '/index')) {
+        console.warn('Index: User stuck on index page, checking for student role');
+        
+        // Emergency check: if we have a user but role is still loading after 5 seconds,
+        // and we're still on index, force redirect to student dashboard for known students
+        if (roleLoading || (user.email && (
+          user.email.includes('newfrontier') || 
+          user.email === 'melissa.tharpe@newfrontier.us' ||
+          user.email === 'student@test.com'
+        ))) {
+          console.warn('Index: Emergency redirect to student dashboard for user:', user.email);
           hasRedirected.current = true;
+          navigate('/student-dashboard', { replace: true });
         }
       }
-    }, 10000);
+    }, 5000); // 5 second emergency timeout
 
-    return () => clearTimeout(timeout);
-  }, [authLoading, roleLoading, user]);
+    return () => clearTimeout(emergencyTimeout);
+  }, [user, roleLoading, navigate, location.pathname]);
 
   // Show loading while auth or roles are being determined
   if (authLoading || (user && roleLoading)) {
