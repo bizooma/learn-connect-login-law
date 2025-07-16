@@ -15,20 +15,27 @@ const TeamLeaderDashboard = () => {
   const { isTeamLeader, loading: roleLoading } = useUserRole();
 
   useEffect(() => {
-    // If no user, redirect immediately
-    if (!user) {
-      console.log('TeamLeaderDashboard: No user found, redirecting to home');
+    // CRITICAL FIX: Don't redirect during loading states - wait for everything to load first
+    // This prevents the refresh redirect issue
+    if (authLoading || roleLoading) {
+      console.log('TeamLeaderDashboard: Still loading, waiting...', { authLoading, roleLoading });
+      return;
+    }
+
+    // Only redirect if loading is complete AND user is definitely not authenticated
+    if (!authLoading && !user) {
+      console.log('TeamLeaderDashboard: No user found after loading complete, redirecting to home');
       navigate("/", { replace: true });
       return;
     }
 
     // Only redirect if role loading is complete AND user is definitely not a team leader
     if (!roleLoading && user && !isTeamLeader) {
-      console.log('TeamLeaderDashboard: User is not a team leader, redirecting to main dashboard');
+      console.log('TeamLeaderDashboard: User is not a team leader after loading complete, redirecting to main dashboard');
       navigate("/", { replace: true });
       return;
     }
-  }, [user, isTeamLeader, roleLoading, navigate]);
+  }, [user, isTeamLeader, roleLoading, authLoading, navigate]);
 
   // Show loading state while checking authentication and role
   if (authLoading || roleLoading || !user) {

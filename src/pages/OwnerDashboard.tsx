@@ -22,20 +22,27 @@ const OwnerDashboard = () => {
   const [quickStartOpen, setQuickStartOpen] = useState(false);
 
   useEffect(() => {
-    // If no user, redirect immediately
-    if (!user) {
-      console.log('OwnerDashboard: No user found, redirecting to home');
+    // CRITICAL FIX: Don't redirect during loading states - wait for everything to load first
+    // This prevents the refresh redirect issue
+    if (authLoading || roleLoading) {
+      console.log('OwnerDashboard: Still loading, waiting...', { authLoading, roleLoading });
+      return;
+    }
+
+    // Only redirect if loading is complete AND user is definitely not authenticated
+    if (!authLoading && !user) {
+      console.log('OwnerDashboard: No user found after loading complete, redirecting to home');
       navigate("/", { replace: true });
       return;
     }
 
     // Only redirect if role loading is complete AND user is definitely not an owner
     if (!roleLoading && user && !isOwner) {
-      console.log('OwnerDashboard: User is not an owner, redirecting to main dashboard');
+      console.log('OwnerDashboard: User is not an owner after loading complete, redirecting to main dashboard');
       navigate("/", { replace: true });
       return;
     }
-  }, [user, isOwner, roleLoading, navigate]);
+  }, [user, isOwner, roleLoading, authLoading, navigate]);
 
   // Show loading state while checking authentication and role
   if (authLoading || roleLoading || lawFirmLoading || !user) {
