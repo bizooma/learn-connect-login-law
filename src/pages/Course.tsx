@@ -3,7 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useCourse } from "@/hooks/useCourse";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
-import { useUserProgress } from "@/hooks/useUserProgress";
+import { useUnifiedCompletion } from "@/hooks/useUnifiedCompletion";
 import { useCourseRealtimeManager } from "@/hooks/useCourseRealtimeManager";
 import { useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -19,7 +19,7 @@ const Course = () => {
   const { user, loading: authLoading } = useAuth();
   const { isAdmin } = useUserRole();
   const { course, selectedUnit, setSelectedUnit, loading, error, refreshCourse } = useCourse(courseId!);
-  const { updateCourseProgress } = useUserProgress(user?.id);
+  const { updateCourseProgressSafely } = useUnifiedCompletion();
 
   // Function to check if user is assigned to course and ensure progress exists without overwriting
   const checkCourseAssignment = async (courseId: string, userId: string) => {
@@ -45,7 +45,7 @@ const Course = () => {
         if (!existingProgress) {
           console.log('Course: No progress record exists, creating initial progress');
           // Only create initial progress if none exists - don't overwrite existing progress
-          updateCourseProgress(courseId, 'not_started', 0);
+          await updateCourseProgressSafely(courseId);
         } else {
           console.log('Course: Progress record already exists, preserving current values:', {
             progress: existingProgress.progress_percentage,
@@ -107,7 +107,7 @@ const Course = () => {
       // Check if user is assigned to this course before creating progress
       checkCourseAssignment(course.id, user.id);
     }
-  }, [course, user, authLoading, isAdmin, navigate, updateCourseProgress]);
+  }, [course, user, authLoading, isAdmin, navigate, updateCourseProgressSafely]);
 
   // Set up centralized real-time subscriptions for course content changes
   useCourseRealtimeManager({

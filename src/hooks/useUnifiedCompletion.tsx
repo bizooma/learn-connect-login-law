@@ -201,11 +201,13 @@ export const useUnifiedCompletion = () => {
     }
   }, [user, processing, toast]);
 
-  // Safe course progress update using new reliable function
+  // Safe course progress update using new reliable function with progress protection
   const updateCourseProgressSafely = useCallback(async (courseId: string) => {
     if (!user) return;
 
     try {
+      console.log('🔄 Starting protected course progress update for:', { userId: user.id, courseId });
+      
       const { data, error } = await supabase.rpc('update_course_progress_reliable' as any, {
         p_user_id: user.id,
         p_course_id: courseId
@@ -213,12 +215,30 @@ export const useUnifiedCompletion = () => {
 
       if (error) {
         logger.error('❌ Course progress update error:', error);
+        console.error('❌ Course progress update failed:', error);
         // Continue silently - don't interrupt user flow
       } else {
         logger.log('✅ Course progress updated:', data);
+        console.log('✅ Course progress update result:', data);
+        
+        // Log if progress was actually updated or preserved
+        if (data?.updated) {
+          console.log('📈 Progress was updated:', { 
+            from: data.progress_percentage, 
+            calculated: data.calculated_percentage,
+            reason: data.debug_info 
+          });
+        } else {
+          console.log('🛡️ Progress was preserved:', { 
+            current: data.progress_percentage, 
+            calculated: data.calculated_percentage,
+            reason: data.debug_info 
+          });
+        }
       }
     } catch (error) {
       logger.error('❌ Course progress update exception:', error);
+      console.error('❌ Course progress update exception:', error);
       // Continue silently - don't interrupt user flow
     }
   }, [user]);
