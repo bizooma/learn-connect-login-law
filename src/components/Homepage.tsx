@@ -40,8 +40,6 @@ const Homepage = () => {
       {/* Testimonials Section */}
       <TestimonialsSection />
 
-      {/* Pricing Section */}
-      <PricingSection />
 
       {/* Newsletter Section */}
       <NewsletterSection />
