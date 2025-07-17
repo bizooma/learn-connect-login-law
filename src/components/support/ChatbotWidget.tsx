@@ -3,6 +3,7 @@ import { X, Minimize2, MessageCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useAuth } from '@/hooks/useAuth';
+import { useLocation } from 'react-router-dom';
 import ChatbotInterface from './ChatbotInterface';
 
 const ChatbotWidget = () => {
@@ -10,9 +11,36 @@ const ChatbotWidget = () => {
   const [isMinimized, setIsMinimized] = useState(false);
   const { isAdmin } = useUserRole();
   const { user } = useAuth();
+  const location = useLocation();
 
-  // Don't show chatbot if user is not logged in (temporarily allowing admins for testing)
-  if (!user) {
+  // Define dashboard routes where chatbot should be shown
+  const dashboardRoutes = [
+    '/index',
+    '/dashboard',
+    '/courses',
+    '/course/',
+    '/section/',
+    '/knowledge-base',
+    '/admin-knowledge-base',
+    '/lms-tree',
+    '/flowchart-lms-tree',
+    '/protected-flowchart-lms-tree',
+    '/owner-dashboard',
+    '/team-leader-dashboard',
+    '/student-dashboard',
+    '/client-dashboard',
+    '/free-dashboard',
+    '/admin-dashboard',
+    '/admin'
+  ];
+
+  // Check if current route is a dashboard page
+  const isDashboardPage = dashboardRoutes.some(route => 
+    location.pathname === route || location.pathname.startsWith(route)
+  );
+
+  // Don't show chatbot if user is not logged in or not on a dashboard page
+  if (!user || !isDashboardPage) {
     return null;
   }
 
