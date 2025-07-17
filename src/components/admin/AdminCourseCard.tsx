@@ -87,9 +87,11 @@ const AdminCourseCard = ({ course, onDelete, onEdit, onStatusChange }: AdminCour
         )}
         {/* Status and Level Badges */}
         <div className="absolute top-2 left-2 flex flex-col gap-1">
-          <Badge className={getLevelColor(course.level)}>
-            {getLevelDisplayName(course.level)}
-          </Badge>
+          {course.level && (
+            <Badge className={getLevelColor(course.level)}>
+              {getLevelDisplayName(course.level)}
+            </Badge>
+          )}
           <Badge variant={course.is_draft ? "secondary" : "default"} className={course.is_draft ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"}>
             {course.is_draft ? "Draft" : "Published"}
           </Badge>

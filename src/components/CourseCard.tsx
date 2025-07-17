@@ -46,9 +46,11 @@ const CourseCard = ({ course }: CourseCardProps) => {
         )}
         {/* Level and Status Badges */}
         <div className="absolute top-3 left-3 flex flex-col gap-1">
-          <Badge className={getLevelColor(course.level)}>
-            {getLevelDisplayName(course.level)}
-          </Badge>
+          {course.level && (
+            <Badge className={getLevelColor(course.level)}>
+              {getLevelDisplayName(course.level)}
+            </Badge>
+          )}
           {/* Show draft status badge only to admins */}
           {isAdmin && course.is_draft && (
             <Badge variant="secondary" className="bg-yellow-100 text-yellow-800">
