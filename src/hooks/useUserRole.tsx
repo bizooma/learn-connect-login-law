@@ -39,6 +39,11 @@ export const useUserRole = () => {
       console.log('useUserRole: User is direct admin, setting role');
       setRole('admin');
       setLoading(false);
+      // Clear timeout since we successfully set a role
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
       return;
     }
 
@@ -63,10 +68,22 @@ export const useUserRole = () => {
         setRole(userRole);
       }
       setLoading(false);
+      
+      // Clear timeout since we successfully completed the role fetch
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
     } catch (error) {
       console.error('useUserRole: Exception, defaulting to student', error);
       setRole('student');
       setLoading(false);
+      
+      // Clear timeout on error as well
+      if (loadingTimeoutRef.current) {
+        clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
+      }
     }
   }, [user?.id, user?.email, authLoading, isDirectAdmin]);
 
@@ -76,25 +93,44 @@ export const useUserRole = () => {
     // Clear any existing timeout
     if (loadingTimeoutRef.current) {
       clearTimeout(loadingTimeoutRef.current);
+      loadingTimeoutRef.current = null;
     }
 
-    // Set up emergency timeout to prevent infinite loading
-    loadingTimeoutRef.current = setTimeout(() => {
-      if (loading && user?.id) {
-        console.warn('useUserRole: Loading timeout reached, defaulting to student role for user', user.id);
-        setRole('student');
-        setLoading(false);
-      }
-    }, 5000); // 5 second timeout
+    // Only set up timeout if we don't already have a role and we have a user
+    if (!role && user?.id && !authLoading) {
+      // Set up emergency timeout to prevent infinite loading, but only if no role is set
+      loadingTimeoutRef.current = setTimeout(() => {
+        console.log('useUserRole: Checking timeout conditions', { 
+          loading, 
+          hasUser: !!user?.id, 
+          currentRole: role,
+          timeoutRef: !!loadingTimeoutRef.current 
+        });
+        
+        // Only override if we're still loading AND we don't have any role set
+        if (loading && user?.id && !role) {
+          console.warn('useUserRole: Loading timeout reached, defaulting to student role for user', user.id);
+          setRole('student');
+          setLoading(false);
+        } else {
+          console.log('useUserRole: Timeout fired but conditions not met - not overriding role', { 
+            loading, 
+            hasUser: !!user?.id, 
+            currentRole: role 
+          });
+        }
+      }, 5000); // 5 second timeout
+    }
 
     fetchUserRole();
 
     return () => {
       if (loadingTimeoutRef.current) {
         clearTimeout(loadingTimeoutRef.current);
+        loadingTimeoutRef.current = null;
       }
     };
-  }, [fetchUserRole]);
+  }, [fetchUserRole, role]);
 
   const refreshRole = useCallback(() => {
     console.log('useUserRole: refreshRole called');

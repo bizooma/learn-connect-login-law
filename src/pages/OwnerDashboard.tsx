@@ -17,11 +17,20 @@ import { HelpCircle } from "lucide-react";
 const OwnerDashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { isOwner, loading: roleLoading } = useUserRole();
+  const { isOwner, role, loading: roleLoading } = useUserRole();
   const { lawFirm, loading: lawFirmLoading, updateLawFirm } = useLawFirm();
   const [quickStartOpen, setQuickStartOpen] = useState(false);
 
   useEffect(() => {
+    console.log('OwnerDashboard: useEffect triggered', { 
+      authLoading, 
+      roleLoading, 
+      hasUser: !!user, 
+      isOwner, 
+      role,
+      userId: user?.id 
+    });
+    
     // CRITICAL FIX: Don't redirect during loading states - wait for everything to load first
     // This prevents the refresh redirect issue
     if (authLoading || roleLoading) {
@@ -37,12 +46,18 @@ const OwnerDashboard = () => {
     }
 
     // Only redirect if role loading is complete AND user is definitely not an owner
-    if (!roleLoading && user && !isOwner) {
-      console.log('OwnerDashboard: User is not an owner after loading complete, redirecting to main dashboard');
+    // Add extra validation to prevent false redirects
+    if (!roleLoading && user && role && !isOwner) {
+      console.log('OwnerDashboard: User is not an owner after loading complete', { 
+        role, 
+        isOwner, 
+        userId: user.id,
+        email: user.email 
+      });
       navigate("/", { replace: true });
       return;
     }
-  }, [user, isOwner, roleLoading, authLoading, navigate]);
+  }, [user, isOwner, role, roleLoading, authLoading, navigate]);
 
   // Show loading state while checking authentication and role
   if (authLoading || roleLoading || lawFirmLoading || !user) {
