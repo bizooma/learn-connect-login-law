@@ -15,7 +15,7 @@ import { logger } from "@/utils/logger";
 
 const ClientDashboard = () => {
   const { user, signOut } = useAuth();
-  const { isClient, loading: roleLoading } = useUserRole();
+  const { isClient, role, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("assigned");
   const { stats, loading: statsLoading } = useDashboardStats();
@@ -24,16 +24,10 @@ const ClientDashboard = () => {
     logger.debug('ClientDashboard: useEffect triggered', {
       user: !!user,
       isClient,
+      role,
       roleLoading,
       userEmail: user?.email
     });
-
-    // If no user, redirect immediately
-    if (!user) {
-      logger.debug('ClientDashboard: No user found, redirecting to home');
-      navigate("/", { replace: true });
-      return;
-    }
 
     // Don't redirect if we're still loading roles
     if (roleLoading) {
@@ -41,13 +35,26 @@ const ClientDashboard = () => {
       return;
     }
 
-    // If user exists but is not a client, redirect
-    if (user && !isClient) {
-      logger.debug('ClientDashboard: User is not a client, redirecting to main dashboard');
-      navigate("/dashboard", { replace: true });
+    // If no user after role loading is complete, redirect to auth
+    if (!roleLoading && !user) {
+      logger.debug('ClientDashboard: No user found after role loading complete, redirecting to home');
+      navigate("/", { replace: true });
       return;
     }
-  }, [user, isClient, roleLoading, navigate]);
+
+    // Only redirect if role loading is complete AND user is definitely not a client
+    // Add extra validation to prevent false redirects
+    if (!roleLoading && user && role && !isClient) {
+      logger.debug('ClientDashboard: User is not a client after loading complete', { 
+        role, 
+        isClient, 
+        userId: user.id,
+        email: user.email 
+      });
+      navigate("/", { replace: true });
+      return;
+    }
+  }, [user, isClient, role, roleLoading, navigate]);
 
   // Show loading while checking role or fetching stats
   if (roleLoading || statsLoading || !user) {

@@ -29,7 +29,7 @@ import { Button } from "@/components/ui/button";
 
 const StudentDashboard = () => {
   const { user, signOut } = useAuth();
-  const { isStudent, loading: roleLoading } = useUserRole();
+  const { isStudent, role, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("assigned");
   const [mainTab, setMainTab] = useState("dashboard");
@@ -47,6 +47,7 @@ const StudentDashboard = () => {
     logger.debug('StudentDashboard: useEffect triggered', {
       user: !!user,
       isStudent,
+      role,
       roleLoading,
       userEmail: user?.email
     });
@@ -59,15 +60,21 @@ const StudentDashboard = () => {
     }
 
     // If no user after role loading is complete, redirect to auth
-    if (!user) {
+    if (!roleLoading && !user) {
       logger.debug('StudentDashboard: No user found after role loading complete, redirecting to home');
       navigate("/", { replace: true });
       return;
     }
 
     // Only redirect if role loading is complete AND user is definitely not a student
-    if (!roleLoading && user && !isStudent) {
-      logger.debug('StudentDashboard: User is not a student, redirecting to main dashboard');
+    // Add extra validation to prevent false redirects
+    if (!roleLoading && user && role && !isStudent) {
+      logger.debug('StudentDashboard: User is not a student after loading complete', { 
+        role, 
+        isStudent, 
+        userId: user.id,
+        email: user.email 
+      });
       navigate("/", { replace: true });
       return;
     }
@@ -76,7 +83,7 @@ const StudentDashboard = () => {
     if (user && isStudent) {
       logger.debug('StudentDashboard: Valid student user, staying on dashboard');
     }
-  }, [isStudent, roleLoading, user, navigate]);
+  }, [isStudent, role, roleLoading, user, navigate]);
 
   // Show loading while checking roles - more resilient loading state
   if (roleLoading || !user) {

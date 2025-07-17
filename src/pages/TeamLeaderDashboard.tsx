@@ -12,9 +12,18 @@ import { useEffect } from "react";
 const TeamLeaderDashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
-  const { isTeamLeader, loading: roleLoading } = useUserRole();
+  const { isTeamLeader, role, loading: roleLoading } = useUserRole();
 
   useEffect(() => {
+    console.log('TeamLeaderDashboard: useEffect triggered', { 
+      authLoading, 
+      roleLoading, 
+      hasUser: !!user, 
+      isTeamLeader, 
+      role,
+      userId: user?.id 
+    });
+    
     // CRITICAL FIX: Don't redirect during loading states - wait for everything to load first
     // This prevents the refresh redirect issue
     if (authLoading || roleLoading) {
@@ -30,12 +39,18 @@ const TeamLeaderDashboard = () => {
     }
 
     // Only redirect if role loading is complete AND user is definitely not a team leader
-    if (!roleLoading && user && !isTeamLeader) {
-      console.log('TeamLeaderDashboard: User is not a team leader after loading complete, redirecting to main dashboard');
+    // Add extra validation to prevent false redirects
+    if (!roleLoading && user && role && !isTeamLeader) {
+      console.log('TeamLeaderDashboard: User is not a team leader after loading complete', { 
+        role, 
+        isTeamLeader, 
+        userId: user.id,
+        email: user.email 
+      });
       navigate("/", { replace: true });
       return;
     }
-  }, [user, isTeamLeader, roleLoading, authLoading, navigate]);
+  }, [user, isTeamLeader, role, roleLoading, authLoading, navigate]);
 
   // Show loading state while checking authentication and role
   if (authLoading || roleLoading || !user) {

@@ -13,7 +13,7 @@ import { logger } from "@/utils/logger";
 
 const FreeDashboard = () => {
   const { user, signOut } = useAuth();
-  const { isFree, loading: roleLoading } = useUserRole();
+  const { isFree, role, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("resources");
   const [profile, setProfile] = useState({
@@ -28,10 +28,40 @@ const FreeDashboard = () => {
 
   // Redirect if not a free user (only when role is determined)
   useEffect(() => {
-    if (!roleLoading && !isFree) {
-      navigate("/");
+    logger.debug('FreeDashboard: useEffect triggered', {
+      user: !!user,
+      isFree,
+      role,
+      roleLoading,
+      userEmail: user?.email
+    });
+
+    // Don't redirect if we're still loading roles
+    if (roleLoading) {
+      logger.debug('FreeDashboard: Still loading roles, waiting...');
+      return;
     }
-  }, [isFree, roleLoading, navigate]);
+
+    // If no user after role loading is complete, redirect to auth
+    if (!roleLoading && !user) {
+      logger.debug('FreeDashboard: No user found after role loading complete, redirecting to home');
+      navigate("/", { replace: true });
+      return;
+    }
+
+    // Only redirect if role loading is complete AND user is definitely not a free user
+    // Add extra validation to prevent false redirects
+    if (!roleLoading && user && role && !isFree) {
+      logger.debug('FreeDashboard: User is not a free user after loading complete', { 
+        role, 
+        isFree, 
+        userId: user.id,
+        email: user.email 
+      });
+      navigate("/", { replace: true });
+      return;
+    }
+  }, [isFree, role, roleLoading, user, navigate]);
 
   useEffect(() => {
     if (user) {
