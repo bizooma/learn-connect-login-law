@@ -15,11 +15,11 @@ const ImmigrationLawTrainingCard = () => {
       <CardContent className="p-0">
         <div className="relative">
           {/* Hero Image */}
-          <div className="relative h-48 overflow-hidden">
+          <div className="relative h-64 overflow-hidden">
             <img 
               src="/lovable-uploads/b2e5bcfd-b639-4b07-b265-d7c627ab1b3c.png" 
               alt="Free 30 Day Immigration Law Training" 
-              className="w-full h-full object-cover"
+              className="w-full h-full object-contain"
             />
             <div className="absolute inset-0 bg-gradient-to-t from-blue-900/20 to-transparent" />
           </div>
