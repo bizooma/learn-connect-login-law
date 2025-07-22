@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -71,7 +70,7 @@ const SimpleRegistrationForm = () => {
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/student-dashboard`,
+          emailRedirectTo: `${window.location.origin}/free-dashboard`,
           data: {
             first_name: formData.firstName,
             last_name: formData.lastName,
