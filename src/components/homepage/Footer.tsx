@@ -2,8 +2,11 @@
 import { Button } from "@/components/ui/button";
 import { ChevronUp } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
 
 const Footer = () => {
+  const { user, signOut } = useAuth();
+  
   const scrollToTop = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -74,12 +77,23 @@ const Footer = () => {
               © 2025 New Frontier University. All rights reserved.
             </div>
             <div className="flex items-center space-x-6">
-              <Link to="/register" className="text-gray-400 hover:text-white transition-colors text-sm">
-                Register
-              </Link>
-              <Link to="/login" className="text-gray-400 hover:text-white transition-colors text-sm">
-                Login
-              </Link>
+              {!user ? (
+                <>
+                  <Link to="/register" className="text-gray-400 hover:text-white transition-colors text-sm">
+                    Register
+                  </Link>
+                  <Link to="/login" className="text-gray-400 hover:text-white transition-colors text-sm">
+                    Login
+                  </Link>
+                </>
+              ) : (
+                <button 
+                  onClick={signOut}
+                  className="text-gray-400 hover:text-white transition-colors text-sm"
+                >
+                  Logout
+                </button>
+              )}
             </div>
           </div>
         </div>
