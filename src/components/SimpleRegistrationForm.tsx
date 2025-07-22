@@ -112,18 +112,27 @@ const SimpleRegistrationForm = () => {
         // Don't block registration for profile errors
       }
 
-      // Assign "free" role to the user
-      const { error: roleError } = await supabase
+      // Check if user already has a role, if not assign "free" role
+      const { data: existingRole } = await supabase
         .from('user_roles')
-        .insert({
-          user_id: authData.user.id,
-          role: 'free',
-        });
+        .select('role')
+        .eq('user_id', authData.user.id)
+        .single();
 
-      if (roleError) {
-        console.error("Role assignment error:", roleError);
-        // Don't block registration for role errors
+      if (!existingRole) {
+        const { error: roleError } = await supabase
+          .from('user_roles')
+          .insert({
+            user_id: authData.user.id,
+            role: 'free',
+          });
+
+        if (roleError) {
+          console.error("Role assignment error:", roleError);
+          // Don't block registration for role errors
+        }
       }
+
 
       toast({
         title: "Registration Successful",
