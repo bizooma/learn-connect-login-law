@@ -1,6 +1,7 @@
 
 import { Button } from "@/components/ui/button";
 import { ChevronUp } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   const scrollToTop = () => {
@@ -73,12 +74,12 @@ const Footer = () => {
               © 2025 New Frontier University. All rights reserved.
             </div>
             <div className="flex items-center space-x-6">
-              <a href="/register" className="text-gray-400 hover:text-white transition-colors text-sm">
+              <Link to="/register" className="text-gray-400 hover:text-white transition-colors text-sm">
                 Register
-              </a>
-              <a href="/login" className="text-gray-400 hover:text-white transition-colors text-sm">
+              </Link>
+              <Link to="/login" className="text-gray-400 hover:text-white transition-colors text-sm">
                 Login
-              </a>
+              </Link>
             </div>
           </div>
         </div>
