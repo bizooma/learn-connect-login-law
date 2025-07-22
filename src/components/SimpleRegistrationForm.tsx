@@ -66,11 +66,12 @@ const SimpleRegistrationForm = () => {
     setIsLoading(true);
 
     try {
-      // Sign up the user with no email verification
+      // Sign up the user with proper email redirect
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/free-dashboard`,
           data: {
             first_name: formData.firstName,
             last_name: formData.lastName,
@@ -127,16 +128,13 @@ const SimpleRegistrationForm = () => {
         // Don't block registration for role errors
       }
 
-
       toast({
         title: "Registration Successful",
         description: "Welcome to New Frontier University! Redirecting to your dashboard...",
       });
 
-      // Redirect to free dashboard
-      setTimeout(() => {
-        navigate("/free-dashboard");
-      }, 1000);
+      // Let the auth state change handle the redirect naturally
+      // The Index component will detect the new user and redirect appropriately
 
     } catch (error) {
       console.error("Unexpected error during registration:", error);
