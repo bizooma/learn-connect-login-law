@@ -1,11 +1,12 @@
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Star, Users, Clock } from "lucide-react";
+import { ArrowLeft, Star, Users, Clock, Home } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Tables } from "@/integrations/supabase/types";
 import { getLevelColor, getLevelDisplayName } from "@/utils/courseUtils";
 import { useEnrollmentCounts } from "@/hooks/useEnrollmentCounts";
+import { useUserRole } from "@/hooks/useUserRole";
 
 type Course = Tables<'courses'>;
 
@@ -16,9 +17,27 @@ interface CourseHeaderProps {
 const CourseHeader = ({ course }: CourseHeaderProps) => {
   const navigate = useNavigate();
   const { enrollmentCounts } = useEnrollmentCounts(false); // Disable realtime for course header
+  const { isAdmin, isOwner, isStudent, isClient, isFree } = useUserRole();
 
   // Get actual enrollment count
   const enrollmentCount = enrollmentCounts[course.id] || 0;
+
+  const handleBackToDashboard = () => {
+    if (isAdmin) {
+      navigate("/dashboard");
+    } else if (isOwner) {
+      navigate("/owner-dashboard");
+    } else if (isStudent) {
+      navigate("/student-dashboard");
+    } else if (isClient) {
+      navigate("/client-dashboard");
+    } else if (isFree) {
+      navigate("/free-dashboard");
+    } else {
+      // Default fallback
+      navigate("/dashboard");
+    }
+  };
 
   return (
     <>
@@ -30,11 +49,11 @@ const CourseHeader = ({ course }: CourseHeaderProps) => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate("/courses")}
+                onClick={handleBackToDashboard}
                 className="hover:bg-white/10 text-white"
               >
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Courses
+                <Home className="h-4 w-4 mr-2" />
+                Back to Dashboard
               </Button>
               <a 
                 href="https://newfrontieruniversity.com" 
