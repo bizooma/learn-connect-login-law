@@ -2,7 +2,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Clock, Users, Award } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import immigrationHeroImage from "@/assets/immigration-law-hero.png";
 
 const ImmigrationLawTrainingCard = () => {
   const navigate = useNavigate();
@@ -18,11 +17,11 @@ const ImmigrationLawTrainingCard = () => {
           {/* Hero Image */}
           <div className="relative h-48 overflow-hidden">
             <img 
-              src={immigrationHeroImage} 
-              alt="Immigration Law Training" 
-              className="w-full h-full object-cover opacity-90"
+              src="/lovable-uploads/b2e5bcfd-b639-4b07-b265-d7c627ab1b3c.png" 
+              alt="Free 30 Day Immigration Law Training" 
+              className="w-full h-full object-cover"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-blue-900/80 to-transparent" />
+            <div className="absolute inset-0 bg-gradient-to-t from-blue-900/20 to-transparent" />
           </div>
           
           {/* Content */}
