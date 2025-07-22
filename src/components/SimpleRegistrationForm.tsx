@@ -71,7 +71,7 @@ const SimpleRegistrationForm = () => {
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/free-dashboard`,
+          emailRedirectTo: `${window.location.origin}/student-dashboard`,
           data: {
             first_name: formData.firstName,
             last_name: formData.lastName,
