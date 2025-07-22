@@ -5,7 +5,7 @@ const FreeResourcesTab = () => {
   return (
     <div className="space-y-8">
       {/* Featured Course */}
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-lg mx-auto">
         <ImmigrationLawTrainingCard />
       </div>
       
