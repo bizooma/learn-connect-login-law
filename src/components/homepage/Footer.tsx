@@ -72,6 +72,14 @@ const Footer = () => {
             <div className="text-gray-400 text-sm mb-4 md:mb-0">
               © 2025 New Frontier University. All rights reserved.
             </div>
+            <div className="flex items-center space-x-6">
+              <a href="/register" className="text-gray-400 hover:text-white transition-colors text-sm">
+                Register
+              </a>
+              <a href="/login" className="text-gray-400 hover:text-white transition-colors text-sm">
+                Login
+              </a>
+            </div>
           </div>
         </div>
       </div>

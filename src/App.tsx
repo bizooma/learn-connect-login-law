@@ -28,6 +28,7 @@ import ClientDashboard from "./pages/ClientDashboard";
 import FreeDashboard from "./pages/FreeDashboard";
 import AdminDashboard from "./components/AdminDashboard";
 import AuthPage from "./components/AuthPage";
+import RegisterPage from "./pages/RegisterPage";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
 import LawFirmTraining from "./pages/LawFirmTraining";
@@ -48,6 +49,7 @@ const AppContent = () => {
         <Route path="/homepage" element={<Navigate to="/" replace />} />
         <Route path="/index" element={<Index />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<RegisterPage />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/courses" element={<Courses />} />
         <Route path="/course/:id" element={<Course />} />
