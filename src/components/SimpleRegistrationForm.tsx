@@ -96,14 +96,16 @@ const SimpleRegistrationForm = () => {
         return;
       }
 
-      // Create user profile
+      // Create user profile (handle conflict if already exists)
       const { error: profileError } = await supabase
         .from('profiles')
-        .insert({
+        .upsert({
           id: authData.user.id,
           email: formData.email,
           first_name: formData.firstName,
           last_name: formData.lastName,
+        }, {
+          onConflict: 'id'
         });
 
       if (profileError) {
@@ -111,19 +113,24 @@ const SimpleRegistrationForm = () => {
         // Don't block registration for profile errors
       }
 
-      // Assign "free" role to new user
+      // Assign "free" role to new user (use insert instead of upsert to avoid conflict issues)
       const { error: roleError } = await supabase
         .from('user_roles')
-        .upsert({
+        .insert({
           user_id: authData.user.id,
           role: 'free',
-        }, {
-          onConflict: 'user_id'
         });
 
       if (roleError) {
         console.error("Role assignment error:", roleError);
-        // Don't block registration for role errors
+        // Check if it's just a duplicate role error
+        if (roleError.code !== '23505') { // 23505 is unique constraint violation
+          toast({
+            title: "Registration Warning",
+            description: "Account created but role assignment failed. Please contact support.",
+            variant: "destructive",
+          });
+        }
       }
 
       toast({
