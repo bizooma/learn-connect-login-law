@@ -12,28 +12,18 @@ const UserCsvExport = () => {
   const exportUsers = async () => {
     setIsExporting(true);
     try {
-      // Fetch all users with their roles
-      const { data: users, error } = await supabase
+      // First, get all users
+      const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          email,
-          first_name,
-          last_name,
-          created_at,
-          is_deleted,
-          user_roles (
-            role
-          )
-        `)
+        .select('id, email, first_name, last_name, created_at, is_deleted')
         .eq('is_deleted', false)
         .order('created_at', { ascending: false });
 
-      if (error) {
-        throw error;
+      if (profilesError) {
+        throw profilesError;
       }
 
-      if (!users || users.length === 0) {
+      if (!profiles || profiles.length === 0) {
         toast({
           title: "No Data",
           description: "No users found to export",
@@ -42,9 +32,24 @@ const UserCsvExport = () => {
         return;
       }
 
+      // Then get all user roles
+      const { data: userRoles, error: rolesError } = await supabase
+        .from('user_roles')
+        .select('user_id, role');
+
+      if (rolesError) {
+        throw rolesError;
+      }
+
+      // Create a map of user_id to role for quick lookup
+      const roleMap = new Map();
+      userRoles?.forEach(ur => {
+        roleMap.set(ur.user_id, ur.role);
+      });
+
       // Format data for CSV export
-      const csvData = users.map(user => {
-        const role = user.user_roles?.[0]?.role || 'no_role';
+      const csvData = profiles.map(user => {
+        const role = roleMap.get(user.id) || 'no_role';
         const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ') || 'N/A';
         
         return {
