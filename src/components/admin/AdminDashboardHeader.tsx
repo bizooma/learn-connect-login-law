@@ -77,7 +77,9 @@ const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
           </div>
 
           <div className="flex items-center space-x-3">
-            <UserCsvExport />
+            <div className="hidden">
+              <UserCsvExport />
+            </div>
             
             <Button
               variant="ghost"
