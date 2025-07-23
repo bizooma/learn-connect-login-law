@@ -125,12 +125,14 @@ const SimpleRegistrationForm = () => {
 
       if (roleError) {
         console.error("Role assignment error:", roleError);
+        // Don't block registration completely, just show warning
         toast({
-          title: "Registration Warning",
-          description: "Account created but role assignment failed. Please contact support.",
+          title: "Registration Warning", 
+          description: "Account created but role assignment had issues. You may need to refresh.",
           variant: "destructive",
         });
-        return;
+      } else {
+        console.log("Role assignment successful: free role assigned");
       }
 
       toast({
