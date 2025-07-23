@@ -1,20 +1,7 @@
 
-import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { useAuth } from "@/hooks/useAuth";
 import SimpleRegistrationForm from "@/components/SimpleRegistrationForm";
 
 const RegisterPage = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-
-  // If user is already logged in, redirect them to appropriate dashboard
-  useEffect(() => {
-    if (user) {
-      navigate("/free-dashboard");
-    }
-  }, [user, navigate]);
-
   return (
     <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#213C82' }}>
       <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md">

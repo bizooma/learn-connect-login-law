@@ -65,12 +65,11 @@ const SimpleRegistrationForm = () => {
     setIsLoading(true);
 
     try {
-      // Sign up the user with proper email redirect
+      // Sign up the user
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
-          emailRedirectTo: `${window.location.origin}/free-dashboard`,
           data: {
             first_name: formData.firstName,
             last_name: formData.lastName,
@@ -112,7 +111,7 @@ const SimpleRegistrationForm = () => {
         // Don't block registration for profile errors
       }
 
-      // Always ensure user has "free" role for registration
+      // Assign "free" role to new user
       const { error: roleError } = await supabase
         .from('user_roles')
         .upsert({
@@ -132,8 +131,8 @@ const SimpleRegistrationForm = () => {
         description: "Welcome to New Frontier University! Redirecting to your dashboard...",
       });
 
-      // Let the auth state change handle the redirect naturally
-      // The Index component will detect the new user and redirect appropriately
+      // Redirect directly to free dashboard after successful registration
+      navigate('/free-dashboard', { replace: true });
 
     } catch (error) {
       console.error("Unexpected error during registration:", error);

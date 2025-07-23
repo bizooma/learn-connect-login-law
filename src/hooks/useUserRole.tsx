@@ -60,10 +60,10 @@ export const useUserRole = () => {
       console.log('useUserRole: Database query result', { data, error, userId: user.id });
 
       if (error) {
-        console.error('useUserRole: Database error, defaulting to student', error);
-        setRole('student');
+        console.error('useUserRole: Database error, defaulting to free', error);
+        setRole('free');
       } else {
-        const userRole = data?.role || 'student';
+        const userRole = data?.role || 'free';
         console.log('useUserRole: Setting role from database', { role: userRole, userId: user.id });
         setRole(userRole);
       }
@@ -75,8 +75,8 @@ export const useUserRole = () => {
         loadingTimeoutRef.current = null;
       }
     } catch (error) {
-      console.error('useUserRole: Exception, defaulting to student', error);
-      setRole('student');
+      console.error('useUserRole: Exception, defaulting to free', error);
+      setRole('free');
       setLoading(false);
       
       // Clear timeout on error as well
@@ -109,8 +109,8 @@ export const useUserRole = () => {
         
         // Only override if we're still loading AND we don't have any role set
         if (loading && user?.id && !role) {
-          console.warn('useUserRole: Loading timeout reached, defaulting to student role for user', user.id);
-          setRole('student');
+          console.warn('useUserRole: Loading timeout reached, defaulting to free role for user', user.id);
+          setRole('free');
           setLoading(false);
         } else {
           console.log('useUserRole: Timeout fired but conditions not met - not overriding role', { 
@@ -161,7 +161,7 @@ export const useUserRole = () => {
 
   console.log('useUserRole: Hook returning', { 
     role, 
-    isStudent, 
+    isFree, 
     actualLoading, 
     authLoading, 
     roleLoading: loading,
