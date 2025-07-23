@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { logger } from "@/utils/logger";
+import UserCsvExport from "./UserCsvExport";
 
 interface AdminDashboardHeaderProps {
   triggerDemo: () => void;
@@ -76,6 +77,8 @@ const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
           </div>
 
           <div className="flex items-center space-x-3">
+            <UserCsvExport />
+            
             <Button
               variant="ghost"
               onClick={handleDemoWelcome}
