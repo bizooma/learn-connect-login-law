@@ -113,24 +113,24 @@ const SimpleRegistrationForm = () => {
         // Don't block registration for profile errors
       }
 
-      // Assign "free" role to new user (use insert instead of upsert to avoid conflict issues)
+      // Assign "free" role to new user (use upsert with the unique constraint)
       const { error: roleError } = await supabase
         .from('user_roles')
-        .insert({
+        .upsert({
           user_id: authData.user.id,
           role: 'free',
+        }, {
+          onConflict: 'user_id'
         });
 
       if (roleError) {
         console.error("Role assignment error:", roleError);
-        // Check if it's just a duplicate role error
-        if (roleError.code !== '23505') { // 23505 is unique constraint violation
-          toast({
-            title: "Registration Warning",
-            description: "Account created but role assignment failed. Please contact support.",
-            variant: "destructive",
-          });
-        }
+        toast({
+          title: "Registration Warning",
+          description: "Account created but role assignment failed. Please contact support.",
+          variant: "destructive",
+        });
+        return;
       }
 
       toast({
