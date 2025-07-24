@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, Clock } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { useUnitProgress } from "@/hooks/useUnitProgress";
-import { useReliableCompletion } from "@/hooks/useReliableCompletion";
+import { useEnhancedCompletion } from "@/hooks/useEnhancedCompletion";
+import CompletionMonitor from "@/components/completion/CompletionMonitor";
 
 type Unit = Tables<'units'>;
 
@@ -16,7 +17,7 @@ interface UnitCompletionButtonProps {
 
 const UnitCompletionButton = ({ unit, courseId, onComplete }: UnitCompletionButtonProps) => {
   const { isUnitCompleted } = useUnitProgress(courseId);
-  const { markUnitComplete, updateCourseProgress, processing } = useReliableCompletion();
+  const { markUnitComplete, processing, hasFailures } = useEnhancedCompletion();
   const [isCompleting, setIsCompleting] = useState(false);
 
   const isCompleted = isUnitCompleted(unit.id);
@@ -29,16 +30,11 @@ const UnitCompletionButton = ({ unit, courseId, onComplete }: UnitCompletionButt
     try {
       console.log('📝 Manual completion for unit:', unit.id);
       
-      // Use the reliable completion system
+      // Use the enhanced completion system with retry logic
       const success = await markUnitComplete(unit.id, courseId, 'manual');
       
-      if (success) {
-        // Update course progress
-        await updateCourseProgress(courseId);
-        
-        if (onComplete) {
-          onComplete();
-        }
+      if (success && onComplete) {
+        onComplete();
       }
     } catch (error) {
       console.error('❌ Error in manual completion:', error);
@@ -79,23 +75,29 @@ const UnitCompletionButton = ({ unit, courseId, onComplete }: UnitCompletionButt
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold mb-2">Unit Progress</h3>
-          <p className="text-gray-600 text-sm">
-            Mark this unit as complete when you're finished with the content.
-          </p>
+    <div className="space-y-4">
+      {hasFailures && (
+        <CompletionMonitor />
+      )}
+      
+      <div className="bg-white rounded-lg shadow-sm border p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold mb-2">Unit Progress</h3>
+            <p className="text-gray-600 text-sm">
+              Mark this unit as complete when you're finished with the content.
+            </p>
+          </div>
+          
+          <Button
+            onClick={handleManualComplete}
+            disabled={isButtonDisabled()}
+            variant={getButtonVariant()}
+            className="ml-4"
+          >
+            {getButtonContent()}
+          </Button>
         </div>
-        
-        <Button
-          onClick={handleManualComplete}
-          disabled={isButtonDisabled()}
-          variant={getButtonVariant()}
-          className="ml-4"
-        >
-          {getButtonContent()}
-        </Button>
       </div>
     </div>
   );

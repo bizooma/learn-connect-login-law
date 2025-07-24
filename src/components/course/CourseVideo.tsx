@@ -2,12 +2,13 @@
 import { Tables } from "@/integrations/supabase/types";
 import UnifiedVideoPlayer from "../video/UnifiedVideoPlayer";
 import VideoProgressTracker from "./VideoProgressTracker";
-import { useReliableCompletion } from "@/hooks/useReliableCompletion";
+import { useEnhancedCompletion } from "@/hooks/useEnhancedCompletion";
 import { useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock } from "lucide-react";
 import { logger } from "@/utils/logger";
+import CompletionMonitor from "@/components/completion/CompletionMonitor";
 
 type Unit = Tables<'units'>;
 
@@ -18,7 +19,7 @@ interface CourseVideoProps {
 
 const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const { markVideoComplete, evaluateAndCompleteUnit } = useReliableCompletion();
+  const { markVideoComplete, hasFailures } = useEnhancedCompletion();
 
   // Handle video completion
   const handleVideoComplete = useCallback(async () => {
@@ -27,12 +28,11 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
     logger.log('🎥 Video completed for unit:', unit.id, unit.title);
     
     try {
-      await markVideoComplete(unit.id, courseId);
-      await evaluateAndCompleteUnit(unit, courseId, false, 'video_complete');
+      await markVideoComplete(unit.id, courseId, 100);
     } catch (error) {
       logger.error('❌ Error handling video completion:', error);
     }
-  }, [unit, courseId, markVideoComplete, evaluateAndCompleteUnit]);
+  }, [unit, courseId, markVideoComplete]);
 
   const handleVideoProgress = useCallback((currentTime: number, duration: number, watchPercentage: number) => {
     logger.log('🎬 Video progress:', { currentTime, duration, watchPercentage, unit: unit?.title });
@@ -45,6 +45,10 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
 
   return (
     <div className="space-y-4">
+      {hasFailures && (
+        <CompletionMonitor />
+      )}
+      
       <VideoProgressTracker
         unitId={unit.id}
         courseId={courseId}

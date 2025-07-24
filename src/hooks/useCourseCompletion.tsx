@@ -3,9 +3,11 @@ import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { logger } from "@/utils/logger";
+import { useEnhancedCompletion } from "@/hooks/useEnhancedCompletion";
 
 export const useCourseCompletion = (courseId: string) => {
   const { user } = useAuth();
+  const { retryFailedCompletions } = useEnhancedCompletion();
   const [isCompleted, setIsCompleted] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -19,6 +21,9 @@ export const useCourseCompletion = (courseId: string) => {
     try {
       setLoading(true);
       logger.log('Checking course completion for:', { courseId, userId: user.id });
+      
+      // Retry any failed completions before checking status
+      await retryFailedCompletions();
       
       const { data, error } = await supabase
         .from('user_course_progress')
@@ -41,7 +46,7 @@ export const useCourseCompletion = (courseId: string) => {
     } finally {
       setLoading(false);
     }
-  }, [user, courseId]);
+  }, [user, courseId, retryFailedCompletions]);
 
   useEffect(() => {
     checkCompletion();
