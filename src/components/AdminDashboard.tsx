@@ -21,7 +21,7 @@ const AdminDashboard = () => {
   
   // Map URL tab names to internal tab names
   const getInternalTab = (urlTab: string | null) => {
-    if (!urlTab) return "courses";
+    if (!urlTab) return "progress";
     switch (urlTab) {
       case "quiz-questions":
         return "quizzes";
