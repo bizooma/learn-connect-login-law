@@ -34,18 +34,13 @@ const StudentMainHeader = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <a 
-              href="https://newfrontieruniversity.com" 
-              target="_blank" 
-              rel="noopener noreferrer"
-              className="flex-shrink-0"
-            >
+            <div className="flex-shrink-0">
               <img 
                 src="/lovable-uploads/126f6dae-4376-4b57-9955-f40fc6fa19e2.png" 
                 alt="New Frontier University" 
                 className="h-12 w-auto"
               />
-            </a>
+            </div>
             <div className="flex items-center space-x-3">
               <BookOpen className="h-8 w-8 text-white" />
               <div>

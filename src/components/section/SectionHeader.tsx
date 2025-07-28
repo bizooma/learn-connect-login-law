@@ -33,18 +33,13 @@ const SectionHeader = ({ section }: SectionHeaderProps) => {
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Back
               </Button>
-              <a 
-                href="https://newfrontieruniversity.com" 
-                target="_blank" 
-                rel="noopener noreferrer"
-                className="flex-shrink-0"
-              >
+              <div className="flex-shrink-0">
                 <img 
                   src="/lovable-uploads/126f6dae-4376-4b57-9955-f40fc6fa19e2.png" 
                   alt="New Frontier University" 
                   className="h-10 w-auto"
                 />
-              </a>
+              </div>
             </div>
             <div className="flex items-center space-x-4">
               <div className="flex items-center text-sm text-white">
