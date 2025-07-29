@@ -2168,6 +2168,10 @@ export type Database = {
         Args: { p_team_id: string; p_user_id: string }
         Returns: boolean
       }
+      admin_clear_user_tokens: {
+        Args: { p_user_email: string }
+        Returns: Json
+      }
       admin_mark_unit_completed: {
         Args: {
           p_user_id: string
