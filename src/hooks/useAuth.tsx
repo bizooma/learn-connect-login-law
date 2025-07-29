@@ -4,6 +4,11 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { logger } from '@/utils/logger';
+import { 
+  isMobileDevice, 
+  clearAuthStorage, 
+  isRefreshTokenError 
+} from '@/utils/mobileAuthUtils';
 
 interface AuthContextType {
   user: User | null;
@@ -46,15 +51,20 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         logger.info(`Auth state change: ${event}`, { 
           hasSession: !!session, 
           userId: session?.user?.id,
-          expiresAt: session?.expires_at 
+          expiresAt: session?.expires_at,
+          isMobile: isMobileDevice()
         });
 
         if (event === 'SIGNED_OUT' || !session) {
           setSession(null);
           setUser(null);
+          // Clear storage on sign out, especially important for mobile
+          if (isMobileDevice()) {
+            setTimeout(() => clearAuthStorage(), 100);
+          }
         } else if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
           // Additional validation for session stability
-        if (session && session.expires_at * 1000 > Date.now() + 30000) { // 30 second buffer
+          if (session && session.expires_at * 1000 > Date.now() + 30000) { // 30 second buffer
             setSession(session);
             setUser(session?.user ?? null);
             setIsSessionRestored(true);
@@ -72,6 +82,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                   setUser(data.session.user);
                 } else {
                   logger.error('Failed to refresh expired session', error);
+                  // On mobile, clear storage if refresh fails
+                  if (isMobileDevice() && isRefreshTokenError(error)) {
+                    clearAuthStorage();
+                  }
                   setSession(null);
                   setUser(null);
                 }
@@ -95,6 +109,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       } catch (error) {
         logger.error('Auth error handling state change:', error);
+        // Clear storage on mobile if there's an auth error
+        if (isMobileDevice()) {
+          clearAuthStorage();
+        }
         setSession(null);
         setUser(null);
         setLoading(false);
@@ -134,9 +152,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         
         if (error) {
           logger.error('Auth session error after retries:', error);
+          
+          // Handle mobile-specific refresh token errors
+          if (isMobileDevice() && isRefreshTokenError(error)) {
+            logger.info('Mobile refresh token error detected, clearing storage');
+            clearAuthStorage();
+          }
+          
           try {
-            // Only try refresh if not rate limited
-            if (!error.message?.includes('rate limit') && !error.message?.includes('429')) {
+            // Only try refresh if not rate limited and not a refresh token error
+            if (!error.message?.includes('rate limit') && 
+                !error.message?.includes('429') && 
+                !isRefreshTokenError(error)) {
               const refreshResponse = await supabase.auth.refreshSession();
               if (!refreshResponse.error && refreshResponse.data.session) {
                 session = refreshResponse.data.session;
@@ -145,6 +172,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
             }
           } catch (recoveryError) {
             logger.error('Auth recovery failed:', recoveryError);
+            if (isMobileDevice()) {
+              clearAuthStorage();
+            }
             setSession(null);
             setUser(null);
           }
@@ -175,6 +205,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
                 logger.info('Session refreshed successfully');
               } else {
                 logger.warn('Session refresh failed', refreshError);
+                // Clear storage on mobile if refresh fails
+                if (isMobileDevice() && isRefreshTokenError(refreshError)) {
+                  clearAuthStorage();
+                }
                 setSession(null);
                 setUser(null);
               }

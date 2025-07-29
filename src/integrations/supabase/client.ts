@@ -9,13 +9,26 @@ const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiO
 // Import the supabase client like this:
 // import { supabase } from "@/integrations/supabase/client";
 
+// Import mobile utilities
+import { createMobileStorage, isMobileDevice } from '@/utils/mobileAuthUtils';
+
+// Create mobile-friendly storage
+const authStorage = typeof window !== 'undefined' 
+  ? (isMobileDevice() ? createMobileStorage() : window.localStorage)
+  : undefined;
+
 export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
   auth: {
-    storage: typeof window !== 'undefined' ? window.localStorage : undefined,
+    storage: authStorage,
     persistSession: true,
     autoRefreshToken: true,
     detectSessionInUrl: true,
-    flowType: 'pkce'
+    flowType: 'pkce',
+    // Add mobile-specific settings
+    ...(isMobileDevice() && {
+      storageKey: 'sb-auth-token',
+      debug: false,
+    })
   },
   global: {
     headers: {

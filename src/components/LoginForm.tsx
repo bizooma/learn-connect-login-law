@@ -9,6 +9,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import ForgotPasswordDialog from "./ForgotPasswordDialog";
 import { logger } from "@/utils/logger";
+import { 
+  isMobileDevice, 
+  clearAuthStorage, 
+  isRefreshTokenError, 
+  isNetworkError,
+  getMobileErrorMessage 
+} from "@/utils/mobileAuthUtils";
 
 const LoginForm = () => {
   const [email, setEmail] = useState("");
@@ -37,10 +44,17 @@ const LoginForm = () => {
         return "Account creation is currently disabled. Please contact support.";
       case 'Database connection error':
         return "Unable to connect to our servers. Please try again in a moment.";
+      // Add mobile-specific error handling
+      case 'refresh_token_not_found':
+      case 'invalid_refresh_token':
+        return "Your session has expired. Please log in again.";
       default:
         // Log unknown errors for debugging
         if (error.message?.includes('fetch')) {
           return "Network error. Please check your internet connection and try again.";
+        }
+        if (error.message?.includes('refresh_token')) {
+          return "Your session has expired. Please log in again.";
         }
         return error.message || "Login failed. Please try again or contact support if the problem persists.";
     }
@@ -62,14 +76,20 @@ const LoginForm = () => {
     logger.info('LoginForm: Starting login attempt', { email });
 
     try {
-      // Add retry logic for network issues
+      // Clear auth storage if we're on mobile and this might be a refresh token issue
+      if (isMobileDevice()) {
+        logger.info('Mobile device detected, clearing potentially stale auth tokens');
+        clearAuthStorage();
+      }
+
+      // Add retry logic for network issues and mobile-specific errors
       let retryCount = 0;
-      const maxRetries = 2;
+      const maxRetries = isMobileDevice() ? 3 : 2; // More retries on mobile
       let lastError = null;
 
       while (retryCount <= maxRetries) {
         try {
-          logger.debug(`LoginForm: Login attempt ${retryCount + 1}`, { email });
+          logger.debug(`LoginForm: Login attempt ${retryCount + 1}`, { email, isMobile: isMobileDevice() });
           
           const { data, error } = await supabase.auth.signInWithPassword({
             email: email.trim(),
@@ -80,6 +100,20 @@ const LoginForm = () => {
             lastError = error;
             logger.error(`LoginForm: Login attempt ${retryCount + 1} failed`, { error: error.message });
             
+            // Handle refresh token errors specifically on mobile
+            if (isRefreshTokenError(error)) {
+              logger.info('Refresh token error detected, clearing auth storage');
+              clearAuthStorage();
+              
+              // On mobile, always retry once after clearing storage
+              if (isMobileDevice() && retryCount === 0) {
+                retryCount++;
+                logger.debug('Mobile refresh token error - retrying after storage clear');
+                await new Promise(resolve => setTimeout(resolve, 1000));
+                continue;
+              }
+            }
+            
             // Don't retry for credential errors
             if (error.message === 'Invalid login credentials' || 
                 error.message === 'Email not confirmed' ||
@@ -87,14 +121,15 @@ const LoginForm = () => {
               break;
             }
             
-            // Retry for network/server errors
+            // Retry for network/server errors (more aggressive on mobile)
             if (retryCount < maxRetries && 
-                (error.message?.includes('fetch') || 
-                 error.message?.includes('network') ||
-                 error.message?.includes('timeout'))) {
+                (isNetworkError(error) || 
+                 error.message?.includes('timeout') ||
+                 error.message?.includes('server'))) {
               retryCount++;
               logger.debug(`LoginForm: Retrying login (attempt ${retryCount + 1})`);
-              await new Promise(resolve => setTimeout(resolve, 1000 * retryCount)); // Progressive delay
+              const delay = isMobileDevice() ? 1500 * retryCount : 1000 * retryCount; // Longer delay on mobile
+              await new Promise(resolve => setTimeout(resolve, delay));
               continue;
             }
             
@@ -132,8 +167,10 @@ const LoginForm = () => {
       }
 
       // If we get here, all attempts failed
-      const errorMessage = getDetailedErrorMessage(lastError);
-      logger.error('LoginForm: All login attempts failed', { error: lastError });
+      const errorMessage = isMobileDevice() 
+        ? getMobileErrorMessage(lastError)
+        : getDetailedErrorMessage(lastError);
+      logger.error('LoginForm: All login attempts failed', { error: lastError, isMobile: isMobileDevice() });
       
       toast({
         title: "Login Failed",
