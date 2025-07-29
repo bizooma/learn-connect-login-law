@@ -2,7 +2,8 @@
 import { Tables } from "@/integrations/supabase/types";
 import UnifiedVideoPlayer from "../video/UnifiedVideoPlayer";
 import VideoProgressTracker from "./VideoProgressTracker";
-import { useEnhancedCompletion } from "@/hooks/useEnhancedCompletion";
+import VideoCompletionStatus from "../video/VideoCompletionStatus";
+import { useEnhancedVideoCompletion } from "@/hooks/useEnhancedVideoCompletion";
 import { useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -19,25 +20,26 @@ interface CourseVideoProps {
 
 const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const { markVideoComplete, hasFailures } = useEnhancedCompletion();
+  const {
+    completionState,
+    handleVideoProgress: onVideoProgress,
+    handleVideoEnded,
+    forceCompleteVideo,
+    markVideoCompleteEnhanced
+  } = useEnhancedVideoCompletion(unit?.id || '', courseId);
 
   // Handle video completion
   const handleVideoComplete = useCallback(async () => {
     if (!unit) return;
 
     logger.log('🎥 Video completed for unit:', unit.id, unit.title);
-    
-    try {
-      await markVideoComplete(unit.id, courseId, 100);
-    } catch (error) {
-      logger.error('❌ Error handling video completion:', error);
-    }
-  }, [unit, courseId, markVideoComplete]);
+    handleVideoEnded();
+  }, [unit, handleVideoEnded]);
 
   const handleVideoProgress = useCallback((currentTime: number, duration: number, watchPercentage: number) => {
     logger.log('🎬 Video progress:', { currentTime, duration, watchPercentage, unit: unit?.title });
-    // Progress is already tracked by VideoProgressTracker and UnifiedVideoPlayer
-  }, [unit?.title]);
+    onVideoProgress(currentTime, duration);
+  }, [unit?.title, onVideoProgress]);
 
   if (!unit?.video_url) {
     return null;
@@ -45,10 +47,6 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
 
   return (
     <div className="space-y-4">
-      {hasFailures && (
-        <CompletionMonitor />
-      )}
-      
       <VideoProgressTracker
         unitId={unit.id}
         courseId={courseId}
@@ -82,6 +80,18 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
           />
         </CardContent>
       </Card>
+
+      {/* Enhanced Completion Status */}
+      <VideoCompletionStatus
+        isCompleted={completionState.isCompleted}
+        isProcessing={completionState.isProcessing}
+        watchPercentage={completionState.watchPercentage}
+        completionAttempts={completionState.completionAttempts}
+        lastError={completionState.lastError}
+        canManualOverride={completionState.canManualOverride}
+        onManualOverride={forceCompleteVideo}
+        onRetry={() => markVideoCompleteEnhanced(false)}
+      />
     </div>
   );
 };
