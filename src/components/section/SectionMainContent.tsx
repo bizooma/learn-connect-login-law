@@ -4,6 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Play, Clock } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import UnifiedVideoPlayer from "../video/UnifiedVideoPlayer";
+import SafeHtmlContent from "@/components/shared/SafeHtmlContent";
 
 type Unit = Tables<'units'>;
 
@@ -101,9 +102,7 @@ const SectionMainContent = ({ units, selectedUnit, onUnitSelect }: SectionMainCo
                   </div>
                 )}
                 {selectedUnit.content && (
-                  <div className="prose max-w-none">
-                    <div dangerouslySetInnerHTML={{ __html: selectedUnit.content.replace(/\n/g, '<br>') }} />
-                  </div>
+                  <SafeHtmlContent content={selectedUnit.content} />
                 )}
               </CardContent>
             </Card>

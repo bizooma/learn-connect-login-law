@@ -2,91 +2,24 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
 import { Lock } from "lucide-react";
 import PasswordFields from "@/components/PasswordFields";
+import { useSecurePasswordChange } from "@/hooks/useSecurePasswordChange";
 
 const PasswordChangeSection = () => {
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const { toast } = useToast();
+  const { changePassword, isLoading } = useSecurePasswordChange();
 
   const handlePasswordChange = async () => {
-    if (newPassword !== confirmPassword) {
-      toast({
-        title: "Error",
-        description: "New passwords do not match",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (newPassword.length < 6) {
-      toast({
-        title: "Error",
-        description: "Password must be at least 6 characters long",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (!currentPassword) {
-      toast({
-        title: "Error",
-        description: "Current password is required",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      // First verify current password by attempting to sign in
-      const { error: verifyError } = await supabase.auth.signInWithPassword({
-        email: (await supabase.auth.getUser()).data.user?.email || "",
-        password: currentPassword,
-      });
-
-      if (verifyError) {
-        toast({
-          title: "Error",
-          description: "Current password is incorrect",
-          variant: "destructive",
-        });
-        return;
-      }
-
-      // Update password
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword
-      });
-
-      if (error) {
-        throw error;
-      }
-
-      toast({
-        title: "Success",
-        description: "Password updated successfully",
-      });
-
+    const success = await changePassword(currentPassword, newPassword, confirmPassword);
+    
+    if (success) {
       // Clear form
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
-    } catch (error: any) {
-      console.error('Error changing password:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update password",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
     }
   };
 
