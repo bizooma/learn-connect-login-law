@@ -85,14 +85,30 @@ const StudentDashboard = () => {
     }
   }, [isStudent, role, roleLoading, user, navigate]);
 
-  // Show loading while checking roles - more resilient loading state
+  // Show loading while checking roles - with timeout protection
   if (roleLoading || !user) {
     logger.debug('StudentDashboard: Showing loading state', { roleLoading, hasUser: !!user });
+    
+    // Add emergency redirect after timeout to prevent infinite loading
+    useEffect(() => {
+      const emergencyTimeout = setTimeout(() => {
+        if (!user && !roleLoading) {
+          console.warn('StudentDashboard: Emergency timeout - no user found, redirecting');
+          navigate("/", { replace: true });
+        }
+      }, 15000); // 15 second emergency timeout
+      
+      return () => clearTimeout(emergencyTimeout);
+    }, [user, roleLoading, navigate]);
+
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">Loading your dashboard...</p>
+          <p className="text-sm text-gray-500 mt-2">
+            {roleLoading ? "Checking permissions..." : "Authenticating..."}
+          </p>
         </div>
       </div>
     );

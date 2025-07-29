@@ -27,8 +27,8 @@ export const useUserRole = () => {
     if (authLoading || !user?.id) {
       console.log('useUserRole: Skipping fetch - auth loading or no user', { authLoading, hasUser: !!user });
       if (!authLoading && !user) {
-        console.log('useUserRole: No user after auth complete, setting role to null');
-        setRole(null);
+        console.log('useUserRole: No user after auth complete, setting role to free (fallback)');
+        setRole('free');
         setLoading(false);
       }
       return;

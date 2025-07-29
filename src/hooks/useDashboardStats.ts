@@ -30,7 +30,15 @@ export const useDashboardStats = () => {
 
   const fetchStats = async () => {
     if (!user?.id) {
-      console.log('useDashboardStats: No user ID, skipping fetch');
+      console.log('useDashboardStats: No user ID, setting fallback stats');
+      setStats({
+        totalCourses: 0,
+        assignedCourses: 0,
+        completedCourses: 0,
+        inProgressCourses: 0,
+        certificatesEarned: 0,
+        averageProgress: 0
+      });
       setLoading(false);
       return;
     }
@@ -127,15 +135,45 @@ export const useDashboardStats = () => {
   };
 
   useEffect(() => {
+    // Add timeout to prevent infinite loading
+    const timeoutId = setTimeout(() => {
+      if (loading) {
+        console.warn('useDashboardStats: Timeout reached, setting fallback stats');
+        setStats({
+          totalCourses: 0,
+          assignedCourses: 0,
+          completedCourses: 0,
+          inProgressCourses: 0,
+          certificatesEarned: 0,
+          averageProgress: 0
+        });
+        setLoading(false);
+      }
+    }, 10000); // 10 second timeout
+
     // Only fetch if we have user ID and role is determined
     if (user?.id && (isAdmin || isOwner || isStudent || isClient)) {
       fetchStats();
+    } else if (!user?.id) {
+      // No user, set fallback immediately
+      console.log('useDashboardStats: No user, setting fallback stats');
+      setStats({
+        totalCourses: 0,
+        assignedCourses: 0,
+        completedCourses: 0,
+        inProgressCourses: 0,
+        certificatesEarned: 0,
+        averageProgress: 0
+      });
+      setLoading(false);
     } else {
       console.log('useDashboardStats: Waiting for user and role', { 
         hasUserId: !!user?.id, 
         hasRole: !!(isAdmin || isOwner || isStudent || isClient) 
       });
     }
+
+    return () => clearTimeout(timeoutId);
   }, [user?.id, isAdmin, isOwner, isStudent, isClient]);
 
   return { stats, loading, refetch: fetchStats };
