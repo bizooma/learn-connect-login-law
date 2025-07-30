@@ -27,8 +27,8 @@ export const useUserRole = () => {
     if (authLoading || !user?.id) {
       console.log('useUserRole: Skipping fetch - auth loading or no user', { authLoading, hasUser: !!user });
       if (!authLoading && !user) {
-        console.log('useUserRole: No user after auth complete, setting role to free (fallback)');
-        setRole('free');
+        console.log('useUserRole: No user after auth complete, keeping role as null');
+        setRole(null);
         setLoading(false);
       }
       return;
@@ -50,41 +50,57 @@ export const useUserRole = () => {
     console.log('useUserRole: Fetching role from database for user', user.id);
     setLoading(true);
     
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id)
-        .maybeSingle();
+    const fetchWithRetry = async (retries = 3): Promise<void> => {
+      try {
+        const { data, error } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .maybeSingle();
 
-      console.log('useUserRole: Database query result', { data, error, userId: user.id });
+        console.log('useUserRole: Database query result', { data, error, userId: user.id, retriesLeft: retries });
 
-      if (error) {
-        console.error('useUserRole: Database error, defaulting to free', error);
-        setRole('free');
-      } else {
-        const userRole = data?.role || 'free';
-        console.log('useUserRole: Setting role from database', { role: userRole, userId: user.id });
-        setRole(userRole);
+        if (error) {
+          if (retries > 0) {
+            console.log('useUserRole: Database error, retrying...', { error, retriesLeft: retries });
+            await new Promise(resolve => setTimeout(resolve, 1000 * (4 - retries))); // Exponential backoff
+            return fetchWithRetry(retries - 1);
+          } else {
+            console.error('useUserRole: Database error after all retries, defaulting to free', error);
+            setRole('free');
+          }
+        } else {
+          const userRole = data?.role || 'free';
+          console.log('useUserRole: Setting role from database', { role: userRole, userId: user.id });
+          setRole(userRole);
+        }
+        setLoading(false);
+        
+        // Clear timeout since we successfully completed the role fetch
+        if (loadingTimeoutRef.current) {
+          clearTimeout(loadingTimeoutRef.current);
+          loadingTimeoutRef.current = null;
+        }
+      } catch (error) {
+        if (retries > 0) {
+          console.log('useUserRole: Exception, retrying...', { error, retriesLeft: retries });
+          await new Promise(resolve => setTimeout(resolve, 1000 * (4 - retries))); // Exponential backoff
+          return fetchWithRetry(retries - 1);
+        } else {
+          console.error('useUserRole: Exception after all retries, defaulting to free', error);
+          setRole('free');
+          setLoading(false);
+          
+          // Clear timeout on error as well
+          if (loadingTimeoutRef.current) {
+            clearTimeout(loadingTimeoutRef.current);
+            loadingTimeoutRef.current = null;
+          }
+        }
       }
-      setLoading(false);
-      
-      // Clear timeout since we successfully completed the role fetch
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
-        loadingTimeoutRef.current = null;
-      }
-    } catch (error) {
-      console.error('useUserRole: Exception, defaulting to free', error);
-      setRole('free');
-      setLoading(false);
-      
-      // Clear timeout on error as well
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
-        loadingTimeoutRef.current = null;
-      }
-    }
+    };
+
+    await fetchWithRetry();
   }, [user?.id, user?.email, authLoading, isDirectAdmin]);
 
   useEffect(() => {
@@ -109,9 +125,10 @@ export const useUserRole = () => {
         
         // Only override if we're still loading AND we don't have any role set
         if (loading && user?.id && !role) {
-          console.warn('useUserRole: Loading timeout reached, defaulting to free role for user', user.id);
-          setRole('free');
-          setLoading(false);
+          console.warn('useUserRole: Loading timeout reached - keeping loading state but logging issue for user', user.id);
+          // Don't automatically set to 'free' - this causes wrong dashboard redirects
+          // Instead, keep loading state and log for debugging
+          setLoading(false); // Stop infinite loading but don't guess role
         } else {
           console.log('useUserRole: Timeout fired but conditions not met - not overriding role', { 
             loading, 
