@@ -112,10 +112,10 @@ export const QuizCompletionRecovery = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Activity className="h-5 w-5" />
-            Quiz Completion Data Recovery
+            Quiz Completion Data Recovery (Activity Log)
           </CardTitle>
           <p className="text-sm text-muted-foreground">
-            This tool identifies and fixes users who passed quizzes but don't have corresponding completion records in the database.
+            This tool identifies and fixes users who passed quizzes but don't have corresponding completion records in the database. Now using historical activity log data.
           </p>
         </CardHeader>
         <CardContent className="space-y-4">
