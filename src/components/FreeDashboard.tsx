@@ -2,11 +2,11 @@ import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
-import { BookOpen, User, Gift, LogOut } from "lucide-react";
+import { BookOpen, User, Gift, LogOut, Flame, Target } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import NotificationBanner from "./notifications/NotificationBanner";
 import LMSTreeFooter from "./lms-tree/LMSTreeFooter";
-import DashboardStats from "./dashboard/DashboardStats";
+import MiniLeaderboard from "./leaderboards/MiniLeaderboard";
 import FreeDashboardContent from "./free/FreeDashboardContent";
 import IssueReportButton from "./support/IssueReportButton";
 import { logger } from "@/utils/logger";
@@ -113,29 +113,6 @@ const FreeDashboard = () => {
     return null;
   }
 
-  const stats = [
-    {
-      title: "Free Resources",
-      value: "Coming Soon",
-      description: "Free learning materials",
-      icon: Gift,
-      color: "text-blue-600",
-    },
-    {
-      title: "Profile Status",
-      value: "Free User",
-      description: "Current membership",
-      icon: User,
-      color: "text-green-600",
-    },
-    {
-      title: "Available Content",
-      value: "Limited",
-      description: "Access level",
-      icon: BookOpen,
-      color: "text-purple-600",
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 flex flex-col">
@@ -180,7 +157,29 @@ const FreeDashboard = () => {
             <IssueReportButton />
           </div>
 
-          <DashboardStats stats={stats} />
+          {/* Mini Leaderboards */}
+          {user && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <MiniLeaderboard
+                type="learning_streak"
+                title="Learning Streak Leaders"
+                icon={<Flame className="h-4 w-4 text-orange-500" />}
+                limit={5}
+              />
+              <MiniLeaderboard
+                type="sales_training"
+                title="Sales Training Top 5"
+                icon={<Target className="h-4 w-4 text-green-500" />}
+                limit={5}
+              />
+              <MiniLeaderboard
+                type="legal_training"
+                title="Legal Training Top 5"
+                icon={<BookOpen className="h-4 w-4 text-blue-500" />}
+                limit={5}
+              />
+            </div>
+          )}
 
           <FreeDashboardContent
             activeTab={activeTab}
