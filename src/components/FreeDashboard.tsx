@@ -113,29 +113,6 @@ const FreeDashboard = () => {
     return null;
   }
 
-  const stats = [
-    {
-      title: "Free Resources",
-      value: "Coming Soon",
-      description: "Free learning materials",
-      icon: Gift,
-      color: "text-blue-600",
-    },
-    {
-      title: "Profile Status",
-      value: "Free User",
-      description: "Current membership",
-      icon: User,
-      color: "text-green-600",
-    },
-    {
-      title: "Available Content",
-      value: "Limited",
-      description: "Access level",
-      icon: BookOpen,
-      color: "text-purple-600",
-    },
-  ];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-gray-100 flex flex-col">
@@ -180,7 +157,7 @@ const FreeDashboard = () => {
             <IssueReportButton />
           </div>
 
-          <DashboardStats stats={stats} />
+          
 
           <FreeDashboardContent
             activeTab={activeTab}
