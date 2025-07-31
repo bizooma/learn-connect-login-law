@@ -163,15 +163,24 @@ export const useReliableCompletion = () => {
 
   const markQuizComplete = useCallback(async (
     unitId: string,
-    courseId: string
+    courseId: string,
+    retryCount: number = 0
   ): Promise<boolean> => {
     if (!user || processing) return false;
 
+    const MAX_RETRIES = 3;
+    const RETRY_DELAY = 1000; // 1 second
+
     try {
-      console.log('📝 Marking quiz complete:', { unitId, courseId });
+      console.log('📝 Marking quiz complete:', { unitId, courseId, attempt: retryCount + 1 });
       
-      // Update quiz completion status
-      const { error } = await supabase
+      // Special logging for Sara's user ID to track this specific issue
+      if (user.id === '7bc548ec-3eca-4f01-9f6b-3f19daa83f27') {
+        console.log('🔍 SARA DEBUGGING: Attempting quiz completion', { unitId, courseId, userId: user.id });
+      }
+      
+      // Update quiz completion status with enhanced error handling
+      const { data, error } = await supabase
         .from('user_unit_progress')
         .upsert({
           user_id: user.id,
@@ -182,17 +191,71 @@ export const useReliableCompletion = () => {
           updated_at: new Date().toISOString()
         }, {
           onConflict: 'user_id,unit_id,course_id'
-        });
+        })
+        .select();
 
       if (error) {
-        console.error('❌ Error marking quiz complete:', error);
-        return false;
+        console.error('❌ Error marking quiz complete:', { error, unitId, courseId, attempt: retryCount + 1 });
+        
+        // Special error logging for Sara
+        if (user.id === '7bc548ec-3eca-4f01-9f6b-3f19daa83f27') {
+          console.log('🔍 SARA DEBUGGING: Quiz completion failed', { error, unitId, courseId });
+        }
+        
+        // Retry logic for transient errors
+        if (retryCount < MAX_RETRIES && (
+          error.code === 'PGRST301' || // connection error
+          error.code === '23505' || // unique violation (might need retry)
+          error.message?.includes('timeout') ||
+          error.message?.includes('connection')
+        )) {
+          console.log(`🔄 Retrying quiz completion in ${RETRY_DELAY}ms (attempt ${retryCount + 2}/${MAX_RETRIES + 1})`);
+          await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * (retryCount + 1)));
+          return markQuizComplete(unitId, courseId, retryCount + 1);
+        }
+        
+        throw error;
       }
 
-      console.log('✅ Quiz marked complete');
+      // Verify the record was actually created/updated
+      if (!data || data.length === 0) {
+        console.warn('⚠️ Quiz completion upsert returned no data, verifying...');
+        
+        const { data: verification, error: verifyError } = await supabase
+          .from('user_unit_progress')
+          .select('quiz_completed, quiz_completed_at')
+          .eq('user_id', user.id)
+          .eq('unit_id', unitId)
+          .eq('course_id', courseId)
+          .single();
+          
+        if (verifyError || !verification?.quiz_completed) {
+          console.error('❌ Quiz completion verification failed:', { verifyError, verification });
+          throw new Error('Quiz completion verification failed');
+        }
+      }
+
+      console.log('✅ Quiz marked complete successfully', { unitId, courseId, data });
+      
+      if (user.id === '7bc548ec-3eca-4f01-9f6b-3f19daa83f27') {
+        console.log('🔍 SARA DEBUGGING: Quiz completion successful', { unitId, courseId, data });
+      }
+      
       return true;
     } catch (error) {
-      console.error('❌ Error in quiz completion:', error);
+      console.error('❌ Error in quiz completion:', { error, unitId, courseId, attempt: retryCount + 1 });
+      
+      if (user.id === '7bc548ec-3eca-4f01-9f6b-3f19daa83f27') {
+        console.log('🔍 SARA DEBUGGING: Final quiz completion error', { error, unitId, courseId });
+      }
+      
+      // One final retry for unexpected errors
+      if (retryCount < MAX_RETRIES) {
+        console.log(`🔄 Final retry for quiz completion (attempt ${retryCount + 2}/${MAX_RETRIES + 1})`);
+        await new Promise(resolve => setTimeout(resolve, RETRY_DELAY * 2));
+        return markQuizComplete(unitId, courseId, retryCount + 1);
+      }
+      
       return false;
     }
   }, [user, processing]);

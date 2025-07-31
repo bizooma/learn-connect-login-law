@@ -9,6 +9,7 @@ import { Clock, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { useReliableCompletion } from "@/hooks/useReliableCompletion";
 import { useQuizAudit } from "@/hooks/useQuizAudit";
+import { useToast } from "@/hooks/use-toast";
 
 type Quiz = Tables<'quizzes'> & {
   quiz_questions: Array<Tables<'quiz_questions'> & {
@@ -30,6 +31,7 @@ const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTak
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { markQuizComplete, evaluateAndCompleteUnit } = useReliableCompletion();
   const { logQuizAttempt, validateQuizScore } = useQuizAudit();
+  const { toast } = useToast();
 
   const questions = quiz.quiz_questions || [];
   const totalQuestions = questions.length;
@@ -107,8 +109,18 @@ const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTak
       if (passed && quiz.unit_id) {
         console.log('✅ Quiz passed, marking quiz complete and evaluating unit');
         
-        // Mark quiz as completed
-        await markQuizComplete(quiz.unit_id, courseId);
+        // Mark quiz as completed with enhanced error handling
+        const quizCompleted = await markQuizComplete(quiz.unit_id, courseId);
+        
+        if (!quizCompleted) {
+          console.error('❌ Failed to mark quiz as completed, but user still passed');
+          // Still allow them to continue, but show a warning
+          toast({
+            title: "Warning",
+            description: "You passed the quiz, but there was an issue recording your progress. Please contact support if this persists.",
+            variant: "destructive",
+          });
+        }
       }
 
       // Always pass the calculated score to ensure accuracy
