@@ -54,7 +54,12 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
   const [questionCount, setQuestionCount] = useState<number>(0);
   const [completionStatus, setCompletionStatus] = useState<QuizCompletionStatus | null>(null);
   const [statusLoading, setStatusLoading] = useState(true);
-  const { evaluateAndCompleteUnit, updateCourseProgress } = useReliableCompletion();
+  const { 
+    evaluateAndCompleteUnit, 
+    updateCourseProgress, 
+    markQuizComplete,
+    processing 
+  } = useReliableCompletion();
 
   // Check quiz completion status
   const checkQuizCompletion = async () => {
@@ -221,7 +226,7 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
     
     logger.log('🎉 Quiz completed:', { passed, score, totalQuestions, unitId: quiz.unit_id });
     
-    // Update completion status immediately
+    // Update completion status immediately for UI
     setCompletionStatus({
       completed: true,
       passed,
@@ -237,19 +242,70 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
       totalQuestions
     });
 
-    // If quiz passed and we have a unit, evaluate unit completion
-    if (passed && quiz.unit_id) {
+    // CRITICAL FIX: Mark quiz completion in the database for ALL quiz attempts
+    if (quiz.unit_id) {
       try {
-        // We need the unit data to evaluate completion properly
-        // For now, we'll just trigger the course progress update
+        logger.log('🔄 Marking quiz complete in database:', { 
+          quizId: quiz.id, 
+          unitId: quiz.unit_id, 
+          courseId, 
+          passed,
+          score 
+        });
+        
+        // Mark quiz completion using reliable completion system
+        const quizSuccess = await markQuizComplete(quiz.unit_id, courseId);
+        
+        if (!quizSuccess) {
+          logger.error('❌ Failed to mark quiz complete');
+          // Don't block the UI, but log the error
+        }
+        
+        // If quiz passed, evaluate and potentially complete the unit
+        if (passed) {
+          // We need to fetch the unit data to properly evaluate completion
+          const { data: unitData, error: unitError } = await supabase
+            .from('units')
+            .select('*')
+            .eq('id', quiz.unit_id)
+            .single();
+            
+          if (unitError) {
+            logger.error('❌ Error fetching unit data:', unitError);
+          } else if (unitData) {
+            logger.log('🔄 Evaluating unit completion after quiz pass');
+            const unitSuccess = await evaluateAndCompleteUnit(
+              unitData, 
+              courseId, 
+              true, // hasQuiz = true
+              'quiz_complete'
+            );
+            
+            if (unitSuccess) {
+              logger.log('✅ Unit marked complete after quiz pass');
+              if (onUnitComplete) {
+                onUnitComplete();
+              }
+            } else {
+              logger.error('❌ Failed to mark unit complete after quiz pass');
+            }
+          }
+        }
+        
+        // Update course progress regardless of pass/fail
         await updateCourseProgress(courseId);
         
-        if (onUnitComplete) {
-          onUnitComplete();
-        }
       } catch (error) {
-        logger.error('❌ Error evaluating unit completion after quiz:', error);
+        logger.error('❌ Error in quiz completion flow:', error);
+        // Don't block the UI, but ensure we try the fallback
+        try {
+          await updateCourseProgress(courseId);
+        } catch (fallbackError) {
+          logger.error('❌ Fallback course progress update failed:', fallbackError);
+        }
       }
+    } else {
+      logger.warn('⚠️ Quiz has no associated unit_id - cannot mark completion');
     }
   };
 
