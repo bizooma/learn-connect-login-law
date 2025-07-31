@@ -10,6 +10,7 @@ import QuizManagementLoading from "./quiz-management/QuizManagementLoading";
 import DeletedQuizzesTab from "./quiz-management/DeletedQuizzesTab";
 import QuestionManagement from "./quiz-management/QuestionManagement";
 import QuizCompletionFix from "./QuizCompletionFix";
+import { QuizCompletionRecovery } from "./QuizCompletionRecovery";
 import { useQuizManagement } from "./quiz-management/useQuizManagement";
 import { useQuizImportManager } from "./quiz-management/QuizImportManager";
 import { useEffect } from "react";
@@ -75,6 +76,7 @@ const QuizManagement = ({ quizId }: QuizManagementProps) => {
           <TabsTrigger value="import">Import from PowerPoint</TabsTrigger>
           <TabsTrigger value="deleted">Deleted Quizzes</TabsTrigger>
           <TabsTrigger value="completion-fix">Completion Fix</TabsTrigger>
+          <TabsTrigger value="data-recovery">Data Recovery</TabsTrigger>
           {importedQuizData && (
             <TabsTrigger value="review">Review Import</TabsTrigger>
           )}
@@ -105,6 +107,10 @@ const QuizManagement = ({ quizId }: QuizManagementProps) => {
 
         <TabsContent value="completion-fix">
           <QuizCompletionFix />
+        </TabsContent>
+
+        <TabsContent value="data-recovery">
+          <QuizCompletionRecovery />
         </TabsContent>
 
         {importedQuizData && (

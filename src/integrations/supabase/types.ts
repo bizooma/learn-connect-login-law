@@ -2186,6 +2186,16 @@ export type Database = {
         Args: { p_reason?: string }
         Returns: Json
       }
+      analyze_missing_quiz_completions: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          total_passed_quizzes: number
+          missing_completion_records: number
+          affected_users: number
+          affected_courses: number
+          sample_affected_users: Json
+        }[]
+      }
       assign_badge_from_template: {
         Args: {
           p_user_id: string
@@ -2246,6 +2256,15 @@ export type Database = {
       end_user_session: {
         Args: { p_session_id: string; p_exit_point?: string; p_metadata?: Json }
         Returns: boolean
+      }
+      fix_missing_quiz_completions: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          users_affected: number
+          records_created: number
+          courses_updated: number
+          details: Json
+        }[]
       }
       generate_category_leaderboard: {
         Args: { p_category: string; p_limit?: number }
