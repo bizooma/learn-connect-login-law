@@ -123,12 +123,29 @@ export const useAudioPlayer = () => {
     }
   }, []);
 
-  // Cleanup on unmount
+  // ENHANCED CLEANUP FOR MEMORY LEAK PREVENTION
   useEffect(() => {
     return () => {
       if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current.src = '';
+        try {
+          // Comprehensive cleanup to prevent memory leaks
+          audioRef.current.pause();
+          audioRef.current.removeAttribute('src');
+          audioRef.current.load(); // This triggers garbage collection of buffered data
+          
+          // Clear all references
+          audioRef.current = null;
+          setCurrentEpisodeId(null);
+          setAudioState({
+            isPlaying: false,
+            currentTime: 0,
+            duration: 0,
+            isLoading: false,
+            error: null
+          });
+        } catch (error) {
+          // Silent cleanup - don't throw during unmount
+        }
       }
     };
   }, []);

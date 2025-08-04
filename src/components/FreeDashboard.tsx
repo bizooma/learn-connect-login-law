@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
@@ -202,4 +202,5 @@ const FreeDashboard = () => {
   );
 };
 
-export default FreeDashboard;
+// PERFORMANCE OPTIMIZATION: Memoized export for heavy dashboard component
+export default memo(FreeDashboard);

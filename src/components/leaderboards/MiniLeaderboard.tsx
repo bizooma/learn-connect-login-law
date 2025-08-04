@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Trophy, TrendingUp, AlertCircle, RefreshCw } from "lucide-react";
@@ -273,4 +273,5 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
   );
 };
 
-export default MiniLeaderboard;
+// PERFORMANCE OPTIMIZATION: Memoized export for heavy leaderboard component
+export default memo(MiniLeaderboard);

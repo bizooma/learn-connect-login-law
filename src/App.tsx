@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import GlobalErrorBoundary from "@/components/ErrorBoundary/GlobalErrorBoundary";
 import { useSessionTracking } from "@/hooks/useSessionTracking";
+import { useSystemHealthMonitor } from "@/hooks/useSystemHealthMonitor";
 import { AuthProvider } from "@/hooks/useAuth";
 import ChatbotWidget from "@/components/support/ChatbotWidget";
 import Index from "./pages/Index";
@@ -38,7 +39,10 @@ import ImmigrationLawTraining from "./pages/ImmigrationLawTraining";
 const queryClient = new QueryClient();
 
 const AppContent = () => {
-  // Initialize session tracking
+  // SYSTEM HEALTH MONITORING (Phase 3)
+  const { getHealthStatus } = useSystemHealthMonitor();
+  
+  // Session tracking (simplified and stabilized)
   useSessionTracking();
 
   return (

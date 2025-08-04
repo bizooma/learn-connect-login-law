@@ -143,35 +143,29 @@ export const useSessionTracking = () => {
     }
   }, [location.pathname, user?.id]);
 
-  // End session when component unmounts or user logs out
+  // Simplified cleanup on unmount (STABILITY FIX)
   useEffect(() => {
     return () => {
-      if (sessionIdRef.current) {
-        console.log('Component unmounting, ending session');
-        endSession();
-      }
+      // Quick cleanup without async operations that could hang
+      sessionIdRef.current = null;
+      currentCourseIdRef.current = null;
+      sessionStartTimeRef.current = null;
     };
   }, []);
 
-  // End session when page unloads
+  // Simplified page unload handling (STABILITY FIX)
   useEffect(() => {
-    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+    const handleBeforeUnload = () => {
       if (sessionIdRef.current) {
-        console.log('Page unloading, attempting to end session');
-        // Use sendBeacon for better reliability during page unload
-        const sessionData = {
-          sessionId: sessionIdRef.current,
-          exitPoint: location.pathname,
-          timestamp: new Date().toISOString()
-        };
-        
-        // Attempt to send the session end via beacon
-        if (navigator.sendBeacon) {
-          navigator.sendBeacon('/api/end-session', JSON.stringify(sessionData));
+        // Simplified session cleanup - no complex beacon/fallback logic
+        try {
+          // Quick synchronous cleanup 
+          sessionIdRef.current = null;
+          currentCourseIdRef.current = null;
+          sessionStartTimeRef.current = null;
+        } catch (error) {
+          // Silent cleanup - don't cause crashes during unload
         }
-        
-        // Also try the normal way as fallback
-        endSession();
       }
     };
 
@@ -179,7 +173,7 @@ export const useSessionTracking = () => {
     return () => {
       window.removeEventListener('beforeunload', handleBeforeUnload);
     };
-  }, [location.pathname]);
+  }, []);
 
   return {
     currentSessionId: sessionIdRef.current,
