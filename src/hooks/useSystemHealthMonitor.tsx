@@ -15,7 +15,7 @@ export const useSystemHealthMonitor = () => {
     errorCount: 0,
     connectionStatus: 'connected'
   });
-  const startTime = useRef<number>(Date.now());
+  const startTime = useRef<number>(0); // FIXED: Initialize to 0, set in useEffect
 
   // Monitor memory usage (if available)
   const checkMemoryUsage = () => {
@@ -34,14 +34,23 @@ export const useSystemHealthMonitor = () => {
     }
   };
 
-  // Monitor render performance
+  // Monitor render performance - FIXED: Only measure during useEffect cycles
   const measureRenderTime = () => {
+    // Only measure if component has been active for more than initial render
+    if (startTime.current === 0) {
+      startTime.current = Date.now();
+      return;
+    }
+    
     const renderTime = Date.now() - startTime.current;
     metricsRef.current.renderTime = renderTime;
     
-    // Log warning for slow renders
-    if (renderTime > 3000) {
-      logger.warn('⚠️ Slow render detected:', {
+    // Reset start time for next measurement cycle
+    startTime.current = Date.now();
+    
+    // Only log warnings for genuinely slow operations (not cumulative time)
+    if (renderTime > 30000) { // 30 seconds for actual slow operations
+      logger.warn('⚠️ Slow operation detected:', {
         renderTime: `${renderTime}ms`,
         component: 'SystemHealthMonitor'
       });
@@ -80,11 +89,14 @@ export const useSystemHealthMonitor = () => {
   };
 
   useEffect(() => {
+    // FIXED: Initialize start time properly in useEffect
+    startTime.current = Date.now();
+    
     // Set up monitoring with longer intervals to reduce overhead
     const monitoringInterval = setInterval(() => {
       checkMemoryUsage();
       measureRenderTime();
-    }, 60000); // Check every 60 seconds (reduced from 30)
+    }, 300000); // FIXED: Check every 5 minutes to reduce performance impact
 
     // Set up global error handling
     window.addEventListener('error', handleGlobalError);

@@ -23,8 +23,11 @@ const TeamProgressDashboard = ({ team }: TeamProgressDashboardProps) => {
   const [sortBy, setSortBy] = useState<string>('progress');
 
   useEffect(() => {
-    fetchTeamProgress(team.id);
-  }, [team.id, fetchTeamProgress]);
+    // FIXED: Add proper dependency control to prevent excessive requests
+    if (team.id && !loading && teamProgress.length === 0) {
+      fetchTeamProgress(team.id);
+    }
+  }, [team.id]); // FIXED: Remove fetchTeamProgress from deps to prevent loops
 
   // Filter and sort logic
   const filteredMembers = teamProgress

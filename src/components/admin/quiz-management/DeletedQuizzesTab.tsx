@@ -29,6 +29,7 @@ const DeletedQuizzesTab = ({ onQuizRestored }: DeletedQuizzesTabProps) => {
   const fetchDeletedQuizzes = async () => {
     setLoading(true);
     try {
+      // FIXED: Specify explicit relationship to avoid ambiguity
       const { data: quizzes, error } = await supabase
         .from('quizzes')
         .select(`
@@ -36,7 +37,7 @@ const DeletedQuizzesTab = ({ onQuizRestored }: DeletedQuizzesTabProps) => {
           title,
           description,
           deleted_at,
-          quiz_questions!inner(id)
+          quiz_questions:quiz_questions!quiz_id(id)
         `)
         .eq('is_deleted', true)
         .order('deleted_at', { ascending: false });

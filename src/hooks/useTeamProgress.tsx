@@ -115,28 +115,23 @@ export const useTeamProgress = () => {
       const assignments = assignmentsResponse.data || [];
       const progress = progressResponse.data || [];
 
-      // Process data with memoized lookups for O(1) performance
-      const assignmentsByUser = useMemo(() => {
-        const map = new Map<string, typeof assignments>();
-        assignments.forEach(assignment => {
-          if (!map.has(assignment.user_id)) {
-            map.set(assignment.user_id, []);
-          }
-          map.get(assignment.user_id)!.push(assignment);
-        });
-        return map;
-      }, [assignments]);
+      // Process data with efficient lookups for O(1) performance
+      // FIXED: Remove useMemo inside useCallback - React hooks rule violation
+      const assignmentsByUser = new Map<string, typeof assignments>();
+      assignments.forEach(assignment => {
+        if (!assignmentsByUser.has(assignment.user_id)) {
+          assignmentsByUser.set(assignment.user_id, []);
+        }
+        assignmentsByUser.get(assignment.user_id)!.push(assignment);
+      });
 
-      const progressByUser = useMemo(() => {
-        const map = new Map<string, Map<string, typeof progress[0]>>();
-        progress.forEach(p => {
-          if (!map.has(p.user_id)) {
-            map.set(p.user_id, new Map());
-          }
-          map.get(p.user_id)!.set(p.course_id, p);
-        });
-        return map;
-      }, [progress]);
+      const progressByUser = new Map<string, Map<string, typeof progress[0]>>();
+      progress.forEach(p => {
+        if (!progressByUser.has(p.user_id)) {
+          progressByUser.set(p.user_id, new Map());
+        }
+        progressByUser.get(p.user_id)!.set(p.course_id, p);
+      });
 
       // Process the data efficiently
       const memberProgress: TeamMemberProgress[] = profiles.map(profile => {

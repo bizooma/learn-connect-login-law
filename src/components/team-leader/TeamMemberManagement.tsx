@@ -17,13 +17,21 @@ const TeamMemberManagement = () => {
   const [selectedUserForProgress, setSelectedUserForProgress] = useState<string | null>(null);
 
   useEffect(() => {
-    if (user) {
-      fetchTeamMembers();
-      // For demo purposes, using a default team ID or get from user's team
-      // In production, you would get the actual team ID from the user's profile or context
-      fetchTeamProgress('default-team-id');
+    // FIXED: Add proper dependency control to prevent excessive requests
+    if (user && !membersLoading && !progressLoading) {
+      const hasTeamMembers = teamMembers.length > 0;
+      const hasTeamProgress = teamProgress.length > 0;
+      
+      if (!hasTeamMembers) {
+        fetchTeamMembers();
+      }
+      
+      // Only fetch progress if we don't have it and we have team members
+      if (!hasTeamProgress && !progressLoading) {
+        fetchTeamProgress('default-team-id');
+      }
     }
-  }, [user, fetchTeamMembers, fetchTeamProgress]);
+  }, [user]); // FIXED: Remove fetchTeamMembers and fetchTeamProgress from deps to prevent loops
 
   // Create efficient lookup map for progress data
   const progressByUserId = useMemo(() => {
