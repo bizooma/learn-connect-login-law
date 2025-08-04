@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Progress } from "@/components/ui/progress";
 import { Clock, ArrowLeft, ArrowRight, CheckCircle } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
-import { useReliableCompletion } from "@/hooks/useReliableCompletion";
+import { useSimplifiedCompletion } from "@/hooks/useSimplifiedCompletion";
 import { useQuizAudit } from "@/hooks/useQuizAudit";
 import { useToast } from "@/hooks/use-toast";
 
@@ -29,7 +29,7 @@ const QuizTaking = ({ quiz, unitTitle, courseId, onComplete, onCancel }: QuizTak
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { markQuizComplete, evaluateAndCompleteUnit } = useReliableCompletion();
+  const { markQuizComplete } = useSimplifiedCompletion();
   const { logQuizAttempt, validateQuizScore } = useQuizAudit();
   const { toast } = useToast();
 

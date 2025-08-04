@@ -4,8 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, Clock } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { useUnitProgress } from "@/hooks/useUnitProgress";
-import { useEnhancedCompletion } from "@/hooks/useEnhancedCompletion";
-import CompletionMonitor from "@/components/completion/CompletionMonitor";
+import { useSimplifiedCompletion } from "@/hooks/useSimplifiedCompletion";
 
 type Unit = Tables<'units'>;
 
@@ -17,7 +16,7 @@ interface UnitCompletionButtonProps {
 
 const UnitCompletionButton = ({ unit, courseId, onComplete }: UnitCompletionButtonProps) => {
   const { isUnitCompleted } = useUnitProgress(courseId);
-  const { markUnitComplete, processing, hasFailures } = useEnhancedCompletion();
+  const { markUnitComplete, processing } = useSimplifiedCompletion();
   const [isCompleting, setIsCompleting] = useState(false);
 
   const isCompleted = isUnitCompleted(unit.id);
@@ -76,10 +75,6 @@ const UnitCompletionButton = ({ unit, courseId, onComplete }: UnitCompletionButt
 
   return (
     <div className="space-y-4">
-      {hasFailures && (
-        <CompletionMonitor />
-      )}
-      
       <div className="bg-white rounded-lg shadow-sm border p-6">
         <div className="flex items-center justify-between">
           <div>
