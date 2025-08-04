@@ -3,7 +3,7 @@ import { Tables } from "@/integrations/supabase/types";
 import UnifiedVideoPlayer from "../video/UnifiedVideoPlayer";
 import VideoProgressTracker from "./VideoProgressTracker";
 import VideoCompletionStatus from "../video/VideoCompletionStatus";
-import { useEnhancedVideoCompletion } from "@/hooks/useEnhancedVideoCompletion";
+import { useSimplifiedCompletion } from "@/hooks/useSimplifiedCompletion";
 import { useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,26 +20,19 @@ interface CourseVideoProps {
 
 const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const {
-    completionState,
-    handleVideoProgress: onVideoProgress,
-    handleVideoEnded,
-    forceCompleteVideo,
-    markVideoCompleteEnhanced
-  } = useEnhancedVideoCompletion(unit?.id || '', courseId);
+  const { markUnitComplete } = useSimplifiedCompletion();
 
   // Handle video completion
   const handleVideoComplete = useCallback(async () => {
     if (!unit) return;
 
     logger.log('🎥 Video completed for unit:', unit.id, unit.title);
-    handleVideoEnded();
-  }, [unit, handleVideoEnded]);
+    await markUnitComplete(unit.id, courseId, 'video_complete');
+  }, [unit, markUnitComplete, courseId]);
 
   const handleVideoProgress = useCallback((currentTime: number, duration: number, watchPercentage: number) => {
     logger.log('🎬 Video progress:', { currentTime, duration, watchPercentage, unit: unit?.title });
-    onVideoProgress(currentTime, duration);
-  }, [unit?.title, onVideoProgress]);
+  }, [unit?.title]);
 
   if (!unit?.video_url) {
     return null;
@@ -81,17 +74,8 @@ const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
         </CardContent>
       </Card>
 
-      {/* Enhanced Completion Status */}
-      <VideoCompletionStatus
-        isCompleted={completionState.isCompleted}
-        isProcessing={completionState.isProcessing}
-        watchPercentage={completionState.watchPercentage}
-        completionAttempts={completionState.completionAttempts}
-        lastError={completionState.lastError}
-        canManualOverride={completionState.canManualOverride}
-        onManualOverride={forceCompleteVideo}
-        onRetry={() => markVideoCompleteEnhanced(false)}
-      />
+      {/* Simplified completion monitor */}
+      <CompletionMonitor />
     </div>
   );
 };
