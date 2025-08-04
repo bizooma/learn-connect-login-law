@@ -80,11 +80,11 @@ export const useSystemHealthMonitor = () => {
   };
 
   useEffect(() => {
-    // Set up monitoring
+    // Set up monitoring with longer intervals to reduce overhead
     const monitoringInterval = setInterval(() => {
       checkMemoryUsage();
       measureRenderTime();
-    }, 30000); // Check every 30 seconds
+    }, 60000); // Check every 60 seconds (reduced from 30)
 
     // Set up global error handling
     window.addEventListener('error', handleGlobalError);
