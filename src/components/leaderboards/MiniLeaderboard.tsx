@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { supabase } from "@/integrations/supabase/client";
 import { Trophy, TrendingUp, AlertCircle, RefreshCw } from "lucide-react";
 import { useCacheManager } from "@/hooks/useCacheManager";
+import { logger } from "@/utils/logger";
 
 interface MiniLeaderboardProps {
   type: 'learning_streak' | 'sales_training' | 'legal_training';
@@ -30,20 +31,26 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
       setLoading(true);
       setError(null);
       
-      console.log(`Fetching mini leaderboard for type: ${type}`);
+      logger.log(`Fetching mini leaderboard for type: ${type}`);
       
-      // Try to fetch from cache first
-      const { data, error } = await supabase
+      // Try to fetch from cache first with timeout protection
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Request timeout')), 10000)
+      );
+      
+      const dataPromise = supabase
         .from('leaderboard_cache')
         .select('user_name, score, rank_position, additional_data')
         .eq('leaderboard_type', type)
         .gt('expires_at', new Date().toISOString())
         .order('rank_position', { ascending: true })
         .limit(limit);
+        
+      const { data, error } = await Promise.race([dataPromise, timeoutPromise]) as any;
 
       if (error) {
-        console.error(`Error fetching mini leaderboard for ${type}:`, error);
-        setError(error.message);
+        logger.error(`Error fetching mini leaderboard for ${type}:`, error);
+        setError(error.message || 'Failed to load data');
         return;
       }
 

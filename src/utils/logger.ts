@@ -12,10 +12,15 @@ export const logger = {
   
   error: (message: string, error?: any) => {
     // Always log errors, but only show details in development
-    if (isDevelopment) {
-      console.error(message, error);
-    } else {
-      console.error(message);
+    try {
+      if (isDevelopment) {
+        console.error(message, error);
+      } else {
+        console.error(message);
+      }
+    } catch (e) {
+      // Fallback if logging fails
+      console.error('Logging failed:', e);
     }
   },
   

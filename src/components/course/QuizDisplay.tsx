@@ -9,7 +9,7 @@ import QuizTaking from "../quiz/QuizTaking";
 import QuizResults from "../quiz/QuizResults";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useReliableCompletion } from "@/hooks/useReliableCompletion";
+import { useSimplifiedCompletion } from "@/hooks/useSimplifiedCompletion";
 import { logger } from "@/utils/logger";
 
 type Quiz = Tables<'quizzes'>;
@@ -54,12 +54,7 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
   const [questionCount, setQuestionCount] = useState<number>(0);
   const [completionStatus, setCompletionStatus] = useState<QuizCompletionStatus | null>(null);
   const [statusLoading, setStatusLoading] = useState(true);
-  const { 
-    evaluateAndCompleteUnit, 
-    updateCourseProgress, 
-    markQuizComplete,
-    processing 
-  } = useReliableCompletion();
+  const { markQuizComplete, markUnitComplete } = useSimplifiedCompletion();
 
   // Check quiz completion status
   const checkQuizCompletion = async () => {
@@ -261,48 +256,24 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
           // Don't block the UI, but log the error
         }
         
-        // If quiz passed, evaluate and potentially complete the unit
-        if (passed) {
-          // We need to fetch the unit data to properly evaluate completion
-          const { data: unitData, error: unitError } = await supabase
-            .from('units')
-            .select('*')
-            .eq('id', quiz.unit_id)
-            .single();
-            
-          if (unitError) {
-            logger.error('❌ Error fetching unit data:', unitError);
-          } else if (unitData) {
-            logger.log('🔄 Evaluating unit completion after quiz pass');
-            const unitSuccess = await evaluateAndCompleteUnit(
-              unitData, 
-              courseId, 
-              true, // hasQuiz = true
-              'quiz_complete'
-            );
-            
-            if (unitSuccess) {
-              logger.log('✅ Unit marked complete after quiz pass');
-              if (onUnitComplete) {
-                onUnitComplete();
-              }
-            } else {
-              logger.error('❌ Failed to mark unit complete after quiz pass');
+        // If quiz passed, mark unit as complete
+        if (passed && quiz.unit_id) {
+          logger.log('🔄 Marking unit complete after quiz pass');
+          const unitSuccess = await markUnitComplete(quiz.unit_id, courseId, 'quiz_completion');
+          
+          if (unitSuccess) {
+            logger.log('✅ Unit marked complete after quiz pass');
+            if (onUnitComplete) {
+              onUnitComplete();
             }
+          } else {
+            logger.error('❌ Failed to mark unit complete after quiz pass');
           }
         }
         
-        // Update course progress regardless of pass/fail
-        await updateCourseProgress(courseId);
-        
       } catch (error) {
         logger.error('❌ Error in quiz completion flow:', error);
-        // Don't block the UI, but ensure we try the fallback
-        try {
-          await updateCourseProgress(courseId);
-        } catch (fallbackError) {
-          logger.error('❌ Fallback course progress update failed:', fallbackError);
-        }
+        // Simple fallback - don't block UI
       }
     } else {
       logger.warn('⚠️ Quiz has no associated unit_id - cannot mark completion');

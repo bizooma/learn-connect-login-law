@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { RealtimeChannel, REALTIME_LISTEN_TYPES } from '@supabase/supabase-js';
+import { logger } from '@/utils/logger';
 
 interface RealtimeManagerOptions {
   enabled?: boolean;
@@ -42,13 +43,18 @@ export const useRealtimeManager = (options: RealtimeManagerOptions = {}) => {
   }, []);
 
   const handleConnectionError = useCallback((channelId: string, error: any) => {
-    console.warn(`Realtime connection error for ${channelId}:`, error);
-    
-    setConnectionStatus(prev => ({
-      ...prev,
-      error: error.message || 'Connection failed',
-      retryCount: prev.retryCount + 1
-    }));
+    try {
+      logger.warn(`Realtime connection error for ${channelId}:`, error);
+      
+      setConnectionStatus(prev => ({
+        ...prev,
+        error: error.message || 'Connection failed',
+        retryCount: prev.retryCount + 1
+      }));
+    } catch (e) {
+      // Prevent error handling from crashing
+      console.error('Error in handleConnectionError:', e);
+    }
   }, []);
 
   const createChannel = useCallback((
@@ -127,10 +133,14 @@ export const useRealtimeManager = (options: RealtimeManagerOptions = {}) => {
     }
   }, []);
 
-  // Cleanup on unmount
+  // Cleanup on unmount with error protection
   useEffect(() => {
     return () => {
-      removeAllChannels();
+      try {
+        removeAllChannels();
+      } catch (error) {
+        logger.error('Error during realtime cleanup:', error);
+      }
     };
   }, [removeAllChannels]);
 

@@ -1,6 +1,7 @@
 import { useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useRealtimeManager } from './useRealtimeManager';
+import { logger } from '@/utils/logger';
 
 interface CourseRealtimeManagerOptions {
   courseId: string;
@@ -137,23 +138,27 @@ export const useCourseRealtimeManager = ({
     ]);
 
     return () => {
-      console.log('Cleaning up optimized real-time subscriptions');
-      
-      // Clear any pending debounced updates
-      if (debounceTimeoutRef.current) {
-        clearTimeout(debounceTimeoutRef.current);
-        debounceTimeoutRef.current = null;
+      try {
+        logger.log('Cleaning up optimized real-time subscriptions');
+        
+        // Clear any pending debounced updates
+        if (debounceTimeoutRef.current) {
+          clearTimeout(debounceTimeoutRef.current);
+          debounceTimeoutRef.current = null;
+        }
+        
+        // Reset pending updates
+        pendingUpdatesRef.current = {
+          courseStructure: false,
+          quizzes: new Set()
+        };
+        
+        // Remove channel
+        const channelId = `course-${courseId}-realtime`;
+        removeChannel(channelId);
+      } catch (error) {
+        logger.error('Error during course realtime cleanup:', error);
       }
-      
-      // Reset pending updates
-      pendingUpdatesRef.current = {
-        courseStructure: false,
-        quizzes: new Set()
-      };
-      
-      // Remove channel
-      const channelId = `course-${courseId}-realtime`;
-      removeChannel(channelId);
     };
   }, [courseId, enabled, createChannel, removeChannel, handleCourseStructureChange, handleUnitChange, handleQuizChange]);
 

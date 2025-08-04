@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import NotificationBanner from "./notifications/NotificationBanner";
 import LMSTreeFooter from "./lms-tree/LMSTreeFooter";
 import MiniLeaderboard from "./leaderboards/MiniLeaderboard";
+import GlobalErrorBoundary from "./ErrorBoundary/GlobalErrorBoundary";
 import FreeDashboardContent from "./free/FreeDashboardContent";
 import IssueReportButton from "./support/IssueReportButton";
 import { logger } from "@/utils/logger";
@@ -157,27 +158,33 @@ const FreeDashboard = () => {
             <IssueReportButton />
           </div>
 
-          {/* Mini Leaderboards */}
+          {/* Mini Leaderboards with error boundaries */}
           {user && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <MiniLeaderboard
-                type="learning_streak"
-                title="Learning Streak Leaders"
-                icon={<Flame className="h-4 w-4 text-orange-500" />}
-                limit={5}
-              />
-              <MiniLeaderboard
-                type="sales_training"
-                title="Sales Training Top 5"
-                icon={<Target className="h-4 w-4 text-green-500" />}
-                limit={5}
-              />
-              <MiniLeaderboard
-                type="legal_training"
-                title="Legal Training Top 5"
-                icon={<BookOpen className="h-4 w-4 text-blue-500" />}
-                limit={5}
-              />
+              <GlobalErrorBoundary fallback={<div className="p-4 text-center text-gray-500">Leaderboard unavailable</div>}>
+                <MiniLeaderboard
+                  type="learning_streak"
+                  title="Learning Streak Leaders"
+                  icon={<Flame className="h-4 w-4 text-orange-500" />}
+                  limit={5}
+                />
+              </GlobalErrorBoundary>
+              <GlobalErrorBoundary fallback={<div className="p-4 text-center text-gray-500">Leaderboard unavailable</div>}>
+                <MiniLeaderboard
+                  type="sales_training"
+                  title="Sales Training Top 5"
+                  icon={<Target className="h-4 w-4 text-green-500" />}
+                  limit={5}
+                />
+              </GlobalErrorBoundary>
+              <GlobalErrorBoundary fallback={<div className="p-4 text-center text-gray-500">Leaderboard unavailable</div>}>
+                <MiniLeaderboard
+                  type="legal_training"
+                  title="Legal Training Top 5"
+                  icon={<BookOpen className="h-4 w-4 text-blue-500" />}
+                  limit={5}
+                />
+              </GlobalErrorBoundary>
             </div>
           )}
 
