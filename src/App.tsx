@@ -4,7 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import GlobalErrorBoundary from "@/components/ErrorBoundary/GlobalErrorBoundary";
+import { EnhancedErrorBoundary } from "@/components/ErrorBoundary/EnhancedErrorBoundary";
 import { useSessionTracking } from "@/hooks/useSessionTracking";
 import { useSystemHealthMonitor } from "@/hooks/useSystemHealthMonitor";
 import { AuthProvider } from "@/hooks/useAuth";
@@ -87,7 +87,7 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <GlobalErrorBoundary>
+  <EnhancedErrorBoundary level="page">
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
         <AuthProvider>
@@ -99,7 +99,7 @@ const App = () => (
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
-  </GlobalErrorBoundary>
+  </EnhancedErrorBoundary>
 );
 
 export default App;

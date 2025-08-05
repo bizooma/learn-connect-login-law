@@ -92,11 +92,12 @@ export const useSystemHealthMonitor = () => {
     // FIXED: Initialize start time properly in useEffect
     startTime.current = Date.now();
     
-    // Set up monitoring with longer intervals to reduce overhead
+    // EMERGENCY STABILIZATION: Reduced monitoring frequency
     const monitoringInterval = setInterval(() => {
       checkMemoryUsage();
-      measureRenderTime();
-    }, 300000); // FIXED: Check every 5 minutes to reduce performance impact
+      // Temporarily disable render time monitoring to reduce overhead
+      // measureRenderTime();
+    }, 600000); // Check every 10 minutes to minimize performance impact
 
     // Set up global error handling
     window.addEventListener('error', handleGlobalError);
