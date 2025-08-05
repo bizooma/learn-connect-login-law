@@ -36,8 +36,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [isInitialized, setIsInitialized] = useState(false);
-  const [isSessionRestored, setIsSessionRestored] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -46,44 +44,64 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const handleAuthStateChange = (event: string, session: Session | null) => {
       if (!mounted) return;
       
-      logger.log(`Auth state change: ${event}`, { hasSession: !!session });
+      logger.log(`Auth state change: ${event}`, { 
+        hasSession: !!session, 
+        hasUser: !!session?.user,
+        sessionId: session?.access_token?.slice(-10) // Last 10 chars for debugging
+      });
 
       if (event === 'SIGNED_OUT' || !session) {
+        logger.log('Auth: Clearing user and session state');
         setSession(null);
         setUser(null);
       } else {
+        logger.log('Auth: Setting user and session state', { 
+          userId: session.user?.id,
+          email: session.user?.email 
+        });
         setSession(session);
-        setUser(session?.user ?? null);
-        setIsSessionRestored(true);
+        setUser(session.user);
       }
       
       setLoading(false);
     };
 
+    // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(handleAuthStateChange);
 
+    // THEN check for existing session
     const initializeAuth = async () => {
       try {
+        logger.log('Auth: Initializing auth state');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (!mounted) return;
         
-        if (!error && session) {
+        if (error) {
+          logger.error('Auth: Error getting session', error);
+          setSession(null);
+          setUser(null);
+        } else if (session) {
+          logger.log('Auth: Found existing session', { 
+            userId: session.user?.id,
+            email: session.user?.email,
+            sessionId: session.access_token?.slice(-10)
+          });
           setSession(session);
-          setUser(session?.user ?? null);
-          setIsSessionRestored(true);
+          setUser(session.user);
         } else {
+          logger.log('Auth: No existing session found');
           setSession(null);
           setUser(null);
         }
       } catch (error) {
         if (!mounted) return;
-        logger.error('Auth initialization error:', error);
+        logger.error('Auth: Unexpected initialization error:', error);
         setSession(null);
         setUser(null);
       } finally {
         if (mounted) {
-          setIsInitialized(true);
+          logger.log('Auth: Initialization complete');
           setLoading(false);
         }
       }
@@ -100,76 +118,109 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const signOut = async () => {
     try {
+      logger.log('Auth: Starting sign out process');
+      
+      // Clear state immediately to prevent UI flicker
       setUser(null);
       setSession(null);
       
-      const { error } = await supabase.auth.signOut({ scope: 'global' });
+      // Check if we have a valid session before attempting sign out
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
       
-      if (error) {
-        logger.error('Sign out error:', error);
-        toast({
-          title: "Sign out warning",
-          description: "There was an issue signing out, but you've been logged out locally.",
-          variant: "destructive"
-        });
-      }
-      
-      // Clean up localStorage
-      try {
-        const keysToRemove = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && (
-            key.startsWith('supabase.') || 
-            key.includes('auth-token') ||
-            key.includes('sb-') ||
-            key.includes('supabase-auth-token')
-          )) {
-            keysToRemove.push(key);
+      if (currentSession) {
+        logger.log('Auth: Found active session, signing out from Supabase');
+        const { error } = await supabase.auth.signOut({ scope: 'global' });
+        
+        if (error) {
+          // Don't treat session_not_found as a real error since user is already logged out
+          if (error.message?.includes('session_not_found') || error.message?.includes('Session not found')) {
+            logger.log('Auth: Session already expired/invalid, proceeding with local cleanup');
+          } else {
+            logger.error('Auth: Sign out error:', error);
+            toast({
+              title: "Sign out warning",
+              description: "There was an issue signing out, but you've been logged out locally.",
+              variant: "destructive"
+            });
           }
+        } else {
+          logger.log('Auth: Successfully signed out from Supabase');
         }
-        keysToRemove.forEach(key => localStorage.removeItem(key));
-      } catch (storageError) {
-        logger.error('Storage cleanup error:', storageError);
+      } else {
+        logger.log('Auth: No active session found, proceeding with local cleanup');
       }
       
+      // Clean up localStorage more aggressively
+      await cleanupAuthStorage();
+      
+      logger.log('Auth: Sign out complete, redirecting to home');
       window.location.href = '/';
       
     } catch (error) {
-      logger.error('Unexpected sign out error:', error);
+      logger.error('Auth: Unexpected sign out error:', error);
       
-      // Emergency cleanup
-      try {
-        setUser(null);
-        setSession(null);
-        
-        const keysToRemove = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && (key.startsWith('supabase.') || key.includes('auth-token'))) {
-            keysToRemove.push(key);
-          }
-        }
-        keysToRemove.forEach(key => localStorage.removeItem(key));
-      } catch (cleanupError) {
-        logger.error('Emergency cleanup error:', cleanupError);
-      }
+      // Emergency cleanup - still complete the logout locally
+      setUser(null);
+      setSession(null);
+      await cleanupAuthStorage();
       
       toast({
-        title: "Sign out error",
-        description: "An unexpected error occurred during sign out.",
-        variant: "destructive"
+        title: "Signed out",
+        description: "You have been signed out locally.",
+        variant: "default"
       });
       
       window.location.href = '/';
     }
   };
 
-  // More conservative loading state - only consider loaded when both auth is initialized AND session is properly restored
-  const actualLoading = loading || !isInitialized || (!isSessionRestored && !!session);
+  const cleanupAuthStorage = async () => {
+    try {
+      logger.log('Auth: Cleaning up auth storage');
+      
+      // Clear all Supabase-related localStorage keys
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && (
+          key.startsWith('supabase.') || 
+          key.includes('auth-token') ||
+          key.includes('sb-') ||
+          key.includes('supabase-auth-token') ||
+          key.includes('auth.token')
+        )) {
+          keysToRemove.push(key);
+        }
+      }
+      
+      logger.log('Auth: Removing storage keys:', keysToRemove);
+      keysToRemove.forEach(key => {
+        try {
+          localStorage.removeItem(key);
+        } catch (e) {
+          logger.error('Auth: Error removing key:', key, e);
+        }
+      });
+
+      // Also clear sessionStorage
+      try {
+        for (let i = 0; i < sessionStorage.length; i++) {
+          const key = sessionStorage.key(i);
+          if (key && key.includes('supabase')) {
+            sessionStorage.removeItem(key);
+          }
+        }
+      } catch (e) {
+        logger.error('Auth: Error clearing sessionStorage:', e);
+      }
+      
+    } catch (storageError) {
+      logger.error('Auth: Storage cleanup error:', storageError);
+    }
+  };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading: actualLoading, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signOut }}>
       {children}
     </AuthContext.Provider>
   );

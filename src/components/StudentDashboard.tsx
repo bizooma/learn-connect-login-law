@@ -85,20 +85,7 @@ const StudentDashboard = () => {
     }
   }, [isStudent, role, roleLoading, user, navigate]);
 
-  // Emergency timeout to prevent infinite loading - moved to top level to fix hooks violation
-  useEffect(() => {
-    // Only set timeout if we're in a loading state
-    if (roleLoading || !user) {
-      const emergencyTimeout = setTimeout(() => {
-        if (!user && !roleLoading) {
-          console.warn('StudentDashboard: Emergency timeout - no user found, redirecting');
-          navigate("/", { replace: true });
-        }
-      }, 15000); // 15 second emergency timeout
-      
-      return () => clearTimeout(emergencyTimeout);
-    }
-  }, [user, roleLoading, navigate]);
+  // Removed emergency timeout logic - proper auth/role loading will handle this
 
   // Show loading while checking roles
   if (roleLoading || !user) {

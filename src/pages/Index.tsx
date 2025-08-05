@@ -98,30 +98,7 @@ const Index = () => {
     }
   }, [user?.id, isOwner, isTeamLeader, isStudent, isClient, isFree, isAdmin, authLoading, roleLoading, navigate, location.pathname]);
 
-  // Add emergency redirect fallback specifically for student users stuck on index
-  useEffect(() => {
-    const emergencyTimeout = setTimeout(() => {
-      console.warn('Index: Emergency timeout reached - checking if student needs redirect');
-      
-      if (user && !hasRedirected.current && (location.pathname === '/' || location.pathname === '/index')) {
-        console.warn('Index: User stuck on index page, checking for student role');
-        
-        // Emergency check: if we have a user but role is still loading after 5 seconds,
-        // and we're still on index, force redirect to student dashboard for known students
-        if (roleLoading || (user.email && (
-          user.email.includes('newfrontier') || 
-          user.email === 'melissa.tharpe@newfrontier.us' ||
-          user.email === 'student@test.com'
-        ))) {
-          console.warn('Index: Emergency redirect to student dashboard for user:', user.email);
-          hasRedirected.current = true;
-          navigate('/student-dashboard', { replace: true });
-        }
-      }
-    }, 5000); // 5 second emergency timeout
-
-    return () => clearTimeout(emergencyTimeout);
-  }, [user, roleLoading, navigate, location.pathname]);
+  // Removed emergency timeout logic - let proper auth/role loading handle routing
 
   // Show loading while auth or roles are being determined
   if (authLoading || (user && roleLoading)) {

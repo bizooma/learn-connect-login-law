@@ -2,156 +2,120 @@
 import { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/utils/logger';
 
 export const useUserRole = () => {
   const { user, loading: authLoading } = useAuth();
   const [role, setRole] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
-  const loadingTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
-  console.log('useUserRole: Hook called', { userId: user?.id, email: user?.email, authLoading, roleLoading: loading });
+  logger.log('useUserRole: Hook called', { 
+    userId: user?.id, 
+    email: user?.email, 
+    authLoading, 
+    roleLoading: loading 
+  });
 
   // Direct admin check function
   const isDirectAdmin = useCallback((email: string | undefined) => {
     if (!email) return false;
-    const directAdmins = ['joe@bizooma.com', 'admin@newfrontieruniversity.com', 'erin.walsh@newfrontier.us', 'carolina@newfrontieruniversity.com'];
+    const directAdmins = [
+      'joe@bizooma.com', 
+      'admin@newfrontieruniversity.com', 
+      'erin.walsh@newfrontier.us', 
+      'carolina@newfrontieruniversity.com'
+    ];
     const isAdmin = directAdmins.includes(email);
-    console.log('useUserRole: Direct admin check', { email, isAdmin });
+    logger.log('useUserRole: Direct admin check', { email, isAdmin });
     return isAdmin;
   }, []);
 
   const fetchUserRole = useCallback(async () => {
-    console.log('useUserRole: fetchUserRole called', { authLoading, userId: user?.id, email: user?.email });
+    logger.log('useUserRole: fetchUserRole called', { 
+      authLoading, 
+      userId: user?.id, 
+      email: user?.email 
+    });
     
-    // Don't fetch if auth is still loading or user is null
-    if (authLoading || !user?.id) {
-      console.log('useUserRole: Skipping fetch - auth loading or no user', { authLoading, hasUser: !!user });
-      if (!authLoading && !user) {
-        console.log('useUserRole: No user after auth complete, keeping role as null');
-        setRole(null);
-        setLoading(false);
-      }
+    // Don't fetch if auth is still loading
+    if (authLoading) {
+      logger.log('useUserRole: Auth still loading, skipping role fetch');
       return;
     }
 
-    // Check if user is a direct admin first
+    // If no user after auth is complete, set role to null
+    if (!user?.id) {
+      logger.log('useUserRole: No user found after auth complete, setting role to null');
+      setRole(null);
+      setLoading(false);
+      return;
+    }
+
+    // Check if user is a direct admin first - this is the highest priority
     if (isDirectAdmin(user.email)) {
-      console.log('useUserRole: User is direct admin, setting role');
+      logger.log('useUserRole: User is direct admin, setting admin role');
       setRole('admin');
       setLoading(false);
-      // Clear timeout since we successfully set a role
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
-        loadingTimeoutRef.current = null;
-      }
       return;
     }
 
-    console.log('useUserRole: Fetching role from database for user', user.id);
+    logger.log('useUserRole: Fetching role from database for user:', user.id);
     setLoading(true);
     
-    const fetchWithRetry = async (retries = 3): Promise<void> => {
-      try {
-        const { data, error } = await supabase
-          .from('user_roles')
-          .select('role')
-          .eq('user_id', user.id)
-          .maybeSingle();
+    try {
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-        console.log('useUserRole: Database query result', { data, error, userId: user.id, retriesLeft: retries });
+      logger.log('useUserRole: Database query result', { 
+        data, 
+        error, 
+        userId: user.id 
+      });
 
-        if (error) {
-          if (retries > 0) {
-            console.log('useUserRole: Database error, retrying...', { error, retriesLeft: retries });
-            await new Promise(resolve => setTimeout(resolve, 1000 * (4 - retries))); // Exponential backoff
-            return fetchWithRetry(retries - 1);
-          } else {
-            console.error('useUserRole: Database error after all retries, defaulting to free', error);
-            setRole('free');
-          }
-        } else {
-          const userRole = data?.role || 'free';
-          console.log('useUserRole: Setting role from database', { role: userRole, userId: user.id });
-          setRole(userRole);
-        }
-        setLoading(false);
-        
-        // Clear timeout since we successfully completed the role fetch
-        if (loadingTimeoutRef.current) {
-          clearTimeout(loadingTimeoutRef.current);
-          loadingTimeoutRef.current = null;
-        }
-      } catch (error) {
-        if (retries > 0) {
-          console.log('useUserRole: Exception, retrying...', { error, retriesLeft: retries });
-          await new Promise(resolve => setTimeout(resolve, 1000 * (4 - retries))); // Exponential backoff
-          return fetchWithRetry(retries - 1);
-        } else {
-          console.error('useUserRole: Exception after all retries, defaulting to free', error);
-          setRole('free');
-          setLoading(false);
-          
-          // Clear timeout on error as well
-          if (loadingTimeoutRef.current) {
-            clearTimeout(loadingTimeoutRef.current);
-            loadingTimeoutRef.current = null;
-          }
-        }
+      if (error) {
+        logger.error('useUserRole: Database error, defaulting to free role', error);
+        setRole('free');
+      } else {
+        const userRole = data?.role || 'free';
+        logger.log('useUserRole: Setting role from database', { 
+          role: userRole, 
+          userId: user.id 
+        });
+        setRole(userRole);
       }
-    };
-
-    await fetchWithRetry();
+    } catch (error) {
+      logger.error('useUserRole: Exception during role fetch, defaulting to free', error);
+      setRole('free');
+    } finally {
+      setLoading(false);
+    }
   }, [user?.id, user?.email, authLoading, isDirectAdmin]);
 
   useEffect(() => {
-    console.log('useUserRole: useEffect triggered', { authLoading, userId: user?.id, currentRole: role });
+    logger.log('useUserRole: useEffect triggered', { 
+      authLoading, 
+      userId: user?.id, 
+      currentRole: role 
+    });
     
-    // Clear any existing timeout
-    if (loadingTimeoutRef.current) {
-      clearTimeout(loadingTimeoutRef.current);
-      loadingTimeoutRef.current = null;
-    }
-
-    // Only set up timeout if we don't already have a role and we have a user
-    if (!role && user?.id && !authLoading) {
-      // Set up emergency timeout to prevent infinite loading, but only if no role is set
-      loadingTimeoutRef.current = setTimeout(() => {
-        console.log('useUserRole: Checking timeout conditions', { 
-          loading, 
-          hasUser: !!user?.id, 
-          currentRole: role,
-          timeoutRef: !!loadingTimeoutRef.current 
-        });
-        
-        // Only override if we're still loading AND we don't have any role set
-        if (loading && user?.id && !role) {
-          console.warn('useUserRole: Loading timeout reached - keeping loading state but logging issue for user', user.id);
-          // Don't automatically set to 'free' - this causes wrong dashboard redirects
-          // Instead, keep loading state and log for debugging
-          setLoading(false); // Stop infinite loading but don't guess role
-        } else {
-          console.log('useUserRole: Timeout fired but conditions not met - not overriding role', { 
-            loading, 
-            hasUser: !!user?.id, 
-            currentRole: role 
-          });
-        }
-      }, 5000); // 5 second timeout
+    // Reset role when user changes (including logout)
+    if (!user?.id && role !== null) {
+      logger.log('useUserRole: User cleared, resetting role to null');
+      setRole(null);
+      setLoading(false);
+      return;
     }
 
     fetchUserRole();
-
-    return () => {
-      if (loadingTimeoutRef.current) {
-        clearTimeout(loadingTimeoutRef.current);
-        loadingTimeoutRef.current = null;
-      }
-    };
-  }, [fetchUserRole, role]);
+  }, [fetchUserRole]);
 
   const refreshRole = useCallback(() => {
-    console.log('useUserRole: refreshRole called');
+    logger.log('useUserRole: refreshRole called');
     if (user?.id && !authLoading) {
+      setLoading(true);
       fetchUserRole();
     }
   }, [user?.id, authLoading, fetchUserRole]);
@@ -159,25 +123,29 @@ export const useUserRole = () => {
   // Compute derived values safely - use memoization to prevent constant recalculation
   const isAdmin = useMemo(() => {
     const result = role === 'admin';
-    console.log('useUserRole: isAdmin computed', { role, isAdmin: result });
+    logger.log('useUserRole: isAdmin computed', { role, isAdmin: result });
     return result;
   }, [role]);
+  
   const isOwner = useMemo(() => role === 'owner', [role]);
   const isTeamLeader = useMemo(() => role === 'team_leader', [role]);
+  
   const isStudent = useMemo(() => {
     const result = role === 'student';
-    console.log('useUserRole: isStudent computed', { role, isStudent: result });
+    logger.log('useUserRole: isStudent computed', { role, isStudent: result });
     return result;
   }, [role]);
+  
   const isClient = useMemo(() => role === 'client', [role]);
   const isFree = useMemo(() => role === 'free', [role]);
   const hasAdminPrivileges = useMemo(() => isAdmin || isOwner, [isAdmin, isOwner]);
 
-  // Only show loading if auth is loading OR we're loading roles for an authenticated user
-  const actualLoading = authLoading || (!!user && loading);
+  // Simplified loading state - only loading if auth is loading OR we're loading roles
+  const actualLoading = authLoading || loading;
 
-  console.log('useUserRole: Hook returning', { 
+  logger.log('useUserRole: Hook returning', { 
     role, 
+    isStudent, 
     isFree, 
     actualLoading, 
     authLoading, 
