@@ -5,6 +5,8 @@ import { isYouTubeUrl } from '@/utils/youTubeUtils';
 import YouTubeVideoPlayer from './YouTubeVideoPlayer';
 import VideoThumbnail from './VideoThumbnail';
 import { useVideoPerformance } from '@/hooks/useVideoPerformance';
+import { useVideoStabilityMonitor } from '@/hooks/useVideoStabilityMonitor';
+import VideoErrorBoundary from './VideoErrorBoundary';
 import { logger } from '@/utils/logger';
 
 interface UnifiedVideoPlayerProps {
@@ -38,6 +40,11 @@ const UnifiedVideoPlayer = ({
         logger.warn('Slow video loading detected:', metrics);
       }
     }
+  });
+
+  const { trackProgressUpdate } = useVideoStabilityMonitor({
+    videoId: videoUrl,
+    videoType: isYouTubeUrl(videoUrl) ? 'youtube' : 'upload'
   });
 
   const handleLoadPlayer = useCallback(() => {
@@ -94,6 +101,7 @@ const UnifiedVideoPlayer = ({
   }
 
   const handleVideoProgress = (currentTime: number, duration: number, watchPercentage: number) => {
+    trackProgressUpdate();
     if (onProgress) {
       onProgress(currentTime, duration, watchPercentage);
     }

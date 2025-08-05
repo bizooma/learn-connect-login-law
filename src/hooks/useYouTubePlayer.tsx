@@ -23,6 +23,7 @@ interface UseYouTubePlayerProps {
   onStateChange?: (state: number) => void;
   onProgress?: (currentTime: number, duration: number) => void;
   onReady?: (player: any) => void;
+  onError?: (error: string) => void;
 }
 
 export const useYouTubePlayer = ({
@@ -30,7 +31,8 @@ export const useYouTubePlayer = ({
   containerId,
   onStateChange,
   onProgress,
-  onReady
+  onReady,
+  onError
 }: UseYouTubePlayerProps) => {
   const [playerState, setPlayerState] = useState<YouTubePlayerState>({
     player: null,
@@ -167,6 +169,9 @@ export const useYouTubePlayer = ({
       playerRef.current = player;
     } catch (error) {
       console.error('Error initializing YouTube player:', error);
+      if (onError) {
+        onError(error instanceof Error ? error.message : 'YouTube player initialization failed');
+      }
     }
   }, [videoId, containerId, onReady, onStateChange, playerState.duration]);
 

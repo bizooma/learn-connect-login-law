@@ -4,6 +4,8 @@ import { useYouTubePlayer } from '@/hooks/useYouTubePlayer';
 import { extractYouTubeVideoId, getYouTubeContainerId } from '@/utils/youTubeUtils';
 import { Button } from '@/components/ui/button';
 import { AlertCircle, RefreshCw } from 'lucide-react';
+import { useVideoStabilityMonitor } from '@/hooks/useVideoStabilityMonitor';
+import VideoErrorBoundary from './VideoErrorBoundary';
 
 interface YouTubeVideoPlayerProps {
   videoUrl: string;
@@ -25,9 +27,28 @@ const YouTubeVideoPlayer = ({
   const [error, setError] = useState<string | null>(null);
   const videoId = extractYouTubeVideoId(videoUrl);
   const lastProgressRef = useRef<number>(0);
+  
+  // PHASE 1: Video stability monitoring
+  const {
+    trackLoadAttempt,
+    trackLoadFailure,
+    trackPlaybackError,
+    trackProgressUpdate,
+    getStabilityReport
+  } = useVideoStabilityMonitor({
+    videoId: videoId || undefined,
+    videoType: 'youtube',
+    onStabilityIssue: (metrics) => {
+      console.warn('🚨 YouTube video stability issue detected:', metrics);
+      setError(`Video stability issue: ${metrics.lastError || 'Multiple failures detected'}`);
+    }
+  });
 
   const handleProgress = (currentTime: number, duration: number) => {
     if (duration <= 0) return;
+
+    // Track progress for stability monitoring
+    trackProgressUpdate();
 
     const watchPercentage = Math.min((currentTime / duration) * 100, 100);
     
@@ -64,6 +85,7 @@ const YouTubeVideoPlayer = ({
   const handleReady = (player: any) => {
     console.log('YouTube player ready for video:', videoId);
     setError(null);
+    trackLoadAttempt(); // Track successful load
   };
 
   const { isReady, isPlaying, currentTime, duration, initializePlayer } = useYouTubePlayer({
@@ -71,21 +93,36 @@ const YouTubeVideoPlayer = ({
     containerId,
     onProgress: handleProgress,
     onStateChange: handleStateChange,
-    onReady: handleReady
+    onReady: handleReady,
+    onError: (error: string) => {
+      trackPlaybackError(error);
+      setError(error);
+    }
   });
 
   const handleRetry = () => {
+    console.log('🔄 Retrying YouTube video load for:', videoId);
     setError(null);
     setHasCompleted(false);
-    initializePlayer();
+    trackLoadAttempt();
+    
+    try {
+      initializePlayer();
+    } catch (error) {
+      const errorMsg = error instanceof Error ? error.message : 'Unknown retry error';
+      trackLoadFailure(errorMsg);
+      setError(errorMsg);
+    }
   };
 
   // Set error if no video ID
   useEffect(() => {
     if (!videoId) {
-      setError('Invalid YouTube URL');
+      const errorMsg = 'Invalid YouTube URL';
+      trackLoadFailure(errorMsg);
+      setError(errorMsg);
     }
-  }, [videoId]);
+  }, [videoId, trackLoadFailure]);
 
   if (!videoId || error) {
     return (
@@ -109,19 +146,21 @@ const YouTubeVideoPlayer = ({
   }
 
   return (
-    <div className={`bg-gray-100 rounded-lg overflow-hidden relative ${className}`}>
-      <div id={containerId} className="w-full h-full" />
-      
-      {!isReady && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-            <p className="text-gray-600">Loading video...</p>
-            {title && <p className="text-sm text-gray-500 mt-1">{title}</p>}
+    <VideoErrorBoundary>
+      <div className={`bg-gray-100 rounded-lg overflow-hidden relative ${className}`}>
+        <div id={containerId} className="w-full h-full" />
+        
+        {!isReady && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+              <p className="text-gray-600">Loading video...</p>
+              {title && <p className="text-sm text-gray-500 mt-1">{title}</p>}
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </VideoErrorBoundary>
   );
 };
 
