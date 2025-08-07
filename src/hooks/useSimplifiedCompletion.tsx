@@ -4,6 +4,26 @@ import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { logger } from "@/utils/logger";
 
+// Silent background course progress update function
+const updateCourseProgressSilently = async (userId: string, courseId: string) => {
+  try {
+    logger.log('🔄 Updating course progress silently:', { userId, courseId });
+    
+    const { data, error } = await supabase.rpc('update_course_progress_reliable', {
+      p_user_id: userId,
+      p_course_id: courseId
+    });
+
+    if (error) {
+      logger.warn('⚠️ Course progress update failed (non-critical):', error);
+    } else {
+      logger.log('✅ Course progress updated successfully:', data);
+    }
+  } catch (error) {
+    logger.warn('⚠️ Course progress update error (non-critical):', error);
+  }
+};
+
 export const useSimplifiedCompletion = () => {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -40,6 +60,10 @@ export const useSimplifiedCompletion = () => {
       }
 
       logger.log('✅ Quiz completed successfully');
+      
+      // Trigger course progress update in background
+      updateCourseProgressSilently(user.id, courseId);
+      
       return true;
     } catch (error) {
       logger.error('❌ Quiz completion error:', error);
@@ -91,6 +115,9 @@ export const useSimplifiedCompletion = () => {
         title: "Unit Completed! 🎉",
         description: "Great job! You've completed this unit.",
       });
+
+      // Trigger course progress update in background
+      updateCourseProgressSilently(user.id, courseId);
 
       return true;
     } catch (error) {
