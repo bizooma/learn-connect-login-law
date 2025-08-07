@@ -6,6 +6,26 @@ import { useToast } from "@/hooks/use-toast";
 import { useUnifiedCompletion } from "@/hooks/useUnifiedCompletion";
 import { logger } from "@/utils/logger";
 
+// Silent background course progress update function
+const updateCourseProgressSilently = async (userId: string, courseId: string) => {
+  try {
+    logger.log('🔄 Updating course progress silently:', { userId, courseId });
+    
+    const { data, error } = await supabase.rpc('update_course_progress_reliable', {
+      p_user_id: userId,
+      p_course_id: courseId
+    });
+
+    if (error) {
+      logger.warn('⚠️ Course progress update failed (non-critical):', error);
+    } else {
+      logger.log('✅ Course progress updated successfully:', data);
+    }
+  } catch (error) {
+    logger.warn('⚠️ Course progress update error (non-critical):', error);
+  }
+};
+
 interface VideoCompletionState {
   isCompleted: boolean;
   watchPercentage: number;
@@ -52,6 +72,10 @@ export const useVideoCompletion = (unitId: string, courseId: string) => {
         }));
 
         logger.log('✅ Video completion successful via unified system');
+        
+        // Trigger course progress update in background
+        updateCourseProgressSilently(user!.id, courseId);
+        
         return true;
       } else {
         // Fallback to old system if unified fails
@@ -128,6 +152,10 @@ export const useVideoCompletion = (unitId: string, courseId: string) => {
         });
 
         logger.log('✅ Fallback video completion successful');
+        
+        // Trigger course progress update in background
+        updateCourseProgressSilently(user!.id, courseId);
+        
         return true;
       } else {
         throw new Error('All completion strategies failed');
