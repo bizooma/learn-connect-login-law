@@ -333,6 +333,38 @@ const UserProgressModal = ({ isOpen, onClose, userId }: UserProgressModalProps) 
     }
   };
 
+  useEffect(() => {
+    if (!isOpen || !userId) return;
+
+    console.log('🛰️ Subscribing to realtime updates for user progress', { userId });
+    const channel = supabase
+      .channel(`user-progress-${userId}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'user_course_progress',
+        filter: `user_id=eq.${userId}`
+      }, () => {
+        console.log('🔔 user_course_progress change detected; refreshing');
+        setRefreshKey(prev => prev + 1);
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'user_unit_progress',
+        filter: `user_id=eq.${userId}`
+      }, () => {
+        console.log('🔔 user_unit_progress change detected; refreshing');
+        setRefreshKey(prev => prev + 1);
+      })
+      .subscribe();
+
+    return () => {
+      console.log('🛑 Unsubscribing from realtime updates for user', { userId });
+      supabase.removeChannel(channel);
+    };
+  }, [isOpen, userId]);
+
   const selectedCourse = userProgress?.courses.find(c => c.course_id === selectedCourseId);
 
   return (

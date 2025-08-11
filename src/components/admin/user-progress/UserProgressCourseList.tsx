@@ -2,7 +2,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { BookOpen, Calendar, Trash2, Award } from "lucide-react";
+import { BookOpen, Calendar, Trash2, Award, RefreshCcw } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -88,6 +88,29 @@ const UserProgressCourseList = ({
     }
   };
 
+  const handleRecalculate = async (courseId: string) => {
+    if (!userId) return;
+    try {
+      const { data, error } = await supabase.rpc('update_course_progress_reliable', {
+        p_user_id: userId,
+        p_course_id: courseId,
+      });
+      if (error) throw error;
+      toast({
+        title: "Recalculated",
+        description: "Course progress recalculated",
+      });
+      if (onRefresh) onRefresh();
+    } catch (error) {
+      console.error('Error recalculating course progress:', error);
+      toast({
+        title: "Error",
+        description: "Failed to recalculate course progress",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-4">
       {courses.length === 0 ? (
@@ -145,6 +168,15 @@ const UserProgressCourseList = ({
                     Mark as Completed
                   </Button>
                 )}
+                <Button
+                  onClick={() => handleRecalculate(course.course_id)}
+                  variant="secondary"
+                  size="sm"
+                  className="flex items-center gap-1"
+                >
+                  <RefreshCcw className="h-3 w-3" />
+                  Recalculate Progress
+                </Button>
               </div>
               <Button
                 onClick={() => onDeleteCourse(course.course_id)}
