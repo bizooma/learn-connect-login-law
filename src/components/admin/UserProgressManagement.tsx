@@ -206,6 +206,27 @@ const UserProgressManagement = () => {
 
   useEffect(() => {
     fetchUserProgress();
+
+    // Realtime updates for admin progress list
+    const channel = supabase
+      .channel('admin-progress-list')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_course_progress' }, () => {
+        console.log('🔔 user_course_progress changed, refreshing list');
+        fetchUserProgress();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_unit_progress' }, () => {
+        console.log('🔔 user_unit_progress changed, refreshing list');
+        fetchUserProgress();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'course_assignments' }, () => {
+        console.log('🔔 course_assignments changed, refreshing list');
+        fetchUserProgress();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const handleViewUserProgress = (userId: string) => {

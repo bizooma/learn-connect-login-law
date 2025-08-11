@@ -59,24 +59,46 @@ const UserProgressCourseList = ({
     if (!userId) return;
 
     try {
-      // Call the Supabase function to mark course as completed
-      const { error } = await supabase.rpc('mark_course_completed', {
+      // Fetch all units in this course
+      const { data: lessons, error: lessonsError } = await supabase
+        .from('lessons')
+        .select(`
+          units!inner(
+            id
+          )
+        `)
+        .eq('course_id', courseId);
+
+      if (lessonsError) throw lessonsError;
+
+      const unitIds: string[] = (lessons || [])
+        .flatMap((lesson: any) => (lesson.units || []).map((u: any) => u.id))
+        .filter(Boolean);
+
+      // Mark each unit completed for this user via admin RPC
+      for (const unitId of unitIds) {
+        const { error } = await supabase.rpc('admin_mark_unit_completed', {
+          p_user_id: userId,
+          p_unit_id: unitId,
+          p_course_id: courseId,
+          p_reason: 'Admin marked course completed'
+        });
+        if (error) throw error;
+      }
+
+      // Recalculate course progress reliably
+      const { error: recalcError } = await supabase.rpc('update_course_progress_reliable', {
         p_user_id: userId,
         p_course_id: courseId,
-        p_completion_date: new Date().toISOString()
       });
-
-      if (error) throw error;
+      if (recalcError) throw recalcError;
 
       toast({
         title: "Success",
-        description: "Course marked as completed successfully",
+        description: "All units marked completed and course progress updated",
       });
 
-      // Trigger refresh if callback provided
-      if (onMarkCompleted) {
-        onMarkCompleted(courseId);
-      }
+      if (onRefresh) onRefresh();
 
     } catch (error) {
       console.error('Error marking course as completed:', error);
