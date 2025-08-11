@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
+import { supabase } from "@/integrations/supabase/client";
 import UserSearch from "./UserSearch";
 import { UserGrid } from "./UserGrid";
 import SimplifiedUserManagementHeader from "./SimplifiedUserManagementHeader";
@@ -81,6 +82,30 @@ const UserManagement = () => {
 
   useEffect(() => {
     fetchUsers();
+
+    const channel = supabase
+      .channel('admin-users-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
+        console.log('🔔 profiles changed, refreshing users');
+        fetchUsers();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_roles' }, () => {
+        console.log('🔔 user_roles changed, refreshing users');
+        fetchUsers();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'course_assignments' }, () => {
+        console.log('🔔 course_assignments changed, refreshing users');
+        fetchUsers();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_course_progress' }, () => {
+        console.log('🔔 user_course_progress changed, refreshing users');
+        fetchUsers();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   // Filter users based on search term
