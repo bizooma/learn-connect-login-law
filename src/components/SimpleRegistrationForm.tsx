@@ -142,7 +142,7 @@ const SimpleRegistrationForm = () => {
       });
 
       // Redirect after successful registration
-      navigate('/', { replace: true });
+      navigate('/free-dashboard?signup=1', { replace: true });
 
     } catch (error) {
       console.error("Unexpected error during registration:", error);

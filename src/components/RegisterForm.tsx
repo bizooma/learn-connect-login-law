@@ -186,7 +186,7 @@ const RegisterForm = ({ selectedPlan }: RegisterFormProps) => {
             title: "Registration Successful",
             description: "You're signed in! Redirecting...",
           });
-          navigate('/', { replace: true });
+          navigate('/free-dashboard?signup=1', { replace: true });
         }
       }
     } catch (error) {

@@ -3,7 +3,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { BookOpen, User, Gift, LogOut, Flame, Target } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import NotificationBanner from "./notifications/NotificationBanner";
 import LMSTreeFooter from "./lms-tree/LMSTreeFooter";
 import MiniLeaderboard from "./leaderboards/MiniLeaderboard";
@@ -11,11 +11,13 @@ import GlobalErrorBoundary from "./ErrorBoundary/GlobalErrorBoundary";
 import FreeDashboardContent from "./free/FreeDashboardContent";
 import IssueReportButton from "./support/IssueReportButton";
 import { logger } from "@/utils/logger";
+import { toast } from "@/hooks/use-toast";
 
 const FreeDashboard = () => {
   const { user, signOut } = useAuth();
   const { isFree, role, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
+  const location = useLocation();
   const [activeTab, setActiveTab] = useState("resources");
   const [profile, setProfile] = useState({
     first_name: "",
@@ -69,6 +71,22 @@ const FreeDashboard = () => {
       fetchProfile();
     }
   }, [user]);
+
+  // Show welcome toast when arriving right after signup
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get('signup') === '1') {
+      toast({
+        title: "Welcome to New Frontier University",
+        description: "Your free account is ready. Enjoy the free resources!",
+      });
+      // Remove the query param from the URL without reloading
+      const url = new URL(window.location.href);
+      url.searchParams.delete('signup');
+      const newSearch = url.searchParams.toString();
+      window.history.replaceState({}, '', url.pathname + (newSearch ? `?${newSearch}` : ''));
+    }
+  }, [location.search]);
 
   const fetchProfile = async () => {
     try {
