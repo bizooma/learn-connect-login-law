@@ -2381,14 +2381,30 @@ export type Database = {
         }
         Returns: undefined
       }
-      mark_unit_complete_reliable: {
+      mark_quiz_complete_reliable: {
         Args: {
-          p_user_id: string
           p_unit_id: string
           p_course_id: string
-          p_completion_method?: string
+          p_score?: number
+          p_passed?: boolean
+          p_quiz_completed_at?: string
         }
-        Returns: boolean
+        Returns: Json
+      }
+      mark_unit_complete_reliable: {
+        Args:
+          | {
+              p_unit_id: string
+              p_course_id: string
+              p_completion_method?: string
+            }
+          | {
+              p_user_id: string
+              p_unit_id: string
+              p_course_id: string
+              p_completion_method?: string
+            }
+        Returns: Json
       }
       move_content_to_level: {
         Args: {
@@ -2466,13 +2482,22 @@ export type Database = {
         Returns: string
       }
       sync_video_completion_safe: {
-        Args: {
-          p_user_id: string
-          p_unit_id: string
-          p_course_id: string
-          p_watch_percentage?: number
-        }
-        Returns: boolean
+        Args:
+          | {
+              p_unit_id: string
+              p_course_id: string
+              p_watch_percentage?: number
+              p_total_duration_seconds?: number
+              p_watched_duration_seconds?: number
+              p_force_complete?: boolean
+            }
+          | {
+              p_user_id: string
+              p_unit_id: string
+              p_course_id: string
+              p_watch_percentage?: number
+            }
+        Returns: Json
       }
       update_course_progress_reliable: {
         Args: { p_user_id: string; p_course_id: string }

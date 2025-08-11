@@ -40,7 +40,6 @@ export const useUnifiedCompletion = () => {
         const { data: syncResult, error: syncError } = await supabase.rpc(
           'sync_video_completion_safe' as any, 
           {
-            p_user_id: user.id,
             p_unit_id: unitId,
             p_course_id: courseId,
             p_watch_percentage: watchPercentage
@@ -100,12 +99,9 @@ export const useUnifiedCompletion = () => {
         const { data: quizResult, error: quizError } = await supabase.rpc(
           'mark_quiz_complete_reliable' as any, 
           {
-            p_user_id: user.id,
-            p_quiz_id: quizId,
             p_unit_id: unitId,
             p_course_id: courseId,
-            p_score: score,
-            p_answers: answers
+            p_score: score
           }
         );
 
@@ -160,7 +156,6 @@ export const useUnifiedCompletion = () => {
         const { data: unitResult, error: unitError } = await supabase.rpc(
           'mark_unit_complete_reliable' as any, 
           {
-            p_user_id: user.id,
             p_unit_id: unit.id,
             p_course_id: courseId,
             p_completion_method: completionMethod

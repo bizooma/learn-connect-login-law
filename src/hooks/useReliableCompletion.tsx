@@ -88,7 +88,6 @@ export const useReliableCompletion = () => {
       
       // Use the reliable database function
       const { data, error } = await supabase.rpc('mark_unit_complete_reliable', {
-        p_user_id: user.id,
         p_unit_id: unitId,
         p_course_id: courseId,
         p_completion_method: completionMethod
