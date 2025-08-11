@@ -70,6 +70,7 @@ const SimpleRegistrationForm = () => {
         email: formData.email,
         password: formData.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/`,
           data: {
             first_name: formData.firstName,
             last_name: formData.lastName,
@@ -137,11 +138,11 @@ const SimpleRegistrationForm = () => {
 
       toast({
         title: "Registration Successful",
-        description: "Welcome to New Frontier University! Redirecting to your dashboard...",
+        description: "You're signed in! Redirecting...",
       });
 
-      // Redirect directly to free dashboard after successful registration
-      navigate('/free-dashboard', { replace: true });
+      // Redirect after successful registration
+      navigate('/', { replace: true });
 
     } catch (error) {
       console.error("Unexpected error during registration:", error);

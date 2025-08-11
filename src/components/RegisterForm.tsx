@@ -130,6 +130,7 @@ const RegisterForm = ({ selectedPlan }: RegisterFormProps) => {
         email: formData.email,
         password: formData.password,
         options: {
+          emailRedirectTo: `${window.location.origin}/`,
           data: {
             first_name: formData.firstName,
             last_name: formData.lastName,
@@ -147,13 +148,13 @@ const RegisterForm = ({ selectedPlan }: RegisterFormProps) => {
           variant: "destructive",
         });
       } else {
-        toast({
-          title: "Registration Successful",
-          description: "Account created successfully! Redirecting to payment...",
-        });
-
-        // If a plan was selected and user is created, immediately redirect to payment
         if (selectedPlan && authData.user) {
+          toast({
+            title: "Registration Successful",
+            description: "Account created! Redirecting to payment...",
+          });
+
+          // If a plan was selected and user is created, immediately redirect to payment
           // Small delay to ensure auth is settled, then create checkout
           setTimeout(async () => {
             try {
@@ -179,7 +180,13 @@ const RegisterForm = ({ selectedPlan }: RegisterFormProps) => {
                 variant: "destructive",
               });
             }
-          }, 1000);
+          }, 600);
+        } else {
+          toast({
+            title: "Registration Successful",
+            description: "You're signed in! Redirecting...",
+          });
+          navigate('/', { replace: true });
         }
       }
     } catch (error) {
