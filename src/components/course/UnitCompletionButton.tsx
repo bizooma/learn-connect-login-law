@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CheckCircle, Clock } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 import { useUnitProgress } from "@/hooks/useUnitProgress";
-import { useSimplifiedCompletion } from "@/hooks/useSimplifiedCompletion";
+import { useUnifiedCompletion } from "@/hooks/useUnifiedCompletion";
 
 type Unit = Tables<'units'>;
 
@@ -16,7 +16,7 @@ interface UnitCompletionButtonProps {
 
 const UnitCompletionButton = ({ unit, courseId, onComplete }: UnitCompletionButtonProps) => {
   const { isUnitCompleted } = useUnitProgress(courseId);
-  const { markUnitComplete, processing } = useSimplifiedCompletion();
+  const { markUnitComplete, processing } = useUnifiedCompletion();
   const [isCompleting, setIsCompleting] = useState(false);
 
   const isCompleted = isUnitCompleted(unit.id);
@@ -30,7 +30,7 @@ const UnitCompletionButton = ({ unit, courseId, onComplete }: UnitCompletionButt
       console.log('📝 Manual completion for unit:', unit.id);
       
       // Use the enhanced completion system with retry logic
-      const success = await markUnitComplete(unit.id, courseId, 'manual');
+      const success = await markUnitComplete(unit, courseId, 'manual');
       
       if (success && onComplete) {
         onComplete();

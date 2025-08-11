@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { useQuery, useQueryClient, useMutation } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { progressCalculationService } from '@/services/progressCalculationService';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useEffect, useRef } from 'react';
 
 interface CourseProgressData {
   id: string;
@@ -294,6 +294,25 @@ export const useProgressStore = (userId?: string) => {
     }
     invalidateCache();
   }, [userId, queryClient, invalidateCache]);
+
+  // Realtime-driven cache invalidation (debounced)
+  const realtimeTimer = useRef<number>();
+  const debouncedInvalidate = useCallback((courseId?: string) => {
+    if (realtimeTimer.current) window.clearTimeout(realtimeTimer.current);
+    realtimeTimer.current = window.setTimeout(() => invalidateProgress(courseId), 400);
+  }, [invalidateProgress]);
+
+  useEffect(() => {
+    if (!userId) return;
+    const channel = supabase
+      .channel(`progress-realtime-${userId}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_unit_progress', filter: `user_id=eq.${userId}` }, () => debouncedInvalidate())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_course_progress', filter: `user_id=eq.${userId}` }, () => debouncedInvalidate())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_video_progress', filter: `user_id=eq.${userId}` }, () => debouncedInvalidate())
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'course_assignments', filter: `user_id=eq.${userId}` }, () => debouncedInvalidate())
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [userId, debouncedInvalidate]);
 
   return {
     // Data

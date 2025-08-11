@@ -148,11 +148,17 @@ export const useVideoProgress = (unitId: string, courseId: string) => {
         updated_at: new Date().toISOString()
       };
 
-      const { error } = await supabase
-        .from('user_video_progress')
-        .upsert(progressData, {
-          onConflict: 'user_id,unit_id,course_id'
-        });
+      const { error } = await supabase.rpc(
+        'sync_video_completion_safe' as any,
+        {
+          p_unit_id: unitId,
+          p_course_id: courseId,
+          p_watch_percentage: Math.round(watchPercentage),
+          p_total_duration_seconds: Math.round(totalSeconds),
+          p_watched_duration_seconds: Math.round(watchedSeconds),
+          p_force_complete: false
+        }
+      );
 
       if (error) {
         console.error('Error updating video progress:', error);
@@ -180,38 +186,19 @@ export const useVideoProgress = (unitId: string, courseId: string) => {
 
       const completedAt = new Date().toISOString();
 
-      // Enhanced completion - update both systems
-      const [videoProgressResult, unitProgressResult] = await Promise.all([
-        supabase
-          .from('user_video_progress')
-          .upsert({
-            user_id: user.id,
-            unit_id: unitId,
-            course_id: courseId,
-            is_completed: true,
-            completed_at: completedAt,
-            watch_percentage: Math.max(videoProgress.watch_percentage, 95),
-            last_watched_at: completedAt,
-            updated_at: completedAt
-          }, {
-            onConflict: 'user_id,unit_id,course_id'
-          }),
-        supabase
-          .from('user_unit_progress')
-          .upsert({
-            user_id: user.id,
-            unit_id: unitId,
-            course_id: courseId,
-            video_completed: true,
-            video_completed_at: completedAt,
-            updated_at: completedAt
-          }, {
-            onConflict: 'user_id,unit_id,course_id'
-          })
-      ]);
+      // Reliable completion via RPC
+      const { data, error } = await supabase.rpc(
+        'sync_video_completion_safe' as any,
+        {
+          p_unit_id: unitId,
+          p_course_id: courseId,
+          p_watch_percentage: 100,
+          p_force_complete: true
+        }
+      );
 
-      if (videoProgressResult.error || unitProgressResult.error) {
-        throw new Error('Failed to update completion status');
+      if (error) {
+        throw error;
       }
 
       // Update local state

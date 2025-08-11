@@ -111,7 +111,7 @@ const VideoProgressTracker = ({
         progressUpdateRef.current = window.setTimeout(() => {
           updateVideoProgress(currentTime, duration, watchPercentage);
           handleVideoProgress(currentTime, duration);
-        }, 3000); // Increased debounce time to 3 seconds
+        }, 5000); // Increased debounce time to 5 seconds
       }
     };
 
