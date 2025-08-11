@@ -10,6 +10,7 @@ import QuizResults from "../quiz/QuizResults";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useSimplifiedCompletion } from "@/hooks/useSimplifiedCompletion";
+import { useUnifiedCompletion } from "@/hooks/useUnifiedCompletion";
 import { logger } from "@/utils/logger";
 
 type Quiz = Tables<'quizzes'>;
@@ -54,7 +55,8 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
   const [questionCount, setQuestionCount] = useState<number>(0);
   const [completionStatus, setCompletionStatus] = useState<QuizCompletionStatus | null>(null);
   const [statusLoading, setStatusLoading] = useState(true);
-  const { markQuizComplete, markUnitComplete } = useSimplifiedCompletion();
+const { markUnitComplete } = useSimplifiedCompletion();
+const { markQuizComplete: unifiedMarkQuizComplete } = useUnifiedCompletion();
 
   // Check quiz completion status
   const checkQuizCompletion = async () => {
@@ -249,7 +251,7 @@ const QuizDisplay = ({ quiz, unitTitle, courseId, onUnitComplete }: QuizDisplayP
         });
         
         // Mark quiz completion using reliable completion system
-        const quizSuccess = await markQuizComplete(quiz.unit_id, courseId);
+        const quizSuccess = await unifiedMarkQuizComplete(quiz.id, quiz.unit_id, courseId, score, []);
         
         if (!quizSuccess) {
           logger.error('❌ Failed to mark quiz complete');

@@ -1,10 +1,11 @@
 
 import { Button } from "@/components/ui/button";
-import { FileDown, Download, ShieldCheck, Wrench } from "lucide-react";
+import { FileDown, Download, ShieldCheck, Wrench, BarChart3, RefreshCw, Hammer } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useCompletionMonitoring } from "@/hooks/useCompletionMonitoring";
 import { useProgressBackfill } from "@/hooks/useProgressBackfill";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
 interface UserProgressManagementHeaderProps {
   onExportCSV: () => void;
@@ -51,6 +52,58 @@ const UserProgressManagementHeader = ({
       setProcessing(false);
     }
   };
+  const handleAnalyzeMissing = async () => {
+    try {
+      setProcessing(true);
+      const { data, error } = await supabase.rpc('analyze_missing_quiz_completions' as any);
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : data;
+      toast({
+        title: "Analyze complete",
+        description: `Missing: ${row?.missing_completion_records || 0}, Affected users: ${row?.affected_users || 0}, Courses: ${row?.affected_courses || 0}`,
+      });
+    } catch (e) {
+      toast({ title: "Analyze failed", description: "Could not analyze missing quiz completions", variant: "destructive" });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleFixMissing = async () => {
+    try {
+      setProcessing(true);
+      const { data, error } = await supabase.rpc('fix_missing_quiz_completions' as any);
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : data;
+      toast({
+        title: "Fix complete",
+        description: `Records created: ${row?.records_created || 0}, Users affected: ${row?.users_affected || 0}, Courses updated: ${row?.courses_updated || 0}`,
+      });
+      onRefreshData();
+    } catch (e) {
+      toast({ title: "Fix failed", description: "An error occurred while fixing missing completions", variant: "destructive" });
+    } finally {
+      setProcessing(false);
+    }
+  };
+
+  const handleRecalculate = async () => {
+    try {
+      setProcessing(true);
+      const { data, error } = await supabase.rpc('bulk_recalculate_course_progress' as any);
+      if (error) throw error;
+      const row = Array.isArray(data) ? data[0] : data;
+      toast({
+        title: "Recalculation complete",
+        description: `Courses updated: ${row?.courses_updated || 0}, Users affected: ${row?.users_affected || 0}`,
+      });
+      onRefreshData();
+    } catch (e) {
+      toast({ title: "Recalculation failed", description: "Could not recalculate course progress", variant: "destructive" });
+    } finally {
+      setProcessing(false);
+    }
+  };
 
   return (
     <div className="flex items-center justify-between">
@@ -66,6 +119,18 @@ const UserProgressManagementHeader = ({
         <Button variant="outline" onClick={handleBackfill} disabled={processing}>
           <Wrench className="h-4 w-4 mr-2" />
           Backfill
+        </Button>
+        <Button variant="outline" onClick={handleAnalyzeMissing} disabled={processing}>
+          <BarChart3 className="h-4 w-4 mr-2" />
+          Analyze
+        </Button>
+        <Button variant="outline" onClick={handleFixMissing} disabled={processing}>
+          <Hammer className="h-4 w-4 mr-2" />
+          Fix Missing
+        </Button>
+        <Button variant="outline" onClick={handleRecalculate} disabled={processing}>
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Recalculate
         </Button>
         <Button variant="outline" onClick={onExportCSV} disabled={!hasData}>
           <FileDown className="h-4 w-4 mr-2" />
