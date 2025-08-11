@@ -3,7 +3,7 @@ import { Tables } from "@/integrations/supabase/types";
 import UnifiedVideoPlayer from "../video/UnifiedVideoPlayer";
 import VideoProgressTracker from "./VideoProgressTracker";
 import VideoCompletionStatus from "../video/VideoCompletionStatus";
-import { useSimplifiedCompletion } from "@/hooks/useSimplifiedCompletion";
+import { useUnifiedCompletion } from "@/hooks/useUnifiedCompletion";
 import { useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -20,15 +20,15 @@ interface CourseVideoProps {
 
 const CourseVideo = ({ unit, courseId }: CourseVideoProps) => {
   const videoRef = useRef<HTMLVideoElement>(null);
-  const { markUnitComplete } = useSimplifiedCompletion();
+  const { markVideoComplete } = useUnifiedCompletion();
 
   // Handle video completion
   const handleVideoComplete = useCallback(async () => {
     if (!unit) return;
 
     logger.log('🎥 Video completed for unit:', unit.id, unit.title);
-    await markUnitComplete(unit.id, courseId, 'video_complete');
-  }, [unit, markUnitComplete, courseId]);
+    await markVideoComplete(unit.id, courseId, 100);
+  }, [unit, markVideoComplete, courseId]);
 
   const handleVideoProgress = useCallback((currentTime: number, duration: number, watchPercentage: number) => {
     logger.log('🎬 Video progress:', { currentTime, duration, watchPercentage, unit: unit?.title });

@@ -177,19 +177,16 @@ export const useProgressStore = (userId?: string) => {
     mutationFn: async ({ unitId, courseId }: { unitId: string; courseId: string }) => {
       if (!userId) throw new Error('User ID required');
       
-      // Mark unit complete
-      const { error } = await supabase
-        .from('user_unit_progress')
-        .upsert({
-          user_id: userId,
-          unit_id: unitId,
-          course_id: courseId,
-          completed: true,
-          completed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id,unit_id,course_id'
-        });
+      // Mark unit complete using reliable RPC
+      const { error } = await supabase.rpc(
+        'mark_unit_complete_reliable' as any,
+        {
+          p_unit_id: unitId,
+          p_course_id: courseId,
+          p_completion_method: 'manual'
+        }
+      );
+
 
       if (error) throw error;
 
@@ -383,21 +380,18 @@ export const useVideoProgressLegacy = (courseId: string, unitId: string, userId?
     },
     loading: isLoading,
     updateVideoProgress: async (watchedSeconds: number, totalSeconds: number, watchPercentage: number) => {
-      // Optimized video progress update
-      const { error } = await supabase
-        .from('user_video_progress')
-        .upsert({
-          user_id: userId!,
-          unit_id: unitId,
-          course_id: courseId,
-          watch_percentage: Math.round(watchPercentage),
-          watched_duration_seconds: Math.round(watchedSeconds),
-          total_duration_seconds: Math.round(totalSeconds),
-          last_watched_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id,unit_id,course_id'
-        });
+      // Optimized video progress update via reliable RPC
+      const { error } = await supabase.rpc(
+        'sync_video_completion_safe' as any,
+        {
+          p_unit_id: unitId,
+          p_course_id: courseId,
+          p_watch_percentage: Math.round(watchPercentage),
+          p_total_duration_seconds: Math.round(totalSeconds),
+          p_watched_duration_seconds: Math.round(watchedSeconds),
+          p_force_complete: false
+        }
+      );
       
       if (!error) {
         store.invalidateProgress(courseId);

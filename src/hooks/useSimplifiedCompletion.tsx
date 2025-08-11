@@ -40,19 +40,16 @@ export const useSimplifiedCompletion = () => {
     try {
       logger.log('📝 Simple quiz completion:', { unitId, courseId });
       
-      // Simple upsert without retry logic to prevent crashes
-      const { error } = await supabase
-        .from('user_unit_progress')
-        .upsert({
-          user_id: user.id,
-          unit_id: unitId,
-          course_id: courseId,
-          quiz_completed: true,
-          quiz_completed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id,unit_id,course_id'
-        });
+      // Simple upsert replaced with reliable RPC to prevent crashes
+      const { data, error } = await supabase.rpc(
+        'mark_quiz_complete_reliable' as any,
+        {
+          p_unit_id: unitId,
+          p_course_id: courseId,
+          p_passed: true
+        }
+      );
+
 
       if (error) {
         logger.error('❌ Quiz completion failed:', error);
@@ -85,20 +82,16 @@ export const useSimplifiedCompletion = () => {
     try {
       logger.log('🔄 Simple unit completion:', { unitId, courseId });
       
-      // Simple update without complex RPC calls
-      const { error } = await supabase
-        .from('user_unit_progress')
-        .upsert({
-          user_id: user.id,
-          unit_id: unitId,
-          course_id: courseId,
-          completed: true,
-          completed_at: new Date().toISOString(),
-          completion_method: completionMethod,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id,unit_id,course_id'
-        });
+      // Use reliable RPC to mark unit complete safely
+      const { data, error } = await supabase.rpc(
+        'mark_unit_complete_reliable' as any,
+        {
+          p_unit_id: unitId,
+          p_course_id: courseId,
+          p_completion_method: completionMethod
+        }
+      );
+
 
       if (error) {
         logger.error('❌ Unit completion failed:', error);
