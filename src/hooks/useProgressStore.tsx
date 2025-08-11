@@ -299,7 +299,8 @@ export const useProgressStore = (userId?: string) => {
   const realtimeTimer = useRef<number>();
   const debouncedInvalidate = useCallback((courseId?: string) => {
     if (realtimeTimer.current) window.clearTimeout(realtimeTimer.current);
-    realtimeTimer.current = window.setTimeout(() => invalidateProgress(courseId), 400);
+    const jitter = 150 + Math.floor(Math.random() * 350); // 150-500ms jitter
+    realtimeTimer.current = window.setTimeout(() => invalidateProgress(courseId), jitter);
   }, [invalidateProgress]);
 
   useEffect(() => {

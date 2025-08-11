@@ -96,51 +96,17 @@ export const progressService = {
   },
 
   async updateCourseProgress(userId: string, courseId: string, updates: Partial<CourseProgress>) {
-    logger.log('progressService: Updating course progress:', { courseId, updates });
-    
+    logger.log('progressService: Recalculating course progress via RPC:', { courseId });
     try {
-      // Use defensive UPSERT with better error handling
-      const { error } = await supabase
-        .from('user_course_progress')
-        .upsert({
-          user_id: userId,
-          course_id: courseId,
-          ...updates,
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id,course_id',
-          ignoreDuplicates: false
-        });
-
+      const { data, error } = await supabase.rpc(
+        'update_course_progress_reliable' as any,
+        { p_user_id: userId, p_course_id: courseId }
+      );
       if (error) {
-        // Handle constraint violations gracefully
-        if (error.code === '23505' && error.message?.includes('duplicate key')) {
-          logger.log('Course progress record exists, attempting update instead of insert');
-          
-          // Try direct update
-          const { error: updateError } = await supabase
-            .from('user_course_progress')
-            .update({
-              ...updates,
-              updated_at: new Date().toISOString()
-            })
-            .eq('user_id', userId)
-            .eq('course_id', courseId);
-
-          if (updateError) {
-            logger.error('Direct update also failed:', updateError);
-            throw updateError;
-          }
-          
-          logger.log('Course progress updated via direct update');
-          return;
-        }
-        
-        logger.error('Error upserting course progress:', error);
+        logger.error('RPC update_course_progress_reliable failed:', error);
         throw error;
       }
-      
-      logger.log('Course progress updated successfully');
+      logger.log('Course progress recalculated', data);
     } catch (error) {
       logger.error('Error updating course progress:', error);
       throw error;
@@ -148,58 +114,32 @@ export const progressService = {
   },
 
   async markUnitComplete(userId: string, unitId: string, courseId: string) {
-    logger.log('progressService: Marking unit complete:', { unitId, courseId, userId });
-    
+    logger.log('progressService: Marking unit complete (smart RPC):', { unitId, courseId, userId });
     if (!userId || !unitId || !courseId) {
       throw new Error('Missing required parameters: userId, unitId, or courseId');
     }
-    
+
     try {
-      // Use defensive UPSERT with improved error handling
-      const { error } = await supabase
-        .from('user_unit_progress')
-        .upsert({
-          user_id: userId,
-          unit_id: unitId,
-          course_id: courseId,
-          completed: true,
-          completed_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id,unit_id,course_id',
-          ignoreDuplicates: false
-        });
-
-      if (error) {
-        // Handle constraint violations gracefully
-        if (error.code === '23505' && error.message?.includes('duplicate key')) {
-          logger.log('Unit progress record exists, attempting update instead of insert');
-          
-          // Try direct update
-          const { error: updateError } = await supabase
-            .from('user_unit_progress')
-            .update({
-              completed: true,
-              completed_at: new Date().toISOString(),
-              updated_at: new Date().toISOString()
-            })
-            .eq('user_id', userId)
-            .eq('unit_id', unitId)
-            .eq('course_id', courseId);
-
-          if (updateError) {
-            logger.error('Direct unit progress update failed:', updateError);
-            throw updateError;
-          }
-          
-          logger.log('Unit progress updated via direct update');
-          return;
-        }
-        
-        logger.error('Error upserting unit progress:', error);
-        throw error;
+      const { data: authData, error: authError } = await supabase.auth.getUser();
+      if (authError) {
+        logger.warn('Could not fetch auth user; defaulting to user RPC', authError);
       }
-      
+      const currentUserId = authData?.user?.id;
+
+      if (currentUserId && currentUserId === userId) {
+        const { error } = await supabase.rpc(
+          'mark_unit_complete_reliable' as any,
+          { p_unit_id: unitId, p_course_id: courseId, p_completion_method: 'manual' }
+        );
+        if (error) throw error;
+      } else {
+        const { error } = await supabase.rpc(
+          'admin_mark_unit_completed' as any,
+          { p_user_id: userId, p_unit_id: unitId, p_course_id: courseId, p_reason: 'Admin-triggered from progressService' }
+        );
+        if (error) throw error;
+      }
+
       logger.log('progressService: Unit marked as complete successfully');
     } catch (error) {
       logger.error('Error marking unit complete:', error);

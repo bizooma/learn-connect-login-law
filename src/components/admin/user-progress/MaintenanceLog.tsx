@@ -14,7 +14,11 @@ interface AuditRow {
   reason: string | null;
 }
 
-const MaintenanceLog = () => {
+interface RecentSummary { id: string; type: string; payload: any; ok: boolean; at: string; }
+
+type MaintenanceLogProps = { recent?: RecentSummary[] };
+
+const MaintenanceLog = ({ recent = [] }: MaintenanceLogProps) => {
   const [rows, setRows] = useState<AuditRow[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -47,6 +51,18 @@ const MaintenanceLog = () => {
         </Button>
       </CardHeader>
       <CardContent>
+        {recent && recent.length > 0 && (
+          <div className="mb-4">
+            <div className="text-sm font-medium">Latest operation results</div>
+            <div className="space-y-1 mt-1">
+              {recent.map((r) => (
+                <div key={r.id} className="text-xs text-muted-foreground">
+                  {new Date(r.at).toLocaleString()} • {r.type} • {r.ok ? 'ok' : 'failed'} • {JSON.stringify(r.payload).slice(0, 200)}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         {rows.length === 0 ? (
           <div className="text-sm text-muted-foreground">No maintenance actions recorded yet.</div>
         ) : (

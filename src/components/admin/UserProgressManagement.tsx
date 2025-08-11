@@ -53,6 +53,7 @@ const UserProgressManagement = () => {
   const [courses, setCourses] = useState<Array<{id: string, title: string}>>([]);
   const [users, setUsers] = useState<UserOption[]>([]);
   const { toast } = useToast();
+  const [recentSummaries, setRecentSummaries] = useState<Array<{ id: string; type: string; payload: any; ok: boolean; at: string }>>([]);
 
   // Filter progress data
   const filteredProgress = userProgress.filter(progress => {
@@ -230,6 +231,19 @@ const UserProgressManagement = () => {
     };
   }, []);
 
+  const handleOperationResult = (result: { type: string; data?: any; ok: boolean; message?: string }) => {
+    setRecentSummaries(prev => [
+      {
+        id: (crypto as any)?.randomUUID ? (crypto as any).randomUUID() : String(Date.now()),
+        type: result.type,
+        payload: result.data ?? { message: result.message },
+        ok: result.ok,
+        at: new Date().toISOString(),
+      },
+      ...prev,
+    ].slice(0, 5));
+  };
+
   const handleViewUserProgress = (userId: string) => {
     setSelectedUserForModal(userId);
   };
@@ -297,6 +311,7 @@ const UserProgressManagement = () => {
         onExportCSV={handleExportCSV}
         onRefreshData={fetchUserProgress}
         hasData={filteredProgress.length > 0}
+        onOperationResult={handleOperationResult}
       />
 
       <UserProgressStatsCards
@@ -331,7 +346,7 @@ const UserProgressManagement = () => {
         hasPreviousPage={hasPreviousPage}
       />
 
-      <MaintenanceLog />
+      <MaintenanceLog recent={recentSummaries} />
 
       <UserProgressModal
         isOpen={!!selectedUserForModal}

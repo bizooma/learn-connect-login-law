@@ -12,12 +12,14 @@ interface UserProgressManagementHeaderProps {
   onExportCSV: () => void;
   onRefreshData: () => void;
   hasData: boolean;
+  onOperationResult?: (result: { type: string; data?: any; ok: boolean; message?: string }) => void;
 }
 
 const UserProgressManagementHeader = ({
   onExportCSV,
   onRefreshData,
-  hasData
+  hasData,
+  onOperationResult
 }: UserProgressManagementHeaderProps) => {
   const { toast } = useToast();
   const { manualScan, getIssueSummary } = useCompletionMonitoring(false);
@@ -35,8 +37,10 @@ const UserProgressManagementHeader = ({
         title: "Validation complete",
         description: `High: ${summary.high}, Medium: ${summary.medium}, Low: ${summary.low}`,
       });
-    } catch (e) {
-      toast({ title: "Validation failed", description: "Could not complete validation", variant: "destructive" });
+      onOperationResult?.({ type: 'validate', data: summary, ok: true });
+    } catch (e: any) {
+      toast({ title: "Validation failed", description: e?.message || "Could not complete validation", variant: "destructive" });
+      onOperationResult?.({ type: 'validate', ok: false, message: e?.message || 'Validation failed' });
     } finally {
       setProcessing(false);
     }
@@ -48,9 +52,11 @@ const UserProgressManagementHeader = ({
       await fixVideoCompletionIssues();
       await backfillMissingUnitCompletions();
       toast({ title: "Backfill complete", description: "Video flags and unit completions repaired" });
+      onOperationResult?.({ type: 'backfill', ok: true, data: { repairedVideoFlags: true, backfilledUnits: true } });
       onRefreshData();
-    } catch (e) {
-      toast({ title: "Backfill failed", description: "An error occurred while repairing data", variant: "destructive" });
+    } catch (e: any) {
+      toast({ title: "Backfill failed", description: e?.message || "An error occurred while repairing data", variant: "destructive" });
+      onOperationResult?.({ type: 'backfill', ok: false, message: e?.message || 'Backfill failed' });
     } finally {
       setProcessing(false);
     }
@@ -65,8 +71,10 @@ const UserProgressManagementHeader = ({
         title: "Analyze complete",
         description: `Missing: ${row?.missing_completion_records || 0}, Affected users: ${row?.affected_users || 0}, Courses: ${row?.affected_courses || 0}`,
       });
-    } catch (e) {
-      toast({ title: "Analyze failed", description: "Could not analyze missing quiz completions", variant: "destructive" });
+      onOperationResult?.({ type: 'analyze', ok: true, data: row });
+    } catch (e: any) {
+      toast({ title: "Analyze failed", description: e?.message || "Could not analyze missing quiz completions", variant: "destructive" });
+      onOperationResult?.({ type: 'analyze', ok: false, message: e?.message || 'Analyze failed' });
     } finally {
       setProcessing(false);
     }
@@ -82,9 +90,11 @@ const UserProgressManagementHeader = ({
         title: "Fix complete",
         description: `Records created: ${row?.records_created || 0}, Users affected: ${row?.users_affected || 0}, Courses updated: ${row?.courses_updated || 0}`,
       });
+      onOperationResult?.({ type: 'fix', ok: true, data: row });
       onRefreshData();
-    } catch (e) {
-      toast({ title: "Fix failed", description: "An error occurred while fixing missing completions", variant: "destructive" });
+    } catch (e: any) {
+      toast({ title: "Fix failed", description: e?.message || "An error occurred while fixing missing completions", variant: "destructive" });
+      onOperationResult?.({ type: 'fix', ok: false, message: e?.message || 'Fix failed' });
     } finally {
       setProcessing(false);
       setConfirmFixOpen(false);
@@ -101,9 +111,11 @@ const UserProgressManagementHeader = ({
         title: "Recalculation complete",
         description: `Courses updated: ${row?.courses_updated || 0}, Users affected: ${row?.users_affected || 0}`,
       });
+      onOperationResult?.({ type: 'recalculate', ok: true, data: row });
       onRefreshData();
-    } catch (e) {
-      toast({ title: "Recalculation failed", description: "Could not recalculate course progress", variant: "destructive" });
+    } catch (e: any) {
+      toast({ title: "Recalculation failed", description: e?.message || "Could not recalculate course progress", variant: "destructive" });
+      onOperationResult?.({ type: 'recalculate', ok: false, message: e?.message || 'Recalculation failed' });
     } finally {
       setProcessing(false);
       setConfirmRecalcOpen(false);
