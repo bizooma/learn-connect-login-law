@@ -6,6 +6,7 @@ import { useCompletionMonitoring } from "@/hooks/useCompletionMonitoring";
 import { useProgressBackfill } from "@/hooks/useProgressBackfill";
 import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 
 interface UserProgressManagementHeaderProps {
   onExportCSV: () => void;
@@ -22,6 +23,8 @@ const UserProgressManagementHeader = ({
   const { manualScan, getIssueSummary } = useCompletionMonitoring(false);
   const { backfillMissingUnitCompletions, fixVideoCompletionIssues } = useProgressBackfill();
   const [processing, setProcessing] = useState(false);
+  const [confirmFixOpen, setConfirmFixOpen] = useState(false);
+  const [confirmRecalcOpen, setConfirmRecalcOpen] = useState(false);
 
   const handleValidate = async () => {
     try {
@@ -84,6 +87,7 @@ const UserProgressManagementHeader = ({
       toast({ title: "Fix failed", description: "An error occurred while fixing missing completions", variant: "destructive" });
     } finally {
       setProcessing(false);
+      setConfirmFixOpen(false);
     }
   };
 
@@ -102,6 +106,7 @@ const UserProgressManagementHeader = ({
       toast({ title: "Recalculation failed", description: "Could not recalculate course progress", variant: "destructive" });
     } finally {
       setProcessing(false);
+      setConfirmRecalcOpen(false);
     }
   };
 
@@ -111,24 +116,24 @@ const UserProgressManagementHeader = ({
         <h2 className="text-2xl font-bold text-gray-900">User Progress Tracking</h2>
         <p className="text-gray-600">Monitor user course and unit completion progress</p>
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-2 items-center">
         <Button variant="outline" onClick={handleValidate} disabled={!hasData || processing}>
-          <ShieldCheck className="h-4 w-4 mr-2" />
-          Validate
+          <ShieldCheck className={`h-4 w-4 mr-2 ${processing ? 'animate-spin' : ''}`} />
+          {processing ? 'Validating...' : 'Validate'}
         </Button>
         <Button variant="outline" onClick={handleBackfill} disabled={processing}>
-          <Wrench className="h-4 w-4 mr-2" />
-          Backfill
+          <Wrench className={`h-4 w-4 mr-2 ${processing ? 'animate-spin' : ''}`} />
+          {processing ? 'Backfilling...' : 'Backfill'}
         </Button>
         <Button variant="outline" onClick={handleAnalyzeMissing} disabled={processing}>
-          <BarChart3 className="h-4 w-4 mr-2" />
+          <BarChart3 className={`h-4 w-4 mr-2 ${processing ? 'animate-spin' : ''}`} />
           Analyze
         </Button>
-        <Button variant="outline" onClick={handleFixMissing} disabled={processing}>
+        <Button variant="outline" onClick={() => setConfirmFixOpen(true)} disabled={processing}>
           <Hammer className="h-4 w-4 mr-2" />
           Fix Missing
         </Button>
-        <Button variant="outline" onClick={handleRecalculate} disabled={processing}>
+        <Button variant="outline" onClick={() => setConfirmRecalcOpen(true)} disabled={processing}>
           <RefreshCw className="h-4 w-4 mr-2" />
           Recalculate
         </Button>
@@ -140,6 +145,42 @@ const UserProgressManagementHeader = ({
           <Download className="h-4 w-4 mr-2" />
           Refresh Data
         </Button>
+
+        {/* Confirm Fix Missing */}
+        <AlertDialog open={confirmFixOpen} onOpenChange={setConfirmFixOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Fix missing quiz completions?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This will create missing quiz completion and unit progress records based on the activity log. The operation is additive and audited.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={processing}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleFixMissing} disabled={processing}>
+                {processing ? 'Fixing…' : 'Confirm'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+
+        {/* Confirm Recalculate */}
+        <AlertDialog open={confirmRecalcOpen} onOpenChange={setConfirmRecalcOpen}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Recalculate course progress?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This runs a safe, no-downgrade recalculation across affected enrollments. Existing higher progress is preserved.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel disabled={processing}>Cancel</AlertDialogCancel>
+              <AlertDialogAction onClick={handleRecalculate} disabled={processing}>
+                {processing ? 'Recalculating…' : 'Confirm'}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

@@ -8,6 +8,7 @@ import UserProgressManagementHeader from "./user-progress/UserProgressManagement
 import UserProgressStatsCards from "./user-progress/UserProgressStatsCards";
 import UserProgressFilters from "./user-progress/UserProgressFilters";
 import UserProgressTable from "./user-progress/UserProgressTable";
+import MaintenanceLog from "./user-progress/MaintenanceLog";
 import { exportToCSV, formatDateForCSV } from "@/lib/csvUtils";
 
 interface UserProgress {
@@ -329,6 +330,8 @@ const UserProgressManagement = () => {
         hasNextPage={hasNextPage}
         hasPreviousPage={hasPreviousPage}
       />
+
+      <MaintenanceLog />
 
       <UserProgressModal
         isOpen={!!selectedUserForModal}
