@@ -9,7 +9,7 @@ import CreateLawFirmDialog from './law-firm-management/CreateLawFirmDialog';
 import { Skeleton } from '@/components/ui/skeleton';
 
 const LawFirmManagement = () => {
-  const { lawFirms, loading, error } = useLawFirms();
+  const { lawFirms, loading, error, refetch } = useLawFirms();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
   if (loading) {
@@ -75,7 +75,7 @@ const LawFirmManagement = () => {
             <LawFirmCard 
               key={lawFirm.id} 
               lawFirm={lawFirm} 
-              onEmployeeAdded={() => window.location.reload()} 
+              onEmployeeAdded={refetch} 
             />
           ))}
         </div>
