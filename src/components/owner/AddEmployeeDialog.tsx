@@ -188,22 +188,23 @@ const AddEmployeeDialog = ({
         employeeProfile = updatedProfile;
       }
 
-      // 2. Assign the role (always student for employees)
+      // 2. Assign the role (always student for employees) - using UPSERT to avoid duplicate key errors
       const { error: roleError } = await supabase
         .from('user_roles')
-        .delete()
-        .eq('user_id', employeeProfile.id);
-
-      if (roleError) console.error('Error removing old roles:', roleError);
-
-      const { error: newRoleError } = await supabase
-        .from('user_roles')
-        .insert({
+        .upsert({
           user_id: employeeProfile.id,
           role: 'student'
+        }, {
+          onConflict: 'user_id'
         });
 
-      if (newRoleError) throw newRoleError;
+      if (roleError) {
+        console.error('Error assigning role:', roleError);
+        if (roleError.message?.includes('duplicate key')) {
+          throw new Error('User already has a role assigned. Please try again or contact support.');
+        }
+        throw roleError;
+      }
 
       // 3. Update law firm seat count (only if adding a new employee)
       if (isNewEmployeeToLawFirm) {
