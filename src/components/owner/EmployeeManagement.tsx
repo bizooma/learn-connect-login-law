@@ -26,7 +26,8 @@ const EmployeeManagement = ({ lawFirm, onLawFirmUpdated }: EmployeeManagementPro
     onLawFirmUpdated();
   };
 
-  const availableSeats = lawFirm.total_seats - lawFirm.used_seats;
+  const usedSeats = employees.length;
+  const availableSeats = lawFirm.total_seats - usedSeats;
   const canAddEmployee = availableSeats > 0;
 
   if (loading) {
@@ -61,7 +62,7 @@ const EmployeeManagement = ({ lawFirm, onLawFirmUpdated }: EmployeeManagementPro
             </div>
             <div className="flex items-center space-x-4">
               <div className="text-sm text-gray-600">
-                {lawFirm.used_seats} / {lawFirm.total_seats} seats used
+                {usedSeats} / {lawFirm.total_seats} seats used
               </div>
               <Button 
                 onClick={() => setShowAddDialog(true)}

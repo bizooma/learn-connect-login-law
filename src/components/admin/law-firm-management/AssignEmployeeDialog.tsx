@@ -47,7 +47,10 @@ const AssignEmployeeDialog = ({
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const canAddEmployee = lawFirm.used_seats < lawFirm.total_seats;
+  // Check if law firm has available seats (using dynamic employee count)
+  const currentEmployeeCount = lawFirm.employee_count || 0;
+  const availableSeats = lawFirm.total_seats - currentEmployeeCount;
+  const canAddEmployee = availableSeats > 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -198,20 +201,14 @@ const AssignEmployeeDialog = ({
         throw roleError;
       }
 
-      // 3. Update law firm seat count
-      const { error: seatError } = await supabase
-        .from('law_firms')
-        .update({ used_seats: lawFirm.used_seats + 1 })
-        .eq('id', lawFirm.id);
-
-      if (seatError) throw seatError;
+      // Note: No need to update seat count as we use dynamic counting from employee_count
 
       // 4. Create notification for admins
       const { error: notificationError } = await supabase
         .from('notifications')
         .insert({
           title: 'Admin Assigned Employee',
-          message: `Admin assigned ${formData.firstName} ${formData.lastName} (${formData.email}) to ${lawFirm.name} as a student. Seat count updated to ${lawFirm.used_seats + 1}/${lawFirm.total_seats}.`,
+          message: `Admin assigned ${formData.firstName} ${formData.lastName} (${formData.email}) to ${lawFirm.name} as a student.`,
           type: 'info',
           audience: 'admin_only',
           created_by: user.id
@@ -379,7 +376,7 @@ const AssignEmployeeDialog = ({
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <h4 className="font-medium text-blue-900 mb-1">Available Seats</h4>
             <p className="text-sm text-blue-800">
-              {lawFirm.total_seats - lawFirm.used_seats} of {lawFirm.total_seats} seats available
+              {availableSeats} of {lawFirm.total_seats} seats available
             </p>
           </div>
 

@@ -2,6 +2,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, Calendar, CheckCircle } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
+import { useEmployees } from "@/hooks/useEmployees";
 
 type LawFirm = Tables<'law_firms'>;
 
@@ -10,7 +11,9 @@ interface OverviewTabProps {
 }
 
 const OverviewTab = ({ lawFirm }: OverviewTabProps) => {
-  const availableSeats = lawFirm.total_seats - lawFirm.used_seats;
+  const { employees } = useEmployees(lawFirm.id);
+  const usedSeats = employees.length;
+  const availableSeats = lawFirm.total_seats - usedSeats;
 
   return (
     <div className="space-y-6">
@@ -21,7 +24,7 @@ const OverviewTab = ({ lawFirm }: OverviewTabProps) => {
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{lawFirm.used_seats}</div>
+            <div className="text-2xl font-bold">{usedSeats}</div>
             <p className="text-xs text-muted-foreground">
               of {lawFirm.total_seats} available seats
             </p>

@@ -8,6 +8,7 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import { useEmployees } from "@/hooks/useEmployees";
 import { Tables } from "@/integrations/supabase/types";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, UserPlus, Eye, EyeOff } from "lucide-react";
@@ -41,6 +42,11 @@ const AddEmployeeDialog = ({
   });
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  // Calculate available seats (passed canAddEmployee is based on this calc)
+  const { employees } = useEmployees(lawFirm.id);
+  const usedSeats = employees?.length || 0;
+  const availableSeats = lawFirm.total_seats - usedSeats;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -206,25 +212,14 @@ const AddEmployeeDialog = ({
         throw roleError;
       }
 
-      // 3. Update law firm seat count (only if adding a new employee)
-      if (isNewEmployeeToLawFirm) {
-        console.log('Incrementing seat count for new employee to law firm');
-        const { error: seatError } = await supabase
-          .from('law_firms')
-          .update({ used_seats: lawFirm.used_seats + 1 })
-          .eq('id', lawFirm.id);
-
-        if (seatError) throw seatError;
-      } else {
-        console.log('Not incrementing seat count - employee already belongs to this law firm');
-      }
+      // Note: No need to update seat count as we use dynamic counting from employee_count
 
       // 4. Create notification for admins
       const { error: notificationError } = await supabase
         .from('notifications')
         .insert({
           title: 'New Employee Added',
-          message: `${lawFirm.name} added new employee ${formData.firstName} ${formData.lastName} (${formData.email}) as a student. Seat count updated to ${lawFirm.used_seats + 1}/${lawFirm.total_seats}.`,
+          message: `${lawFirm.name} added new employee ${formData.firstName} ${formData.lastName} (${formData.email}) as a student.`,
           type: 'info',
           created_by: user.id
         });
@@ -390,7 +385,7 @@ const AddEmployeeDialog = ({
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <h4 className="font-medium text-blue-900 mb-1">Available Seats</h4>
             <p className="text-sm text-blue-800">
-              {lawFirm.total_seats - lawFirm.used_seats} of {lawFirm.total_seats} seats available
+              {availableSeats} of {lawFirm.total_seats} seats available
             </p>
           </div>
 

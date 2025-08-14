@@ -8,6 +8,7 @@ import { Plus, Minus, Users } from "lucide-react";
 import { useState } from "react";
 import { Tables } from "@/integrations/supabase/types";
 import { useLawFirm } from "@/hooks/useLawFirm";
+import { useEmployees } from "@/hooks/useEmployees";
 
 type LawFirm = Tables<'law_firms'>;
 
@@ -17,13 +18,15 @@ interface SeatManagementProps {
 
 const SeatManagement = ({ lawFirm }: SeatManagementProps) => {
   const { updateLawFirm } = useLawFirm();
+  const { employees } = useEmployees(lawFirm.id);
   const [newSeatCount, setNewSeatCount] = useState(lawFirm.total_seats);
   const [loading, setLoading] = useState(false);
 
-  const seatUsagePercentage = (lawFirm.used_seats / lawFirm.total_seats) * 100;
+  const usedSeats = employees.length;
+  const seatUsagePercentage = (usedSeats / lawFirm.total_seats) * 100;
 
   const handleUpdateSeats = async () => {
-    if (newSeatCount < lawFirm.used_seats) {
+    if (newSeatCount < usedSeats) {
       return; // Can't reduce below used seats
     }
 
@@ -34,7 +37,7 @@ const SeatManagement = ({ lawFirm }: SeatManagementProps) => {
 
   const adjustSeats = (adjustment: number) => {
     const newCount = newSeatCount + adjustment;
-    if (newCount >= lawFirm.used_seats && newCount >= 1) {
+    if (newCount >= usedSeats && newCount >= 1) {
       setNewSeatCount(newCount);
     }
   };
@@ -52,7 +55,7 @@ const SeatManagement = ({ lawFirm }: SeatManagementProps) => {
         <div className="space-y-3">
           <div className="flex justify-between text-sm">
             <span>Seat Usage</span>
-            <span>{lawFirm.used_seats} / {lawFirm.total_seats} seats used</span>
+            <span>{usedSeats} / {lawFirm.total_seats} seats used</span>
           </div>
           <Progress value={seatUsagePercentage} className="w-full" />
           <div className="flex justify-between text-xs text-gray-500">
@@ -69,7 +72,7 @@ const SeatManagement = ({ lawFirm }: SeatManagementProps) => {
               variant="outline"
               size="icon"
               onClick={() => adjustSeats(-1)}
-              disabled={newSeatCount <= lawFirm.used_seats}
+              disabled={newSeatCount <= usedSeats}
             >
               <Minus className="h-4 w-4" />
             </Button>
@@ -79,12 +82,12 @@ const SeatManagement = ({ lawFirm }: SeatManagementProps) => {
               value={newSeatCount}
               onChange={(e) => {
                 const value = parseInt(e.target.value) || 0;
-                if (value >= lawFirm.used_seats) {
+                if (value >= usedSeats) {
                   setNewSeatCount(value);
                 }
               }}
               className="w-24 text-center"
-              min={lawFirm.used_seats}
+              min={usedSeats}
             />
             <Button
               variant="outline"
@@ -95,7 +98,7 @@ const SeatManagement = ({ lawFirm }: SeatManagementProps) => {
             </Button>
           </div>
           <p className="text-sm text-gray-500">
-            Minimum: {lawFirm.used_seats} seats (current usage)
+            Minimum: {usedSeats} seats (current usage)
           </p>
         </div>
 
@@ -120,7 +123,7 @@ const SeatManagement = ({ lawFirm }: SeatManagementProps) => {
             </div>
             <div className="flex justify-between">
               <span>Available seats:</span>
-              <span>{lawFirm.total_seats - lawFirm.used_seats}</span>
+              <span>{lawFirm.total_seats - usedSeats}</span>
             </div>
             <div className="flex justify-between font-medium">
               <span>Monthly cost:</span>

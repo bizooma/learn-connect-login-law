@@ -47,7 +47,7 @@ export const useLawFirm = () => {
             name: 'My Law Firm',
             total_seats: 4,
             owner_id: user.id,
-            used_seats: 0
+            used_seats: 0  // Will be deprecated - keeping for compatibility
           })
           .select()
           .single();
@@ -89,7 +89,7 @@ export const useLawFirm = () => {
           name,
           total_seats: totalSeats,
           owner_id: user.id,
-          used_seats: 0
+          used_seats: 0  // Will be deprecated - keeping for compatibility
         })
         .select()
         .single();

@@ -26,8 +26,8 @@ const LawFirmCard = ({ lawFirm, onEmployeeAdded }: LawFirmCardProps) => {
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [showAssignDialog, setShowAssignDialog] = useState(false);
   
-  const availableSeats = lawFirm.total_seats - lawFirm.used_seats;
-  const seatUtilization = lawFirm.total_seats > 0 ? (lawFirm.used_seats / lawFirm.total_seats) * 100 : 0;
+  const availableSeats = lawFirm.total_seats - (lawFirm.employee_count || 0);
+  const seatUtilization = lawFirm.total_seats > 0 ? ((lawFirm.employee_count || 0) / lawFirm.total_seats) * 100 : 0;
   
   const getOwnerDisplayName = () => {
     if (!lawFirm.owner) return 'Unknown Owner';
@@ -48,7 +48,7 @@ const LawFirmCard = ({ lawFirm, onEmployeeAdded }: LawFirmCardProps) => {
               <CardTitle className="text-lg">{lawFirm.name}</CardTitle>
             </div>
             <Badge variant={availableSeats > 0 ? "default" : "destructive"}>
-              {lawFirm.used_seats}/{lawFirm.total_seats} seats
+              {lawFirm.employee_count || 0}/{lawFirm.total_seats} seats
             </Badge>
           </div>
         </CardHeader>
