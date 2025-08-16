@@ -13,7 +13,8 @@ import TeamAssignmentDialog from "./TeamAssignmentDialog";
 import { UserProfile } from "./types";
 import { getUserRole, getRoleBadgeColor } from "./userRoleUtils";
 import { useUserRole } from "@/hooks/useUserRole";
-import { BookOpen, BarChart3, Mail, Lock, AlertTriangle } from "lucide-react";
+import { BookOpen, BarChart3, Mail, Lock, AlertTriangle, Calendar } from "lucide-react";
+import { formatUserJoinDate } from "@/utils/dateUtils";
 
 interface UserCardProps {
   user: UserProfile;
@@ -102,6 +103,11 @@ export const UserCard = ({
                   Assigned to team leader
                 </p>
               )}
+
+              <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
+                <Calendar className="h-3 w-3" />
+                <span>Joined: {formatUserJoinDate(user.created_at)}</span>
+              </div>
               
               <div className="space-y-3">
                 <div className="flex items-center gap-2 mb-3">

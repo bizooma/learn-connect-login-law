@@ -60,9 +60,10 @@ const RemoveEmployeeDialog = ({
       const { error: notificationError } = await supabase
         .from('notifications')
         .insert({
-          title: 'Employee Removed',
-          message: `${lawFirm.name} removed employee ${employee.first_name} ${employee.last_name} (${employee.email}). Seat count updated from ${lawFirm.used_seats} to ${lawFirm.used_seats - 1}.`,
-          type: 'info',
+          title: 'Owner Removed Employee',
+          message: `Law firm owner from ${lawFirm.name} removed employee ${employee.first_name} ${employee.last_name} (${employee.email}). Seat count updated from ${lawFirm.used_seats} to ${lawFirm.used_seats - 1}.`,
+          type: 'warning',
+          audience: 'admin_only',
           created_by: user.id
         });
 

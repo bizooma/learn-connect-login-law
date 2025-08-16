@@ -218,9 +218,10 @@ const AddEmployeeDialog = ({
       const { error: notificationError } = await supabase
         .from('notifications')
         .insert({
-          title: 'New Employee Added',
-          message: `${lawFirm.name} added new employee ${formData.firstName} ${formData.lastName} (${formData.email}) as a student.`,
+          title: 'Owner Added New Employee',
+          message: `Law firm owner from ${lawFirm.name} added new employee ${formData.firstName} ${formData.lastName} (${formData.email}) as a student.`,
           type: 'info',
+          audience: 'admin_only',
           created_by: user.id
         });
 

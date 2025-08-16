@@ -208,7 +208,7 @@ const AssignEmployeeDialog = ({
         .from('notifications')
         .insert({
           title: 'Admin Assigned Employee',
-          message: `Admin assigned ${formData.firstName} ${formData.lastName} (${formData.email}) to ${lawFirm.name} as a student.`,
+          message: `Admin ${user.email} assigned ${formData.firstName} ${formData.lastName} (${formData.email}) to ${lawFirm.name} as a student employee.`,
           type: 'info',
           audience: 'admin_only',
           created_by: user.id
