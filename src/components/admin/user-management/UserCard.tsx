@@ -46,21 +46,15 @@ export const UserCard = ({
   };
 
   const handleRoleUpdated = () => {
-    if (onCourseAssigned) {
-      onCourseAssigned();
-    }
+    // Role updates don't need to trigger course assignment refresh
   };
 
   const handleEmailUpdated = () => {
-    if (onCourseAssigned) {
-      onCourseAssigned();
-    }
+    // Email updates don't need to trigger course assignment refresh
   };
 
   const handlePasswordReset = () => {
-    if (onCourseAssigned) {
-      onCourseAssigned();
-    }
+    // Password resets don't need to trigger course assignment refresh
   };
 
   return (
