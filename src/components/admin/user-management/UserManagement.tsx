@@ -32,7 +32,13 @@ const UserManagement = () => {
       console.log('🔄 Auth state - Frontend user:', user?.email, 'Session exists:', !!session);
       
       // Check backend auth state
-      const { data: backendAuthCheck } = await supabase.rpc('debug_auth_state').catch(() => ({ data: null }));
+      let backendAuthCheck = null;
+      try {
+        const response = await supabase.rpc('debug_auth_state' as any);
+        backendAuthCheck = response.data;
+      } catch (error) {
+        console.log('❌ Backend auth check failed:', error);
+      }
       console.log('🔄 Backend auth check:', backendAuthCheck);
       
       setLoading(true);
