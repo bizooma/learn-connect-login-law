@@ -30,6 +30,7 @@ export const useEmployees = (lawFirmId: string) => {
         .from('profiles')
         .select('*')
         .eq('law_firm_id', lawFirmId)
+        .eq('is_deleted', false)
         .order('created_at', { ascending: false });
 
       if (profilesError) {
