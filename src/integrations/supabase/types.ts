@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.3 (519615d)"
@@ -2174,11 +2174,11 @@ export type Database = {
       }
       admin_mark_unit_completed: {
         Args: {
-          p_user_id: string
-          p_unit_id: string
           p_course_id: string
-          p_reason?: string
           p_performed_by?: string
+          p_reason?: string
+          p_unit_id: string
+          p_user_id: string
         }
         Returns: Json
       }
@@ -2189,29 +2189,29 @@ export type Database = {
       analyze_missing_quiz_completions: {
         Args: Record<PropertyKey, never>
         Returns: {
-          total_passed_quizzes: number
-          missing_completion_records: number
-          affected_users: number
           affected_courses: number
+          affected_users: number
+          missing_completion_records: number
           sample_affected_users: Json
+          total_passed_quizzes: number
         }[]
       }
       assign_badge_from_template: {
         Args: {
-          p_user_id: string
-          p_template_id: string
           p_assigned_by?: string
+          p_template_id: string
+          p_user_id: string
         }
         Returns: string
       }
       assign_badge_to_user: {
         Args: {
-          p_user_id: string
+          p_assigned_by?: string
+          p_badge_color?: string
+          p_badge_image_url?: string
           p_badge_name: string
           p_description: string
-          p_badge_image_url?: string
-          p_badge_color?: string
-          p_assigned_by?: string
+          p_user_id: string
         }
         Returns: string
       }
@@ -2219,17 +2219,17 @@ export type Database = {
         Args: { p_audit_reason?: string }
         Returns: {
           courses_updated: number
-          users_affected: number
           details: Json
+          users_affected: number
         }[]
       }
       calculate_reliable_course_progress: {
-        Args: { p_user_id: string; p_course_id: string }
+        Args: { p_course_id: string; p_user_id: string }
         Returns: {
-          total_units: number
           completed_units: number
           progress_percentage: number
           status: string
+          total_units: number
         }[]
       }
       cancel_owner_account: {
@@ -2241,41 +2241,41 @@ export type Database = {
         Returns: undefined
       }
       create_admin_team: {
-        Args: { p_name: string; p_description?: string }
+        Args: { p_description?: string; p_name: string }
         Returns: string
       }
       diagnose_progress_inconsistencies: {
         Args: Record<PropertyKey, never>
         Returns: {
-          total_users_with_progress: number
-          users_with_zero_progress: number
-          users_with_completed_units_but_zero_progress: number
           sample_inconsistent_records: Json
+          total_users_with_progress: number
+          users_with_completed_units_but_zero_progress: number
+          users_with_zero_progress: number
         }[]
       }
       end_user_session: {
-        Args: { p_session_id: string; p_exit_point?: string; p_metadata?: Json }
+        Args: { p_exit_point?: string; p_metadata?: Json; p_session_id: string }
         Returns: boolean
       }
       fix_missing_quiz_completions: {
         Args: Record<PropertyKey, never>
         Returns: {
-          users_affected: number
-          records_created: number
           courses_updated: number
           details: Json
+          records_created: number
+          users_affected: number
         }[]
       }
       generate_category_leaderboard: {
         Args: { p_category: string; p_limit?: number }
         Returns: {
-          user_id: string
-          user_name: string
-          user_email: string
           completion_rate: number
           courses_completed: number
-          total_courses: number
           rank_position: number
+          total_courses: number
+          user_email: string
+          user_id: string
+          user_name: string
         }[]
       }
       generate_certificate_number: {
@@ -2285,21 +2285,21 @@ export type Database = {
       generate_learning_streak_leaderboard: {
         Args: { p_limit?: number }
         Returns: {
-          user_id: string
-          user_name: string
-          user_email: string
           current_streak: number
           longest_streak: number
           rank_position: number
+          user_email: string
+          user_id: string
+          user_name: string
         }[]
       }
       get_team_progress_summary: {
         Args: { p_team_id: string }
         Returns: {
-          total_members: number
-          courses_in_progress: number
-          courses_completed: number
           average_progress: number
+          courses_completed: number
+          courses_in_progress: number
+          total_members: number
         }[]
       }
       get_user_law_firm_id: {
@@ -2307,38 +2307,38 @@ export type Database = {
         Returns: string
       }
       get_user_management_history: {
-        Args: { p_user_id?: string; p_limit?: number }
+        Args: { p_limit?: number; p_user_id?: string }
         Returns: {
-          id: string
-          target_user_id: string
-          target_email: string
           action_type: string
+          id: string
+          is_reversible: boolean
+          new_data: Json
+          old_data: Json
+          performed_at: string
           performed_by: string
           performer_email: string
-          performed_at: string
           reason: string
-          old_data: Json
-          new_data: Json
-          is_reversible: boolean
+          target_email: string
+          target_user_id: string
         }[]
       }
       get_user_session_stats: {
-        Args: { p_user_id?: string; p_start_date?: string; p_end_date?: string }
+        Args: { p_end_date?: string; p_start_date?: string; p_user_id?: string }
         Returns: {
-          user_id: string
-          user_email: string
-          total_sessions: number
-          total_time_seconds: number
           avg_session_duration: number
           course_sessions: number
           general_sessions: number
           last_activity: string
+          total_sessions: number
+          total_time_seconds: number
+          user_email: string
+          user_id: string
         }[]
       }
       has_role: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
         }
         Returns: boolean
       }
@@ -2360,49 +2360,49 @@ export type Database = {
       }
       log_user_activity: {
         Args: {
-          p_user_id: string
           p_activity_type: Database["public"]["Enums"]["activity_type"]
           p_course_id?: string
-          p_unit_id?: string
+          p_duration_seconds?: number
+          p_ip_address?: unknown
+          p_metadata?: Json
           p_quiz_id?: string
           p_session_id?: string
-          p_duration_seconds?: number
-          p_metadata?: Json
-          p_ip_address?: unknown
+          p_unit_id?: string
           p_user_agent?: string
+          p_user_id: string
         }
         Returns: string
       }
       mark_course_completed: {
         Args: {
-          p_user_id: string
-          p_course_id: string
           p_completion_date?: string
+          p_course_id: string
+          p_user_id: string
         }
         Returns: undefined
       }
       mark_quiz_complete_reliable: {
         Args: {
-          p_unit_id: string
           p_course_id: string
-          p_score?: number
           p_passed?: boolean
           p_quiz_completed_at?: string
+          p_score?: number
+          p_unit_id: string
         }
         Returns: Json
       }
       mark_unit_complete_reliable: {
         Args:
           | {
-              p_unit_id: string
-              p_course_id: string
               p_completion_method?: string
+              p_course_id: string
+              p_unit_id: string
             }
           | {
-              p_user_id: string
-              p_unit_id: string
-              p_course_id: string
               p_completion_method?: string
+              p_course_id: string
+              p_unit_id: string
+              p_user_id: string
             }
         Returns: Json
       }
@@ -2410,9 +2410,9 @@ export type Database = {
         Args: {
           p_content_id: string
           p_content_type: string
+          p_new_sort_order?: number
           p_target_parent_id: string
           p_target_parent_type: string
-          p_new_sort_order?: number
         }
         Returns: boolean
       }
@@ -2421,11 +2421,11 @@ export type Database = {
         Returns: undefined
       }
       reclassify_section_to_module: {
-        Args: { p_section_id: string; p_course_id: string }
+        Args: { p_course_id: string; p_section_id: string }
         Returns: string
       }
       reclassify_unit_to_section: {
-        Args: { p_unit_id: string; p_module_id: string }
+        Args: { p_module_id: string; p_unit_id: string }
         Returns: string
       }
       refresh_leaderboard_cache: {
@@ -2441,23 +2441,23 @@ export type Database = {
         Returns: boolean
       }
       restore_user: {
-        Args: { p_user_id: string; p_reason?: string; p_performed_by?: string }
+        Args: { p_performed_by?: string; p_reason?: string; p_user_id: string }
         Returns: Json
       }
       safe_unit_upsert: {
         Args: {
-          p_unit_id: string
-          p_section_id: string
-          p_title: string
-          p_description: string
           p_content: string
-          p_video_url: string
+          p_description: string
           p_duration_minutes: number
-          p_sort_order: number
-          p_file_url?: string
           p_file_name?: string
           p_file_size?: number
+          p_file_url?: string
           p_files?: Json
+          p_section_id: string
+          p_sort_order: number
+          p_title: string
+          p_unit_id: string
+          p_video_url: string
         }
         Returns: string
       }
@@ -2466,41 +2466,41 @@ export type Database = {
         Returns: boolean
       }
       soft_delete_user: {
-        Args: { p_user_id: string; p_reason?: string; p_performed_by?: string }
+        Args: { p_performed_by?: string; p_reason?: string; p_user_id: string }
         Returns: Json
       }
       start_user_session: {
         Args: {
-          p_user_id: string
           p_course_id?: string
-          p_session_type?: string
           p_entry_point?: string
           p_ip_address?: unknown
-          p_user_agent?: string
           p_metadata?: Json
+          p_session_type?: string
+          p_user_agent?: string
+          p_user_id: string
         }
         Returns: string
       }
       sync_video_completion_safe: {
         Args:
           | {
-              p_unit_id: string
               p_course_id: string
-              p_watch_percentage?: number
-              p_total_duration_seconds?: number
-              p_watched_duration_seconds?: number
               p_force_complete?: boolean
+              p_total_duration_seconds?: number
+              p_unit_id: string
+              p_watch_percentage?: number
+              p_watched_duration_seconds?: number
             }
           | {
-              p_user_id: string
-              p_unit_id: string
               p_course_id: string
+              p_unit_id: string
+              p_user_id: string
               p_watch_percentage?: number
             }
         Returns: Json
       }
       update_course_progress_reliable: {
-        Args: { p_user_id: string; p_course_id: string }
+        Args: { p_course_id: string; p_user_id: string }
         Returns: Json
       }
       update_learning_streak: {
@@ -2509,10 +2509,10 @@ export type Database = {
       }
       update_user_role_safe: {
         Args: {
-          p_user_id: string
           p_new_role: string
-          p_reason?: string
           p_performed_by?: string
+          p_reason?: string
+          p_user_id: string
         }
         Returns: Json
       }
