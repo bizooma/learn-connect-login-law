@@ -97,7 +97,7 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Attempting to change password for user:', userId);
+    console.log('🔐 Edge Function: Attempting to change password for user:', userId);
 
     // Update user password using admin client
     const { data: updateData, error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
@@ -106,20 +106,21 @@ Deno.serve(async (req) => {
     );
 
     if (updateError) {
-      console.error('Error updating password:', updateError);
+      console.error('🔐 Edge Function: Error updating password:', updateError);
       return new Response(
         JSON.stringify({ error: `Failed to update password: ${updateError.message}` }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    console.log('Password updated successfully for user:', userId);
+    console.log('🔐 Edge Function: Password updated successfully for user:', userId);
 
+    // Return minimal user data to avoid any potential UI interference
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: 'Password updated successfully',
-        user: updateData.user 
+        userId: userId
       }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );

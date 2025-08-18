@@ -26,18 +26,19 @@ const UserManagement = () => {
 
   const fetchUsers = async () => {
     try {
-      console.log('Fetching users data with safe filtering...');
+      console.log('🔄 Fetching users data with safe filtering...');
       setLoading(true);
       const { users: fetchedUsers, stats: fetchedStats } = await fetchUsersWithStatsSafe();
-      console.log('Fetched users safely:', fetchedUsers.length);
+      console.log('🔄 Fetched users safely:', fetchedUsers.length);
       setUsers(fetchedUsers);
       setStats(fetchedStats);
       
-      // Reset pagination when users data changes
+      // Reset pagination when users data changes (but preserve search)
+      console.log('🔄 Resetting pagination, current search term:', searchTerm);
       setCurrentPage(1);
       
     } catch (error: any) {
-      console.error('Error fetching users:', error);
+      console.error('❌ Error fetching users:', error);
       toast({
         title: "Error",
         description: `Failed to fetch users: ${error.message}`,
@@ -85,21 +86,22 @@ const UserManagement = () => {
 
     const channel = supabase
       .channel('admin-users-realtime')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => {
-        console.log('🔔 profiles changed, refreshing users');
-        fetchUsers();
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, (payload) => {
+        console.log('🔔 profiles changed, payload:', payload.eventType, 'current search:', searchTerm);
+        // Small delay to avoid rapid-fire updates during bulk operations
+        setTimeout(() => fetchUsers(), 100);
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_roles' }, () => {
-        console.log('🔔 user_roles changed, refreshing users');
-        fetchUsers();
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_roles' }, (payload) => {
+        console.log('🔔 user_roles changed, payload:', payload.eventType, 'current search:', searchTerm);
+        setTimeout(() => fetchUsers(), 100);
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'course_assignments' }, () => {
-        console.log('🔔 course_assignments changed, refreshing users');
-        fetchUsers();
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'course_assignments' }, (payload) => {
+        console.log('🔔 course_assignments changed, payload:', payload.eventType, 'current search:', searchTerm);
+        setTimeout(() => fetchUsers(), 100);
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_course_progress' }, () => {
-        console.log('🔔 user_course_progress changed, refreshing users');
-        fetchUsers();
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'user_course_progress' }, (payload) => {
+        console.log('🔔 user_course_progress changed, payload:', payload.eventType, 'current search:', searchTerm);
+        setTimeout(() => fetchUsers(), 100);
       })
       .subscribe();
 
@@ -146,7 +148,14 @@ const UserManagement = () => {
       
       <UserSearch 
         searchTerm={searchTerm} 
-        onSearchChange={setSearchTerm} 
+        onSearchChange={(value) => {
+          console.log('🔍 Search term being set to:', value);
+          console.log('🔍 Current user context:', { 
+            timestamp: new Date().toISOString(),
+            stackTrace: new Error().stack?.slice(0, 500) 
+          });
+          setSearchTerm(value);
+        }} 
       />
       
       <UserGrid 

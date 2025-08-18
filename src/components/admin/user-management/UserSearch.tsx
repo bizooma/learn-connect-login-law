@@ -15,8 +15,14 @@ const UserSearch = ({ searchTerm, onSearchChange }: UserSearchProps) => {
         <Input
           placeholder="Search users..."
           value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value)}
+          onChange={(e) => {
+            console.log('🔍 UserSearch input onChange:', e.target.value);
+            onSearchChange(e.target.value);
+          }}
           className="pl-10"
+          autoComplete="off"
+          data-lpignore="true"
+          data-form-type="other"
         />
       </div>
     </div>

@@ -33,6 +33,8 @@ export const UserPasswordResetDialog = ({
   const { toast } = useToast();
 
   const handlePasswordChange = async () => {
+    console.log('🔐 Password reset initiated for user:', user.email, 'by current user');
+    
     if (password !== confirmPassword) {
       toast({
         title: "Error",
@@ -54,6 +56,7 @@ export const UserPasswordResetDialog = ({
     setIsLoading(true);
     
     try {
+      console.log('🔐 Calling admin-change-password function for user:', user.id);
       const { data, error } = await supabase.functions.invoke('admin-change-password', {
         body: {
           userId: user.id,
@@ -62,13 +65,16 @@ export const UserPasswordResetDialog = ({
       });
 
       if (error) {
+        console.error('🔐 Function invocation error:', error);
         throw error;
       }
 
       if (data?.error) {
+        console.error('🔐 Function returned error:', data.error);
         throw new Error(data.error);
       }
 
+      console.log('🔐 Password change successful, data returned:', data);
       toast({
         title: "Success",
         description: `Password updated successfully for ${user.first_name && user.last_name 
@@ -76,12 +82,15 @@ export const UserPasswordResetDialog = ({
           : user.email}`,
       });
 
+      console.log('🔐 Calling onPasswordReset callback...');
       onPasswordReset();
+      console.log('🔐 Closing dialog...');
       onOpenChange(false);
       setPassword("");
       setConfirmPassword("");
+      console.log('🔐 Password reset flow completed');
     } catch (error: any) {
-      console.error('Error changing password:', error);
+      console.error('🔐 Error changing password:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to update password",
