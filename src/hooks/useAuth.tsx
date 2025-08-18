@@ -15,6 +15,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  checkAndRecoverSession?: () => Promise<boolean>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -22,6 +23,7 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   loading: true,
   signOut: async () => {},
+  checkAndRecoverSession: async () => false,
 });
 
 export const useAuth = () => {
@@ -36,7 +38,58 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [syncRetryCount, setSyncRetryCount] = useState(0);
   const { toast } = useToast();
+
+  // Session recovery mechanism
+  const checkAndRecoverSession = async () => {
+    try {
+      logger.log('Auth: Checking session sync status');
+      
+      // Get current frontend session
+      const frontendHasSession = !!session?.access_token;
+      
+      // Check backend auth state
+      const { data: backendAuth } = await supabase.rpc('debug_auth_state' as any).catch(() => ({ data: null }));
+      const backendHasSession = !!backendAuth?.auth_uid;
+      
+      logger.log('Auth: Session sync check', {
+        frontend: frontendHasSession,
+        backend: backendHasSession,
+        syncRetryCount
+      });
+      
+      // If frontend has session but backend doesn't, try to recover
+      if (frontendHasSession && !backendHasSession && syncRetryCount < 3) {
+        logger.log('Auth: Session desync detected, attempting recovery');
+        setSyncRetryCount(prev => prev + 1);
+        
+        // Force session refresh
+        const { data: { session: refreshedSession }, error } = await supabase.auth.refreshSession();
+        
+        if (error) {
+          logger.error('Auth: Session refresh failed:', error);
+          // Clear invalid session
+          setSession(null);
+          setUser(null);
+          return false;
+        }
+        
+        if (refreshedSession) {
+          logger.log('Auth: Session refreshed successfully');
+          setSession(refreshedSession);
+          setUser(refreshedSession.user);
+          setSyncRetryCount(0);
+          return true;
+        }
+      }
+      
+      return backendHasSession;
+    } catch (error) {
+      logger.error('Auth: Session recovery error:', error);
+      return false;
+    }
+  };
 
   useEffect(() => {
     let mounted = true;
@@ -220,7 +273,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signOut, checkAndRecoverSession }}>
       {children}
     </AuthContext.Provider>
   );
