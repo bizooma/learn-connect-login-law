@@ -50,7 +50,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const frontendHasSession = !!session?.access_token;
       
       // Check backend auth state
-      const { data: backendAuth } = await supabase.rpc('debug_auth_state' as any).catch(() => ({ data: null }));
+      let backendAuth = null;
+      try {
+        const response = await supabase.rpc('debug_auth_state' as any);
+        backendAuth = response.data;
+      } catch (error) {
+        logger.error('Auth: Backend auth check failed:', error);
+        backendAuth = null;
+      }
       const backendHasSession = !!backendAuth?.auth_uid;
       
       logger.log('Auth: Session sync check', {

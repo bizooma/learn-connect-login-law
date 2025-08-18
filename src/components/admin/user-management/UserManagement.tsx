@@ -15,7 +15,11 @@ import { fetchUsersWithStatsSafe, updateUserRoleSafe } from "./updatedUserManage
 
 const ITEMS_PER_PAGE = 10;
 
-const UserManagement = () => {
+interface UserManagementProps {
+  customFetchUsers?: () => Promise<{ users: any[], stats: any }>;
+}
+
+const UserManagement = ({ customFetchUsers }: UserManagementProps = {}) => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
@@ -42,7 +46,9 @@ const UserManagement = () => {
       console.log('🔄 Backend auth check:', backendAuthCheck);
       
       setLoading(true);
-      const { users: fetchedUsers, stats: fetchedStats } = await fetchUsersWithStatsSafe();
+      const { users: fetchedUsers, stats: fetchedStats } = customFetchUsers 
+        ? await customFetchUsers()
+        : await fetchUsersWithStatsSafe();
       console.log('🔄 Fetched users safely:', fetchedUsers.length);
       setUsers(fetchedUsers);
       setStats(fetchedStats);
