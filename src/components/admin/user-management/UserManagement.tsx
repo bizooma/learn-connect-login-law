@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import UserSearch from "./UserSearch";
 import { UserGrid } from "./UserGrid";
@@ -23,10 +24,17 @@ const UserManagement = () => {
   const [selectedUserForProgress, setSelectedUserForProgress] = useState<string | null>(null);
   const { toast } = useToast();
   const { isAdmin } = useUserRole();
+  const { user, session } = useAuth();
 
   const fetchUsers = async () => {
     try {
       console.log('🔄 Fetching users data with safe filtering...');
+      console.log('🔄 Auth state - Frontend user:', user?.email, 'Session exists:', !!session);
+      
+      // Check backend auth state
+      const { data: backendAuthCheck } = await supabase.rpc('debug_auth_state').catch(() => ({ data: null }));
+      console.log('🔄 Backend auth check:', backendAuthCheck);
+      
       setLoading(true);
       const { users: fetchedUsers, stats: fetchedStats } = await fetchUsersWithStatsSafe();
       console.log('🔄 Fetched users safely:', fetchedUsers.length);
