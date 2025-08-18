@@ -2244,10 +2244,6 @@ export type Database = {
         Args: { p_description?: string; p_name: string }
         Returns: string
       }
-      debug_auth_state: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
       diagnose_progress_inconsistencies: {
         Args: Record<PropertyKey, never>
         Returns: {

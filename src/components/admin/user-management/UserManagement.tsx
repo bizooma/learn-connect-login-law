@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useUserRole } from "@/hooks/useUserRole";
-import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import UserSearch from "./UserSearch";
 import { UserGrid } from "./UserGrid";
@@ -15,11 +14,7 @@ import { fetchUsersWithStatsSafe, updateUserRoleSafe } from "./updatedUserManage
 
 const ITEMS_PER_PAGE = 10;
 
-interface UserManagementProps {
-  customFetchUsers?: () => Promise<{ users: any[], stats: any }>;
-}
-
-const UserManagement = ({ customFetchUsers }: UserManagementProps = {}) => {
+const UserManagement = () => {
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
@@ -28,27 +23,12 @@ const UserManagement = ({ customFetchUsers }: UserManagementProps = {}) => {
   const [selectedUserForProgress, setSelectedUserForProgress] = useState<string | null>(null);
   const { toast } = useToast();
   const { isAdmin } = useUserRole();
-  const { user, session } = useAuth();
 
   const fetchUsers = async () => {
     try {
       console.log('🔄 Fetching users data with safe filtering...');
-      console.log('🔄 Auth state - Frontend user:', user?.email, 'Session exists:', !!session);
-      
-      // Check backend auth state
-      let backendAuthCheck = null;
-      try {
-        const response = await supabase.rpc('debug_auth_state' as any);
-        backendAuthCheck = response.data;
-      } catch (error) {
-        console.log('❌ Backend auth check failed:', error);
-      }
-      console.log('🔄 Backend auth check:', backendAuthCheck);
-      
       setLoading(true);
-      const { users: fetchedUsers, stats: fetchedStats } = customFetchUsers 
-        ? await customFetchUsers()
-        : await fetchUsersWithStatsSafe();
+      const { users: fetchedUsers, stats: fetchedStats } = await fetchUsersWithStatsSafe();
       console.log('🔄 Fetched users safely:', fetchedUsers.length);
       setUsers(fetchedUsers);
       setStats(fetchedStats);

@@ -1,8 +1,8 @@
 
-import UserManagementWithFallback from "./user-management/UserManagementWithFallback";
+import UserManagementTabs from "./user-management/UserManagementTabs";
 
 const UserManagement = () => {
-  return <UserManagementWithFallback />;
+  return <UserManagementTabs />;
 };
 
 export default UserManagement;
