@@ -101,7 +101,7 @@ const YouTubeVideoPlayer = ({
     }
   };
 
-  const { isReady, isPlaying, currentTime, duration, initializePlayer } = useYouTubePlayer({
+  const { isReady, isApiReady, isPlaying, currentTime, duration, initializePlayer } = useYouTubePlayer({
     videoId: videoId || '',
     containerId,
     onProgress: handleProgress,
@@ -194,11 +194,13 @@ const YouTubeVideoPlayer = ({
       <div className={`bg-gray-100 rounded-lg overflow-hidden relative ${className}`}>
         <div id={containerId} className="w-full h-full" />
         
-        {!isReady && (
+        {(!isApiReady || !isReady) && (
           <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
             <div className="text-center">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-              <p className="text-gray-600">Loading video...</p>
+              <p className="text-gray-600">
+                {!isApiReady ? 'Loading YouTube API...' : 'Initializing player...'}
+              </p>
               {title && <p className="text-sm text-gray-500 mt-1">{title}</p>}
             </div>
           </div>

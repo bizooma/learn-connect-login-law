@@ -1,5 +1,6 @@
 
 import { useState, useEffect, useRef, useCallback } from 'react';
+import { youTubeAPIService } from '@/services/youTubeAPIService';
 
 declare global {
   interface Window {
@@ -11,6 +12,7 @@ declare global {
 interface YouTubePlayerState {
   player: any | null;
   isReady: boolean;
+  isApiReady: boolean;
   isPlaying: boolean;
   currentTime: number;
   duration: number;
@@ -37,6 +39,7 @@ export const useYouTubePlayer = ({
   const [playerState, setPlayerState] = useState<YouTubePlayerState>({
     player: null,
     isReady: false,
+    isApiReady: false,
     isPlaying: false,
     currentTime: 0,
     duration: 0,
@@ -46,42 +49,45 @@ export const useYouTubePlayer = ({
   const progressIntervalRef = useRef<number>();
   const playerRef = useRef<any>(null);
 
-  // Load YouTube API
+  // Load YouTube API using centralized service
   useEffect(() => {
-    const loadYouTubeAPI = () => {
-      if (window.YT && window.YT.Player) {
-        return Promise.resolve();
-      }
-
-      return new Promise<void>((resolve) => {
-        if (!document.querySelector('script[src*="youtube.com/iframe_api"]')) {
-          const script = document.createElement('script');
-          script.src = 'https://www.youtube.com/iframe_api';
-          document.head.appendChild(script);
+    const loadAPI = async () => {
+      try {
+        await youTubeAPIService.loadAPI();
+        setPlayerState(prev => ({ ...prev, isApiReady: true }));
+        console.log('✅ YouTube API ready from service');
+      } catch (error) {
+        console.error('❌ YouTube API failed to load:', error);
+        if (onError) {
+          onError(error instanceof Error ? error.message : 'YouTube API load failed');
         }
-
-        window.onYouTubeIframeAPIReady = () => {
-          resolve();
-        };
-
-        // Fallback in case the API is already loaded
-        const checkAPI = () => {
-          if (window.YT && window.YT.Player) {
-            resolve();
-          } else {
-            setTimeout(checkAPI, 100);
-          }
-        };
-        checkAPI();
-      });
+      }
     };
 
-    loadYouTubeAPI();
-  }, []);
+    // Check if API is already loaded
+    if (youTubeAPIService.getState().isLoaded) {
+      setPlayerState(prev => ({ ...prev, isApiReady: true }));
+    } else {
+      loadAPI();
+    }
+
+    // Listen for API state changes
+    const unsubscribe = youTubeAPIService.onStateChange(() => {
+      const apiState = youTubeAPIService.getState();
+      setPlayerState(prev => ({ ...prev, isApiReady: apiState.isLoaded }));
+      
+      if (apiState.error && onError) {
+        onError(apiState.error);
+      }
+    });
+
+    return unsubscribe;
+  }, [onError]);
 
   // Initialize player
   const initializePlayer = useCallback(() => {
-    if (!window.YT || !window.YT.Player || !videoId || !containerId) {
+    if (!playerState.isApiReady || !window.YT || !window.YT.Player || !videoId || !containerId) {
+      console.warn('⚠️ Cannot initialize player: API not ready or missing params');
       return;
     }
 
@@ -173,7 +179,7 @@ export const useYouTubePlayer = ({
         onError(error instanceof Error ? error.message : 'YouTube player initialization failed');
       }
     }
-  }, [videoId, containerId, onReady, onStateChange]); // FIXED: Removed circular dependency
+  }, [videoId, containerId, onReady, onStateChange, playerState.isApiReady]);
 
   // Progress tracking
   const startProgressTracking = useCallback(() => {
@@ -214,10 +220,11 @@ export const useYouTubePlayer = ({
 
   // Initialize player when API is ready
   useEffect(() => {
-    if (window.YT && window.YT.Player && videoId && containerId) {
+    if (playerState.isApiReady && videoId && containerId) {
+      console.log('🎬 Initializing YouTube player with API ready');
       initializePlayer();
     }
-  }, [initializePlayer, videoId, containerId]);
+  }, [playerState.isApiReady, initializePlayer, videoId, containerId]);
 
   // Cleanup
   useEffect(() => {

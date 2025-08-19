@@ -88,7 +88,7 @@ const UnifiedVideoPlayer = ({
 
     // Auto-load if enabled and not already loading/loaded
     if (autoLoad && loadingState === 'idle') {
-      logger.log('🚨 EMERGENCY: Auto-loading video immediately');
+      logger.log('🎬 Auto-loading video');
       handleLoadVideo();
     }
   }, [videoUrl, autoLoad, loadingState, handleLoadVideo]);
