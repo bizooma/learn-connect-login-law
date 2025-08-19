@@ -1,12 +1,8 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { Play, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { isYouTubeUrl } from '@/utils/youTubeUtils';
 import YouTubeVideoPlayer from './YouTubeVideoPlayer';
 import VideoThumbnail from './VideoThumbnail';
-import { useVideoPerformance } from '@/hooks/useVideoPerformance';
-import { useVideoStabilityMonitor } from '@/hooks/useVideoStabilityMonitor';
-import { useVideoLazyLoading } from '@/hooks/useVideoLazyLoading';
-import VideoErrorBoundary from './VideoErrorBoundary';
 import { logger } from '@/utils/logger';
 
 interface UnifiedVideoPlayerProps {
@@ -18,6 +14,9 @@ interface UnifiedVideoPlayerProps {
   autoLoad?: boolean;
 }
 
+// Simple loading state enum to prevent render loops
+type LoadingState = 'idle' | 'loading' | 'loaded' | 'error';
+
 const UnifiedVideoPlayer = ({ 
   videoUrl, 
   title, 
@@ -26,106 +25,92 @@ const UnifiedVideoPlayer = ({
   className = "aspect-video",
   autoLoad = true
 }: UnifiedVideoPlayerProps) => {
-  logger.log('🎥 UnifiedVideoPlayer: Rendering with props:', { videoUrl, title, autoLoad, hasVideoUrl: !!videoUrl });
-  
-  const [videoError, setVideoError] = useState(false);
-  const [isPlayerLoaded, setIsPlayerLoaded] = useState(false);
-  const [hasError, setHasError] = useState(false);
+  // EMERGENCY FIX: Single state enum to prevent render loops
+  const [loadingState, setLoadingState] = useState<LoadingState>('idle');
+  const [errorMessage, setErrorMessage] = useState<string>('');
   const containerRef = useRef<HTMLDivElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const hasInitialized = useRef(false);
 
-  // PHASE 4: Lazy loading for performance
-  const { elementRef, isVisible, shouldLoad } = useVideoLazyLoading({
-    videoId: isYouTubeUrl(videoUrl) ? videoUrl : 'upload-video'
+  logger.log('🎥 UnifiedVideoPlayer: Render state:', { 
+    videoUrl: videoUrl?.substring(0, 50) + '...', 
+    loadingState, 
+    autoLoad,
+    hasInitialized: hasInitialized.current 
   });
 
-  // Performance monitoring - PHASE 4: Only for YouTube videos to reduce overhead
-  const { metrics, startLoadTimer, endLoadTimer, recordError, recordRetry } = useVideoPerformance({
-    videoId: videoUrl,
-    onMetricsUpdate: (metrics) => {
-      if (metrics.loadDuration && metrics.loadDuration > 8000) { // PHASE 4: Increased threshold
-        logger.warn('Slow video loading detected:', metrics);
-      }
-    }
-  });
-
-  // Video stability monitoring - PHASE 4: Only for YouTube videos
-  const { trackProgressUpdate } = useVideoStabilityMonitor({
-    videoId: isYouTubeUrl(videoUrl) && shouldLoad ? videoUrl : undefined,
-    videoType: isYouTubeUrl(videoUrl) ? 'youtube' : 'upload'
-  });
-
+  // EMERGENCY FIX: Simplified handlers with no circular dependencies
   const handleVideoProgress = useCallback((currentTime: number, duration: number, watchPercentage: number) => {
-    trackProgressUpdate();
     if (onProgress) {
       onProgress(currentTime, duration, watchPercentage);
     }
-  }, [onProgress, trackProgressUpdate]);
+  }, [onProgress]);
 
-  const handleVideoError = useCallback(() => {
-    logger.error('UnifiedVideoPlayer: Video error for URL:', videoUrl);
-    setVideoError(true);
-    recordError();
-    setHasError(true);
-  }, [videoUrl, recordError]);
+  const handleVideoError = useCallback((error?: string) => {
+    logger.error('🚨 UnifiedVideoPlayer: Video error:', error || 'Unknown error');
+    setLoadingState('error');
+    setErrorMessage(error || 'Video failed to load');
+  }, []);
 
-  const handleLoadPlayer = useCallback(() => {
-    if (!isPlayerLoaded) {
-      logger.log('🎬 UnifiedVideoPlayer: Loading player for:', videoUrl);
-      setIsPlayerLoaded(true);
-    }
-  }, []); // CRITICAL: No dependencies to prevent loops
-
-  const handlePlayerReady = useCallback(() => {
-    logger.log('UnifiedVideoPlayer: Player ready for video:', videoUrl);
-    endLoadTimer();
-  }, [endLoadTimer, videoUrl]);
+  const handleLoadVideo = useCallback(() => {
+    if (loadingState === 'loading' || loadingState === 'loaded') return;
+    
+    logger.log('🎬 UnifiedVideoPlayer: Loading video');
+    setLoadingState('loading');
+    setErrorMessage('');
+    
+    // Simulate load completion for immediate rendering
+    setTimeout(() => {
+      setLoadingState('loaded');
+    }, 100);
+  }, [loadingState]);
 
   const handleRetry = useCallback(() => {
-    logger.log('UnifiedVideoPlayer: Retrying player for video:', videoUrl);
-    recordRetry();
-    setHasError(false);
-    setIsPlayerLoaded(false);
-    setVideoError(false);
-    // Small delay before retrying
+    logger.log('🔄 UnifiedVideoPlayer: Retrying video');
+    setLoadingState('idle');
+    setErrorMessage('');
+    hasInitialized.current = false;
+    
+    // Force reload after brief delay
     setTimeout(() => {
-      handleLoadPlayer();
-    }, 500);
-  }, [recordRetry, handleLoadPlayer, videoUrl]);
+      handleLoadVideo();
+    }, 200);
+  }, [handleLoadVideo]);
 
-  // Reset player state when video URL changes
+  // EMERGENCY FIX: Single effect to handle initialization
   useEffect(() => {
-    logger.log('UnifiedVideoPlayer: Video URL changed, resetting player state:', videoUrl);
-    setIsPlayerLoaded(false);
-    setHasError(false);
-    setVideoError(false);
+    // Reset state when URL changes
+    if (!hasInitialized.current) {
+      setLoadingState('idle');
+      setErrorMessage('');
+      hasInitialized.current = true;
+    }
+
+    // Auto-load if enabled and not already loading/loaded
+    if (autoLoad && loadingState === 'idle') {
+      logger.log('🚨 EMERGENCY: Auto-loading video immediately');
+      handleLoadVideo();
+    }
+  }, [videoUrl, autoLoad, loadingState, handleLoadVideo]);
+
+  // Reset when video URL changes
+  useEffect(() => {
+    hasInitialized.current = false;
+    setLoadingState('idle');
+    setErrorMessage('');
   }, [videoUrl]);
 
-  // Emergency: Load immediately when autoLoad is true - no dependencies to prevent loops
-  useEffect(() => {
-    if (autoLoad && !isPlayerLoaded && !hasError && !videoError) {
-      logger.log('🚨 EMERGENCY: Force loading video immediately');
-      const timeoutId = setTimeout(() => {
-        handleLoadPlayer();
-      }, 50); // Tiny delay to break render loop
-      
-      return () => clearTimeout(timeoutId);
-    }
-  }, [autoLoad]); // CRITICAL: Minimal dependencies to prevent loops
-
   if (!videoUrl) {
-    logger.log('UnifiedVideoPlayer: No video URL provided');
     return null;
   }
 
-  if (videoError || hasError) {
-    logger.log('UnifiedVideoPlayer: Showing error state for video:', videoUrl);
+  if (loadingState === 'error') {
     return (
       <div className={`bg-gray-100 rounded-lg flex items-center justify-center ${className}`}>
         <div className="text-center p-6">
           <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-3" />
           <p className="text-gray-600 font-medium mb-2">Unable to load video</p>
-          <p className="text-sm text-gray-500 mb-4">Please check the video URL or try again later</p>
+          <p className="text-sm text-gray-500 mb-4">{errorMessage || 'Please try again later'}</p>
           <button 
             onClick={handleRetry}
             className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors"
@@ -140,29 +125,33 @@ const UnifiedVideoPlayer = ({
   return (
     <div 
       className={`relative bg-gray-100 rounded-lg overflow-hidden ${className}`} 
-      ref={(el) => {
-        containerRef.current = el;
-        elementRef.current = el;
-      }}
+      ref={containerRef}
     >
-      {/* Show thumbnail only when player is explicitly not loaded */}
-      {!isPlayerLoaded && (
+      {/* Show thumbnail when not loaded yet */}
+      {loadingState === 'idle' && (
         <VideoThumbnail
           videoUrl={videoUrl}
           title={title}
-          onPlayClick={() => {
-            logger.log('🎬 UnifiedVideoPlayer: Force loading from thumbnail click');
-            handleLoadPlayer();
-          }}
+          onPlayClick={handleLoadVideo}
           isLoading={false}
-          hasError={hasError}
+          hasError={false}
           onRetry={handleRetry}
           className="w-full h-full"
         />
       )}
 
-      {/* Load video when player is ready */}
-      {isPlayerLoaded && (
+      {/* Show loading state */}
+      {loadingState === 'loading' && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+            <p className="text-gray-600">Loading video...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Show video when loaded */}
+      {loadingState === 'loaded' && (
         <>
           {isYouTubeUrl(videoUrl) ? (
             <YouTubeVideoPlayer
@@ -173,42 +162,29 @@ const UnifiedVideoPlayer = ({
               className="w-full h-full"
             />
           ) : (
-            <div className="bg-gray-100 rounded-lg overflow-hidden relative w-full h-full">
-              <video
-                ref={videoRef}
-                src={videoUrl}
-                controls
-                className="w-full h-full object-contain"
-                onTimeUpdate={(e) => {
-                  const video = e.currentTarget;
-                  const currentTime = video.currentTime;
-                  const duration = video.duration;
-                  
-                  if (duration > 0) {
-                    const watchPercentage = (currentTime / duration) * 100;
-                    handleVideoProgress(currentTime, duration, watchPercentage);
-                  }
-                }}
-                onEnded={onComplete}
-                onError={handleVideoError}
-                preload="metadata"
-                onLoadedData={handlePlayerReady}
-              >
-                Your browser does not support the video tag.
-              </video>
-            </div>
+            <video
+              ref={videoRef}
+              src={videoUrl}
+              controls
+              className="w-full h-full object-contain"
+              onTimeUpdate={(e) => {
+                const video = e.currentTarget;
+                const currentTime = video.currentTime;
+                const duration = video.duration;
+                
+                if (duration > 0) {
+                  const watchPercentage = (currentTime / duration) * 100;
+                  handleVideoProgress(currentTime, duration, watchPercentage);
+                }
+              }}
+              onEnded={onComplete}
+              onError={() => handleVideoError('Video playback failed')}
+              preload="metadata"
+            >
+              Your browser does not support the video tag.
+            </video>
           )}
         </>
-      )}
-
-      {/* Loading indicator when transitioning to video */}
-      {isPlayerLoaded && metrics.playerState === 'loading' && (
-        <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-            <p className="text-gray-600">Loading video...</p>
-          </div>
-        </div>
       )}
     </div>
   );
