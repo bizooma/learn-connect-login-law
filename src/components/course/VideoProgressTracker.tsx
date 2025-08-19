@@ -60,7 +60,7 @@ const VideoProgressTracker = ({
             } catch (error) {
               console.warn('⚠️ Error tracking YouTube progress:', error);
             }
-          }, 5000); // Reduced frequency: Update every 5 seconds
+          }, 10000); // PHASE 4: Further reduced to 10 seconds for browser stability
         } else {
           // Paused or other states - stop tracking
           if (progressInterval) {
@@ -111,7 +111,7 @@ const VideoProgressTracker = ({
         progressUpdateRef.current = window.setTimeout(() => {
           updateVideoProgress(currentTime, duration, watchPercentage);
           handleVideoProgress(currentTime, duration);
-        }, 5000); // Increased debounce time to 5 seconds
+        }, 10000); // PHASE 4: Further increased to 10 seconds for stability
       }
     };
 

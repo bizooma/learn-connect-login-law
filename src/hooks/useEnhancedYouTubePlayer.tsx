@@ -209,7 +209,7 @@ export const useEnhancedYouTubePlayer = ({
           console.warn('Error getting YouTube player time:', error);
         }
       }
-    }, 5000); // Optimized: Update every 5 seconds for better performance
+    }, 10000); // PHASE 4: Further reduced frequency to 10 seconds for stability
   }, [onProgress]);
 
   const stopProgressTracking = useCallback(() => {
@@ -225,11 +225,18 @@ export const useEnhancedYouTubePlayer = ({
       clearTimeout(retryTimeoutRef.current);
     }
 
+    // PHASE 3: Exponential backoff retry with maximum attempts
+    const retryCount = (retryTimeoutRef.current as any)?.retryCount || 0;
+    if (retryCount >= 4) return; // Stop retrying after 4 attempts
+    
+    const retryDelay = Math.min(1000 * Math.pow(3, retryCount), 27000); // 1s, 3s, 9s, 27s max
+    
     retryTimeoutRef.current = window.setTimeout(() => {
       recordRetry();
       updatePlayerState('retrying');
+      (retryTimeoutRef.current as any).retryCount = retryCount + 1;
       initializePlayer();
-    }, 3000); // Retry after 3 seconds
+    }, retryDelay);
   }, [initializePlayer, recordRetry, updatePlayerState]);
 
   // Initialize player when dependencies change

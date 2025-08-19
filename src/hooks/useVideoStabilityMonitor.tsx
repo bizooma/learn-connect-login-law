@@ -34,7 +34,8 @@ export const useVideoStabilityMonitor = ({
 
   const stabilityCheckInterval = useRef<NodeJS.Timeout | null>(null);
   const lastProgressTime = useRef<number>(Date.now());
-  const progressStallThreshold = 30000; // 30 seconds
+  const progressStallThreshold = 60000; // PHASE 1: Increased from 30s to 60s
+  const circuitBreakerRef = useRef<boolean>(false);
 
   // Track video load attempts
   const trackLoadAttempt = useCallback(() => {
@@ -45,7 +46,7 @@ export const useVideoStabilityMonitor = ({
     });
   }, [videoId]);
 
-  // Track video load failures
+  // Track video load failures - PHASE 1: Increased threshold from 3 to 8
   const trackLoadFailure = useCallback((error: string) => {
     metricsRef.current.loadFailures++;
     metricsRef.current.lastError = error;
@@ -56,13 +57,18 @@ export const useVideoStabilityMonitor = ({
       failures: metricsRef.current.loadFailures 
     });
 
-    // Alert if too many failures
-    if (metricsRef.current.loadFailures >= 3) {
+    // PHASE 1: Only alert if excessive failures (8+) and circuit breaker not active
+    if (metricsRef.current.loadFailures >= 8 && !circuitBreakerRef.current) {
       onStabilityIssue?.(metricsRef.current);
+      // Activate circuit breaker to prevent spam
+      circuitBreakerRef.current = true;
+      setTimeout(() => {
+        circuitBreakerRef.current = false;
+      }, 300000); // Reset after 5 minutes
     }
   }, [videoId, onStabilityIssue]);
 
-  // Track playback errors
+  // Track playback errors - PHASE 1: Increased threshold from 2 to 5
   const trackPlaybackError = useCallback((error: string) => {
     metricsRef.current.playbackErrors++;
     metricsRef.current.lastError = error;
@@ -73,8 +79,13 @@ export const useVideoStabilityMonitor = ({
       playbackErrors: metricsRef.current.playbackErrors 
     });
 
-    if (metricsRef.current.playbackErrors >= 2) {
+    // PHASE 1: Only alert if excessive errors (5+) and circuit breaker not active
+    if (metricsRef.current.playbackErrors >= 5 && !circuitBreakerRef.current) {
       onStabilityIssue?.(metricsRef.current);
+      circuitBreakerRef.current = true;
+      setTimeout(() => {
+        circuitBreakerRef.current = false;
+      }, 300000); // Reset after 5 minutes
     }
   }, [videoId, onStabilityIssue]);
 
@@ -83,8 +94,10 @@ export const useVideoStabilityMonitor = ({
     lastProgressTime.current = Date.now();
   }, []);
 
-  // Check for video freezes
+  // Check for video freezes - PHASE 1: Increased threshold from 2 to 4
   const checkForFreeze = useCallback(() => {
+    if (circuitBreakerRef.current) return; // Skip if circuit breaker active
+
     const timeSinceLastProgress = Date.now() - lastProgressTime.current;
     
     if (timeSinceLastProgress > progressStallThreshold) {
@@ -99,20 +112,23 @@ export const useVideoStabilityMonitor = ({
       // Reset timer to avoid repeated alerts
       lastProgressTime.current = Date.now();
       
-      if (metricsRef.current.freezeEvents >= 2) {
+      // PHASE 1: Only alert if excessive freeze events (4+)
+      if (metricsRef.current.freezeEvents >= 4) {
         onStabilityIssue?.(metricsRef.current);
       }
     }
   }, [videoId, onStabilityIssue]);
 
-  // Monitor memory usage for video-related memory leaks
+  // Monitor memory usage - PHASE 1: Increased threshold from 50MB to 100MB
   const checkMemoryUsage = useCallback(() => {
+    if (circuitBreakerRef.current) return; // Skip if circuit breaker active
+    
     if ('memory' in performance) {
       const memInfo = (performance as any).memory;
       metricsRef.current.memoryUsage = memInfo.usedJSHeapSize;
       
-      // Alert on high memory usage (>50MB for video components)
-      if (memInfo.usedJSHeapSize > 50 * 1024 * 1024) {
+      // PHASE 1: Alert on very high memory usage (>100MB for video components)
+      if (memInfo.usedJSHeapSize > 100 * 1024 * 1024) {
         logger.warn('🧠 High memory usage detected in video component:', {
           videoId,
           memoryMB: Math.round(memInfo.usedJSHeapSize / 1024 / 1024)
@@ -121,18 +137,19 @@ export const useVideoStabilityMonitor = ({
     }
   }, [videoId]);
 
-  // Start stability monitoring
+  // Start stability monitoring - PHASE 1: Reduced frequency from 10s to 30s
   useEffect(() => {
     if (!videoId) return;
 
     stabilityCheckInterval.current = setInterval(() => {
       checkForFreeze();
       checkMemoryUsage();
-    }, 10000); // Check every 10 seconds
+    }, 30000); // PHASE 1: Check every 30 seconds instead of 10
 
     return () => {
       if (stabilityCheckInterval.current) {
         clearInterval(stabilityCheckInterval.current);
+        stabilityCheckInterval.current = null;
       }
     };
   }, [videoId, checkForFreeze, checkMemoryUsage]);
@@ -149,6 +166,7 @@ export const useVideoStabilityMonitor = ({
       videoType
     };
     lastProgressTime.current = Date.now();
+    circuitBreakerRef.current = false; // Reset circuit breaker
   }, [videoId, videoType]);
 
   const getStabilityReport = useCallback(() => {

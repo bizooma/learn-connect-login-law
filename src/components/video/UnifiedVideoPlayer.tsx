@@ -1,4 +1,3 @@
-
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { Play, AlertCircle } from 'lucide-react';
 import { isYouTubeUrl } from '@/utils/youTubeUtils';
@@ -6,6 +5,7 @@ import YouTubeVideoPlayer from './YouTubeVideoPlayer';
 import VideoThumbnail from './VideoThumbnail';
 import { useVideoPerformance } from '@/hooks/useVideoPerformance';
 import { useVideoStabilityMonitor } from '@/hooks/useVideoStabilityMonitor';
+import { useVideoLazyLoading } from '@/hooks/useVideoLazyLoading';
 import VideoErrorBoundary from './VideoErrorBoundary';
 import { logger } from '@/utils/logger';
 
@@ -32,20 +32,42 @@ const UnifiedVideoPlayer = ({
   const [isPlayerLoaded, setIsPlayerLoaded] = useState(false);
   const [hasError, setHasError] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
+  // PHASE 4: Lazy loading for performance
+  const { elementRef, isVisible, shouldLoad } = useVideoLazyLoading({
+    videoId: isYouTubeUrl(videoUrl) ? videoUrl : 'upload-video'
+  });
+
+  // Performance monitoring - PHASE 4: Only for YouTube videos to reduce overhead
   const { metrics, startLoadTimer, endLoadTimer, recordError, recordRetry } = useVideoPerformance({
     videoId: videoUrl,
     onMetricsUpdate: (metrics) => {
-      if (metrics.loadDuration && metrics.loadDuration > 5000) {
+      if (metrics.loadDuration && metrics.loadDuration > 8000) { // PHASE 4: Increased threshold
         logger.warn('Slow video loading detected:', metrics);
       }
     }
   });
 
+  // Video stability monitoring - PHASE 4: Only for YouTube videos
   const { trackProgressUpdate } = useVideoStabilityMonitor({
-    videoId: videoUrl,
+    videoId: isYouTubeUrl(videoUrl) && shouldLoad ? videoUrl : undefined,
     videoType: isYouTubeUrl(videoUrl) ? 'youtube' : 'upload'
   });
+
+  const handleVideoProgress = useCallback((currentTime: number, duration: number, watchPercentage: number) => {
+    trackProgressUpdate();
+    if (onProgress) {
+      onProgress(currentTime, duration, watchPercentage);
+    }
+  }, [onProgress, trackProgressUpdate]);
+
+  const handleVideoError = useCallback(() => {
+    logger.error('UnifiedVideoPlayer: Video error for URL:', videoUrl);
+    setVideoError(true);
+    recordError();
+    setHasError(true);
+  }, [videoUrl, recordError]);
 
   const handleLoadPlayer = useCallback(() => {
     if (isPlayerLoaded) return;
@@ -61,18 +83,12 @@ const UnifiedVideoPlayer = ({
     endLoadTimer();
   }, [endLoadTimer, videoUrl]);
 
-  const handlePlayerError = useCallback(() => {
-    logger.error('UnifiedVideoPlayer: Player error for video:', videoUrl);
-    recordError();
-    setHasError(true);
-    setIsPlayerLoaded(false);
-  }, [recordError, videoUrl]);
-
   const handleRetry = useCallback(() => {
     logger.log('UnifiedVideoPlayer: Retrying player for video:', videoUrl);
     recordRetry();
     setHasError(false);
     setIsPlayerLoaded(false);
+    setVideoError(false);
     // Small delay before retrying
     setTimeout(() => {
       handleLoadPlayer();
@@ -89,29 +105,16 @@ const UnifiedVideoPlayer = ({
 
   // Auto-load when autoLoad is true and component mounts or video URL changes
   useEffect(() => {
-    if (autoLoad && !isPlayerLoaded && !hasError) {
+    if (autoLoad && shouldLoad && !isPlayerLoaded && !hasError) {
       logger.log('UnifiedVideoPlayer: Auto-loading player for video:', videoUrl);
       handleLoadPlayer();
     }
-  }, [autoLoad, isPlayerLoaded, hasError, handleLoadPlayer, videoUrl]);
+  }, [autoLoad, shouldLoad, isPlayerLoaded, hasError, handleLoadPlayer, videoUrl]);
 
   if (!videoUrl) {
     logger.log('UnifiedVideoPlayer: No video URL provided');
     return null;
   }
-
-  const handleVideoProgress = (currentTime: number, duration: number, watchPercentage: number) => {
-    trackProgressUpdate();
-    if (onProgress) {
-      onProgress(currentTime, duration, watchPercentage);
-    }
-  };
-
-  const handleVideoError = () => {
-    logger.error('UnifiedVideoPlayer: Video error for URL:', videoUrl);
-    setVideoError(true);
-    handlePlayerError();
-  };
 
   if (videoError || hasError) {
     logger.log('UnifiedVideoPlayer: Showing error state for video:', videoUrl);
@@ -132,48 +135,16 @@ const UnifiedVideoPlayer = ({
     );
   }
 
-  const isYouTube = isYouTubeUrl(videoUrl);
-  logger.log('UnifiedVideoPlayer: Video type determined:', { isYouTube, videoUrl });
-
   return (
-    <div ref={containerRef} className={className}>
-      {isPlayerLoaded ? (
-        isYouTube ? (
-          <YouTubeVideoPlayer
-            key={videoUrl}
-            videoUrl={videoUrl}
-            title={title}
-            onProgress={handleVideoProgress}
-            onComplete={onComplete}
-            className="w-full h-full"
-          />
-        ) : (
-          <div className="bg-gray-100 rounded-lg overflow-hidden relative w-full h-full">
-            <video
-              key={videoUrl}
-              src={videoUrl}
-              controls
-              className="w-full h-full object-contain"
-              onTimeUpdate={(e) => {
-                const video = e.currentTarget;
-                const currentTime = video.currentTime;
-                const duration = video.duration;
-                
-                if (duration > 0) {
-                  const watchPercentage = (currentTime / duration) * 100;
-                  handleVideoProgress(currentTime, duration, watchPercentage);
-                }
-              }}
-              onEnded={onComplete}
-              onError={handleVideoError}
-              preload="metadata"
-              onLoadedData={handlePlayerReady}
-            >
-              Your browser does not support the video tag.
-            </video>
-          </div>
-        )
-      ) : (
+    <div 
+      className={`relative bg-gray-100 rounded-lg overflow-hidden ${className}`} 
+      ref={(el) => {
+        containerRef.current = el;
+        elementRef.current = el;
+      }}
+    >
+      {/* PHASE 4: Show thumbnail if not loaded or if lazy loading not triggered */}
+      {(!autoLoad || !shouldLoad || !isPlayerLoaded) && (
         <VideoThumbnail
           videoUrl={videoUrl}
           title={title}
@@ -183,6 +154,57 @@ const UnifiedVideoPlayer = ({
           onRetry={handleRetry}
           className="w-full h-full"
         />
+      )}
+
+      {/* PHASE 4: Only load video when visible and should load */}
+      {autoLoad && shouldLoad && isPlayerLoaded && (
+        <>
+          {isYouTubeUrl(videoUrl) ? (
+            <YouTubeVideoPlayer
+              videoUrl={videoUrl}
+              title={title}
+              onProgress={handleVideoProgress}
+              onComplete={onComplete}
+              className="w-full h-full"
+            />
+          ) : (
+            <div className="bg-gray-100 rounded-lg overflow-hidden relative w-full h-full">
+              <video
+                ref={videoRef}
+                src={videoUrl}
+                controls
+                className="w-full h-full object-contain"
+                onTimeUpdate={(e) => {
+                  const video = e.currentTarget;
+                  const currentTime = video.currentTime;
+                  const duration = video.duration;
+                  
+                  if (duration > 0) {
+                    const watchPercentage = (currentTime / duration) * 100;
+                    handleVideoProgress(currentTime, duration, watchPercentage);
+                  }
+                }}
+                onEnded={onComplete}
+                onError={handleVideoError}
+                preload="metadata"
+                onLoadedData={handlePlayerReady}
+              >
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          )}
+        </>
+      )}
+
+      {/* PHASE 4: Loading indicator only when actually loading */}
+      {isPlayerLoaded && shouldLoad && metrics.playerState === 'loading' && (
+        <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
+            <p className="text-gray-600">Loading video...</p>
+            {title && <p className="text-sm text-gray-500 mt-1">{title}</p>}
+          </div>
+        </div>
       )}
     </div>
   );

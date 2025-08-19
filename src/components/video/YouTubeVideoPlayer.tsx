@@ -5,6 +5,7 @@ import { extractYouTubeVideoId, getYouTubeContainerId } from '@/utils/youTubeUti
 import { Button } from '@/components/ui/button';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 import { useVideoStabilityMonitor } from '@/hooks/useVideoStabilityMonitor';
+import { useVideoInstanceManager } from '@/hooks/useVideoInstanceManager';
 import VideoErrorBoundary from './VideoErrorBoundary';
 
 interface YouTubeVideoPlayerProps {
@@ -27,8 +28,12 @@ const YouTubeVideoPlayer = ({
   const [error, setError] = useState<string | null>(null);
   const videoId = extractYouTubeVideoId(videoUrl);
   const lastProgressRef = useRef<number>(0);
+  const retryCountRef = useRef<number>(0);
   
-  // PHASE 1: Video stability monitoring
+  // PHASE 2: Video instance management
+  const { registerVideoInstance, cleanupVideoInstance, isAtVideoLimit } = useVideoInstanceManager();
+  
+  // PHASE 3: Enhanced video stability monitoring with inline warnings
   const {
     trackLoadAttempt,
     trackLoadFailure,
@@ -39,8 +44,10 @@ const YouTubeVideoPlayer = ({
     videoId: videoId || undefined,
     videoType: 'youtube',
     onStabilityIssue: (metrics) => {
-      console.warn('🚨 YouTube video stability issue detected:', metrics);
-      setError(`Video stability issue: ${metrics.lastError || 'Multiple failures detected'}`);
+      // PHASE 3: Gentle inline warning instead of aggressive popup
+      console.warn('⚠️ YouTube video stability issue detected:', metrics);
+      // Don't immediately set error - let user continue watching
+      // Only log for admin monitoring
     }
   });
 
@@ -85,7 +92,13 @@ const YouTubeVideoPlayer = ({
   const handleReady = (player: any) => {
     console.log('YouTube player ready for video:', videoId);
     setError(null);
+    retryCountRef.current = 0; // Reset retry count on successful load
     trackLoadAttempt(); // Track successful load
+    
+    // PHASE 2: Register video instance for management
+    if (videoId) {
+      registerVideoInstance(videoId, 'youtube', player, containerId);
+    }
   };
 
   const { isReady, isPlaying, currentTime, duration, initializePlayer } = useYouTubePlayer({
@@ -96,33 +109,64 @@ const YouTubeVideoPlayer = ({
     onReady: handleReady,
     onError: (error: string) => {
       trackPlaybackError(error);
-      setError(error);
+      // PHASE 3: Only set error after multiple failures
+      retryCountRef.current++;
+      if (retryCountRef.current >= 4) {
+        setError(error);
+      }
     }
   });
 
   const handleRetry = () => {
     console.log('🔄 Retrying YouTube video load for:', videoId);
+    
+    // PHASE 4: Check if we're at video limit before retrying
+    if (isAtVideoLimit()) {
+      console.warn('⚠️ Cannot retry - video limit reached');
+      return;
+    }
+    
     setError(null);
     setHasCompleted(false);
+    retryCountRef.current = 0; // Reset retry count
     trackLoadAttempt();
     
-    try {
-      initializePlayer();
-    } catch (error) {
-      const errorMsg = error instanceof Error ? error.message : 'Unknown retry error';
-      trackLoadFailure(errorMsg);
-      setError(errorMsg);
+    // PHASE 2: Cleanup existing instance before retry
+    if (videoId) {
+      cleanupVideoInstance(videoId);
     }
+    
+    // PHASE 3: Exponential backoff retry logic
+    const retryDelay = Math.min(1000 * Math.pow(3, retryCountRef.current), 27000); // 1s, 3s, 9s, 27s max
+    
+    setTimeout(() => {
+      try {
+        initializePlayer();
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : 'Unknown retry error';
+        trackLoadFailure(errorMsg);
+        if (retryCountRef.current >= 4) {
+          setError(errorMsg);
+        }
+      }
+    }, retryDelay);
   };
 
-  // Set error if no video ID
+  // Set error if no video ID and cleanup on unmount
   useEffect(() => {
     if (!videoId) {
       const errorMsg = 'Invalid YouTube URL';
       trackLoadFailure(errorMsg);
       setError(errorMsg);
     }
-  }, [videoId, trackLoadFailure]);
+    
+    // PHASE 2: Cleanup instance on unmount
+    return () => {
+      if (videoId) {
+        cleanupVideoInstance(videoId);
+      }
+    };
+  }, [videoId, trackLoadFailure, cleanupVideoInstance]);
 
   if (!videoId || error) {
     return (
