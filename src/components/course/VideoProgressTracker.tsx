@@ -22,117 +22,13 @@ const VideoProgressTracker = ({
   youtubePlayer,
   videoType = 'upload'
 }: VideoProgressTrackerProps) => {
-  const { videoProgress, loading, updateVideoProgress } = useVideoProgress(unitId, courseId);
-  const { completionState, handleVideoProgress, handleVideoEnded, forceComplete } = useVideoCompletion(unitId, courseId);
-  const progressUpdateRef = useRef<number>();
+  const { videoProgress, loading } = useVideoProgress(unitId, courseId);
+  const { completionState, forceComplete } = useVideoCompletion(unitId, courseId);
+  
+  // EMERGENCY FIX: Removed competing progress tracking that was causing video interruptions
+  // Progress tracking is now handled exclusively by the YouTube player's built-in events
 
-  // Enhanced YouTube player event handling with better memory management
-  useEffect(() => {
-    if (videoType === 'youtube' && youtubePlayer) {
-      let progressInterval: number | undefined;
-      let hasTriggeredCompletion = false;
-
-      const handleStateChange = (event: any) => {
-        const state = event.data;
-        
-        if (state === 0 && !hasTriggeredCompletion) { // Video ended
-          hasTriggeredCompletion = true;
-          handleVideoEnded();
-        } else if (state === 1) { // Playing
-          // Clear any existing interval first
-          if (progressInterval) {
-            clearInterval(progressInterval);
-          }
-          
-          // Start optimized progress tracking (reduced frequency)
-          progressInterval = window.setInterval(() => {
-            try {
-              const currentTime = youtubePlayer.getCurrentTime();
-              const duration = youtubePlayer.getDuration();
-              
-              if (duration > 0) {
-                const watchPercentage = (currentTime / duration) * 100;
-                
-                // Update both progress systems
-                updateVideoProgress(currentTime, duration, watchPercentage);
-                handleVideoProgress(currentTime, duration);
-              }
-            } catch (error) {
-              console.warn('⚠️ Error tracking YouTube progress:', error);
-            }
-          }, 10000); // PHASE 4: Further reduced to 10 seconds for browser stability
-        } else {
-          // Paused or other states - stop tracking
-          if (progressInterval) {
-            clearInterval(progressInterval);
-            progressInterval = undefined;
-          }
-        }
-      };
-
-      // Enhanced error handling for YouTube events
-      try {
-        youtubePlayer.addEventListener('onStateChange', handleStateChange);
-      } catch (error) {
-        console.warn('⚠️ Error setting up YouTube progress tracking:', error);
-      }
-
-      return () => {
-        try {
-          youtubePlayer.removeEventListener('onStateChange', handleStateChange);
-        } catch (error) {
-          console.warn('⚠️ Error removing YouTube event listener:', error);
-        }
-        // Ensure interval is properly cleared
-        if (progressInterval !== undefined) {
-          clearInterval(progressInterval);
-          progressInterval = undefined;
-        }
-      };
-    }
-  }, [youtubePlayer, videoType, updateVideoProgress, handleVideoProgress, handleVideoEnded, unitId]);
-
-  // Enhanced regular video player event handling with debouncing
-  useEffect(() => {
-    const video = videoElement;
-    if (!video || !unitId || videoType !== 'upload') return;
-
-    const handleTimeUpdate = () => {
-      const currentTime = video.currentTime;
-      const duration = video.duration;
-      
-      if (duration > 0) {
-        const watchPercentage = (currentTime / duration) * 100;
-        
-        // Debounce updates for better performance (increased delay)
-        if (progressUpdateRef.current) {
-          clearTimeout(progressUpdateRef.current);
-        }
-        progressUpdateRef.current = window.setTimeout(() => {
-          updateVideoProgress(currentTime, duration, watchPercentage);
-          handleVideoProgress(currentTime, duration);
-        }, 10000); // PHASE 4: Further increased to 10 seconds for stability
-      }
-    };
-
-    const handleEnded = () => {
-      handleVideoEnded();
-    };
-
-    // Enhanced event listeners
-    video.addEventListener('timeupdate', handleTimeUpdate);
-    video.addEventListener('ended', handleEnded);
-
-    return () => {
-      video.removeEventListener('timeupdate', handleTimeUpdate);
-      video.removeEventListener('ended', handleEnded);
-      // Ensure timeout is properly cleared
-      if (progressUpdateRef.current) {
-        clearTimeout(progressUpdateRef.current);
-        progressUpdateRef.current = undefined;
-      }
-    };
-  }, [videoElement, videoType, updateVideoProgress, handleVideoProgress, handleVideoEnded, unitId]);
+  // EMERGENCY FIX: Removed uploaded video progress tracking to prevent conflicts
 
   // Show loading state or when no meaningful progress
   if (loading || (videoProgress.watch_percentage === 0 && videoProgress.watched_duration_seconds === 0)) {

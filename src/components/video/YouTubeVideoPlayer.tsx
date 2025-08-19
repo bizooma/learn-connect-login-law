@@ -30,49 +30,24 @@ const YouTubeVideoPlayer = ({
   const lastProgressRef = useRef<number>(0);
   const retryCountRef = useRef<number>(0);
   
-  // PHASE 2: Video instance management
-  const { registerVideoInstance, cleanupVideoInstance, isAtVideoLimit } = useVideoInstanceManager();
-  
-  // PHASE 3: Enhanced video stability monitoring with inline warnings
-  const {
-    trackLoadAttempt,
-    trackLoadFailure,
-    trackPlaybackError,
-    trackProgressUpdate,
-    getStabilityReport
-  } = useVideoStabilityMonitor({
-    videoId: videoId || undefined,
-    videoType: 'youtube',
-    onStabilityIssue: (metrics) => {
-      // PHASE 3: Gentle inline warning instead of aggressive popup
-      console.warn('⚠️ YouTube video stability issue detected:', metrics);
-      // Don't immediately set error - let user continue watching
-      // Only log for admin monitoring
-    }
-  });
+  // EMERGENCY FIX: Simplified monitoring to prevent interference
+  const { registerVideoInstance, cleanupVideoInstance } = useVideoInstanceManager();
 
   const handleProgress = (currentTime: number, duration: number) => {
     if (duration <= 0) return;
 
-    // Track progress for stability monitoring
-    trackProgressUpdate();
-
     const watchPercentage = Math.min((currentTime / duration) * 100, 100);
     
-    // Only call onProgress if significant progress change (avoid spam)
-    if (Math.abs(watchPercentage - lastProgressRef.current) >= 1) {
-      lastProgressRef.current = watchPercentage;
-      
-      if (onProgress) {
-        onProgress(currentTime, duration, watchPercentage);
-      }
+    // Simplified progress handling
+    if (onProgress) {
+      onProgress(currentTime, duration, watchPercentage);
+    }
 
-      // Check for completion (95% threshold)
-      if (watchPercentage >= 95 && !hasCompleted) {
-        setHasCompleted(true);
-        if (onComplete) {
-          onComplete();
-        }
+    // Check for completion (95% threshold)
+    if (watchPercentage >= 95 && !hasCompleted) {
+      setHasCompleted(true);
+      if (onComplete) {
+        onComplete();
       }
     }
   };
@@ -92,10 +67,8 @@ const YouTubeVideoPlayer = ({
   const handleReady = (player: any) => {
     console.log('YouTube player ready for video:', videoId);
     setError(null);
-    retryCountRef.current = 0; // Reset retry count on successful load
-    trackLoadAttempt(); // Track successful load
+    retryCountRef.current = 0;
     
-    // PHASE 2: Register video instance for management
     if (videoId) {
       registerVideoInstance(videoId, 'youtube', player, containerId);
     }
@@ -108,65 +81,40 @@ const YouTubeVideoPlayer = ({
     onStateChange: handleStateChange,
     onReady: handleReady,
     onError: (error: string) => {
-      trackPlaybackError(error);
-      // PHASE 3: Only set error after multiple failures
-      retryCountRef.current++;
-      if (retryCountRef.current >= 4) {
-        setError(error);
-      }
+      console.error('YouTube player error:', error);
+      setError(error);
     }
   });
 
   const handleRetry = () => {
     console.log('🔄 Retrying YouTube video load for:', videoId);
     
-    // PHASE 4: Check if we're at video limit before retrying
-    if (isAtVideoLimit()) {
-      console.warn('⚠️ Cannot retry - video limit reached');
-      return;
-    }
-    
     setError(null);
     setHasCompleted(false);
-    retryCountRef.current = 0; // Reset retry count
-    trackLoadAttempt();
+    retryCountRef.current = 0;
     
-    // PHASE 2: Cleanup existing instance before retry
     if (videoId) {
       cleanupVideoInstance(videoId);
     }
     
-    // PHASE 3: Exponential backoff retry logic
-    const retryDelay = Math.min(1000 * Math.pow(3, retryCountRef.current), 27000); // 1s, 3s, 9s, 27s max
-    
+    // Simple immediate retry
     setTimeout(() => {
-      try {
-        initializePlayer();
-      } catch (error) {
-        const errorMsg = error instanceof Error ? error.message : 'Unknown retry error';
-        trackLoadFailure(errorMsg);
-        if (retryCountRef.current >= 4) {
-          setError(errorMsg);
-        }
-      }
-    }, retryDelay);
+      initializePlayer();
+    }, 1000);
   };
 
   // Set error if no video ID and cleanup on unmount
   useEffect(() => {
     if (!videoId) {
-      const errorMsg = 'Invalid YouTube URL';
-      trackLoadFailure(errorMsg);
-      setError(errorMsg);
+      setError('Invalid YouTube URL');
     }
     
-    // PHASE 2: Cleanup instance on unmount
     return () => {
       if (videoId) {
         cleanupVideoInstance(videoId);
       }
     };
-  }, [videoId, trackLoadFailure, cleanupVideoInstance]);
+  }, [videoId, cleanupVideoInstance]);
 
   if (!videoId || error) {
     return (

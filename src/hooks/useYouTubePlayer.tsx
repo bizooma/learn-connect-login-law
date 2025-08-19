@@ -84,10 +84,15 @@ export const useYouTubePlayer = ({
     return unsubscribe;
   }, [onError]);
 
-  // Initialize player
+  // Initialize player (FIXED: Removed dependency on playerState.isApiReady)
   const initializePlayer = useCallback(() => {
-    if (!playerState.isApiReady || !window.YT || !window.YT.Player || !videoId || !containerId) {
+    if (!window.YT || !window.YT.Player || !videoId || !containerId) {
       console.warn('⚠️ Cannot initialize player: API not ready or missing params');
+      return;
+    }
+
+    if (playerRef.current) {
+      console.log('🔄 Player already exists, skipping initialization');
       return;
     }
 
@@ -179,7 +184,7 @@ export const useYouTubePlayer = ({
         onError(error instanceof Error ? error.message : 'YouTube player initialization failed');
       }
     }
-  }, [videoId, containerId, onReady, onStateChange, playerState.isApiReady]);
+  }, [videoId, containerId, onReady, onStateChange]);
 
   // Progress tracking
   const startProgressTracking = useCallback(() => {
@@ -218,13 +223,13 @@ export const useYouTubePlayer = ({
     }
   }, []);
 
-  // Initialize player when API is ready
+  // Initialize player when API is ready (FIXED: Removed circular dependency)
   useEffect(() => {
-    if (playerState.isApiReady && videoId && containerId) {
+    if (playerState.isApiReady && videoId && containerId && !playerState.player) {
       console.log('🎬 Initializing YouTube player with API ready');
       initializePlayer();
     }
-  }, [playerState.isApiReady, initializePlayer, videoId, containerId]);
+  }, [playerState.isApiReady, videoId, containerId]);
 
   // Cleanup
   useEffect(() => {
