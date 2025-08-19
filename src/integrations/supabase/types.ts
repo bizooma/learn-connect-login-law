@@ -2244,6 +2244,10 @@ export type Database = {
         Args: { p_description?: string; p_name: string }
         Returns: string
       }
+      debug_auth_state: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
+      }
       diagnose_progress_inconsistencies: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -2291,6 +2295,25 @@ export type Database = {
           user_email: string
           user_id: string
           user_name: string
+        }[]
+      }
+      get_team_leaders_progress_report: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          assigned_at: string
+          completed_at: string
+          course_category: string
+          course_id: string
+          course_title: string
+          due_date: string
+          member_email: string
+          member_id: string
+          member_name: string
+          progress_percentage: number
+          status: string
+          team_leader_email: string
+          team_leader_id: string
+          team_leader_name: string
         }[]
       }
       get_team_progress_summary: {

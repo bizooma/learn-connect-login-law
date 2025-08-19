@@ -15,6 +15,7 @@ import LawFirmManagement from "./LawFirmManagement";
 import CompletionMonitoringDashboard from "./CompletionMonitoringDashboard";
 import BadgeManagement from "./BadgeManagement";
 import CertificateTemplateManagement from "./CertificateTemplateManagement";
+import TeamLeadersProgressReport from "./team-management/TeamLeadersProgressReport";
 
 interface AdminManagementTabsProps {
   activeTab?: string;
@@ -49,6 +50,8 @@ const AdminManagementTabs = ({
         return <LawFirmManagement />;
       case "teams":
         return <AdminTeamManagement />;
+      case "team-report":
+        return <TeamLeadersProgressReport />;
       case "progress":
         return <UserProgressManagement />;
       case "completion":

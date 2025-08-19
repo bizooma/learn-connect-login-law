@@ -34,6 +34,7 @@ const AdminNavigationDropdown = ({ activeTab, onTabChange }: AdminNavigationDrop
         { id: "users", label: "Users", icon: Users },
         { id: "lawfirms", label: "Law Firms", icon: Building },
         { id: "teams", label: "Team Progress", icon: UserCheck },
+        { id: "team-report", label: "Team Leaders Report", icon: FileText },
         { id: "progress", label: "All User Progress", icon: Activity },
       ]
     },
