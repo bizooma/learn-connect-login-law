@@ -70,13 +70,11 @@ const UnifiedVideoPlayer = ({
   }, [videoUrl, recordError]);
 
   const handleLoadPlayer = useCallback(() => {
-    if (isPlayerLoaded) return;
-
-    logger.log('UnifiedVideoPlayer: Loading player for video:', videoUrl);
-    startLoadTimer();
-    setIsPlayerLoaded(true);
-    setHasError(false);
-  }, [isPlayerLoaded, startLoadTimer, videoUrl]);
+    if (!isPlayerLoaded) {
+      logger.log('🎬 UnifiedVideoPlayer: Loading player for:', videoUrl);
+      setIsPlayerLoaded(true);
+    }
+  }, []); // CRITICAL: No dependencies to prevent loops
 
   const handlePlayerReady = useCallback(() => {
     logger.log('UnifiedVideoPlayer: Player ready for video:', videoUrl);
@@ -103,13 +101,17 @@ const UnifiedVideoPlayer = ({
     setVideoError(false);
   }, [videoUrl]);
 
-  // Emergency: Always load when autoLoad is true and no errors
+  // Emergency: Load immediately when autoLoad is true - no dependencies to prevent loops
   useEffect(() => {
-    if (autoLoad && !isPlayerLoaded && !hasError) {
-      logger.log('🎬 UnifiedVideoPlayer: Emergency loading player immediately for:', videoUrl);
-      handleLoadPlayer();
+    if (autoLoad && !isPlayerLoaded && !hasError && !videoError) {
+      logger.log('🚨 EMERGENCY: Force loading video immediately');
+      const timeoutId = setTimeout(() => {
+        handleLoadPlayer();
+      }, 50); // Tiny delay to break render loop
+      
+      return () => clearTimeout(timeoutId);
     }
-  }, [autoLoad, isPlayerLoaded, hasError, handleLoadPlayer, videoUrl]);
+  }, [autoLoad]); // CRITICAL: Minimal dependencies to prevent loops
 
   if (!videoUrl) {
     logger.log('UnifiedVideoPlayer: No video URL provided');

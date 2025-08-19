@@ -173,7 +173,7 @@ export const useYouTubePlayer = ({
         onError(error instanceof Error ? error.message : 'YouTube player initialization failed');
       }
     }
-  }, [videoId, containerId, onReady, onStateChange, playerState.duration]);
+  }, [videoId, containerId, onReady, onStateChange]); // FIXED: Removed circular dependency
 
   // Progress tracking
   const startProgressTracking = useCallback(() => {
@@ -203,7 +203,7 @@ export const useYouTubePlayer = ({
         }
       }
     }, 2000); // Update every 2 seconds
-  }, [onProgress, playerState.duration]);
+  }, [onProgress]); // FIXED: Removed circular dependency
 
   const stopProgressTracking = useCallback(() => {
     if (progressIntervalRef.current) {
