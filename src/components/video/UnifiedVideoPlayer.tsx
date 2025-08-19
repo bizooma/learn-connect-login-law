@@ -103,13 +103,18 @@ const UnifiedVideoPlayer = ({
     setVideoError(false);
   }, [videoUrl]);
 
-  // Auto-load when autoLoad is true and component mounts or video URL changes
+  // Simplified auto-load logic with multiple triggers
   useEffect(() => {
-    if (autoLoad && shouldLoad && !isPlayerLoaded && !hasError) {
+    const shouldTriggerLoad = (
+      (autoLoad && shouldLoad && !isPlayerLoaded && !hasError) ||
+      (autoLoad && isVisible && !isPlayerLoaded && !hasError)
+    );
+    
+    if (shouldTriggerLoad) {
       logger.log('UnifiedVideoPlayer: Auto-loading player for video:', videoUrl);
       handleLoadPlayer();
     }
-  }, [autoLoad, shouldLoad, isPlayerLoaded, hasError, handleLoadPlayer, videoUrl]);
+  }, [autoLoad, shouldLoad, isVisible, isPlayerLoaded, hasError, handleLoadPlayer, videoUrl]);
 
   if (!videoUrl) {
     logger.log('UnifiedVideoPlayer: No video URL provided');
@@ -143,8 +148,8 @@ const UnifiedVideoPlayer = ({
         elementRef.current = el;
       }}
     >
-      {/* PHASE 4: Show thumbnail if not loaded or if lazy loading not triggered */}
-      {(!autoLoad || !shouldLoad || !isPlayerLoaded) && (
+      {/* Video Thumbnail - shown when player is not loaded */}
+      {!isPlayerLoaded && (
         <VideoThumbnail
           videoUrl={videoUrl}
           title={title}
@@ -156,8 +161,8 @@ const UnifiedVideoPlayer = ({
         />
       )}
 
-      {/* PHASE 4: Only load video when visible and should load */}
-      {autoLoad && shouldLoad && isPlayerLoaded && (
+      {/* Load video when player is ready */}
+      {isPlayerLoaded && (
         <>
           {isYouTubeUrl(videoUrl) ? (
             <YouTubeVideoPlayer

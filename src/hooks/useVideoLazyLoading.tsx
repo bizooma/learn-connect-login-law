@@ -6,52 +6,67 @@ interface UseVideoLazyLoadingProps {
   rootMargin?: string;
 }
 
-// PHASE 4: Progressive loading strategy to prevent multiple simultaneous video loads
+// Simplified loading strategy with immediate fallback
 export const useVideoLazyLoading = ({
   videoId,
   threshold = 0.1,
-  rootMargin = '50px'
+  rootMargin = '100px'
 }: UseVideoLazyLoadingProps) => {
   const [isVisible, setIsVisible] = useState(false);
   const [shouldLoad, setShouldLoad] = useState(false);
   const elementRef = useRef<HTMLDivElement>(null);
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     const element = elementRef.current;
     if (!element || !videoId) return;
 
-    // PHASE 4: Use Intersection Observer for lazy loading
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        const [entry] = entries;
-        if (entry.isIntersecting) {
-          setIsVisible(true);
-          
-          // PHASE 4: Delay video loading slightly to prevent browser freeze
-          setTimeout(() => {
-            setShouldLoad(true);
-          }, 500);
-        } else {
-          setIsVisible(false);
-        }
-      },
-      {
-        threshold,
-        rootMargin
-      }
-    );
+    // Immediate fallback - load video after 2 seconds regardless of visibility
+    timeoutRef.current = setTimeout(() => {
+      setShouldLoad(true);
+    }, 2000);
 
-    observerRef.current.observe(element);
+    // Try intersection observer for optimization
+    try {
+      observerRef.current = new IntersectionObserver(
+        (entries) => {
+          const [entry] = entries;
+          if (entry.isIntersecting) {
+            setIsVisible(true);
+            setShouldLoad(true); // Load immediately when visible
+            
+            // Clear the fallback timeout since we're loading now
+            if (timeoutRef.current) {
+              clearTimeout(timeoutRef.current);
+              timeoutRef.current = null;
+            }
+          }
+        },
+        {
+          threshold,
+          rootMargin
+        }
+      );
+
+      observerRef.current.observe(element);
+    } catch (error) {
+      // If intersection observer fails, load immediately
+      console.warn('Intersection Observer failed, loading video immediately:', error);
+      setShouldLoad(true);
+    }
 
     return () => {
       if (observerRef.current) {
         observerRef.current.disconnect();
       }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
     };
   }, [videoId, threshold, rootMargin]);
 
-  // PHASE 4: Reset loading state when video changes
+  // Reset loading state when video changes
   useEffect(() => {
     setShouldLoad(false);
     setIsVisible(false);
