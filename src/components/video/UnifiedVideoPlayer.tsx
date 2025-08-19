@@ -103,18 +103,13 @@ const UnifiedVideoPlayer = ({
     setVideoError(false);
   }, [videoUrl]);
 
-  // Simplified auto-load logic with multiple triggers
+  // Emergency: Always load when autoLoad is true and no errors
   useEffect(() => {
-    const shouldTriggerLoad = (
-      (autoLoad && shouldLoad && !isPlayerLoaded && !hasError) ||
-      (autoLoad && isVisible && !isPlayerLoaded && !hasError)
-    );
-    
-    if (shouldTriggerLoad) {
-      logger.log('UnifiedVideoPlayer: Auto-loading player for video:', videoUrl);
+    if (autoLoad && !isPlayerLoaded && !hasError) {
+      logger.log('🎬 UnifiedVideoPlayer: Emergency loading player immediately for:', videoUrl);
       handleLoadPlayer();
     }
-  }, [autoLoad, shouldLoad, isVisible, isPlayerLoaded, hasError, handleLoadPlayer, videoUrl]);
+  }, [autoLoad, isPlayerLoaded, hasError, handleLoadPlayer, videoUrl]);
 
   if (!videoUrl) {
     logger.log('UnifiedVideoPlayer: No video URL provided');
@@ -148,13 +143,16 @@ const UnifiedVideoPlayer = ({
         elementRef.current = el;
       }}
     >
-      {/* Video Thumbnail - shown when player is not loaded */}
+      {/* Show thumbnail only when player is explicitly not loaded */}
       {!isPlayerLoaded && (
         <VideoThumbnail
           videoUrl={videoUrl}
           title={title}
-          onPlayClick={handleLoadPlayer}
-          isLoading={metrics.playerState === 'loading'}
+          onPlayClick={() => {
+            logger.log('🎬 UnifiedVideoPlayer: Force loading from thumbnail click');
+            handleLoadPlayer();
+          }}
+          isLoading={false}
           hasError={hasError}
           onRetry={handleRetry}
           className="w-full h-full"
@@ -201,13 +199,12 @@ const UnifiedVideoPlayer = ({
         </>
       )}
 
-      {/* PHASE 4: Loading indicator only when actually loading */}
-      {isPlayerLoaded && shouldLoad && metrics.playerState === 'loading' && (
+      {/* Loading indicator when transitioning to video */}
+      {isPlayerLoaded && metrics.playerState === 'loading' && (
         <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
             <p className="text-gray-600">Loading video...</p>
-            {title && <p className="text-sm text-gray-500 mt-1">{title}</p>}
           </div>
         </div>
       )}

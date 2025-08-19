@@ -22,10 +22,10 @@ export const useVideoLazyLoading = ({
     const element = elementRef.current;
     if (!element || !videoId) return;
 
-    // Immediate fallback - load video after 2 seconds regardless of visibility
+    // Emergency fallback - load video after 200ms if intersection observer doesn't work
     timeoutRef.current = setTimeout(() => {
       setShouldLoad(true);
-    }, 2000);
+    }, 200);
 
     // Try intersection observer for optimization
     try {
