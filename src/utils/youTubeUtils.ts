@@ -22,11 +22,40 @@ export const extractYouTubeVideoId = (url: string): string | null => {
   for (const pattern of patterns) {
     const match = url.match(pattern);
     if (match && match[1]) {
-      return match[1];
+      const videoId = match[1];
+      // Validate that the extracted video ID is 11 characters
+      if (videoId.length === 11) {
+        return videoId;
+      }
     }
   }
 
   return null;
+};
+
+/**
+ * Validates if a YouTube video URL or ID is valid
+ */
+export const validateYouTubeVideo = (url: string): { isValid: boolean; error?: string; videoId?: string } => {
+  if (!url) {
+    return { isValid: false, error: 'URL is required' };
+  }
+
+  const videoId = extractYouTubeVideoId(url);
+  
+  if (!videoId) {
+    return { isValid: false, error: 'Invalid YouTube URL format' };
+  }
+
+  if (videoId.length !== 11) {
+    return { isValid: false, error: `Invalid video ID: "${videoId}" (must be exactly 11 characters)` };
+  }
+
+  if (!/^[a-zA-Z0-9_-]{11}$/.test(videoId)) {
+    return { isValid: false, error: `Invalid video ID format: "${videoId}" (contains invalid characters)` };
+  }
+
+  return { isValid: true, videoId };
 };
 
 /**

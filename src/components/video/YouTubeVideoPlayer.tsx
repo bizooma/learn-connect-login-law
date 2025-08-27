@@ -105,16 +105,30 @@ const YouTubeVideoPlayer = ({
 
   // Set error if no video ID and cleanup on unmount
   useEffect(() => {
-    if (!videoId) {
-      setError('Invalid YouTube URL');
+    if (!videoUrl) {
+      setError('No video URL provided');
+      return;
     }
+    
+    if (!videoId) {
+      setError(`Invalid YouTube video URL: "${videoUrl}". Please check the URL format and ensure the video ID is complete (11 characters).`);
+      return;
+    }
+    
+    if (videoId.length !== 11) {
+      setError(`Invalid video ID: "${videoId}" (${videoId.length} characters). YouTube video IDs must be exactly 11 characters long.`);
+      return;
+    }
+    
+    // Clear error if we have a valid video ID
+    setError(null);
     
     return () => {
       if (videoId) {
         cleanupVideoInstance(videoId);
       }
     };
-  }, [videoId, cleanupVideoInstance]);
+  }, [videoId, videoUrl, cleanupVideoInstance]);
 
   if (!videoId || error) {
     return (

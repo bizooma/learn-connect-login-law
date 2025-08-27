@@ -1,9 +1,11 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { validateYouTubeVideo } from '@/utils/youTubeUtils';
 import PowerPointVideoIntegration from '../course-form/PowerPointVideoIntegration';
 
 interface VideoUploadSectionProps {
@@ -21,6 +23,25 @@ const VideoUploadSection = ({
   onVideoTypeChange,
   onVideoFileChange
 }: VideoUploadSectionProps) => {
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (videoType === 'youtube' && videoUrl) {
+      const validation = validateYouTubeVideo(videoUrl);
+      setValidationError(validation.isValid ? null : validation.error || null);
+    } else {
+      setValidationError(null);
+    }
+  }, [videoUrl, videoType]);
+
+  const handleVideoUrlChange = (url: string) => {
+    onVideoUrlChange(url);
+    if (videoType === 'youtube' && url) {
+      const validation = validateYouTubeVideo(url);
+      setValidationError(validation.isValid ? null : validation.error || null);
+    }
+  };
+
   return (
     <div className="space-y-4">
       <div>
@@ -37,15 +58,24 @@ const VideoUploadSection = ({
       </div>
 
       {videoType === 'youtube' && (
-        <div>
+        <div className="space-y-2">
           <Label htmlFor="video-url">YouTube URL</Label>
           <Input
             id="video-url"
             type="url"
+            placeholder="https://www.youtube.com/watch?v=dQw4w9WgXcQ"
             value={videoUrl}
-            onChange={(e) => onVideoUrlChange(e.target.value)}
-            placeholder="https://www.youtube.com/watch?v=..."
+            onChange={(e) => handleVideoUrlChange(e.target.value)}
+            className={validationError ? 'border-destructive' : ''}
           />
+          {validationError && (
+            <Alert variant="destructive">
+              <AlertDescription>{validationError}</AlertDescription>
+            </Alert>
+          )}
+          <p className="text-xs text-muted-foreground">
+            Enter a complete YouTube URL or video ID (11 characters)
+          </p>
         </div>
       )}
 
