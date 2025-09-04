@@ -93,18 +93,23 @@ const ModuleForm = ({
             </Button>
           </div>
 
-          {module.lessons.map((lesson, lessonIndex) => (
-            <LessonForm
-              key={lessonIndex}
-              lesson={lesson}
-              lessonIndex={lessonIndex}
-              onLessonUpdate={(field, value) => onLessonUpdate(lessonIndex, field, value)}
-              onLessonRemove={() => onLessonRemove(lessonIndex)}
-              onAddUnit={() => onAddUnit(lessonIndex)}
-              onUnitUpdate={(unitIndex, field, value) => onUnitUpdate(lessonIndex, unitIndex, field, value)}
-              onUnitRemove={(unitIndex) => onUnitRemove(lessonIndex, unitIndex)}
-            />
-          ))}
+          {module.lessons.filter(lesson => !lesson._deletedInForm).map((lesson, displayIndex) => {
+            // Find the original index in the full lessons array for callback functions
+            const originalLessonIndex = module.lessons.findIndex(l => l === lesson);
+            
+            return (
+              <LessonForm
+                key={originalLessonIndex}
+                lesson={lesson}
+                lessonIndex={displayIndex}
+                onLessonUpdate={(field, value) => onLessonUpdate(originalLessonIndex, field, value)}
+                onLessonRemove={() => onLessonRemove(originalLessonIndex)}
+                onAddUnit={() => onAddUnit(originalLessonIndex)}
+                onUnitUpdate={(unitIndex, field, value) => onUnitUpdate(originalLessonIndex, unitIndex, field, value)}
+                onUnitRemove={(unitIndex) => onUnitRemove(originalLessonIndex, unitIndex)}
+              />
+            );
+          })}
         </div>
       </CardContent>
     </Card>

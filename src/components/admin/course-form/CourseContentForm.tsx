@@ -104,21 +104,26 @@ const CourseContentForm = ({ modules, onModulesChange }: CourseContentFormProps)
         </Button>
       </div>
 
-      {modules.map((module, moduleIndex) => (
-        <ModuleForm
-          key={moduleIndex}
-          module={module}
-          moduleIndex={moduleIndex}
-          onModuleUpdate={(field, value) => updateModule(moduleIndex, field, value)}
-          onModuleRemove={() => removeModule(moduleIndex)}
-          onAddLesson={() => addLesson(moduleIndex)}
-          onLessonUpdate={(lessonIndex, field, value) => updateLesson(moduleIndex, lessonIndex, field, value)}
-          onLessonRemove={(lessonIndex) => removeLesson(moduleIndex, lessonIndex)}
-          onAddUnit={(lessonIndex) => addUnit(moduleIndex, lessonIndex)}
-          onUnitUpdate={(lessonIndex, unitIndex, field, value) => updateUnit(moduleIndex, lessonIndex, unitIndex, field, value)}
-          onUnitRemove={(lessonIndex, unitIndex) => removeUnit(moduleIndex, lessonIndex, unitIndex)}
-        />
-      ))}
+      {modules.filter(module => !module._deletedInForm).map((module, displayIndex) => {
+        // Find the original index in the full modules array for callback functions
+        const originalModuleIndex = modules.findIndex(m => m === module);
+        
+        return (
+          <ModuleForm
+            key={originalModuleIndex}
+            module={module}
+            moduleIndex={displayIndex}
+            onModuleUpdate={(field, value) => updateModule(originalModuleIndex, field, value)}
+            onModuleRemove={() => removeModule(originalModuleIndex)}
+            onAddLesson={() => addLesson(originalModuleIndex)}
+            onLessonUpdate={(lessonIndex, field, value) => updateLesson(originalModuleIndex, lessonIndex, field, value)}
+            onLessonRemove={(lessonIndex) => removeLesson(originalModuleIndex, lessonIndex)}
+            onAddUnit={(lessonIndex) => addUnit(originalModuleIndex, lessonIndex)}
+            onUnitUpdate={(lessonIndex, unitIndex, field, value) => updateUnit(originalModuleIndex, lessonIndex, unitIndex, field, value)}
+            onUnitRemove={(lessonIndex, unitIndex) => removeUnit(originalModuleIndex, lessonIndex, unitIndex)}
+          />
+        );
+      })}
 
       {modules.length === 0 && (
         <Card className="border-dashed border-gray-300">
