@@ -30,7 +30,9 @@ const CourseContentForm = ({ modules, onModulesChange }: CourseContentFormProps)
   };
 
   const removeModule = (moduleIndex: number) => {
-    const updatedModules = modules.filter((_, index) => index !== moduleIndex);
+    console.log('Marking module for deletion at index:', moduleIndex);
+    const updatedModules = [...modules];
+    updatedModules[moduleIndex] = { ...updatedModules[moduleIndex], _deletedInForm: true };
     onModulesChange(updatedModules);
   };
 
@@ -57,8 +59,12 @@ const CourseContentForm = ({ modules, onModulesChange }: CourseContentFormProps)
   };
 
   const removeLesson = (moduleIndex: number, lessonIndex: number) => {
+    console.log('Marking lesson for deletion at module:', moduleIndex, 'lesson:', lessonIndex);
     const updatedModules = [...modules];
-    updatedModules[moduleIndex].lessons = updatedModules[moduleIndex].lessons.filter((_, index) => index !== lessonIndex);
+    updatedModules[moduleIndex].lessons[lessonIndex] = {
+      ...updatedModules[moduleIndex].lessons[lessonIndex],
+      _deletedInForm: true
+    };
     onModulesChange(updatedModules);
   };
 
@@ -88,9 +94,12 @@ const CourseContentForm = ({ modules, onModulesChange }: CourseContentFormProps)
   };
 
   const removeUnit = (moduleIndex: number, lessonIndex: number, unitIndex: number) => {
+    console.log('Marking unit for deletion at module:', moduleIndex, 'lesson:', lessonIndex, 'unit:', unitIndex);
     const updatedModules = [...modules];
-    updatedModules[moduleIndex].lessons[lessonIndex].units = 
-      updatedModules[moduleIndex].lessons[lessonIndex].units.filter((_, index) => index !== unitIndex);
+    updatedModules[moduleIndex].lessons[lessonIndex].units[unitIndex] = {
+      ...updatedModules[moduleIndex].lessons[lessonIndex].units[unitIndex],
+      _deletedInForm: true
+    };
     onModulesChange(updatedModules);
   };
 
