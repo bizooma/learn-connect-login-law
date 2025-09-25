@@ -2570,6 +2570,10 @@ export type Database = {
             }
         Returns: boolean
       }
+      update_course_progress_enhanced: {
+        Args: { p_course_id: string; p_user_id: string }
+        Returns: Json
+      }
       update_course_progress_reliable: {
         Args: { p_course_id: string; p_user_id: string }
         Returns: Json

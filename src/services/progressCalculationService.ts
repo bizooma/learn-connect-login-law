@@ -103,8 +103,29 @@ class ProgressCalculationService {
     return results;
   }
 
-  // Optimized single course progress calculation with caching
+  // Enhanced course progress calculation with curriculum versioning support
   async calculateCourseProgress(userId: string, courseId: string): Promise<{ percentage: number; status: string; totalUnits: number; completedUnits: number }> {
+    try {
+      // Try enhanced calculation first (handles curriculum versioning)
+      const { data: enhancedResult, error: enhancedError } = await supabase
+        .rpc('update_course_progress_enhanced', {
+          p_user_id: userId,
+          p_course_id: courseId
+        });
+
+      if (!enhancedError && enhancedResult) {
+        return {
+          percentage: enhancedResult.calculated_percentage || 0,
+          status: enhancedResult.calculated_status || 'not_started',
+          totalUnits: enhancedResult.total_units || 0,
+          completedUnits: enhancedResult.completed_units || 0
+        };
+      }
+    } catch (error) {
+      console.warn('Enhanced progress calculation failed, falling back to legacy method:', error);
+    }
+
+    // Fallback to legacy calculation
     const structures = await this.getCourseStructures([courseId]);
     const structure = structures.get(courseId);
     
