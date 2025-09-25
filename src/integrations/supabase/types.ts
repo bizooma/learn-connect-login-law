@@ -481,6 +481,45 @@ export type Database = {
           },
         ]
       }
+      curriculum_change_audit: {
+        Row: {
+          affected_users_count: number | null
+          auto_grandfathered: boolean | null
+          change_date: string
+          change_type: string
+          changed_by: string | null
+          id: string
+          lesson_id: string
+          metadata: Json | null
+          reason: string | null
+          unit_id: string | null
+        }
+        Insert: {
+          affected_users_count?: number | null
+          auto_grandfathered?: boolean | null
+          change_date?: string
+          change_type: string
+          changed_by?: string | null
+          id?: string
+          lesson_id: string
+          metadata?: Json | null
+          reason?: string | null
+          unit_id?: string | null
+        }
+        Update: {
+          affected_users_count?: number | null
+          auto_grandfathered?: boolean | null
+          change_date?: string
+          change_type?: string
+          changed_by?: string | null
+          id?: string
+          lesson_id?: string
+          metadata?: Json | null
+          reason?: string | null
+          unit_id?: string | null
+        }
+        Relationships: []
+      }
       flowchart_canvases: {
         Row: {
           created_at: string
@@ -787,6 +826,7 @@ export type Database = {
         Row: {
           course_id: string
           created_at: string
+          curriculum_version: number | null
           description: string | null
           duration_minutes: number | null
           file_name: string | null
@@ -795,6 +835,7 @@ export type Database = {
           id: string
           image_url: string | null
           is_draft: boolean
+          last_content_update: string | null
           module_id: string
           sort_order: number
           title: string
@@ -805,6 +846,7 @@ export type Database = {
         Insert: {
           course_id: string
           created_at?: string
+          curriculum_version?: number | null
           description?: string | null
           duration_minutes?: number | null
           file_name?: string | null
@@ -813,6 +855,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_draft?: boolean
+          last_content_update?: string | null
           module_id: string
           sort_order?: number
           title: string
@@ -823,6 +866,7 @@ export type Database = {
         Update: {
           course_id?: string
           created_at?: string
+          curriculum_version?: number | null
           description?: string | null
           duration_minutes?: number | null
           file_name?: string | null
@@ -831,6 +875,7 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_draft?: boolean
+          last_content_update?: string | null
           module_id?: string
           sort_order?: number
           title?: string
@@ -2048,6 +2093,7 @@ export type Database = {
         Row: {
           completed: boolean
           completed_at: string | null
+          completion_curriculum_version: number | null
           completion_method: string | null
           course_id: string
           created_at: string
@@ -2063,6 +2109,7 @@ export type Database = {
         Insert: {
           completed?: boolean
           completed_at?: string | null
+          completion_curriculum_version?: number | null
           completion_method?: string | null
           course_id: string
           created_at?: string
@@ -2078,6 +2125,7 @@ export type Database = {
         Update: {
           completed?: boolean
           completed_at?: string | null
+          completion_curriculum_version?: number | null
           completion_method?: string | null
           course_id?: string
           created_at?: string
@@ -2427,7 +2475,7 @@ export type Database = {
               p_unit_id: string
               p_user_id: string
             }
-        Returns: Json
+        Returns: boolean
       }
       move_content_to_level: {
         Args: {
@@ -2520,7 +2568,7 @@ export type Database = {
               p_user_id: string
               p_watch_percentage?: number
             }
-        Returns: Json
+        Returns: boolean
       }
       update_course_progress_reliable: {
         Args: { p_course_id: string; p_user_id: string }
