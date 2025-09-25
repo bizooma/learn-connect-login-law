@@ -14,6 +14,13 @@ interface ProgressData {
   lastUpdated: number;
 }
 
+interface EnhancedProgressResult {
+  calculated_percentage: number;
+  calculated_status: string;
+  total_units: number;
+  completed_units: number;
+}
+
 class ProgressCalculationService {
   private courseStructureCache = new Map<string, CourseStructure>();
   private readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
@@ -114,11 +121,12 @@ class ProgressCalculationService {
         });
 
       if (!enhancedError && enhancedResult) {
+        const result = enhancedResult as unknown as EnhancedProgressResult;
         return {
-          percentage: enhancedResult.calculated_percentage || 0,
-          status: enhancedResult.calculated_status || 'not_started',
-          totalUnits: enhancedResult.total_units || 0,
-          completedUnits: enhancedResult.completed_units || 0
+          percentage: result.calculated_percentage || 0,
+          status: result.calculated_status || 'not_started',
+          totalUnits: result.total_units || 0,
+          completedUnits: result.completed_units || 0
         };
       }
     } catch (error) {
