@@ -46,6 +46,7 @@ const UserProgressUnitActions = ({
 
   const incompleteUnits = units.filter(unit => !unit.completed);
   const adminCompletedUnits = units.filter(unit => unit.completion_method === 'admin_override');
+  const naturallyCompletedUnits = units.filter(unit => unit.completed && unit.completion_method !== 'admin_override');
 
   if (units.length === 0) {
     return (
@@ -108,7 +109,31 @@ const UserProgressUnitActions = ({
         </div>
       )}
 
-      {incompleteUnits.length === 0 && adminCompletedUnits.length === 0 && (
+      {naturallyCompletedUnits.length > 0 && (
+        <div className="space-y-2">
+          <h5 className="text-sm font-medium text-gray-700">Completed Units</h5>
+          <div className="space-y-1">
+            {naturallyCompletedUnits.map((unit) => (
+              <div key={unit.unit_id} className="flex items-center justify-between p-2 border rounded bg-green-50">
+                <div className="flex-1">
+                  <span className="text-sm">{unit.unit_title}</span>
+                  <div className="text-xs text-green-600">
+                    Completed on {new Date(unit.completed_at!).toLocaleDateString()}
+                    {unit.completion_method && unit.completion_method !== 'manual' && (
+                      <span className="ml-2">({unit.completion_method})</span>
+                    )}
+                  </div>
+                </div>
+                <div className="text-xs text-green-600 font-medium">
+                  ✓ Complete
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {units.length > 0 && incompleteUnits.length === 0 && adminCompletedUnits.length === 0 && naturallyCompletedUnits.length === units.length && (
         <div className="text-center py-4 text-green-600">
           <CheckCircle className="h-8 w-8 mx-auto mb-2" />
           All units completed naturally by the student
