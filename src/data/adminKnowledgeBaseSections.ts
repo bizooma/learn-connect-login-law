@@ -310,6 +310,10 @@ export const adminKnowledgeBaseSections: AdminKnowledgeBaseSection[] = [
         content: "Manage law firm employees including adding new team members, updating roles, and tracking seat usage. Monitor seat allocation to ensure compliance with licensing agreements. Remove employees who leave the firm and reassign their seats to new team members as needed."
       },
       {
+        title: "Removing Employees from Law Firms",
+        content: "To remove a student from a law firm: Navigate to User Management → Law Firm Management, search and select the specific law firm, locate the employee in the firm's employee list, click the three-dot menu (⋮) on their card, select 'Remove Employee', and confirm the action. When removed, the employee's law_firm_id is cleared, used_seats is decremented, and they lose access to firm-specific events. Important: The user account and course progress are preserved - removal only disconnects them from the law firm. Course assignments remain unless explicitly removed separately. All removal actions are logged in the audit trail. Removing employees frees up seats for new hires, so monitor seat utilization (used_seats/total_seats) in the firm dashboard."
+      },
+      {
         title: "Law Firm Calendar and Events",
         content: "Create and manage law firm-specific calendar events including training sessions, firm meetings, and deadlines. Events are visible to all firm employees and integrate with course schedules. Use the calendar to coordinate firm-wide training initiatives and important dates."
       },
