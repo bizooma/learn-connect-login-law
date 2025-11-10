@@ -5,7 +5,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Users, UserPlus, Loader2, RefreshCw } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import { useTeamMembers } from "@/hooks/useTeamMembers";
-import { useTeamProgress } from "@/hooks/useTeamProgress";
+import { useTeamLeaderProgress } from "@/hooks/useTeamLeaderProgress";
 import TeamMemberProgressCard from "./TeamMemberProgressCard";
 import UserProgressModal from "../admin/user-progress/UserProgressModal";
 import { useState, useEffect, useMemo } from "react";
@@ -13,7 +13,7 @@ import { useState, useEffect, useMemo } from "react";
 const TeamMemberManagement = () => {
   const { user } = useAuth();
   const { teamMembers, loading: membersLoading, fetchTeamMembers } = useTeamMembers();
-  const { teamProgress, loading: progressLoading, fetchTeamProgress, clearCache } = useTeamProgress();
+  const { teamProgress, loading: progressLoading, fetchTeamLeaderProgress, clearCache } = useTeamLeaderProgress();
   const [selectedUserForProgress, setSelectedUserForProgress] = useState<string | null>(null);
 
   useEffect(() => {
@@ -27,21 +27,23 @@ const TeamMemberManagement = () => {
       }
       
       // Only fetch progress if we don't have it and we have team members
-      if (!hasTeamProgress && !progressLoading) {
-        fetchTeamProgress('default-team-id');
+      if (!hasTeamProgress && !progressLoading && user.id) {
+        fetchTeamLeaderProgress(user.id);
       }
     }
-  }, [user]); // FIXED: Remove fetchTeamMembers and fetchTeamProgress from deps to prevent loops
+  }, [user]); // FIXED: Remove fetchTeamMembers and fetchTeamLeaderProgress from deps to prevent loops
 
   // Create efficient lookup map for progress data
   const progressByUserId = useMemo(() => {
     const map = new Map();
     teamProgress.forEach(progress => {
       map.set(progress.user_id, {
-        totalCourses: progress.total_assigned_courses,
+        totalCourses: progress.total_courses,
         completedCourses: progress.completed_courses,
         inProgressCourses: progress.in_progress_courses,
-        overallProgress: progress.overall_progress
+        overallProgress: progress.completed_courses > 0 
+          ? Math.round((progress.completed_courses / progress.total_courses) * 100) 
+          : 0
       });
     });
     return map;
@@ -54,8 +56,10 @@ const TeamMemberManagement = () => {
 
   const handleRefresh = () => {
     fetchTeamMembers();
-    clearCache('default-team-id'); // Clear cache for fresh data
-    fetchTeamProgress('default-team-id', true); // Force refresh
+    if (user?.id) {
+      clearCache(user.id); // Clear cache for fresh data
+      fetchTeamLeaderProgress(user.id, true); // Force refresh
+    }
   };
 
   const isLoading = membersLoading && teamMembers.length === 0;
