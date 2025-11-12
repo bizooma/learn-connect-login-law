@@ -4,13 +4,35 @@ import { useTeamMembers } from "@/hooks/useTeamMembers";
 import { Users, Target, TrendingUp, LogOut } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { TeamMemberProgress } from "@/hooks/useTeamLeaderProgress";
 
-const TeamLeaderDashboardHeader = () => {
+interface TeamLeaderDashboardHeaderProps {
+  teamProgress: TeamMemberProgress[];
+  loading: boolean;
+}
+
+const TeamLeaderDashboardHeader = ({ teamProgress, loading }: TeamLeaderDashboardHeaderProps) => {
   const { user, signOut } = useAuth();
   const { teamMembers } = useTeamMembers();
 
   // Count all team members since they're all assigned to this team leader
   const activeMembers = teamMembers.length;
+
+  // Calculate active assignments (total courses assigned across all team members)
+  const activeAssignments = teamProgress.reduce((total, member) => {
+    return total + member.courses.length;
+  }, 0);
+
+  // Calculate average team progress
+  const totalProgress = teamProgress.reduce((total, member) => {
+    const memberAvg = member.courses.reduce((sum, course) => sum + course.progress_percentage, 0) / 
+                      (member.courses.length || 1);
+    return total + memberAvg;
+  }, 0);
+  const averageProgress = teamProgress.length > 0 
+    ? Math.round(totalProgress / teamProgress.length) 
+    : 0;
 
   return (
     <div style={{ background: '#213C82' }} className="shadow-sm border-b">
@@ -65,7 +87,11 @@ const TeamLeaderDashboardHeader = () => {
                 <Target className="h-8 w-8 text-blue-600" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Active Assignments</p>
-                  <p className="text-2xl font-bold text-gray-900">-</p>
+                  {loading ? (
+                    <Skeleton className="h-8 w-16 mt-1" />
+                  ) : (
+                    <p className="text-2xl font-bold text-gray-900">{activeAssignments}</p>
+                  )}
                 </div>
               </div>
             </CardContent>
@@ -77,7 +103,11 @@ const TeamLeaderDashboardHeader = () => {
                 <TrendingUp className="h-8 w-8 text-blue-600" />
                 <div className="ml-4">
                   <p className="text-sm font-medium text-gray-600">Team Progress</p>
-                  <p className="text-2xl font-bold text-gray-900">-</p>
+                  {loading ? (
+                    <Skeleton className="h-8 w-16 mt-1" />
+                  ) : (
+                    <p className="text-2xl font-bold text-gray-900">{averageProgress}%</p>
+                  )}
                 </div>
               </div>
             </CardContent>

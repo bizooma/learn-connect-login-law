@@ -2,7 +2,7 @@ import { useState, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface CourseProgress {
+export interface CourseProgress {
   course_id: string;
   course_title: string;
   course_category: string;
@@ -13,7 +13,7 @@ interface CourseProgress {
   last_accessed_at: string | null;
 }
 
-interface TeamMemberProgress {
+export interface TeamMemberProgress {
   user_id: string;
   user_name: string;
   user_email: string;

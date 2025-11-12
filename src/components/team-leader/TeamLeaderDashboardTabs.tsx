@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, Users, User, BarChart3 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,34 +7,18 @@ import TeamLeaderProfileTab from "./TeamLeaderProfileTab";
 import TeamMemberManagement from "./TeamMemberManagement";
 import TeamLeadershipInfoCard from "./TeamLeadershipInfoCard";
 import TeamLeaderStatsCards from "./TeamLeaderStatsCards";
-import { useTeamLeaderProgress } from "@/hooks/useTeamLeaderProgress";
+import { TeamMemberProgress } from "@/hooks/useTeamLeaderProgress";
 
-const TeamLeaderDashboardTabs = () => {
+interface TeamLeaderDashboardTabsProps {
+  teamProgress: TeamMemberProgress[];
+  progressLoading: boolean;
+  onRefresh: () => void;
+}
+
+const TeamLeaderDashboardTabs = ({ teamProgress, progressLoading, onRefresh }: TeamLeaderDashboardTabsProps) => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [courseTab, setCourseTab] = useState("assigned");
-  
-  // Fetch team progress at parent level to share across components
-  const { teamProgress, loading: progressLoading, fetchTeamLeaderProgress, clearCache } = useTeamLeaderProgress();
-
-  // Initial data load
-  useEffect(() => {
-    if (user?.id) {
-      fetchTeamLeaderProgress(user.id);
-    }
-  }, [user?.id]);
-
-  // Auto-refresh every 5 minutes
-  useEffect(() => {
-    if (!user?.id) return;
-
-    const intervalId = setInterval(() => {
-      clearCache(user.id);
-      fetchTeamLeaderProgress(user.id, true);
-    }, 5 * 60 * 1000); // 5 minutes
-
-    return () => clearInterval(intervalId);
-  }, [user?.id, clearCache, fetchTeamLeaderProgress]);
 
   if (!user) return null;
 
@@ -89,8 +73,8 @@ const TeamLeaderDashboardTabs = () => {
             activeTab={courseTab}
             onTabChange={setCourseTab}
             userId={user.id}
-            title="Team Leader Dashboard"
-            description="Monitor your learning progress and manage your team's development"
+            title="My Courses"
+            description="Track your personal learning journey"
             assignedTabLabel="Assigned Courses"
             completedTabLabel="Completed Courses"
             yellowTabs={true}
@@ -114,12 +98,7 @@ const TeamLeaderDashboardTabs = () => {
         <TeamMemberManagement 
           teamProgress={teamProgress}
           progressLoading={progressLoading}
-          onRefresh={() => {
-            if (user?.id) {
-              clearCache(user.id);
-              fetchTeamLeaderProgress(user.id, true);
-            }
-          }}
+          onRefresh={onRefresh}
         />
       </TabsContent>
 

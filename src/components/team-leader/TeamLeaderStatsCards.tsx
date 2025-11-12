@@ -1,15 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users, BookOpen, CheckCircle, TrendingUp } from "lucide-react";
-
-interface TeamMemberProgress {
-  user_id: string;
-  user_name: string;
-  user_email: string;
-  profile_image_url: string | null;
-  total_courses: number;
-  completed_courses: number;
-  in_progress_courses: number;
-}
+import { TeamMemberProgress } from "@/hooks/useTeamLeaderProgress";
 
 interface TeamLeaderStatsCardsProps {
   teamProgress: TeamMemberProgress[];

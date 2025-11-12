@@ -7,12 +7,35 @@ import TeamLeaderDashboardTabs from "@/components/team-leader/TeamLeaderDashboar
 import NotificationBanner from "@/components/notifications/NotificationBanner";
 import LMSTreeFooter from "@/components/lms-tree/LMSTreeFooter";
 import IssueReportButton from "@/components/support/IssueReportButton";
+import { useTeamLeaderProgress } from "@/hooks/useTeamLeaderProgress";
 import { useEffect } from "react";
 
 const TeamLeaderDashboard = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { isTeamLeader, role, loading: roleLoading } = useUserRole();
+  const { teamProgress, loading: progressLoading, fetchTeamLeaderProgress, clearCache } = useTeamLeaderProgress();
+
+  // Fetch team progress data on mount
+  useEffect(() => {
+    if (user?.id && isTeamLeader) {
+      console.log('TeamLeaderDashboard: Fetching team progress for user', user.id);
+      fetchTeamLeaderProgress(user.id);
+    }
+  }, [user?.id, isTeamLeader]);
+
+  // Auto-refresh team progress every 5 minutes
+  useEffect(() => {
+    if (!user?.id || !isTeamLeader) return;
+
+    const intervalId = setInterval(() => {
+      console.log('TeamLeaderDashboard: Auto-refreshing team progress');
+      clearCache(user.id);
+      fetchTeamLeaderProgress(user.id, true);
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(intervalId);
+  }, [user?.id, isTeamLeader, clearCache, fetchTeamLeaderProgress]);
 
   useEffect(() => {
     console.log('TeamLeaderDashboard: useEffect triggered', { 
@@ -72,7 +95,10 @@ const TeamLeaderDashboard = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col">
       <div className="flex-1">
-        <TeamLeaderDashboardHeader />
+        <TeamLeaderDashboardHeader 
+          teamProgress={teamProgress}
+          loading={progressLoading}
+        />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           {/* Notification Banner */}
@@ -82,7 +108,16 @@ const TeamLeaderDashboard = () => {
             <IssueReportButton />
           </div>
 
-          <TeamLeaderDashboardTabs />
+          <TeamLeaderDashboardTabs 
+            teamProgress={teamProgress}
+            progressLoading={progressLoading}
+            onRefresh={() => {
+              if (user?.id) {
+                clearCache(user.id);
+                fetchTeamLeaderProgress(user.id, true);
+              }
+            }}
+          />
         </div>
       </div>
       <LMSTreeFooter />
