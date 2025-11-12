@@ -16,13 +16,14 @@ const TeamLeaderDashboard = () => {
   const { isTeamLeader, role, loading: roleLoading } = useUserRole();
   const { teamProgress, loading: progressLoading, fetchTeamLeaderProgress, clearCache } = useTeamLeaderProgress();
 
-  // Fetch team progress data on mount
+  // Force initial fetch when auth and role are ready
   useEffect(() => {
-    if (user?.id && isTeamLeader) {
-      console.log('TeamLeaderDashboard: Fetching team progress for user', user.id);
-      fetchTeamLeaderProgress(user.id);
+    if (!authLoading && !roleLoading && user?.id) {
+      console.log('TeamLeaderDashboard: Initial forced fetch for team progress', { userId: user.id });
+      clearCache(user.id);
+      fetchTeamLeaderProgress(user.id, true);
     }
-  }, [user?.id, isTeamLeader]);
+  }, [user?.id, authLoading, roleLoading, fetchTeamLeaderProgress, clearCache]);
 
   // Auto-refresh team progress every 5 minutes
   useEffect(() => {

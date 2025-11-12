@@ -26,7 +26,7 @@ export interface TeamMemberProgress {
 
 export const useTeamLeaderProgress = () => {
   const [teamProgress, setTeamProgress] = useState<TeamMemberProgress[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const cacheRef = useRef<Map<string, { data: TeamMemberProgress[]; timestamp: number }>>(new Map());
   const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
@@ -46,6 +46,7 @@ export const useTeamLeaderProgress = () => {
 
     try {
       setLoading(true);
+      console.log('useTeamLeaderProgress: fetching team progress', { teamLeaderId, forceRefresh });
 
       // Fetch team members assigned to this team leader
       const { data: teamMembers, error: membersError } = await supabase
@@ -88,6 +89,7 @@ export const useTeamLeaderProgress = () => {
 
       if (progressError) throw progressError;
 
+      console.log('useTeamLeaderProgress: fetched raw data', { members: teamMembers.length, assignments: assignments?.length || 0, progressRows: progressData?.length || 0 });
       // Build progress map for quick lookup
       const progressMap = new Map<string, any>();
       progressData?.forEach(progress => {

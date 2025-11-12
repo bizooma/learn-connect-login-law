@@ -1,6 +1,6 @@
 
 import { useAuth } from "@/hooks/useAuth";
-import { useTeamMembers } from "@/hooks/useTeamMembers";
+
 import { Users, Target, TrendingUp, LogOut } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,10 +14,9 @@ interface TeamLeaderDashboardHeaderProps {
 
 const TeamLeaderDashboardHeader = ({ teamProgress, loading }: TeamLeaderDashboardHeaderProps) => {
   const { user, signOut } = useAuth();
-  const { teamMembers } = useTeamMembers();
 
-  // Count all team members since they're all assigned to this team leader
-  const activeMembers = teamMembers.length;
+  // Use unified source of truth from props
+  const activeMembers = teamProgress.length;
 
   // Calculate active assignments (total courses assigned across all team members)
   const activeAssignments = teamProgress.reduce((total, member) => {

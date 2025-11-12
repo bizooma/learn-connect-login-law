@@ -32,6 +32,15 @@ const TeamMemberManagement = ({ teamProgress, progressLoading, onRefresh }: Team
     fetchTeamMembers();
   }, []);
 
+  useEffect(() => {
+    // If no progress loaded on mount, trigger a refresh once
+    if (!progressLoading && teamProgress.length === 0) {
+      console.log('TeamMemberManagement: No progress on mount, triggering refresh');
+      onRefresh();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Create efficient lookup map for progress data
   const progressByUserId = useMemo(() => {
     const map = new Map();
