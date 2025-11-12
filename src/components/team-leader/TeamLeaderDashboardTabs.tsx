@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, Users, User, BarChart3 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
@@ -7,11 +6,35 @@ import DashboardContent from "@/components/dashboard/DashboardContent";
 import TeamLeaderProfileTab from "./TeamLeaderProfileTab";
 import TeamMemberManagement from "./TeamMemberManagement";
 import TeamLeadershipInfoCard from "./TeamLeadershipInfoCard";
+import TeamLeaderStatsCards from "./TeamLeaderStatsCards";
+import { useTeamLeaderProgress } from "@/hooks/useTeamLeaderProgress";
 
 const TeamLeaderDashboardTabs = () => {
   const { user } = useAuth();
   const [activeTab, setActiveTab] = useState("overview");
   const [courseTab, setCourseTab] = useState("assigned");
+  
+  // Fetch team progress at parent level to share across components
+  const { teamProgress, loading: progressLoading, fetchTeamLeaderProgress, clearCache } = useTeamLeaderProgress();
+
+  // Initial data load
+  useEffect(() => {
+    if (user?.id) {
+      fetchTeamLeaderProgress(user.id);
+    }
+  }, [user?.id]);
+
+  // Auto-refresh every 5 minutes
+  useEffect(() => {
+    if (!user?.id) return;
+
+    const intervalId = setInterval(() => {
+      clearCache(user.id);
+      fetchTeamLeaderProgress(user.id, true);
+    }, 5 * 60 * 1000); // 5 minutes
+
+    return () => clearInterval(intervalId);
+  }, [user?.id, clearCache, fetchTeamLeaderProgress]);
 
   if (!user) return null;
 
@@ -58,6 +81,10 @@ const TeamLeaderDashboardTabs = () => {
       <TabsContent value="overview" className="mt-6">
         <div className="space-y-6">
           <TeamLeadershipInfoCard />
+          <TeamLeaderStatsCards 
+            teamProgress={teamProgress} 
+            loading={progressLoading} 
+          />
           <DashboardContent
             activeTab={courseTab}
             onTabChange={setCourseTab}
@@ -84,7 +111,16 @@ const TeamLeaderDashboardTabs = () => {
       </TabsContent>
 
       <TabsContent value="team" className="mt-6">
-        <TeamMemberManagement />
+        <TeamMemberManagement 
+          teamProgress={teamProgress}
+          progressLoading={progressLoading}
+          onRefresh={() => {
+            if (user?.id) {
+              clearCache(user.id);
+              fetchTeamLeaderProgress(user.id, true);
+            }
+          }}
+        />
       </TabsContent>
 
       <TabsContent value="profile" className="mt-6">

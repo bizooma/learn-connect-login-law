@@ -1,37 +1,36 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Users, UserPlus, Loader2, RefreshCw } from "lucide-react";
-import { useAuth } from "@/hooks/useAuth";
+import { Users, Loader2, RefreshCw } from "lucide-react";
 import { useTeamMembers } from "@/hooks/useTeamMembers";
-import { useTeamLeaderProgress } from "@/hooks/useTeamLeaderProgress";
 import TeamMemberProgressCard from "./TeamMemberProgressCard";
 import UserProgressModal from "../admin/user-progress/UserProgressModal";
 import { useState, useEffect, useMemo } from "react";
 
-const TeamMemberManagement = () => {
-  const { user } = useAuth();
+interface TeamMemberProgress {
+  user_id: string;
+  user_name: string;
+  user_email: string;
+  profile_image_url: string | null;
+  total_courses: number;
+  completed_courses: number;
+  in_progress_courses: number;
+}
+
+interface TeamMemberManagementProps {
+  teamProgress: TeamMemberProgress[];
+  progressLoading: boolean;
+  onRefresh: () => void;
+}
+
+const TeamMemberManagement = ({ teamProgress, progressLoading, onRefresh }: TeamMemberManagementProps) => {
   const { teamMembers, loading: membersLoading, fetchTeamMembers } = useTeamMembers();
-  const { teamProgress, loading: progressLoading, fetchTeamLeaderProgress, clearCache } = useTeamLeaderProgress();
   const [selectedUserForProgress, setSelectedUserForProgress] = useState<string | null>(null);
 
   useEffect(() => {
-    // FIXED: Add proper dependency control to prevent excessive requests
-    if (user && !membersLoading && !progressLoading) {
-      const hasTeamMembers = teamMembers.length > 0;
-      const hasTeamProgress = teamProgress.length > 0;
-      
-      if (!hasTeamMembers) {
-        fetchTeamMembers();
-      }
-      
-      // Only fetch progress if we don't have it and we have team members
-      if (!hasTeamProgress && !progressLoading && user.id) {
-        fetchTeamLeaderProgress(user.id);
-      }
-    }
-  }, [user]); // FIXED: Remove fetchTeamMembers and fetchTeamLeaderProgress from deps to prevent loops
+    // Fetch team members on mount
+    fetchTeamMembers();
+  }, []);
 
   // Create efficient lookup map for progress data
   const progressByUserId = useMemo(() => {
@@ -56,10 +55,7 @@ const TeamMemberManagement = () => {
 
   const handleRefresh = () => {
     fetchTeamMembers();
-    if (user?.id) {
-      clearCache(user.id); // Clear cache for fresh data
-      fetchTeamLeaderProgress(user.id, true); // Force refresh
-    }
+    onRefresh(); // Call parent's refresh function
   };
 
   const isLoading = membersLoading && teamMembers.length === 0;
