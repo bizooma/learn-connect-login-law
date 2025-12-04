@@ -102,7 +102,7 @@ const CourseSidebar = ({ lessons, selectedUnit, onUnitSelect }: CourseSidebarPro
                         )}
                         <span className="text-left flex-1 break-words whitespace-normal leading-tight">{unit.title}</span>
                         {isUnitEmpty(unit) && (
-                          <Badge variant="secondary" className="ml-2 text-xs flex-shrink-0">
+                          <Badge variant="destructive" className="ml-2 text-xs flex-shrink-0">
                             Coming Soon
                           </Badge>
                         )}
