@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { ChevronDown, ChevronRight, BookOpen, PlayCircle, FileText } from "lucide-react";
 import { Tables } from "@/integrations/supabase/types";
 
@@ -64,6 +65,11 @@ const CourseSidebar = ({ lessons, selectedUnit, onUnitSelect }: CourseSidebarPro
                 <div className="flex items-start gap-2 min-w-0 flex-1">
                   <BookOpen className="h-4 w-4 flex-shrink-0 mt-1" />
                   <span className="font-medium text-left break-words whitespace-normal leading-tight">{lesson.title}</span>
+                  {lesson.units.length === 0 && (
+                    <Badge variant="secondary" className="ml-2 text-xs flex-shrink-0">
+                      Coming Soon
+                    </Badge>
+                  )}
                 </div>
                 {expandedLessons.has(lesson.id) ? (
                   <ChevronDown className="h-4 w-4 flex-shrink-0 mt-1" />
