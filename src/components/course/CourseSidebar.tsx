@@ -35,6 +35,13 @@ interface CourseSidebarProps {
 const CourseSidebar = ({ lessons, selectedUnit, onUnitSelect }: CourseSidebarProps) => {
   const [expandedLessons, setExpandedLessons] = useState<Set<string>>(new Set());
 
+  const isUnitEmpty = (unit: UnitWithQuiz): boolean => {
+    const hasVideo = !!unit.video_url;
+    const hasContent = !!unit.content && unit.content.trim() !== '';
+    const hasFiles = unit.files && unit.files.length > 0;
+    return !hasVideo && !hasContent && !hasFiles;
+  };
+
   const toggleLesson = (lessonId: string) => {
     const newExpanded = new Set(expandedLessons);
     if (newExpanded.has(lessonId)) {
@@ -94,6 +101,11 @@ const CourseSidebar = ({ lessons, selectedUnit, onUnitSelect }: CourseSidebarPro
                           <FileText className="h-4 w-4 flex-shrink-0 mt-1" />
                         )}
                         <span className="text-left flex-1 break-words whitespace-normal leading-tight">{unit.title}</span>
+                        {isUnitEmpty(unit) && (
+                          <Badge variant="secondary" className="ml-2 text-xs flex-shrink-0">
+                            Coming Soon
+                          </Badge>
+                        )}
                       </div>
                     </Button>
                   ))}
