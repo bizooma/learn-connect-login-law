@@ -1203,7 +1203,7 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           new_data: Json | null
           old_data: Json | null
           operation: string
@@ -1215,7 +1215,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_data?: Json | null
           old_data?: Json | null
           operation: string
@@ -1227,7 +1227,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_data?: Json | null
           old_data?: Json | null
           operation?: string
@@ -1625,7 +1625,7 @@ export type Database = {
           created_at: string
           duration_seconds: number | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           metadata: Json | null
           quiz_id: string | null
           session_id: string | null
@@ -1639,7 +1639,7 @@ export type Database = {
           created_at?: string
           duration_seconds?: number | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           quiz_id?: string | null
           session_id?: string | null
@@ -1653,7 +1653,7 @@ export type Database = {
           created_at?: string
           duration_seconds?: number | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           quiz_id?: string | null
           session_id?: string | null
@@ -1874,7 +1874,7 @@ export type Database = {
         Row: {
           action_type: string
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           is_reversible: boolean | null
           new_data: Json | null
           old_data: Json | null
@@ -1888,7 +1888,7 @@ export type Database = {
         Insert: {
           action_type: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_reversible?: boolean | null
           new_data?: Json | null
           old_data?: Json | null
@@ -1902,7 +1902,7 @@ export type Database = {
         Update: {
           action_type?: string
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           is_reversible?: boolean | null
           new_data?: Json | null
           old_data?: Json | null
@@ -1920,7 +1920,7 @@ export type Database = {
           changed_at: string | null
           changed_by: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           new_role: string
           old_role: string | null
           reason: string | null
@@ -1932,7 +1932,7 @@ export type Database = {
           changed_at?: string | null
           changed_by?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_role: string
           old_role?: string | null
           reason?: string | null
@@ -1944,7 +1944,7 @@ export type Database = {
           changed_at?: string | null
           changed_by?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           new_role?: string
           old_role?: string | null
           reason?: string | null
@@ -1991,7 +1991,7 @@ export type Database = {
           entry_point: string | null
           exit_point: string | null
           id: string
-          ip_address: unknown | null
+          ip_address: unknown
           metadata: Json | null
           session_end: string | null
           session_start: string
@@ -2007,7 +2007,7 @@ export type Database = {
           entry_point?: string | null
           exit_point?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           session_end?: string | null
           session_start?: string
@@ -2023,7 +2023,7 @@ export type Database = {
           entry_point?: string | null
           exit_point?: string | null
           id?: string
-          ip_address?: unknown | null
+          ip_address?: unknown
           metadata?: Json | null
           session_end?: string | null
           session_start?: string
@@ -2216,10 +2216,7 @@ export type Database = {
         Args: { p_team_id: string; p_user_id: string }
         Returns: boolean
       }
-      admin_clear_user_tokens: {
-        Args: { p_user_email: string }
-        Returns: Json
-      }
+      admin_clear_user_tokens: { Args: { p_user_email: string }; Returns: Json }
       admin_mark_unit_completed: {
         Args: {
           p_course_id: string
@@ -2235,7 +2232,7 @@ export type Database = {
         Returns: Json
       }
       analyze_missing_quiz_completions: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           affected_courses: number
           affected_users: number
@@ -2284,20 +2281,14 @@ export type Database = {
         Args: { p_owner_id: string; p_reason?: string }
         Returns: Json
       }
-      cleanup_old_drafts: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      cleanup_old_drafts: { Args: never; Returns: undefined }
       create_admin_team: {
         Args: { p_description?: string; p_name: string }
         Returns: string
       }
-      debug_auth_state: {
-        Args: Record<PropertyKey, never>
-        Returns: Json
-      }
+      debug_auth_state: { Args: never; Returns: Json }
       diagnose_progress_inconsistencies: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           sample_inconsistent_records: Json
           total_users_with_progress: number
@@ -2310,7 +2301,7 @@ export type Database = {
         Returns: boolean
       }
       fix_missing_quiz_completions: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           courses_updated: number
           details: Json
@@ -2330,10 +2321,7 @@ export type Database = {
           user_name: string
         }[]
       }
-      generate_certificate_number: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      generate_certificate_number: { Args: never; Returns: string }
       generate_learning_streak_leaderboard: {
         Args: { p_limit?: number }
         Returns: {
@@ -2346,7 +2334,7 @@ export type Database = {
         }[]
       }
       get_team_leaders_progress_report: {
-        Args: Record<PropertyKey, never>
+        Args: never
         Returns: {
           assigned_at: string
           completed_at: string
@@ -2373,10 +2361,7 @@ export type Database = {
           total_members: number
         }[]
       }
-      get_user_law_firm_id: {
-        Args: Record<PropertyKey, never>
-        Returns: string
-      }
+      get_user_law_firm_id: { Args: never; Returns: string }
       get_user_management_history: {
         Args: { p_limit?: number; p_user_id?: string }
         Returns: {
@@ -2413,22 +2398,10 @@ export type Database = {
         }
         Returns: boolean
       }
-      is_admin_user: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_direct_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_law_firm_owner: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      is_owner_user: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
+      is_admin_user: { Args: never; Returns: boolean }
+      is_direct_admin: { Args: never; Returns: boolean }
+      is_law_firm_owner: { Args: never; Returns: boolean }
+      is_owner_user: { Args: never; Returns: boolean }
       log_user_activity: {
         Args: {
           p_activity_type: Database["public"]["Enums"]["activity_type"]
@@ -2462,21 +2435,24 @@ export type Database = {
         }
         Returns: Json
       }
-      mark_unit_complete_reliable: {
-        Args:
-          | {
+      mark_unit_complete_reliable:
+        | {
+            Args: {
               p_completion_method?: string
               p_course_id: string
               p_unit_id: string
             }
-          | {
+            Returns: Json
+          }
+        | {
+            Args: {
               p_completion_method?: string
               p_course_id: string
               p_unit_id: string
               p_user_id: string
             }
-        Returns: boolean
-      }
+            Returns: boolean
+          }
       move_content_to_level: {
         Args: {
           p_content_id: string
@@ -2487,10 +2463,7 @@ export type Database = {
         }
         Returns: boolean
       }
-      recalculate_law_firm_seat_counts: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      recalculate_law_firm_seat_counts: { Args: never; Returns: undefined }
       reclassify_section_to_module: {
         Args: { p_course_id: string; p_section_id: string }
         Returns: string
@@ -2499,18 +2472,12 @@ export type Database = {
         Args: { p_module_id: string; p_unit_id: string }
         Returns: string
       }
-      refresh_leaderboard_cache: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
+      refresh_leaderboard_cache: { Args: never; Returns: undefined }
       remove_team_member: {
         Args: { p_team_id: string; p_user_id: string }
         Returns: boolean
       }
-      restore_quiz: {
-        Args: { quiz_id: string }
-        Returns: boolean
-      }
+      restore_quiz: { Args: { quiz_id: string }; Returns: boolean }
       restore_user: {
         Args: { p_performed_by?: string; p_reason?: string; p_user_id: string }
         Returns: Json
@@ -2532,10 +2499,7 @@ export type Database = {
         }
         Returns: string
       }
-      soft_delete_quiz: {
-        Args: { quiz_id: string }
-        Returns: boolean
-      }
+      soft_delete_quiz: { Args: { quiz_id: string }; Returns: boolean }
       soft_delete_user: {
         Args: { p_performed_by?: string; p_reason?: string; p_user_id: string }
         Returns: Json
@@ -2552,9 +2516,9 @@ export type Database = {
         }
         Returns: string
       }
-      sync_video_completion_safe: {
-        Args:
-          | {
+      sync_video_completion_safe:
+        | {
+            Args: {
               p_course_id: string
               p_force_complete?: boolean
               p_total_duration_seconds?: number
@@ -2562,14 +2526,17 @@ export type Database = {
               p_watch_percentage?: number
               p_watched_duration_seconds?: number
             }
-          | {
+            Returns: Json
+          }
+        | {
+            Args: {
               p_course_id: string
               p_unit_id: string
               p_user_id: string
               p_watch_percentage?: number
             }
-        Returns: boolean
-      }
+            Returns: boolean
+          }
       update_course_progress_enhanced: {
         Args: { p_course_id: string; p_user_id: string }
         Returns: Json
