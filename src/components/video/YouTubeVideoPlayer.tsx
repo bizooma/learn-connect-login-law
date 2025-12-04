@@ -1,5 +1,5 @@
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useYouTubePlayer } from '@/hooks/useYouTubePlayer';
 import { extractYouTubeVideoId, getYouTubeContainerId } from '@/utils/youTubeUtils';
 import { Button } from '@/components/ui/button';
@@ -33,38 +33,33 @@ const YouTubeVideoPlayer = ({
   // EMERGENCY FIX: Simplified monitoring to prevent interference
   const { registerVideoInstance, cleanupVideoInstance } = useVideoInstanceManager();
 
-  const handleProgress = (currentTime: number, duration: number) => {
+  const handleProgress = useCallback((currentTime: number, duration: number) => {
     if (duration <= 0) return;
 
     const watchPercentage = Math.min((currentTime / duration) * 100, 100);
     
-    // Simplified progress handling
     if (onProgress) {
       onProgress(currentTime, duration, watchPercentage);
     }
 
-    // Check for completion (95% threshold)
     if (watchPercentage >= 95 && !hasCompleted) {
       setHasCompleted(true);
       if (onComplete) {
         onComplete();
       }
     }
-  };
+  }, [onProgress, onComplete, hasCompleted]);
 
-  const handleStateChange = (state: number) => {
-    // YouTube player states:
-    // -1: unstarted, 0: ended, 1: playing, 2: paused, 3: buffering, 5: video cued
-    
-    if (state === 0 && !hasCompleted) { // Video ended
+  const handleStateChange = useCallback((state: number) => {
+    if (state === 0 && !hasCompleted) {
       setHasCompleted(true);
       if (onComplete) {
         onComplete();
       }
     }
-  };
+  }, [hasCompleted, onComplete]);
 
-  const handleReady = (player: any) => {
+  const handleReady = useCallback((player: any) => {
     console.log('YouTube player ready for video:', videoId);
     setError(null);
     retryCountRef.current = 0;
@@ -72,7 +67,12 @@ const YouTubeVideoPlayer = ({
     if (videoId) {
       registerVideoInstance(videoId, 'youtube', player, containerId);
     }
-  };
+  }, [videoId, registerVideoInstance, containerId]);
+
+  const handleError = useCallback((error: string) => {
+    console.error('YouTube player error:', error);
+    setError(error);
+  }, []);
 
   const { isReady, isApiReady, isPlaying, currentTime, duration, initializePlayer } = useYouTubePlayer({
     videoId: videoId || '',
@@ -80,10 +80,7 @@ const YouTubeVideoPlayer = ({
     onProgress: handleProgress,
     onStateChange: handleStateChange,
     onReady: handleReady,
-    onError: (error: string) => {
-      console.error('YouTube player error:', error);
-      setError(error);
-    }
+    onError: handleError
   });
 
   const handleRetry = () => {
