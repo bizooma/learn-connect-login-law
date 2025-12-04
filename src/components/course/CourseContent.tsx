@@ -8,7 +8,7 @@ import LessonVideo from "./LessonVideo";
 import LessonCard from "./LessonCard";
 import QuizDisplay from "./QuizDisplay";
 import CertificateDownload from "../certificates/CertificateDownload";
-import UnitCompletionButton from "./UnitCompletionButton";
+
 import SmartCompletionIndicator from "./SmartCompletionIndicator";
 import UnitCompletionRequirements from "./UnitCompletionRequirements";
 import { Button } from "@/components/ui/button";
@@ -281,13 +281,6 @@ const CourseContent = ({ unit, lesson, courseId, courseTitle, onProgressUpdate }
         />
       )}
       
-      {!hasQuiz && !quizLoading && unitForDatabase && (
-        <UnitCompletionButton 
-          unit={unitForDatabase} 
-          courseId={courseId} 
-          onComplete={handleProgressRefresh}
-        />
-      )}
 
       {/* Certificate Download Section */}
       <CertificateDownload 
