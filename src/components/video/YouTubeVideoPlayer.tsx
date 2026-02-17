@@ -3,7 +3,7 @@ import { useEffect, useState, useRef, useCallback } from 'react';
 import { useYouTubePlayer } from '@/hooks/useYouTubePlayer';
 import { extractYouTubeVideoId, getYouTubeContainerId } from '@/utils/youTubeUtils';
 import { Button } from '@/components/ui/button';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, RefreshCw, ExternalLink } from 'lucide-react';
 import { useVideoStabilityMonitor } from '@/hooks/useVideoStabilityMonitor';
 import { useVideoInstanceManager } from '@/hooks/useVideoInstanceManager';
 import VideoErrorBoundary from './VideoErrorBoundary';
@@ -127,22 +127,47 @@ const YouTubeVideoPlayer = ({
     };
   }, [videoId, videoUrl, cleanupVideoInstance]);
 
+  const isEmbedBlocked = error === 'EMBED_BLOCKED';
+  const youtubeDirectUrl = videoId ? `https://www.youtube.com/watch?v=${videoId}` : videoUrl;
+
   if (!videoId || error) {
     return (
-      <div className={`bg-gray-100 rounded-lg flex items-center justify-center ${className}`}>
+      <div className={`bg-muted rounded-lg flex items-center justify-center ${className}`}>
         <div className="text-center p-6">
-          <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
-          <p className="text-gray-600 mb-2">Video Error</p>
-          <p className="text-sm text-gray-500 mb-4">{error || 'Invalid YouTube URL'}</p>
-          <Button 
-            onClick={handleRetry}
-            variant="outline"
-            size="sm"
-            className="flex items-center space-x-2"
-          >
-            <RefreshCw className="h-4 w-4" />
-            <span>Try Again</span>
-          </Button>
+          <AlertCircle className="h-8 w-8 text-destructive mx-auto mb-2" />
+          <p className="text-foreground mb-2">
+            {isEmbedBlocked ? 'This video cannot be played here' : 'Video Error'}
+          </p>
+          <p className="text-sm text-muted-foreground mb-4">
+            {isEmbedBlocked 
+              ? 'The video owner has restricted embedded playback. You can watch it directly on YouTube.'
+              : (error || 'Invalid YouTube URL')}
+          </p>
+          <div className="flex items-center justify-center gap-2">
+            {isEmbedBlocked ? (
+              <Button
+                asChild
+                variant="default"
+                size="sm"
+                className="flex items-center space-x-2"
+              >
+                <a href={youtubeDirectUrl} target="_blank" rel="noopener noreferrer">
+                  <ExternalLink className="h-4 w-4" />
+                  <span>Watch on YouTube</span>
+                </a>
+              </Button>
+            ) : (
+              <Button 
+                onClick={handleRetry}
+                variant="outline"
+                size="sm"
+                className="flex items-center space-x-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                <span>Try Again</span>
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -150,17 +175,17 @@ const YouTubeVideoPlayer = ({
 
   return (
     <VideoErrorBoundary>
-      <div className={`bg-gray-100 rounded-lg overflow-hidden relative ${className}`}>
+      <div className={`bg-muted rounded-lg overflow-hidden relative ${className}`}>
         <div id={containerId} className="w-full h-full" />
         
         {(!isApiReady || !isReady) && (
-          <div className="absolute inset-0 flex items-center justify-center bg-gray-100">
+          <div className="absolute inset-0 flex items-center justify-center bg-muted">
             <div className="text-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-2"></div>
-              <p className="text-gray-600">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+              <p className="text-muted-foreground">
                 {!isApiReady ? 'Loading YouTube API...' : 'Initializing player...'}
               </p>
-              {title && <p className="text-sm text-gray-500 mt-1">{title}</p>}
+              {title && <p className="text-sm text-muted-foreground mt-1">{title}</p>}
             </div>
           </div>
         )}
