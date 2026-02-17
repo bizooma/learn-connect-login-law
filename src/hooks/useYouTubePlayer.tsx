@@ -107,7 +107,10 @@ export const useYouTubePlayer = ({
           fs: 1,
           cc_load_policy: 0,
           iv_load_policy: 3,
-          autohide: 0
+          autohide: 0,
+          origin: window.location.origin,
+          widget_referrer: window.location.href,
+          enablejsapi: 1
         },
         events: {
           onReady: (event: any) => {
@@ -172,6 +175,21 @@ export const useYouTubePlayer = ({
               if (onProgress && duration > 0) {
                 onProgress(duration, duration);
               }
+            }
+          },
+          onError: (event: any) => {
+            const errorCode = event.data;
+            const errorMessages: Record<number, string> = {
+              2: 'Invalid video ID',
+              5: 'HTML5 player error',
+              100: 'Video not found or private',
+              101: 'EMBED_BLOCKED',
+              150: 'EMBED_BLOCKED'
+            };
+            const errorMessage = errorMessages[errorCode] || `YouTube error (code: ${errorCode})`;
+            console.error('YouTube player error:', errorCode, errorMessage);
+            if (onError) {
+              onError(errorMessage);
             }
           }
         }
