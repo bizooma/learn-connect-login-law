@@ -28,18 +28,16 @@ const PodcastSection = () => {
           {/* Right Side - Embedded Podcast Player */}
           <div className="w-full">
             <iframe 
-              src="https://player.rss.com/letsgetrich/?theme=dark&v=2" 
-              title="Let's Get Rich" 
+              data-testid="embed-iframe"
+              style={{ borderRadius: '12px' }}
+              src="https://open.spotify.com/embed/show/52fVHoDW007j6BdyiAD1Nw?utm_source=generator" 
               width="100%" 
-              height="393px" 
+              height="352" 
               frameBorder="0" 
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-              allowFullScreen 
-              scrolling="no"
-              className="rounded-lg"
-            >
-              <a href="https://rss.com/podcasts/letsgetrich/">Let's Get Rich</a>
-            </iframe>
+              allowFullScreen
+              allow="autoplay; clipboard-write; encrypted-media; fullscreen; picture-in-picture" 
+              loading="lazy"
+            />
           </div>
         </div>
       </div>
