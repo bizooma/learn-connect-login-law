@@ -10,7 +10,7 @@ const StaffTrainingSection = () => {
             New Frontier University offers specialized immigration law training courses designed to empower our staff with the skills and knowledge they need to excel. Our courses provide a comprehensive understanding of immigration law, combining up-to-date legal insights with practical, job-specific training. Tailored to meet the unique challenges of immigration law practice, our curriculum covers everything from regulatory compliance and legal procedures to effective client communication and documentation management. This ensures that every team member is well-prepared to handle the complexities of their role and deliver exceptional service.
           </p>
           <p className="text-lg text-gray-600 max-w-4xl mx-auto leading-relaxed">
-            By integrating interactive digital learning platforms with expert-led instruction, our training programs not only deepen our staff's knowledge of immigration law but also enhance their everyday job performance. Whether you're searching for "immigration law training courses" or "staff development for immigration law firms," our offerings are optimized to support professional growth and operational excellence. Equip your team with the tools they need to succeed and drive your firm's success in today's competitive legal landscape.
+            By integrating interactive digital learning platforms with expert-led instruction, our training programs not only deepen our staff's knowledge of immigration law but also enhance their everyday job performance.
           </p>
         </div>
       </div>
