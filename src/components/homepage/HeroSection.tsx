@@ -34,7 +34,7 @@ const HeroSection = () => {
               </div>
               
               {/* Legal Training 300 */}
-              <div className="relative group cursor-pointer">
+              <div className="relative group cursor-pointer" onClick={() => navigate('/immigration-law-training')}>
                 <div className="rounded-lg transition-transform hover:scale-105">
                   <img 
                     src="/lovable-uploads/85b49a80-3092-4f89-b069-0c652d3d7d4f.png" 
