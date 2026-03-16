@@ -1,5 +1,7 @@
+import { useNavigate } from "react-router-dom";
 
 const HeroSection = () => {
+  const navigate = useNavigate();
   return (
     <section 
       className="relative"
@@ -21,7 +23,7 @@ const HeroSection = () => {
             {/* Category Cards */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12 max-w-md">
               {/* Legal Training 200 */}
-              <div className="relative group cursor-pointer">
+              <div className="relative group cursor-pointer" onClick={() => navigate('/law-firm-staff-training')}>
                 <div className="rounded-lg transition-transform hover:scale-105">
                   <img 
                     src="/lovable-uploads/c714af9d-aba5-4b13-932f-39b27929b695.png" 
@@ -32,7 +34,7 @@ const HeroSection = () => {
               </div>
               
               {/* Legal Training 300 */}
-              <div className="relative group cursor-pointer">
+              <div className="relative group cursor-pointer" onClick={() => navigate('/immigration-law-training')}>
                 <div className="rounded-lg transition-transform hover:scale-105">
                   <img 
                     src="/lovable-uploads/85b49a80-3092-4f89-b069-0c652d3d7d4f.png" 
