@@ -13,8 +13,8 @@ const HeroSection = () => {
           {/* Left Side - Content */}
           <div className="text-white">
             <h1 className="text-5xl md:text-6xl mb-8 leading-tight">
-              <span className="block">Immigration Law</span>
-              <span className="block">Firm Training</span>
+              <span className="block">Staff Training &</span>
+              <span className="block">Onboarding</span>
             </h1>
             
             {/* Category Cards - Single row with Legal Training */}
