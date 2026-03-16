@@ -7,7 +7,6 @@ import AboutSection from "./homepage/AboutSection";
 import HillarySection from "./homepage/HillarySection";
 import TrustedBrandsSection from "./homepage/TrustedBrandsSection";
 import TestimonialsSection from "./homepage/TestimonialsSection";
-import PricingSection from "./homepage/PricingSection";
 import NewsletterSection from "./homepage/NewsletterSection";
 import PodcastSection from "./homepage/PodcastSection";
 import Footer from "./homepage/Footer";

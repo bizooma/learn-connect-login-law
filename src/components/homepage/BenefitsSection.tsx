@@ -4,7 +4,7 @@ import { Plus, Minus } from "lucide-react";
 
 const BenefitsSection = () => {
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({
-    saveTime: true, // Save Time section is open by default as shown in screenshot
+    saveTime: true,
   });
 
   const toggleSection = (sectionId: string) => {
@@ -19,7 +19,7 @@ const BenefitsSection = () => {
       {/* Section Heading */}
       <div className="text-center mb-16">
         <h2 className="text-4xl md:text-5xl font-bold text-gray-900">
-          How Will New Frontier University<br />Help Your Firm?
+          How Will NF+U Help<br />Our Team?
         </h2>
       </div>
 
@@ -43,7 +43,7 @@ const BenefitsSection = () => {
           {openSections.saveTime && (
             <div className="p-6 bg-white border-t border-gray-200">
               <p className="text-gray-600 leading-relaxed">
-                You've trained <span className="font-semibold italic">countless</span> people. In the early years, you were more thorough, but now you're too swamped to train the new hires to your standards.
+                We've trained <span className="font-semibold italic">countless</span> people. In the early years, we were more thorough, but as we've grown it's become harder to train every new hire to our standards. This platform ensures consistent, high-quality training without pulling senior team members away from their work.
               </p>
             </div>
           )}
@@ -67,7 +67,7 @@ const BenefitsSection = () => {
           {openSections.consistency && (
             <div className="p-6 bg-white border-t border-gray-200">
               <p className="text-gray-600 leading-relaxed">
-                You've hired "experienced" paralegals – people you've paid top dollar to work with. But you've found that their "experience" varies, so you must spend time acclimating them to how you do things at your firm.
+                Even experienced new hires need to learn how we do things here. This training ensures every team member—regardless of background—gets the same foundational knowledge and is aligned with our processes and standards.
               </p>
             </div>
           )}
@@ -91,7 +91,7 @@ const BenefitsSection = () => {
           {openSections.productivity && (
             <div className="p-6 bg-white border-t border-gray-200">
               <p className="text-gray-600 leading-relaxed">
-                Some of your best team members are now training all the new people, while also managing their own caseloads. Your best people are now drowning in questions; everyone needs their help. And now their production is suffering.
+                Our best team members shouldn't have to choose between training new people and managing their own caseloads. This platform handles foundational training so our top performers can stay focused on what they do best.
               </p>
             </div>
           )}
@@ -115,7 +115,7 @@ const BenefitsSection = () => {
           {openSections.accountability && (
             <div className="p-6 bg-white border-t border-gray-200">
               <p className="text-gray-600 leading-relaxed">
-                When it's time to hold your team members accountable, you hesitate: you know how unfair it is to enforce your standards when they've never been taught. Yet you know you have an ethical duty to properly supervise your team members.
+                With structured training in place, every team member has a clear path to learn our standards. This makes it fair and straightforward to hold everyone accountable—because everyone has been given the tools to succeed.
               </p>
             </div>
           )}
@@ -139,7 +139,7 @@ const BenefitsSection = () => {
           {openSections.purpose && (
             <div className="p-6 bg-white border-t border-gray-200">
               <p className="text-gray-600 leading-relaxed">
-                You're an immigration lawyer because you want to help people. And you want to help more people than you're helping today. You want to do it at a high standard, yet your business is stalling.
+                We're here because we want to help people. The better trained our team is, the more immigrant lives we can change—and the higher the standard at which we can do it.
               </p>
             </div>
           )}
