@@ -63,7 +63,7 @@ const HeroSection = () => {
         <div className="bg-gray-900 text-white py-8">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
             <h2 className="text-3xl md:text-4xl mb-4">
-              Our Training Is Built For <span style={{ color: '#FFDA00' }}>Our Team!</span>
+              Onboarding and Continuous Education <span style={{ color: '#FFDA00' }}>Courses</span>
             </h2>
           </div>
         </div>
