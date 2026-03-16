@@ -2,7 +2,6 @@ import SimpleNavigationHeader from "./homepage/SimpleNavigationHeader";
 import ImmigrationLawHeroSection from "./homepage/ImmigrationLawHeroSection";
 import ImmigrationLawSection from "./homepage/ImmigrationLawSection";
 import TestimonialsSection from "./homepage/TestimonialsSection";
-import PricingSection from "./homepage/PricingSection";
 import NewsletterSection from "./homepage/NewsletterSection";
 import PodcastSection from "./homepage/PodcastSection";
 import Footer from "./homepage/Footer";
@@ -18,9 +17,6 @@ const ImmigrationLawTraining = () => {
 
       {/* Testimonials Section */}
       <TestimonialsSection />
-
-      {/* Pricing Section */}
-      <PricingSection />
 
       {/* Newsletter Section */}
       <NewsletterSection />
