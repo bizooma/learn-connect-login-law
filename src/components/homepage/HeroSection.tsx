@@ -21,22 +21,22 @@ const HeroSection = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-12 max-w-md">
               {/* Legal Training 200 */}
               <div className="relative group cursor-pointer">
-                <div className="bg-white/20 backdrop-blur-sm rounded-lg p-0 h-32 overflow-hidden transition-transform hover:scale-105">
+                <div className="rounded-lg transition-transform hover:scale-105">
                   <img 
                     src="/lovable-uploads/c714af9d-aba5-4b13-932f-39b27929b695.png" 
                     alt="Legal Training 200" 
-                    className="w-full h-full object-cover rounded-lg"
+                    className="w-full h-auto object-contain rounded-lg"
                   />
                 </div>
               </div>
               
               {/* Legal Training 300 */}
               <div className="relative group cursor-pointer">
-                <div className="bg-white/20 backdrop-blur-sm rounded-lg p-0 h-32 overflow-hidden transition-transform hover:scale-105">
+                <div className="rounded-lg transition-transform hover:scale-105">
                   <img 
                     src="/lovable-uploads/85b49a80-3092-4f89-b069-0c652d3d7d4f.png" 
                     alt="Legal Training 300" 
-                    className="w-full h-full object-cover rounded-lg"
+                    className="w-full h-auto object-contain rounded-lg"
                   />
                 </div>
               </div>
