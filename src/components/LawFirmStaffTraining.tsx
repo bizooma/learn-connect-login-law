@@ -2,7 +2,6 @@ import SimpleNavigationHeader from "./homepage/SimpleNavigationHeader";
 import LawFirmStaffHeroSection from "./homepage/LawFirmStaffHeroSection";
 import StaffTrainingSection from "./homepage/StaffTrainingSection";
 import TestimonialsSection from "./homepage/TestimonialsSection";
-import PricingSection from "./homepage/PricingSection";
 import NewsletterSection from "./homepage/NewsletterSection";
 import PodcastSection from "./homepage/PodcastSection";
 import Footer from "./homepage/Footer";
@@ -18,9 +17,6 @@ const LawFirmStaffTraining = () => {
 
       {/* Testimonials Section */}
       <TestimonialsSection />
-
-      {/* Pricing Section */}
-      <PricingSection />
 
       {/* Newsletter Section */}
       <NewsletterSection />
