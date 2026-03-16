@@ -33,9 +33,6 @@ const SimpleNavigationHeader = () => {
               <Link to="/" className="text-white hover:text-blue-400 px-3 py-2 text-sm font-medium">
                 Home
               </Link>
-              <Link to="/law-firm-training" className="text-gray-300 hover:text-blue-400 px-3 py-2 text-sm font-medium">
-                Law Firms
-              </Link>
               <Link to="/law-firm-staff-training" className="text-gray-300 hover:text-blue-400 px-3 py-2 text-sm font-medium">
                 Staff Training
               </Link>
@@ -78,13 +75,6 @@ const SimpleNavigationHeader = () => {
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Home
-            </Link>
-            <Link 
-              to="/law-firm-training" 
-              className="text-gray-300 hover:text-blue-400 block px-3 py-2 text-base font-medium"
-              onClick={() => setIsMobileMenuOpen(false)}
-            >
-              Law Firms
             </Link>
             <Link 
               to="/law-firm-staff-training" 

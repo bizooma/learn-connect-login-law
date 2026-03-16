@@ -32,7 +32,7 @@ import AuthPage from "./components/AuthPage";
 import RegisterPage from "./pages/RegisterPage";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
-import LawFirmTraining from "./pages/LawFirmTraining";
+
 import LawFirmStaffTraining from "./pages/LawFirmStaffTraining";
 import ImmigrationLawTraining from "./pages/ImmigrationLawTraining";
 import AccountPage from "./pages/AccountPage";
@@ -74,7 +74,7 @@ const AppContent = () => {
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/payment-cancelled" element={<PaymentCancelled />} />
-        <Route path="/law-firm-training" element={<LawFirmTraining />} />
+        <Route path="/law-firm-training" element={<Navigate to="/" replace />} />
         <Route path="/law-firm-staff-training" element={<LawFirmStaffTraining />} />
         <Route path="/immigration-law-training" element={<ImmigrationLawTraining />} />
         <Route path="/account" element={<AccountPage />} />

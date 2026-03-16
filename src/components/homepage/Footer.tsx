@@ -32,13 +32,8 @@ const Footer = () => {
 
           {/* Courses for Everyone */}
           <div>
-            <h3 className="text-lg font-semibold mb-4 text-gray-300">Courses for Everyone</h3>
+            <h3 className="text-lg font-semibold mb-4 text-gray-300">Training</h3>
             <ul className="space-y-3">
-              <li>
-                <a href="/law-firm-training" className="text-gray-400 hover:text-white transition-colors">
-                  Law Firms
-                </a>
-              </li>
               <li>
                 <a href="/law-firm-staff-training" className="text-gray-400 hover:text-white transition-colors">
                   Staff Training
