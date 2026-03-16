@@ -32,7 +32,7 @@ import AuthPage from "./components/AuthPage";
 import RegisterPage from "./pages/RegisterPage";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
-import LawFirmTraining from "./pages/LawFirmTraining";
+
 import LawFirmStaffTraining from "./pages/LawFirmStaffTraining";
 import ImmigrationLawTraining from "./pages/ImmigrationLawTraining";
 import AccountPage from "./pages/AccountPage";
