@@ -1,8 +1,8 @@
 
-import { BookOpen, Menu, LogOut, TreePine, HelpCircle, Sparkles, Map } from "lucide-react";
+import { BookOpen, Menu, LogOut, TreePine, HelpCircle, Sparkles, Map, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +20,8 @@ interface AdminDashboardHeaderProps {
 const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const isWikiPage = location.pathname.startsWith("/admin/wiki");
 
   const handleSignOut = async () => {
     try {
@@ -66,8 +68,34 @@ const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
               <BookOpen className="h-8 w-8 text-white" />
               <div>
                 <h1 className="text-2xl font-bold text-white">Admin Dashboard</h1>
-                <p className="text-white/80 text-sm">Manage New Frontier University Courses</p>
+                <p className="text-white/80 text-sm">Manage New Frontier University</p>
               </div>
+            </div>
+
+            {/* LMS / Wiki Switcher */}
+            <div className="flex items-center bg-white/10 rounded-lg p-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/admin-dashboard')}
+                className={`text-white text-sm px-4 py-1.5 rounded-md transition-colors ${
+                  !isWikiPage ? 'bg-white/20 font-medium' : 'hover:bg-white/10'
+                }`}
+              >
+                <BookOpen className="h-4 w-4 mr-2" />
+                LMS
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/admin/wiki')}
+                className={`text-white text-sm px-4 py-1.5 rounded-md transition-colors ${
+                  isWikiPage ? 'bg-white/20 font-medium' : 'hover:bg-white/10'
+                }`}
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Policies & Procedures
+              </Button>
             </div>
           </div>
 

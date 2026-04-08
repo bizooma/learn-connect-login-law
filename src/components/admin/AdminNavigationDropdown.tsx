@@ -1,5 +1,5 @@
-import { useState } from "react";
 import { ChevronDown, BookOpen, Users, BarChart3, Settings, Award, FileText, Building, UserCheck, Activity, Trophy, Calendar, Bell, User } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +14,7 @@ interface AdminNavigationDropdownProps {
 }
 
 const AdminNavigationDropdown = ({ activeTab, onTabChange }: AdminNavigationDropdownProps) => {
+  const navigate = useNavigate();
   const navigationCategories = [
     {
       id: "content",
@@ -100,7 +101,13 @@ const AdminNavigationDropdown = ({ activeTab, onTabChange }: AdminNavigationDrop
                   return (
                     <DropdownMenuItem
                       key={item.id}
-                      onClick={() => onTabChange(item.id)}
+                      onClick={() => {
+                        if (item.id === 'wiki') {
+                          navigate('/admin/wiki');
+                        } else {
+                          onTabChange(item.id);
+                        }
+                      }}
                       className={`flex items-center space-x-2 cursor-pointer ${
                         activeTab === item.id ? 'bg-blue-50 text-blue-700 font-medium' : ''
                       }`}
