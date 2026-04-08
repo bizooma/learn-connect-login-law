@@ -16,6 +16,7 @@ import CompletionMonitoringDashboard from "./CompletionMonitoringDashboard";
 import BadgeManagement from "./BadgeManagement";
 import CertificateTemplateManagement from "./CertificateTemplateManagement";
 import TeamLeadersProgressReport from "./team-management/TeamLeadersProgressReport";
+import WikiManagement from "./wiki/WikiManagement";
 
 interface AdminManagementTabsProps {
   activeTab?: string;
@@ -64,6 +65,8 @@ const AdminManagementTabs = ({
         return <BadgeManagement />;
       case "certificates":
         return <CertificateTemplateManagement />;
+      case "wiki":
+        return <WikiManagement />;
       case "quizzes":
         return <QuizManagement quizId={quizId} />;
       case "notifications":

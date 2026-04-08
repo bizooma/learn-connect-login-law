@@ -22,6 +22,7 @@ const AdminNavigationDropdown = ({ activeTab, onTabChange }: AdminNavigationDrop
       items: [
         { id: "courses", label: "Courses", icon: BookOpen },
         { id: "quizzes", label: "Quizzes", icon: FileText },
+        { id: "wiki", label: "Policies & Procedures", icon: FileText },
         { id: "badges", label: "Badges", icon: Award },
         { id: "certificates", label: "Certificates", icon: Award },
       ]
