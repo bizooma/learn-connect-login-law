@@ -32,7 +32,7 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateC
   const collapsed = state === "collapsed";
 
   return (
-    <Sidebar collapsible="icon" className="border-r border-border">
+    <Sidebar collapsible="icon" className="border-r border-border top-0 h-full">
       <SidebarHeader className="p-4 border-b border-border">
         {!collapsed && (
           <div className="flex items-center gap-2">
