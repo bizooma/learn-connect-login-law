@@ -23,6 +23,7 @@ interface WikiCategoryRowProps {
 
 const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditArticle, searchQuery, defaultExpanded }: WikiCategoryRowProps) => {
   const [expanded, setExpanded] = useState(defaultExpanded || false);
+  const count = category.article_count || 0;
 
   return (
     <div className="border-b border-border">
@@ -39,7 +40,7 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
           <FolderOpen className="h-5 w-5 text-primary" />
           <span className="font-medium text-foreground">{category.title}</span>
           <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
-            {category.article_count || 0} {(category.article_count || 0) === 1 ? "item" : "items"}
+            {count} {count === 1 ? "item" : "items"}
           </span>
           {!category.is_published && (
             <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">Draft</span>

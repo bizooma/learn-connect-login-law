@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { Plus, BookOpen, FileText } from "lucide-react";
+import { Plus, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useWikiCategories } from "@/hooks/useWikiCategories";
 import { useWikiArticles, WikiArticle } from "@/hooks/useWikiArticles";
@@ -72,7 +72,6 @@ const AdminWikiPage = () => {
           />
 
           <div className="flex-1 flex flex-col min-w-0">
-            {/* Sub-header with trigger and actions */}
             <div className="border-b border-border bg-background px-6 py-3 flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <SidebarTrigger />
@@ -92,7 +91,6 @@ const AdminWikiPage = () => {
               </Button>
             </div>
 
-            {/* Main content */}
             <div className="flex-1 overflow-auto p-6">
               {editingArticle ? (
                 <WikiArticleEditor

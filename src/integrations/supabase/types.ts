@@ -2247,8 +2247,11 @@ export type Database = {
         Row: {
           category_id: string
           content: string | null
+          content_type: string
           created_at: string
           created_by: string
+          file_name: string | null
+          file_url: string | null
           id: string
           is_published: boolean
           sort_order: number
@@ -2259,8 +2262,11 @@ export type Database = {
         Insert: {
           category_id: string
           content?: string | null
+          content_type?: string
           created_at?: string
           created_by: string
+          file_name?: string | null
+          file_url?: string | null
           id?: string
           is_published?: boolean
           sort_order?: number
@@ -2271,8 +2277,11 @@ export type Database = {
         Update: {
           category_id?: string
           content?: string | null
+          content_type?: string
           created_at?: string
           created_by?: string
+          file_name?: string | null
+          file_url?: string | null
           id?: string
           is_published?: boolean
           sort_order?: number
