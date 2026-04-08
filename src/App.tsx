@@ -28,6 +28,7 @@ import StudentDashboard from "./pages/StudentDashboard";
 import ClientDashboard from "./pages/ClientDashboard";
 import FreeDashboard from "./pages/FreeDashboard";
 import AdminDashboard from "./components/AdminDashboard";
+import AdminWikiPage from "./pages/AdminWikiPage";
 import AuthPage from "./components/AuthPage";
 import RegisterPage from "./pages/RegisterPage";
 import PaymentSuccess from "./pages/PaymentSuccess";
@@ -71,6 +72,7 @@ const AppContent = () => {
         <Route path="/free-dashboard" element={<FreeDashboard />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
+        <Route path="/admin/wiki" element={<AdminWikiPage />} />
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/payment-cancelled" element={<PaymentCancelled />} />
