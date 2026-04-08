@@ -53,10 +53,12 @@ const AdminWikiPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
-      <AdminDashboardHeader triggerDemo={() => {}} />
+      <div className="relative z-50">
+        <AdminDashboardHeader triggerDemo={() => {}} />
+      </div>
 
       <SidebarProvider>
-        <div className="flex flex-1 w-full">
+        <div className="flex flex-1 w-full" style={{ height: 'calc(100vh - 88px)' }}>
           <WikiSidebar
             categories={categories.map((c) => ({
               id: c.id,
