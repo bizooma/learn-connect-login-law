@@ -63,7 +63,6 @@ const AdminWikiPage = () => {
               title: c.title,
               icon: c.icon_name,
               article_count: (c as any).article_count,
-              article_count: (c as any).article_count,
             }))}
             activeCategoryId={activeCategoryId}
             onCategorySelect={setActiveCategoryId}
