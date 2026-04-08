@@ -2,11 +2,16 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+export type WikiContentType = "policy" | "procedure" | "document";
+
 export interface WikiArticle {
   id: string;
   category_id: string;
   title: string;
   content: string | null;
+  content_type: WikiContentType;
+  file_url: string | null;
+  file_name: string | null;
   tags: string[];
   sort_order: number;
   is_published: boolean;
@@ -14,6 +19,12 @@ export interface WikiArticle {
   created_at: string;
   updated_at: string;
 }
+
+export const contentTypeLabels: Record<WikiContentType, string> = {
+  policy: "Policy",
+  procedure: "Procedure",
+  document: "Document",
+};
 
 export const useWikiArticles = (categoryId?: string) => {
   const queryClient = useQueryClient();
@@ -38,7 +49,7 @@ export const useWikiArticles = (categoryId?: string) => {
   });
 
   const createArticle = useMutation({
-    mutationFn: async (article: { category_id: string; title: string; content?: string; tags?: string[] }) => {
+    mutationFn: async (article: { category_id: string; title: string; content?: string; tags?: string[]; content_type?: WikiContentType; file_url?: string; file_name?: string }) => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error("Not authenticated");
 
@@ -57,6 +68,9 @@ export const useWikiArticles = (categoryId?: string) => {
           category_id: article.category_id,
           title: article.title,
           content: article.content || "",
+          content_type: article.content_type || "policy",
+          file_url: article.file_url || null,
+          file_name: article.file_name || null,
           tags: article.tags || [],
           sort_order: nextOrder,
           created_by: userData.user.id,
@@ -66,16 +80,17 @@ export const useWikiArticles = (categoryId?: string) => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
+      const label = contentTypeLabels[variables.content_type || "policy"];
       queryClient.invalidateQueries({ queryKey: ["wiki-articles"] });
       queryClient.invalidateQueries({ queryKey: ["wiki-categories"] });
-      toast.success("Article created");
+      toast.success(`${label} created`);
     },
-    onError: (error) => toast.error("Failed to create article: " + error.message),
+    onError: (error) => toast.error("Failed to create: " + error.message),
   });
 
   const updateArticle = useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string; title?: string; content?: string; tags?: string[]; is_published?: boolean; sort_order?: number }) => {
+    mutationFn: async ({ id, ...updates }: { id: string; title?: string; content?: string; tags?: string[]; is_published?: boolean; sort_order?: number; file_url?: string; file_name?: string }) => {
       const { data, error } = await supabase
         .from("wiki_articles")
         .update(updates)
@@ -87,9 +102,9 @@ export const useWikiArticles = (categoryId?: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wiki-articles"] });
-      toast.success("Article updated");
+      toast.success("Saved successfully");
     },
-    onError: (error) => toast.error("Failed to update article: " + error.message),
+    onError: (error) => toast.error("Failed to save: " + error.message),
   });
 
   const deleteArticle = useMutation({
@@ -100,9 +115,9 @@ export const useWikiArticles = (categoryId?: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wiki-articles"] });
       queryClient.invalidateQueries({ queryKey: ["wiki-categories"] });
-      toast.success("Article deleted");
+      toast.success("Deleted successfully");
     },
-    onError: (error) => toast.error("Failed to delete article: " + error.message),
+    onError: (error) => toast.error("Failed to delete: " + error.message),
   });
 
   return {

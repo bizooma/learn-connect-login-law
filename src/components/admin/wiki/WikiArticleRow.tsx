@@ -1,4 +1,4 @@
-import { FileText, MoreVertical, Eye, EyeOff, Pencil, Trash2 } from "lucide-react";
+import { FileText, MoreVertical, Eye, EyeOff, Pencil, Trash2, Shield, ScrollText, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { WikiArticle } from "@/hooks/useWikiArticles";
+import { WikiArticle, contentTypeLabels } from "@/hooks/useWikiArticles";
 
 interface WikiArticleRowProps {
   article: WikiArticle;
@@ -15,15 +15,27 @@ interface WikiArticleRowProps {
   onTogglePublish: (article: WikiArticle) => void;
 }
 
+const contentTypeIcons = {
+  policy: Shield,
+  procedure: ScrollText,
+  document: Upload,
+};
+
 const WikiArticleRow = ({ article, onEdit, onDelete, onTogglePublish }: WikiArticleRowProps) => {
+  const Icon = contentTypeIcons[article.content_type] || FileText;
+  const typeLabel = contentTypeLabels[article.content_type] || "Item";
+
   return (
     <div
       className="flex items-center justify-between px-4 py-3 pl-12 bg-muted/30 border-b border-border hover:bg-muted/50 cursor-pointer transition-colors"
       onClick={() => onEdit(article)}
     >
       <div className="flex items-center gap-3">
-        <FileText className="h-4 w-4 text-muted-foreground" />
+        <Icon className="h-4 w-4 text-muted-foreground" />
         <span className="text-sm font-medium text-foreground">{article.title}</span>
+        <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
+          {typeLabel}
+        </span>
         {!article.is_published && (
           <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">Draft</span>
         )}

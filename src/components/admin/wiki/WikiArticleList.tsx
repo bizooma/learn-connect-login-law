@@ -1,6 +1,15 @@
-import { Plus } from "lucide-react";
+import { useState, useRef } from "react";
+import { Plus, FileText, ScrollText, Upload, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useWikiArticles, WikiArticle } from "@/hooks/useWikiArticles";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useWikiArticles, WikiArticle, WikiContentType } from "@/hooks/useWikiArticles";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import WikiArticleRow from "./WikiArticleRow";
 
 interface WikiArticleListProps {
@@ -11,17 +20,69 @@ interface WikiArticleListProps {
 
 const WikiArticleList = ({ categoryId, onEditArticle, searchQuery }: WikiArticleListProps) => {
   const { articles, isLoading, createArticle, deleteArticle, updateArticle } = useWikiArticles(categoryId);
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const filtered = searchQuery
     ? articles.filter((a) => a.title.toLowerCase().includes(searchQuery.toLowerCase()))
     : articles;
 
-  const handleAddArticle = () => {
-    createArticle.mutate({ category_id: categoryId, title: "New Article" });
+  const handleCreate = (contentType: WikiContentType) => {
+    const labels: Record<WikiContentType, string> = {
+      policy: "New Policy",
+      procedure: "New Procedure",
+      document: "New Document",
+    };
+    createArticle.mutate({ category_id: categoryId, title: labels[contentType], content_type: contentType });
+  };
+
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const filePath = `wiki-documents/${crypto.randomUUID()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("admin-resources")
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: urlData } = supabase.storage
+        .from("admin-resources")
+        .getPublicUrl(filePath);
+
+      createArticle.mutate({
+        category_id: categoryId,
+        title: file.name.replace(/\.[^/.]+$/, ""),
+        content_type: "document",
+        file_url: urlData.publicUrl,
+        file_name: file.name,
+      });
+    } catch (error: any) {
+      toast.error("Upload failed: " + error.message);
+    } finally {
+      setUploading(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
   };
 
   return (
     <div>
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileUpload}
+        className="hidden"
+        accept=".pdf,.doc,.docx,.txt,.md,.xlsx,.xls,.pptx,.ppt"
+      />
       {isLoading ? (
         <div className="px-4 py-3 pl-12 text-sm text-muted-foreground">Loading...</div>
       ) : (
@@ -36,9 +97,24 @@ const WikiArticleList = ({ categoryId, onEditArticle, searchQuery }: WikiArticle
             />
           ))}
           <div className="px-4 py-2 pl-12">
-            <Button variant="ghost" size="sm" onClick={handleAddArticle} className="text-muted-foreground hover:text-foreground">
-              <Plus className="h-4 w-4 mr-1" /> Add article
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" disabled={uploading}>
+                  <Plus className="h-4 w-4 mr-1" /> {uploading ? "Uploading..." : "Add new..."}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start">
+                <DropdownMenuItem onClick={() => handleCreate("policy")}>
+                  <Shield className="h-4 w-4 mr-2" /> New Policy
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => handleCreate("procedure")}>
+                  <ScrollText className="h-4 w-4 mr-2" /> New Procedure
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleUploadClick}>
+                  <Upload className="h-4 w-4 mr-2" /> Upload Document
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </>
       )}
