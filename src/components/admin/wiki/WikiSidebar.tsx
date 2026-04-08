@@ -60,7 +60,7 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateC
           </SidebarGroupContent>
         </SidebarGroup>
 
-        <SidebarGroup defaultOpen>
+        <SidebarGroup>
           <SidebarGroupLabel className="flex items-center justify-between">
             {!collapsed && <span>Categories</span>}
             {!collapsed && (

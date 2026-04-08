@@ -61,7 +61,8 @@ const AdminWikiPage = () => {
             categories={categories.map((c) => ({
               id: c.id,
               title: c.title,
-              icon: c.icon,
+              icon: c.icon_name,
+              article_count: (c as any).article_count,
               article_count: (c as any).article_count,
             }))}
             activeCategoryId={activeCategoryId}
