@@ -1,4 +1,4 @@
-import { BookOpen, Home, FolderOpen, Plus, Users } from "lucide-react";
+import { BookOpen, Home, FolderOpen, Plus, Users, UsersRound } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -35,7 +35,8 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateC
   const navigate = useNavigate();
   const location = useLocation();
   const onDirectory = location.pathname.startsWith("/admin/wiki/directory");
-  const onContent = !onDirectory;
+  const onGroups = location.pathname.startsWith("/admin/wiki/groups");
+  const onContent = !onDirectory && !onGroups;
 
 
   return (
@@ -120,6 +121,15 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateC
                 >
                   <Users className="h-4 w-4" />
                   {!collapsed && <span>Directory</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => navigate("/admin/wiki/groups")}
+                  className={`${onGroups ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                >
+                  <UsersRound className="h-4 w-4" />
+                  {!collapsed && <span>Groups</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

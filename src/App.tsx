@@ -30,6 +30,7 @@ import FreeDashboard from "./pages/FreeDashboard";
 import AdminDashboard from "./components/AdminDashboard";
 import AdminWikiPage from "./pages/AdminWikiPage";
 import AdminWikiDirectoryPage from "./pages/AdminWikiDirectoryPage";
+import AdminWikiGroupsPage from "./pages/AdminWikiGroupsPage";
 
 import AuthPage from "./components/AuthPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -76,6 +77,7 @@ const AppContent = () => {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/wiki" element={<AdminWikiPage />} />
         <Route path="/admin/wiki/directory" element={<AdminWikiDirectoryPage />} />
+        <Route path="/admin/wiki/groups" element={<AdminWikiGroupsPage />} />
 
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
