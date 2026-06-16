@@ -29,6 +29,8 @@ import ClientDashboard from "./pages/ClientDashboard";
 import FreeDashboard from "./pages/FreeDashboard";
 import AdminDashboard from "./components/AdminDashboard";
 import AdminWikiPage from "./pages/AdminWikiPage";
+import AdminWikiDirectoryPage from "./pages/AdminWikiDirectoryPage";
+
 import AuthPage from "./components/AuthPage";
 import RegisterPage from "./pages/RegisterPage";
 import PaymentSuccess from "./pages/PaymentSuccess";
