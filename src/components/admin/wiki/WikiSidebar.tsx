@@ -32,6 +32,11 @@ interface WikiSidebarProps {
 const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateCategory }: WikiSidebarProps) => {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+  const navigate = useNavigate();
+  const location = useLocation();
+  const onDirectory = location.pathname.startsWith("/admin/wiki/directory");
+  const onContent = !onDirectory;
+
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border top-0 h-full">
