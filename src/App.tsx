@@ -75,6 +75,8 @@ const AppContent = () => {
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/wiki" element={<AdminWikiPage />} />
+        <Route path="/admin/wiki/directory" element={<AdminWikiDirectoryPage />} />
+
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
         <Route path="/payment-cancelled" element={<PaymentCancelled />} />
