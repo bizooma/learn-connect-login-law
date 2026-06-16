@@ -41,7 +41,11 @@ const DirectoryTable = ({ users, onSelect }: Props) => {
         </TableHeader>
         <TableBody>
           {users.map((u) => (
-            <TableRow key={u.id}>
+            <TableRow
+              key={u.id}
+              className="cursor-pointer hover:bg-muted/50"
+              onClick={() => onSelect?.(u)}
+            >
               <TableCell>
                 <div className="flex items-center gap-3">
                   <Avatar className="h-8 w-8">
