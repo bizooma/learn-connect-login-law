@@ -1,55 +1,47 @@
+## Goal
 
+Add a **Directory** view inside the Policies & Procedures area (`/admin/wiki/directory`) that mirrors the Trainual "Manage Users" screen and lists every active user with a `@newfrontier.us` email, pulled from the existing `profiles` table. No new data — read-only view of users already in the LMS database.
 
-## Separate Wiki from LMS with Dedicated Page and Full Wiki UI
+## What you'll see
 
-### Overview
+A table matching the screenshot:
 
-Create a dedicated `/admin/wiki` route for Policies & Procedures that is visually distinct from the LMS admin dashboard, while sharing the same header for branding consistency. Add a toggle/switcher in the header to jump between LMS and Wiki. Build out the full wiki reader/management UI with a sidebar, category browsing, and article viewer — even without content yet.
+| Avatar + Name | Status | Job Title | Email | (kebab menu) |
 
-### What Changes
+Plus:
+- Search bar (name / email / job title)
+- Result count ("Showing X of Y")
+- Pagination (20 per page) to match Trainual's pattern
+- Empty/loading states
 
-**1. New Route: `/admin/wiki`**
-- Add a new route in `App.tsx` pointing to a new `AdminWikiPage` component
-- This page gets its own layout separate from the LMS dashboard
+Phase 1 omits the **Groups** column and the bulk-select checkboxes — we don't have a "Groups" concept yet in the P&P system. We can layer that on later when we decide whether Groups = Teams, Roles, or something new for P&P.
 
-**2. Shared Header with LMS/Wiki Switcher**
-- Modify `AdminDashboardHeader.tsx` to add a toggle or tab-style switcher (e.g., "LMS" | "Policies & Procedures") that navigates between `/admin-dashboard` and `/admin/wiki`
-- Both pages share the same blue header with logo and branding
+## Navigation
 
-**3. Full Wiki Page Layout (`AdminWikiPage.tsx`)**
-- Uses the shared header with the switcher
-- Below the header: a sidebar + main content layout
-- **Left Sidebar**: Company logo area, navigation links (Home, All Content), list of categories as a tree/nav
-- **Main Content Area**: Search bar at top, then either:
-  - Category list view (when no article selected) — shows all categories with expandable article lists, Trainual-style
-  - Article viewer/editor (when an article is selected) — shows the article content rendered from markdown, with edit controls for admins
-- Empty state with illustration/icon when no content exists yet: "No policies or procedures yet. Create your first category to get started."
+Add a **"Directory"** entry to the existing `WikiSidebar` (under a new "People" section, matching Trainual's left nav). Selecting it routes to `/admin/wiki/directory`. The existing categories list stays untouched.
 
-**4. Wiki Sidebar Component**
-- Collapsible sidebar using Shadcn Sidebar components
-- Shows categories as nav items with article counts
-- Clicking a category scrolls/filters to that category in the main content
-- Active category highlighted
-- Collapse button to minimize to icons only
+## Technical details
 
-**5. Enhanced Wiki Main Content**
-- Reuse existing `WikiManagement.tsx` components (search bar, category list, category rows, article editor)
-- Add a welcome/empty state card with an icon and helpful text
-- Add breadcrumb navigation when viewing an article
+**Data**
+- New hook `useDirectoryUsers.ts` — queries `profiles` where `email ILIKE '%@newfrontier.us'` and `is_deleted = false`, ordered by `first_name`. Returns `{ id, first_name, last_name, email, job_title, profile_image_url }`. Status is derived as "Active" for now (we don't track invite state on `profiles`); column is included so the UI matches Trainual and we can wire real status later.
+- No schema changes, no migration — RLS on `profiles` already allows admins to read.
 
-### Files to Create
-- `src/pages/AdminWikiPage.tsx` — new page component with sidebar layout
-- `src/components/admin/wiki/WikiSidebar.tsx` — sidebar navigation for wiki
+**Routing**
+- Add route `/admin/wiki/directory` in `App.tsx` pointing to a new `AdminWikiDirectoryPage`.
 
-### Files to Modify
-- `src/App.tsx` — add `/admin/wiki` route
-- `src/components/admin/AdminDashboardHeader.tsx` — add LMS/Wiki switcher buttons
-- `src/components/admin/wiki/WikiManagement.tsx` — minor tweaks for standalone page use
-- `src/components/admin/AdminNavigationDropdown.tsx` — update wiki nav item to link to `/admin/wiki` instead of inline tab
+**New files**
+- `src/pages/AdminWikiDirectoryPage.tsx` — wraps `AdminDashboardHeader` + `WikiSidebar` (reused) + the directory table, so the P&P shell stays consistent.
+- `src/components/admin/wiki/directory/DirectoryTable.tsx` — table, avatars (fallback to initials), status badge, kebab placeholder.
+- `src/components/admin/wiki/directory/DirectorySearchBar.tsx` — search input.
+- `src/hooks/useDirectoryUsers.ts` — react-query hook described above.
 
-### Navigation Flow
-- From LMS dashboard: click "Policies & Procedures" in the header switcher → navigates to `/admin/wiki`
-- From Wiki page: click "LMS" in the header switcher → navigates to `/admin-dashboard`
-- The wiki nav item in the yellow dropdown will also navigate to `/admin/wiki` instead of rendering inline
-- Keep the wiki tab entry in `AdminManagementTabs` as a redirect to the new route for backwards compatibility
+**Modified files**
+- `src/components/admin/wiki/WikiSidebar.tsx` — add a "People → Directory" menu item with active-state styling, navigating via `useNavigate`.
+- `src/App.tsx` — register the new route behind the existing admin guard used by `/admin/wiki`.
 
+## Out of scope (call out for later)
+
+- Groups column / group management
+- Inviting or editing users from this screen (LMS user management already handles create/edit; we can add a "Manage in LMS" link from the kebab menu)
+- Real invite-status tracking
+- Bulk actions

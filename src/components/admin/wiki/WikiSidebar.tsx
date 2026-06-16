@@ -1,4 +1,5 @@
-import { BookOpen, Home, FolderOpen, ChevronRight, Plus } from "lucide-react";
+import { BookOpen, Home, FolderOpen, Plus, Users } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -12,6 +13,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+
 
 interface WikiCategory {
   id: string;
@@ -30,6 +32,11 @@ interface WikiSidebarProps {
 const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateCategory }: WikiSidebarProps) => {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
+  const navigate = useNavigate();
+  const location = useLocation();
+  const onDirectory = location.pathname.startsWith("/admin/wiki/directory");
+  const onContent = !onDirectory;
+
 
   return (
     <Sidebar collapsible="icon" className="border-r border-border top-0 h-full">
@@ -49,13 +56,17 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateC
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  onClick={() => onCategorySelect(null)}
-                  className={`${!activeCategoryId ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                  onClick={() => {
+                    if (onDirectory) navigate("/admin/wiki");
+                    onCategorySelect(null);
+                  }}
+                  className={`${onContent && !activeCategoryId ? 'bg-accent text-accent-foreground font-medium' : ''}`}
                 >
                   <Home className="h-4 w-4" />
                   {!collapsed && <span>All Content</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
+
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -97,9 +108,27 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateC
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>{!collapsed && <span>People</span>}</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => navigate("/admin/wiki/directory")}
+                  className={`${onDirectory ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                >
+                  <Users className="h-4 w-4" />
+                  {!collapsed && <span>Directory</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
     </Sidebar>
   );
 };
+
 
 export default WikiSidebar;
