@@ -1,4 +1,5 @@
-import { BookOpen, Home, FolderOpen, ChevronRight, Plus } from "lucide-react";
+import { BookOpen, Home, FolderOpen, Plus, Users } from "lucide-react";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
   Sidebar,
   SidebarContent,
@@ -12,6 +13,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+
 
 interface WikiCategory {
   id: string;
