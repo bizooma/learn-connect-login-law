@@ -68,7 +68,7 @@ const DirectoryTable = ({ users, onSelect }: Props) => {
                 {u.job_title || "—"}
               </TableCell>
               <TableCell className="text-muted-foreground">{u.email}</TableCell>
-              <TableCell>
+              <TableCell onClick={(e) => e.stopPropagation()}>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
                   <MoreVertical className="h-4 w-4" />
                 </Button>
