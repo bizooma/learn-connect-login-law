@@ -14,6 +14,7 @@ import { ChevronLeft, ChevronRight, Users } from "lucide-react";
 const PAGE_SIZE = 20;
 
 const AdminWikiDirectoryPage = () => {
+  const navigate = useNavigate();
   const { data: users = [], isLoading } = useDirectoryUsers();
   const { categories } = useWikiCategories();
   const [search, setSearch] = useState("");
