@@ -94,7 +94,7 @@ const AdminWikiDirectoryPage = () => {
                   </div>
                 ) : (
                   <>
-                    <DirectoryTable users={pageRows} />
+                    <DirectoryTable users={pageRows} onSelect={setSelected} />
 
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
                       <span>
