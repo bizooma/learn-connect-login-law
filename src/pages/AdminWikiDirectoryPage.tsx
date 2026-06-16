@@ -4,7 +4,8 @@ import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
 import WikiSidebar from "@/components/admin/wiki/WikiSidebar";
 import DirectorySearchBar from "@/components/admin/wiki/directory/DirectorySearchBar";
 import DirectoryTable from "@/components/admin/wiki/directory/DirectoryTable";
-import { useDirectoryUsers } from "@/hooks/useDirectoryUsers";
+import DirectoryUserDrawer from "@/components/admin/wiki/directory/DirectoryUserDrawer";
+import { useDirectoryUsers, DirectoryUser } from "@/hooks/useDirectoryUsers";
 import { useWikiCategories } from "@/hooks/useWikiCategories";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Users } from "lucide-react";
@@ -16,6 +17,7 @@ const AdminWikiDirectoryPage = () => {
   const { categories } = useWikiCategories();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState<DirectoryUser | null>(null);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -92,7 +94,7 @@ const AdminWikiDirectoryPage = () => {
                   </div>
                 ) : (
                   <>
-                    <DirectoryTable users={pageRows} />
+                    <DirectoryTable users={pageRows} onSelect={setSelected} />
 
                     <div className="flex items-center justify-between text-sm text-muted-foreground">
                       <span>
@@ -130,6 +132,12 @@ const AdminWikiDirectoryPage = () => {
           </div>
         </div>
       </SidebarProvider>
+
+      <DirectoryUserDrawer
+        user={selected}
+        open={!!selected}
+        onOpenChange={(o) => !o && setSelected(null)}
+      />
     </div>
   );
 };

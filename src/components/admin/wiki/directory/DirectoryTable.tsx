@@ -14,6 +14,7 @@ import { DirectoryUser } from "@/hooks/useDirectoryUsers";
 
 interface Props {
   users: DirectoryUser[];
+  onSelect?: (user: DirectoryUser) => void;
 }
 
 const initials = (u: DirectoryUser) => {
@@ -25,7 +26,7 @@ const initials = (u: DirectoryUser) => {
 const fullName = (u: DirectoryUser) =>
   [u.first_name, u.last_name].filter(Boolean).join(" ") || u.email;
 
-const DirectoryTable = ({ users }: Props) => {
+const DirectoryTable = ({ users, onSelect }: Props) => {
   return (
     <div className="border border-border rounded-lg overflow-hidden bg-card">
       <Table>
@@ -40,7 +41,11 @@ const DirectoryTable = ({ users }: Props) => {
         </TableHeader>
         <TableBody>
           {users.map((u) => (
-            <TableRow key={u.id}>
+            <TableRow
+              key={u.id}
+              className="cursor-pointer hover:bg-muted/50"
+              onClick={() => onSelect?.(u)}
+            >
               <TableCell>
                 <div className="flex items-center gap-3">
                   <Avatar className="h-8 w-8">
@@ -63,7 +68,7 @@ const DirectoryTable = ({ users }: Props) => {
                 {u.job_title || "—"}
               </TableCell>
               <TableCell className="text-muted-foreground">{u.email}</TableCell>
-              <TableCell>
+              <TableCell onClick={(e) => e.stopPropagation()}>
                 <Button variant="ghost" size="icon" className="h-8 w-8">
                   <MoreVertical className="h-4 w-4" />
                 </Button>
