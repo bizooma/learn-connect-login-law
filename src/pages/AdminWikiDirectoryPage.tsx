@@ -17,6 +17,7 @@ const AdminWikiDirectoryPage = () => {
   const { categories } = useWikiCategories();
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [selected, setSelected] = useState<DirectoryUser | null>(null);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
