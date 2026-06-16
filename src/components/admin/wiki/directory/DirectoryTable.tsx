@@ -14,6 +14,7 @@ import { DirectoryUser } from "@/hooks/useDirectoryUsers";
 
 interface Props {
   users: DirectoryUser[];
+  onSelect?: (user: DirectoryUser) => void;
 }
 
 const initials = (u: DirectoryUser) => {
