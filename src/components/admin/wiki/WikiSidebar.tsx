@@ -56,13 +56,17 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateC
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  onClick={() => onCategorySelect(null)}
-                  className={`${!activeCategoryId ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                  onClick={() => {
+                    if (onDirectory) navigate("/admin/wiki");
+                    onCategorySelect(null);
+                  }}
+                  className={`${onContent && !activeCategoryId ? 'bg-accent text-accent-foreground font-medium' : ''}`}
                 >
                   <Home className="h-4 w-4" />
                   {!collapsed && <span>All Content</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
+
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
