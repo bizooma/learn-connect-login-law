@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useLocation } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Plus, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,11 +13,19 @@ import WikiArticleEditor from "@/components/admin/wiki/WikiArticleEditor";
 import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
 
 const AdminWikiPage = () => {
+  const location = useLocation();
+  const navState = (location.state ?? {}) as { activeCategoryId?: string | null; openCreateCategory?: boolean };
   const [searchQuery, setSearchQuery] = useState("");
-  const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
-  const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
+  const [activeCategoryId, setActiveCategoryId] = useState<string | null>(navState.activeCategoryId ?? null);
+  const [categoryDialogOpen, setCategoryDialogOpen] = useState(!!navState.openCreateCategory);
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [editingArticle, setEditingArticle] = useState<WikiArticle | null>(null);
+
+  useEffect(() => {
+    if (navState.activeCategoryId !== undefined) setActiveCategoryId(navState.activeCategoryId);
+    if (navState.openCreateCategory) setCategoryDialogOpen(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.key]);
 
   const { categories, isLoading, createCategory, updateCategory, deleteCategory } = useWikiCategories();
   const { updateArticle } = useWikiArticles();

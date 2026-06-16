@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
 import WikiSidebar from "@/components/admin/wiki/WikiSidebar";
@@ -13,6 +14,7 @@ import { ChevronLeft, ChevronRight, Users } from "lucide-react";
 const PAGE_SIZE = 20;
 
 const AdminWikiDirectoryPage = () => {
+  const navigate = useNavigate();
   const { data: users = [], isLoading } = useDirectoryUsers();
   const { categories } = useWikiCategories();
   const [search, setSearch] = useState("");
@@ -53,8 +55,8 @@ const AdminWikiDirectoryPage = () => {
               article_count: (c as any).article_count,
             }))}
             activeCategoryId={null}
-            onCategorySelect={() => {}}
-            onCreateCategory={() => {}}
+            onCategorySelect={(id) => navigate("/admin/wiki", { state: { activeCategoryId: id } })}
+            onCreateCategory={() => navigate("/admin/wiki", { state: { openCreateCategory: true } })}
           />
 
           <div className="flex-1 flex flex-col min-w-0">
