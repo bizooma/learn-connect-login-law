@@ -132,6 +132,12 @@ const AdminWikiDirectoryPage = () => {
           </div>
         </div>
       </SidebarProvider>
+
+      <DirectoryUserDrawer
+        user={selected}
+        open={!!selected}
+        onOpenChange={(o) => !o && setSelected(null)}
+      />
     </div>
   );
 };
