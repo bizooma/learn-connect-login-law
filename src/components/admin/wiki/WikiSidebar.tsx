@@ -108,9 +108,27 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateC
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>{!collapsed && <span>People</span>}</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => navigate("/admin/wiki/directory")}
+                  className={`${onDirectory ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                >
+                  <Users className="h-4 w-4" />
+                  {!collapsed && <span>Directory</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
     </Sidebar>
   );
 };
+
 
 export default WikiSidebar;
