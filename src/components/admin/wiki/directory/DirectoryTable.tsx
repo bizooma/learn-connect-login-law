@@ -26,7 +26,7 @@ const initials = (u: DirectoryUser) => {
 const fullName = (u: DirectoryUser) =>
   [u.first_name, u.last_name].filter(Boolean).join(" ") || u.email;
 
-const DirectoryTable = ({ users }: Props) => {
+const DirectoryTable = ({ users, onSelect }: Props) => {
   return (
     <div className="border border-border rounded-lg overflow-hidden bg-card">
       <Table>
