@@ -4,13 +4,16 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Plus, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useWikiCategories } from "@/hooks/useWikiCategories";
-import { useWikiArticles, WikiArticle } from "@/hooks/useWikiArticles";
+import { useWikiArticles, WikiArticle, type WikiContentType } from "@/hooks/useWikiArticles";
 import WikiSidebar from "@/components/admin/wiki/WikiSidebar";
 import WikiSearchBar from "@/components/admin/wiki/WikiSearchBar";
 import WikiCategoryList from "@/components/admin/wiki/WikiCategoryList";
 import WikiCategoryDialog from "@/components/admin/wiki/WikiCategoryDialog";
 import WikiArticleEditor from "@/components/admin/wiki/WikiArticleEditor";
+import CreateContentMenu, { type CreateContentChoice } from "@/components/admin/wiki/CreateContentMenu";
+import CreateContentDialog from "@/components/admin/wiki/CreateContentDialog";
 import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
+
 
 const AdminWikiPage = () => {
   const location = useLocation();
@@ -20,6 +23,8 @@ const AdminWikiPage = () => {
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(!!navState.openCreateCategory);
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [editingArticle, setEditingArticle] = useState<WikiArticle | null>(null);
+  const [createContentType, setCreateContentType] = useState<WikiContentType | null>(null);
+
 
   useEffect(() => {
     if (navState.activeCategoryId !== undefined) setActiveCategoryId(navState.activeCategoryId);
@@ -60,6 +65,15 @@ const AdminWikiPage = () => {
     setCategoryDialogOpen(true);
   };
 
+  const handleCreateChoice = (choice: CreateContentChoice) => {
+    if (choice === "subject") {
+      handleCreateCategory();
+    } else {
+      setCreateContentType(choice);
+    }
+  };
+
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <div className="relative z-50">
@@ -95,10 +109,11 @@ const AdminWikiPage = () => {
                   </p>
                 </div>
               </div>
-              <Button onClick={handleCreateCategory} className="gap-2" size="sm">
-                <Plus className="h-4 w-4" /> New Category
-              </Button>
+              <CreateContentMenu onSelect={handleCreateChoice} />
             </div>
+
+
+
 
             <div className="flex-1 overflow-auto p-6">
               {editingArticle ? (
@@ -154,6 +169,15 @@ const AdminWikiPage = () => {
         initialData={editingCategory || undefined}
         mode={editingCategory ? "edit" : "create"}
       />
+
+      <CreateContentDialog
+        open={!!createContentType}
+        onOpenChange={(o) => !o && setCreateContentType(null)}
+        contentType={createContentType}
+        categories={categories.map((c) => ({ id: c.id, title: c.title }))}
+        defaultCategoryId={activeCategoryId}
+      />
+
     </div>
   );
 };
