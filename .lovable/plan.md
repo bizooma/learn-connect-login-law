@@ -1,54 +1,35 @@
-## Goal
+# Floating Bubbles Banner
 
-Restructure the Wiki to match Trainual's model:
-- **Subjects** = containers/folders (each row in the All Content list)
-- **Categories** = a small fixed taxonomy tag on each Subject: **Policy**, **Procedure**, or **Company**
-- **Content items** (Document, Flowchart, Video, File, Checklist, Test) live *inside* a Subject
+Add a fun, lightweight animated banner under the 4 filter tabs on the Admin Wiki page. Pure CSS — no new dependencies.
 
-Today's system confuses these: our `wiki_categories` table is actually being used as Subjects, and we have no real "Policy / Procedure / Company" categorization.
+## Visual concept
 
-## Data Model Changes
+A short horizontal banner (~96px tall) with a soft gradient background in brand colors (Deep Blue #213C82 → a lighter blue), with translucent circular "bubbles" drifting upward and gently swaying side-to-side. Bubbles vary in size, opacity, speed, and horizontal start position, and have a subtle highlight to read as bubbles rather than dots. A short friendly headline sits on top, e.g. "Your team's playbook, all in one place."
 
-Rename and add, without losing existing data:
+```text
+┌───────────────────────────────────────────────────────┐
+│   ° .   o     .  O   .    °   o    .     °    o      │
+│  Your team's playbook, all in one place.   .  °       │
+│   °  O    .    °    o    .    O    °   .    o   °    │
+└───────────────────────────────────────────────────────┘
+```
 
-1. **Keep `wiki_categories` table** but treat it semantically as **Subjects** (no table rename needed — internal only). Add a new column:
-   - `category` enum: `'policy' | 'procedure' | 'company'` (default `'company'`)
-2. **Keep `wiki_articles`** as-is — these are the content items inside a Subject. The existing `content_type` column already drives the 7 create-type icons.
-3. Backfill: set `category = 'company'` on all existing rows.
+## What to build
 
-No destructive changes; only an additive column + enum.
+1. **New component**: `src/components/admin/wiki/BubblesBanner.tsx`
+   - Rounded container with gradient background using brand tokens.
+   - ~14 absolutely-positioned bubble `<span>`s with randomized inline styles (size 8–40px, left %, animation-delay, animation-duration 6–14s, opacity 0.15–0.5).
+   - Each bubble uses a `float-up` keyframe (translateY from 100% to -120% + slight translateX wobble) and an inner radial-gradient highlight.
+   - `pointer-events-none` overlay so it never blocks clicks.
+   - Optional headline + small subtext centered, white text with soft shadow.
+   - Respects `prefers-reduced-motion`: bubbles render static.
 
-## UI Changes
+2. **Keyframes**: add `float-up` (and a `bubble-sway` variant) to `tailwind.config.ts` under `keyframes` / `animation`, matching the existing pattern.
 
-### `AdminWikiPage.tsx` (All Content view)
-Match the screenshot layout:
-- Page title: **Content**
-- Top filter tabs: **All content | Company | Policies | Processes** — filter Subjects by their `category` value
-- Each row = one Subject, showing: title, item count, **Category badge** (Policy / Procedure / Company with the matching icon + color), owner, actions
-- Expanding a Subject row reveals its content items (Documents, Videos, Tests, etc.) — already implemented via the accordion
+3. **Wire-up**: in `src/pages/AdminWikiPage.tsx`, render `<BubblesBanner />` directly under the filter tab row and above the subjects list.
 
-### Create flow (`CreateContentMenu` + dialogs)
-- **Create → Subject**: opens the existing category dialog, now with an added required **Category** picker (Policy / Procedure / Company)
-- **Create → Document / Flowchart / Video / File / Checklist / Test**: unchanged; first asks which Subject to add it to, then opens the type-specific editor
+## Notes
 
-### Sidebar (`WikiSidebar.tsx`)
-- Rename the "Categories" section heading to **Subjects**
-- The list under it remains the same Subjects, unchanged behavior
-
-## Out of Scope (this plan)
-
-- No changes to article editors, file uploads, or the Flowchart/Checklist/Test stub editors
-- No new permissions / RLS changes — existing policies cover the new column
-- No rename of the `wiki_categories` SQL table (internal-only; avoids a risky migration)
-
-## Files Touched
-
-- **Migration**: add `category` enum + column on `wiki_categories`, backfill `'company'`
-- `src/hooks/useWikiCategories.ts` — include `category` in select / create / update types
-- `src/components/admin/wiki/WikiCategoryDialog.tsx` — add Category picker field
-- `src/pages/AdminWikiPage.tsx` — add the 4 filter tabs, filter Subjects by category
-- `src/components/admin/wiki/WikiCategoryList.tsx` (and row component) — render the Category badge column
-- `src/components/admin/wiki/WikiSidebar.tsx` — rename heading to "Subjects"
-- `src/components/admin/wiki/CreateContentMenu.tsx` — relabel "Subject" helper text to clarify it's a container with a Category
-
-After approval I'll implement in that order and verify the All Content page renders the 4 tabs and the Category badge on each Subject row.
+- All colors via semantic tokens / brand hex already in use; no hardcoded grays.
+- No data, no props required for v1 (headline can be a prop with a sensible default).
+- Self-contained — easy to remove or swap later.
