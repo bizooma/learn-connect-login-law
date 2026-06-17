@@ -111,7 +111,7 @@ const AdminWikiPage = () => {
                       : "All Content"}
                   </h2>
                   <p className="text-xs text-muted-foreground">
-                    {categories.length} categories
+                    {categories.length} {categories.length === 1 ? "subject" : "subjects"}
                   </p>
                 </div>
               </div>
@@ -130,6 +130,37 @@ const AdminWikiPage = () => {
                 />
               ) : (
                 <div className="max-w-5xl mx-auto space-y-6">
+                  {!activeCategoryId && (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {[
+                        { value: "all" as const, label: ALL_CONTENT_META.label, Icon: ALL_CONTENT_META.Icon, iconColor: ALL_CONTENT_META.iconColor },
+                        ...SUBJECT_CATEGORIES.map((c) => ({
+                          value: c.value,
+                          label: c.pluralLabel,
+                          Icon: c.Icon,
+                          iconColor: c.iconColor,
+                        })),
+                      ].map((tab) => {
+                        const isActive = activeCategoryFilter === tab.value;
+                        return (
+                          <button
+                            key={tab.value}
+                            type="button"
+                            onClick={() => setActiveCategoryFilter(tab.value)}
+                            className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-left transition-colors ${
+                              isActive
+                                ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                                : "border-border bg-background hover:bg-muted/40"
+                            }`}
+                          >
+                            <tab.Icon className={`h-5 w-5 ${tab.iconColor}`} />
+                            <span className="text-sm font-medium text-foreground">{tab.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
                   <WikiSearchBar value={searchQuery} onChange={setSearchQuery} />
 
                   {isLoading ? (
