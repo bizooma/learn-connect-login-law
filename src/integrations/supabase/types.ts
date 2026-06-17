@@ -2301,6 +2301,7 @@ export type Database = {
       }
       wiki_categories: {
         Row: {
+          category: Database["public"]["Enums"]["wiki_subject_category"]
           created_at: string
           created_by: string
           description: string | null
@@ -2312,6 +2313,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          category?: Database["public"]["Enums"]["wiki_subject_category"]
           created_at?: string
           created_by: string
           description?: string | null
@@ -2323,6 +2325,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          category?: Database["public"]["Enums"]["wiki_subject_category"]
           created_at?: string
           created_by?: string
           description?: string | null
@@ -2717,6 +2720,7 @@ export type Database = {
         | "all_owners"
         | "all_users"
         | "admin_only"
+      wiki_subject_category: "policy" | "procedure" | "company"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2869,6 +2873,7 @@ export const Constants = {
         "all_users",
         "admin_only",
       ],
+      wiki_subject_category: ["policy", "procedure", "company"],
     },
   },
 } as const
