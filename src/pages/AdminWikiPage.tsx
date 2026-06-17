@@ -3,8 +3,9 @@ import { useLocation } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Plus, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useWikiCategories } from "@/hooks/useWikiCategories";
+import { useWikiCategories, type WikiSubjectCategory } from "@/hooks/useWikiCategories";
 import { useWikiArticles, WikiArticle, type WikiContentType } from "@/hooks/useWikiArticles";
+import { SUBJECT_CATEGORIES, ALL_CONTENT_META } from "@/components/admin/wiki/subjectCategoryMeta";
 import WikiSidebar from "@/components/admin/wiki/WikiSidebar";
 import WikiSearchBar from "@/components/admin/wiki/WikiSearchBar";
 import WikiCategoryList from "@/components/admin/wiki/WikiCategoryList";
@@ -24,6 +25,7 @@ const AdminWikiPage = () => {
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [editingArticle, setEditingArticle] = useState<WikiArticle | null>(null);
   const [createContentType, setCreateContentType] = useState<WikiContentType | null>(null);
+  const [activeCategoryFilter, setActiveCategoryFilter] = useState<WikiSubjectCategory | "all">("all");
 
 
   useEffect(() => {
@@ -35,11 +37,15 @@ const AdminWikiPage = () => {
   const { categories, isLoading, createCategory, updateCategory, deleteCategory } = useWikiCategories();
   const { updateArticle } = useWikiArticles();
 
-  const filteredCategories = searchQuery
-    ? categories.filter((c) => c.title.toLowerCase().includes(searchQuery.toLowerCase()))
-    : activeCategoryId
+  const baseCategories = activeCategoryId
     ? categories.filter((c) => c.id === activeCategoryId)
-    : categories;
+    : activeCategoryFilter === "all"
+    ? categories
+    : categories.filter((c) => c.category === activeCategoryFilter);
+
+  const filteredCategories = searchQuery
+    ? baseCategories.filter((c) => c.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    : baseCategories;
 
   const handleEditCategory = (category: any) => {
     setEditingCategory(category);
@@ -105,7 +111,7 @@ const AdminWikiPage = () => {
                       : "All Content"}
                   </h2>
                   <p className="text-xs text-muted-foreground">
-                    {categories.length} categories
+                    {categories.length} {categories.length === 1 ? "subject" : "subjects"}
                   </p>
                 </div>
               </div>
@@ -124,6 +130,37 @@ const AdminWikiPage = () => {
                 />
               ) : (
                 <div className="max-w-5xl mx-auto space-y-6">
+                  {!activeCategoryId && (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                      {[
+                        { value: "all" as const, label: ALL_CONTENT_META.label, Icon: ALL_CONTENT_META.Icon, iconColor: ALL_CONTENT_META.iconColor },
+                        ...SUBJECT_CATEGORIES.map((c) => ({
+                          value: c.value,
+                          label: c.pluralLabel,
+                          Icon: c.Icon,
+                          iconColor: c.iconColor,
+                        })),
+                      ].map((tab) => {
+                        const isActive = activeCategoryFilter === tab.value;
+                        return (
+                          <button
+                            key={tab.value}
+                            type="button"
+                            onClick={() => setActiveCategoryFilter(tab.value)}
+                            className={`flex items-center gap-3 rounded-lg border px-4 py-3 text-left transition-colors ${
+                              isActive
+                                ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                                : "border-border bg-background hover:bg-muted/40"
+                            }`}
+                          >
+                            <tab.Icon className={`h-5 w-5 ${tab.iconColor}`} />
+                            <span className="text-sm font-medium text-foreground">{tab.label}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
                   <WikiSearchBar value={searchQuery} onChange={setSearchQuery} />
 
                   {isLoading ? (
