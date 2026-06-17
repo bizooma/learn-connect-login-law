@@ -110,6 +110,9 @@ const AdminWikiPage = () => {
                 </div>
               </div>
               <CreateContentMenu onSelect={handleCreateChoice} />
+            </div>
+
+
 
 
             <div className="flex-1 overflow-auto p-6">
