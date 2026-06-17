@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ChevronRight, ChevronDown, FolderOpen, MoreVertical, Pencil, Trash2, Eye, EyeOff } from "lucide-react";
+import { ChevronRight, ChevronDown, MoreVertical, Pencil, Trash2, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -10,6 +10,7 @@ import {
 import { WikiCategory } from "@/hooks/useWikiCategories";
 import { WikiArticle } from "@/hooks/useWikiArticles";
 import WikiArticleList from "./WikiArticleList";
+import { getSubjectCategoryMeta } from "./subjectCategoryMeta";
 
 interface WikiCategoryRowProps {
   category: WikiCategory;
@@ -24,6 +25,8 @@ interface WikiCategoryRowProps {
 const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditArticle, searchQuery, defaultExpanded }: WikiCategoryRowProps) => {
   const [expanded, setExpanded] = useState(defaultExpanded || false);
   const count = category.article_count || 0;
+  const meta = getSubjectCategoryMeta(category.category);
+  const CategoryIcon = meta.Icon;
 
   return (
     <div className="border-b border-border">
@@ -31,19 +34,22 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
         className="flex items-center justify-between px-4 py-3 hover:bg-muted/30 cursor-pointer transition-colors"
         onClick={() => setExpanded(!expanded)}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-3 min-w-0 flex-1">
           {expanded ? (
-            <ChevronDown className="h-4 w-4 text-muted-foreground" />
+            <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
           ) : (
-            <ChevronRight className="h-4 w-4 text-muted-foreground" />
+            <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
           )}
-          <FolderOpen className="h-5 w-5 text-primary" />
-          <span className="font-medium text-foreground">{category.title}</span>
-          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+          <CategoryIcon className={`h-5 w-5 shrink-0 ${meta.iconColor}`} />
+          <span className="font-medium text-foreground truncate">{category.title}</span>
+          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full shrink-0">
             {count} {count === 1 ? "item" : "items"}
           </span>
+          <span className={`text-xs px-2 py-0.5 rounded-full border shrink-0 ${meta.badgeClass}`}>
+            {meta.label}
+          </span>
           {!category.is_published && (
-            <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">Draft</span>
+            <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded shrink-0">Draft</span>
           )}
         </div>
         <div className="flex items-center gap-2">
