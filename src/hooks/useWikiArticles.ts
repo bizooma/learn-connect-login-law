@@ -2,7 +2,16 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
-export type WikiContentType = "policy" | "procedure" | "document";
+export type WikiContentType =
+  | "document"
+  | "flowchart"
+  | "video"
+  | "file"
+  | "checklist"
+  | "test"
+  // legacy values kept for backwards compatibility with existing rows
+  | "policy"
+  | "procedure";
 
 export interface WikiArticle {
   id: string;
@@ -21,9 +30,14 @@ export interface WikiArticle {
 }
 
 export const contentTypeLabels: Record<WikiContentType, string> = {
+  document: "Document",
+  flowchart: "Flowchart",
+  video: "Video",
+  file: "File",
+  checklist: "Checklist",
+  test: "Test",
   policy: "Policy",
   procedure: "Procedure",
-  document: "Document",
 };
 
 export const useWikiArticles = (categoryId?: string) => {
@@ -68,7 +82,7 @@ export const useWikiArticles = (categoryId?: string) => {
           category_id: article.category_id,
           title: article.title,
           content: article.content || "",
-          content_type: article.content_type || "policy",
+          content_type: article.content_type || "document",
           file_url: article.file_url || null,
           file_name: article.file_name || null,
           tags: article.tags || [],
@@ -81,7 +95,7 @@ export const useWikiArticles = (categoryId?: string) => {
       return data;
     },
     onSuccess: (_, variables) => {
-      const label = contentTypeLabels[variables.content_type || "policy"];
+      const label = contentTypeLabels[variables.content_type || "document"];
       queryClient.invalidateQueries({ queryKey: ["wiki-articles"] });
       queryClient.invalidateQueries({ queryKey: ["wiki-categories"] });
       toast.success(`${label} created`);

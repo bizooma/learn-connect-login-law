@@ -1,4 +1,4 @@
-import { FileText, MoreVertical, Eye, EyeOff, Pencil, Trash2, Shield, ScrollText, Upload } from "lucide-react";
+import { FileText, MoreVertical, Eye, EyeOff, Pencil, Trash2, Shield, ScrollText, Upload, GitBranch, Video, FileUp, ListChecks, ClipboardCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -6,7 +6,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { WikiArticle, contentTypeLabels } from "@/hooks/useWikiArticles";
+import { WikiArticle, contentTypeLabels, WikiContentType } from "@/hooks/useWikiArticles";
 
 interface WikiArticleRowProps {
   article: WikiArticle;
@@ -15,11 +15,17 @@ interface WikiArticleRowProps {
   onTogglePublish: (article: WikiArticle) => void;
 }
 
-const contentTypeIcons = {
+const contentTypeIcons: Record<WikiContentType, typeof FileText> = {
+  document: FileText,
+  flowchart: GitBranch,
+  video: Video,
+  file: FileUp,
+  checklist: ListChecks,
+  test: ClipboardCheck,
   policy: Shield,
   procedure: ScrollText,
-  document: Upload,
 };
+
 
 const WikiArticleRow = ({ article, onEdit, onDelete, onTogglePublish }: WikiArticleRowProps) => {
   const Icon = contentTypeIcons[article.content_type] || FileText;
