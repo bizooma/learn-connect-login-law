@@ -18,7 +18,7 @@ const BUBBLE_COUNT = 18;
 
 const BubblesBanner = ({
   headline = "Your team's playbook, all in one place.",
-  subtext = "Policies, processes, and the way we do things at New Frontier Immigration Law.",
+  subtext = "Policies, procedures, and the way we do things at New Frontier Immigration Law.",
 }: BubblesBannerProps) => {
   const bubbles = useMemo<Bubble[]>(() => {
     return Array.from({ length: BUBBLE_COUNT }, () => ({
