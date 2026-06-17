@@ -29,8 +29,8 @@ export const SUBJECT_CATEGORIES: SubjectCategoryMeta[] = [
   },
   {
     value: "procedure",
-    label: "Process",
-    pluralLabel: "Processes",
+    label: "Procedure",
+    pluralLabel: "Procedures",
     Icon: ClipboardList,
     iconColor: "text-teal-600",
     badgeClass: "bg-teal-50 text-teal-700 border-teal-200",
