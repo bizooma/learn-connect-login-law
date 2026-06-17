@@ -13,6 +13,7 @@ import WikiCategoryDialog from "@/components/admin/wiki/WikiCategoryDialog";
 import WikiArticleEditor from "@/components/admin/wiki/WikiArticleEditor";
 import CreateContentMenu, { type CreateContentChoice } from "@/components/admin/wiki/CreateContentMenu";
 import CreateContentDialog from "@/components/admin/wiki/CreateContentDialog";
+import BubblesBanner from "@/components/admin/wiki/BubblesBanner";
 import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
 
 
@@ -160,6 +161,8 @@ const AdminWikiPage = () => {
                       })}
                     </div>
                   )}
+
+                  {!activeCategoryId && <BubblesBanner />}
 
                   <WikiSearchBar value={searchQuery} onChange={setSearchQuery} />
 
