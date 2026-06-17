@@ -169,6 +169,15 @@ const AdminWikiPage = () => {
         initialData={editingCategory || undefined}
         mode={editingCategory ? "edit" : "create"}
       />
+
+      <CreateContentDialog
+        open={!!createContentType}
+        onOpenChange={(o) => !o && setCreateContentType(null)}
+        contentType={createContentType}
+        categories={categories.map((c) => ({ id: c.id, title: c.title }))}
+        defaultCategoryId={activeCategoryId}
+      />
+
     </div>
   );
 };
