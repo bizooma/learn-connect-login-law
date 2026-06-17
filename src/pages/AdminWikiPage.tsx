@@ -106,11 +106,22 @@ const AdminWikiPage = () => {
               <div className="flex items-center gap-3">
                 <SidebarTrigger />
                 <div>
-                  <h2 className="text-lg font-semibold text-foreground">
-                    {activeCategoryId
-                      ? categories.find((c) => c.id === activeCategoryId)?.title || "Category"
-                      : "All Content"}
-                  </h2>
+                  {activeCategoryId ? (
+                    <div className="flex items-center gap-2 text-sm">
+                      <button
+                        onClick={() => setActiveCategoryId(null)}
+                        className="text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        All Content
+                      </button>
+                      <span className="text-muted-foreground">/</span>
+                      <span className="font-semibold text-foreground">
+                        {categories.find((c) => c.id === activeCategoryId)?.title || "Category"}
+                      </span>
+                    </div>
+                  ) : (
+                    <h2 className="text-lg font-semibold text-foreground">All Content</h2>
+                  )}
                   <p className="text-xs text-muted-foreground">
                     {categories.length} {categories.length === 1 ? "subject" : "subjects"}
                   </p>
