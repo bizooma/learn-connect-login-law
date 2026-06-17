@@ -28,13 +28,10 @@ const WikiArticleList = ({ categoryId, onEditArticle, searchQuery }: WikiArticle
     : articles;
 
   const handleCreate = (contentType: WikiContentType) => {
-    const labels: Record<WikiContentType, string> = {
-      policy: "New Policy",
-      procedure: "New Procedure",
-      document: "New Document",
-    };
-    createArticle.mutate({ category_id: categoryId, title: labels[contentType], content_type: contentType });
+    const title = `New ${contentType.charAt(0).toUpperCase() + contentType.slice(1)}`;
+    createArticle.mutate({ category_id: categoryId, title, content_type: contentType });
   };
+
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
@@ -62,10 +59,11 @@ const WikiArticleList = ({ categoryId, onEditArticle, searchQuery }: WikiArticle
       createArticle.mutate({
         category_id: categoryId,
         title: file.name.replace(/\.[^/.]+$/, ""),
-        content_type: "document",
+        content_type: "file",
         file_url: urlData.publicUrl,
         file_name: file.name,
       });
+
     } catch (error: any) {
       toast.error("Upload failed: " + error.message);
     } finally {
@@ -104,16 +102,17 @@ const WikiArticleList = ({ categoryId, onEditArticle, searchQuery }: WikiArticle
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start">
-                <DropdownMenuItem onClick={() => handleCreate("policy")}>
-                  <Shield className="h-4 w-4 mr-2" /> New Policy
+                <DropdownMenuItem onClick={() => handleCreate("document")}>
+                  <Shield className="h-4 w-4 mr-2" /> New Document
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => handleCreate("procedure")}>
                   <ScrollText className="h-4 w-4 mr-2" /> New Procedure
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={handleUploadClick}>
-                  <Upload className="h-4 w-4 mr-2" /> Upload Document
+                  <Upload className="h-4 w-4 mr-2" /> Upload File
                 </DropdownMenuItem>
               </DropdownMenuContent>
+
             </DropdownMenu>
           </div>
         </>
