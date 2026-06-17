@@ -3,8 +3,9 @@ import { useLocation } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Plus, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useWikiCategories } from "@/hooks/useWikiCategories";
+import { useWikiCategories, type WikiSubjectCategory } from "@/hooks/useWikiCategories";
 import { useWikiArticles, WikiArticle, type WikiContentType } from "@/hooks/useWikiArticles";
+import { SUBJECT_CATEGORIES, ALL_CONTENT_META } from "@/components/admin/wiki/subjectCategoryMeta";
 import WikiSidebar from "@/components/admin/wiki/WikiSidebar";
 import WikiSearchBar from "@/components/admin/wiki/WikiSearchBar";
 import WikiCategoryList from "@/components/admin/wiki/WikiCategoryList";
@@ -24,6 +25,7 @@ const AdminWikiPage = () => {
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [editingArticle, setEditingArticle] = useState<WikiArticle | null>(null);
   const [createContentType, setCreateContentType] = useState<WikiContentType | null>(null);
+  const [activeCategoryFilter, setActiveCategoryFilter] = useState<WikiSubjectCategory | "all">("all");
 
 
   useEffect(() => {
@@ -35,11 +37,15 @@ const AdminWikiPage = () => {
   const { categories, isLoading, createCategory, updateCategory, deleteCategory } = useWikiCategories();
   const { updateArticle } = useWikiArticles();
 
-  const filteredCategories = searchQuery
-    ? categories.filter((c) => c.title.toLowerCase().includes(searchQuery.toLowerCase()))
-    : activeCategoryId
+  const baseCategories = activeCategoryId
     ? categories.filter((c) => c.id === activeCategoryId)
-    : categories;
+    : activeCategoryFilter === "all"
+    ? categories
+    : categories.filter((c) => c.category === activeCategoryFilter);
+
+  const filteredCategories = searchQuery
+    ? baseCategories.filter((c) => c.title.toLowerCase().includes(searchQuery.toLowerCase()))
+    : baseCategories;
 
   const handleEditCategory = (category: any) => {
     setEditingCategory(category);
