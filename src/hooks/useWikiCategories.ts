@@ -49,7 +49,7 @@ export const useWikiCategories = () => {
   });
 
   const createCategory = useMutation({
-    mutationFn: async (category: { title: string; description?: string; icon_name?: string }) => {
+    mutationFn: async (category: { title: string; description?: string; icon_name?: string; category?: WikiSubjectCategory }) => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error("Not authenticated");
 
@@ -67,9 +67,10 @@ export const useWikiCategories = () => {
           title: category.title,
           description: category.description || null,
           icon_name: category.icon_name || "FileText",
+          category: category.category || "company",
           sort_order: nextOrder,
           created_by: userData.user.id,
-        })
+        } as any)
         .select()
         .single();
       if (error) throw error;
@@ -77,16 +78,16 @@ export const useWikiCategories = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wiki-categories"] });
-      toast.success("Category created");
+      toast.success("Subject created");
     },
-    onError: (error) => toast.error("Failed to create category: " + error.message),
+    onError: (error) => toast.error("Failed to create subject: " + error.message),
   });
 
   const updateCategory = useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string; title?: string; description?: string; icon_name?: string; is_published?: boolean; sort_order?: number }) => {
+    mutationFn: async ({ id, ...updates }: { id: string; title?: string; description?: string; icon_name?: string; category?: WikiSubjectCategory; is_published?: boolean; sort_order?: number }) => {
       const { data, error } = await supabase
         .from("wiki_categories")
-        .update(updates)
+        .update(updates as any)
         .eq("id", id)
         .select()
         .single();
@@ -95,9 +96,9 @@ export const useWikiCategories = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["wiki-categories"] });
-      toast.success("Category updated");
+      toast.success("Subject updated");
     },
-    onError: (error) => toast.error("Failed to update category: " + error.message),
+    onError: (error) => toast.error("Failed to update subject: " + error.message),
   });
 
   const deleteCategory = useMutation({
