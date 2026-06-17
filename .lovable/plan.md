@@ -1,41 +1,54 @@
 ## Goal
 
-Replicate Trainual's "Create" dropdown with 7 content types on the Wiki Content page. Skip the "Test → Content" rename.
+Restructure the Wiki to match Trainual's model:
+- **Subjects** = containers/folders (each row in the All Content list)
+- **Categories** = a small fixed taxonomy tag on each Subject: **Policy**, **Procedure**, or **Company**
+- **Content items** (Document, Flowchart, Video, File, Checklist, Test) live *inside* a Subject
 
-## 1. Create dropdown (7 types)
+Today's system confuses these: our `wiki_categories` table is actually being used as Subjects, and we have no real "Policy / Procedure / Company" categorization.
 
-Replace the page's `New Category` button with a primary **Create** dropdown matching the Trainual screenshot. Options:
+## Data Model Changes
 
-1. **Document** — Write with AI, utilizing visuals like images, tables and GIFs.
-2. **Flowchart** — Visually diagram processes that connect people, groups and content.
-3. **Video** — Upload or link a video.
-4. **File** — Bring in existing files like PDF, DOC, PPT, XLS, SCORM and more.
-5. **Checklist** — Create lightweight checklists for everyday processes.
-6. **Test** — Build a quiz to check knowledge and comprehension.
-7. **Subject** — Create a folder for your courses, videos, flowcharts, tests and more.
+Rename and add, without losing existing data:
 
-`Subject` = our existing Category — selecting it opens the existing `WikiCategoryDialog`. The other 6 open a new `CreateContentDialog` that creates a `wiki_articles` row with the matching `content_type`.
+1. **Keep `wiki_categories` table** but treat it semantically as **Subjects** (no table rename needed — internal only). Add a new column:
+   - `category` enum: `'policy' | 'procedure' | 'company'` (default `'company'`)
+2. **Keep `wiki_articles`** as-is — these are the content items inside a Subject. The existing `content_type` column already drives the 7 create-type icons.
+3. Backfill: set `category = 'company'` on all existing rows.
 
-Per-type create form:
-- **Document** → Subject + Title, then opens the existing editor
-- **Video** → Subject + Title + Video URL (stored in `content`)
-- **File** → Subject + Title + file upload (uses existing `file_url` / `file_name`)
-- **Flowchart / Checklist / Test** → Subject + Title only; placeholder entry (full editor "Coming Soon" per project rule)
+No destructive changes; only an additive column + enum.
 
-## 2. Data model
+## UI Changes
 
-`wiki_articles.content_type` is plain `text` (no check constraint) — **no migration required**. Existing `policy` / `procedure` values keep working as legacy labels. TS union is extended to: `document | flowchart | video | file | checklist | test` (plus legacy `policy | procedure`).
+### `AdminWikiPage.tsx` (All Content view)
+Match the screenshot layout:
+- Page title: **Content**
+- Top filter tabs: **All content | Company | Policies | Processes** — filter Subjects by their `category` value
+- Each row = one Subject, showing: title, item count, **Category badge** (Policy / Procedure / Company with the matching icon + color), owner, actions
+- Expanding a Subject row reveals its content items (Documents, Videos, Tests, etc.) — already implemented via the accordion
 
-## 3. Files
+### Create flow (`CreateContentMenu` + dialogs)
+- **Create → Subject**: opens the existing category dialog, now with an added required **Category** picker (Policy / Procedure / Company)
+- **Create → Document / Flowchart / Video / File / Checklist / Test**: unchanged; first asks which Subject to add it to, then opens the type-specific editor
 
-- **New:** `src/components/admin/wiki/CreateContentMenu.tsx` — Dropdown with the 7 options + icons + descriptions.
-- **New:** `src/components/admin/wiki/CreateContentDialog.tsx` — Minimal create form keyed off the chosen type.
-- **Edit:** `src/hooks/useWikiArticles.ts` — Extend `WikiContentType` union + labels; default `content_type` becomes `"document"`.
-- **Edit:** `src/components/admin/wiki/WikiArticleRow.tsx` — Map icons for the new content types.
-- **Edit:** `src/pages/AdminWikiPage.tsx` — Replace `New Category` button with `CreateContentMenu` + wire the new dialog.
+### Sidebar (`WikiSidebar.tsx`)
+- Rename the "Categories" section heading to **Subjects**
+- The list under it remains the same Subjects, unchanged behavior
 
-## Out of scope
+## Out of Scope (this plan)
 
-- Sidebar header / page header rename.
-- Full Flowchart / Checklist / Test editors and quiz linkage.
-- `Request` and `Import content` secondary buttons.
+- No changes to article editors, file uploads, or the Flowchart/Checklist/Test stub editors
+- No new permissions / RLS changes — existing policies cover the new column
+- No rename of the `wiki_categories` SQL table (internal-only; avoids a risky migration)
+
+## Files Touched
+
+- **Migration**: add `category` enum + column on `wiki_categories`, backfill `'company'`
+- `src/hooks/useWikiCategories.ts` — include `category` in select / create / update types
+- `src/components/admin/wiki/WikiCategoryDialog.tsx` — add Category picker field
+- `src/pages/AdminWikiPage.tsx` — add the 4 filter tabs, filter Subjects by category
+- `src/components/admin/wiki/WikiCategoryList.tsx` (and row component) — render the Category badge column
+- `src/components/admin/wiki/WikiSidebar.tsx` — rename heading to "Subjects"
+- `src/components/admin/wiki/CreateContentMenu.tsx` — relabel "Subject" helper text to clarify it's a container with a Category
+
+After approval I'll implement in that order and verify the All Content page renders the 4 tabs and the Category badge on each Subject row.
