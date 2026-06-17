@@ -72,7 +72,7 @@ const WikiCategoryDialog = ({ open, onOpenChange, onSave, initialData, mode }: W
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground mt-1">
-              Pick what kind of subject this is. Used to group content as Company, Policy, or Process.
+              Pick what kind of subject this is. Used to group content as Company, Policy, or Procedure.
             </p>
           </div>
           <div>
