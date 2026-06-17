@@ -2,11 +2,14 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
+export type WikiSubjectCategory = "policy" | "procedure" | "company";
+
 export interface WikiCategory {
   id: string;
   title: string;
   description: string | null;
   icon_name: string | null;
+  category: WikiSubjectCategory;
   sort_order: number;
   is_published: boolean;
   created_by: string;
