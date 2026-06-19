@@ -84,15 +84,6 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => goToCategory(null)}
-                  className={`${onContent && !activeCategoryId ? 'bg-accent text-accent-foreground font-medium' : ''}`}
-                >
-                  <FolderOpen className="h-4 w-4" />
-                  {!collapsed && <span>All Content</span>}
-                </SidebarMenuButton>
-              </SidebarMenuItem>
               {categories.length === 0 && !collapsed && (
                 <p className="px-3 py-2 text-xs text-muted-foreground">No categories yet</p>
               )}
@@ -116,6 +107,15 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => goToCategory(null)}
+                  className={`${onContent && !activeCategoryId ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                >
+                  <FolderOpen className="h-4 w-4" />
+                  {!collapsed && <span>All Content</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
