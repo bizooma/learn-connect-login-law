@@ -77,6 +77,9 @@ const AdminWikiSettingsPage = () => {
         setLogoUrl(row.logo_url ?? "");
         setLogoBgColor(row.logo_bg_color ?? "#ffffff");
         setAccentColor(row.accent_color ?? "#213C82");
+        setGamificationEnabled(row.gamification_enabled ?? true);
+        setStreakFrequency((row.streak_frequency ?? "weekly") as any);
+        setExcludedGroups(row.gamification_excluded_groups ?? []);
       }
       setLoadingData(false);
     };
