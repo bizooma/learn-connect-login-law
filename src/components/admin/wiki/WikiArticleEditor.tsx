@@ -39,6 +39,22 @@ const WikiArticleEditor = ({ article, onSave, onBack }: WikiArticleEditorProps) 
     setFileName(article.file_name || "");
   }, [article]);
 
+  // Record a view whenever a different article is opened
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (cancelled || !userData.user) return;
+      await supabase.from("wiki_article_views").insert({
+        article_id: article.id,
+        user_id: userData.user.id,
+      });
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [article.id]);
+
   const handleSave = () => {
     const tags = tagsInput.split(",").map((t) => t.trim()).filter(Boolean);
     onSave({ id: article.id, title, content, tags, is_published: isPublished, file_url: fileUrl || undefined, file_name: fileName || undefined });
