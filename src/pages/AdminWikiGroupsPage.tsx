@@ -387,12 +387,8 @@ const ManageMembersDialog = ({ group, onClose }: { group: Group | null; onClose:
 
   const open = !!group;
 
-  useState(() => {
-    // noop; effect below loads users
-  });
-
   // Load full user list once when dialog opens
-  useMemo(() => {
+  useEffect(() => {
     if (!open) return;
     (async () => {
       const { data } = await supabase
