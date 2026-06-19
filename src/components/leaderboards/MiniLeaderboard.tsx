@@ -26,6 +26,8 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { autoRefreshIfNeeded, isRefreshing } = useCacheManager();
+  const { enabled, isUserExcluded } = useGamificationSettings();
+
 
   const fetchMiniLeaderboard = useCallback(async () => {
     try {
