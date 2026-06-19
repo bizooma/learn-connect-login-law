@@ -13,12 +13,15 @@ export type WikiContentType =
   | "policy"
   | "procedure";
 
+export type WikiSubjectKind = "company" | "policy" | "procedure";
+
 export interface WikiArticle {
   id: string;
   category_id: string;
   title: string;
   content: string | null;
   content_type: WikiContentType;
+  subject_category: WikiSubjectKind | null;
   file_url: string | null;
   file_name: string | null;
   tags: string[];
