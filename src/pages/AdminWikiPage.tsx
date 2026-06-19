@@ -14,6 +14,7 @@ import WikiArticleEditor from "@/components/admin/wiki/WikiArticleEditor";
 import CreateContentMenu, { type CreateContentChoice } from "@/components/admin/wiki/CreateContentMenu";
 import CreateContentDialog from "@/components/admin/wiki/CreateContentDialog";
 import BubblesBanner from "@/components/admin/wiki/BubblesBanner";
+import ButterfliesBanner from "@/components/admin/wiki/ButterfliesBanner";
 import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
 
 
@@ -172,7 +173,7 @@ const AdminWikiPage = () => {
                     </div>
                   )}
 
-                  {!activeCategoryId && <BubblesBanner />}
+                  {!activeCategoryId && (activeCategoryFilter === "company" ? <ButterfliesBanner /> : <BubblesBanner />)}
 
                   <WikiSearchBar value={searchQuery} onChange={setSearchQuery} />
 
