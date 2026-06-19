@@ -2,10 +2,11 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trophy, Flame, Target, Users, RefreshCw, AlertCircle, CheckCircle } from "lucide-react";
+import { Trophy, Flame, Target, Users, RefreshCw, AlertCircle, CheckCircle, Lock } from "lucide-react";
 import StreakLeaderboard from "@/components/leaderboards/StreakLeaderboard";
 import CategoryLeaderboard from "@/components/leaderboards/CategoryLeaderboard";
 import { useLeaderboards } from "@/hooks/useLeaderboards";
+import { useGamificationSettings } from "@/hooks/useGamificationSettings";
 import { supabase } from "@/integrations/supabase/client";
 
 const Leaderboards = () => {
