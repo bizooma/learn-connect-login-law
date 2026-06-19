@@ -20,9 +20,6 @@ const StreakLeaderboard = () => {
   const { toast } = useToast();
   const { enabled, isUserExcluded } = useGamificationSettings();
 
-  if (!enabled || isUserExcluded) return null;
-
-  // continue
 
 
   const fetchStreakLeaderboard = useCallback(async () => {
