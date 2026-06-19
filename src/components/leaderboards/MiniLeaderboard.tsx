@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Trophy, TrendingUp, AlertCircle, RefreshCw } from "lucide-react";
 import { useCacheManager } from "@/hooks/useCacheManager";
 import { logger } from "@/utils/logger";
+import { useGamificationSettings } from "@/hooks/useGamificationSettings";
 
 interface MiniLeaderboardProps {
   type: 'learning_streak' | 'sales_training' | 'legal_training';
