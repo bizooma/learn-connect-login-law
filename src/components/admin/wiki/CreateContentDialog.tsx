@@ -73,11 +73,6 @@ const CreateContentDialog = ({
     enabled: open,
   });
 
-  const currentUserId = useMemo(() => {
-    let v: string | null = null;
-    supabase.auth.getUser().then(({ data }) => { v = data.user?.id ?? null; });
-    return v;
-  }, []);
 
   useEffect(() => {
     if (open) {
