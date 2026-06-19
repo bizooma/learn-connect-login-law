@@ -144,6 +144,7 @@ const CreateContentDialog = ({
         title: title.trim(),
         content_type: contentType,
         subject_category: subjectKind,
+        owner_id: ownerId || null,
         content: contentType === "video" ? videoUrl : undefined,
         file_url: contentType === "file" ? fileUrl : undefined,
         file_name: contentType === "file" ? fileName : undefined,
