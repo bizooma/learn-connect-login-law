@@ -176,6 +176,8 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
     )), [entries, formatScore]
   );
 
+  if (!enabled || isUserExcluded) return null;
+
   if (loading) {
     return (
       <Card>
