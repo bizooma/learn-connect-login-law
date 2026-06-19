@@ -138,6 +138,35 @@ const AdminWikiSettingsPage = () => {
     }
   };
 
+  const handleSaveGamification = async () => {
+    setSavingGamification(true);
+    try {
+      const payload = {
+        gamification_enabled: gamificationEnabled,
+        streak_frequency: streakFrequency,
+        gamification_excluded_groups: excludedGroups,
+        updated_by: (await supabase.auth.getUser()).data.user?.id,
+      };
+      const { error } = settingsId
+        ? await supabase.from("organization_settings" as any).update(payload).eq("id", settingsId)
+        : await supabase.from("organization_settings" as any).insert({ ...payload, singleton: true });
+      if (error) throw error;
+      invalidateGamificationCache();
+      toast({ title: "Gamification settings saved" });
+    } catch (err: any) {
+      console.error(err);
+      toast({ title: "Save failed", description: err.message, variant: "destructive" });
+    } finally {
+      setSavingGamification(false);
+    }
+  };
+
+  const toggleExcluded = (groupId: string) => {
+    setExcludedGroups((prev) =>
+      prev.includes(groupId) ? prev.filter((g) => g !== groupId) : [...prev, groupId]
+    );
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <div className="relative z-50">
