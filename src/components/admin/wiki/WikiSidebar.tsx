@@ -78,7 +78,7 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
                 </SidebarMenuButton>
               </SidebarMenuItem>
               {categories.filter(c => c.title.toLowerCase() !== 'content').length === 0 && !collapsed && (
-                <p className="px-3 py-2 text-xs text-muted-foreground">Content</p>
+                <div className="flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/70">Content</div>
               )}
               {categories
                 .filter((category) => category.title.toLowerCase() !== 'content')
