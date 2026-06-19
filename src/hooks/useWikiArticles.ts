@@ -88,6 +88,7 @@ export const useWikiArticles = (categoryId?: string) => {
           content: article.content || "",
           content_type: article.content_type || "document",
           subject_category: article.subject_category || null,
+          owner_id: article.owner_id ?? null,
           file_url: article.file_url || null,
           file_name: article.file_name || null,
           tags: article.tags || [],
