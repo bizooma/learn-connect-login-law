@@ -29,6 +29,7 @@ import ClientDashboard from "./pages/ClientDashboard";
 import FreeDashboard from "./pages/FreeDashboard";
 import AdminDashboard from "./components/AdminDashboard";
 import AdminWikiPage from "./pages/AdminWikiPage";
+import AdminWikiHomePage from "./pages/AdminWikiHomePage";
 import AdminWikiDirectoryPage from "./pages/AdminWikiDirectoryPage";
 import AdminWikiGroupsPage from "./pages/AdminWikiGroupsPage";
 import AdminWikiReportsContent from "./pages/AdminWikiReportsContent";
@@ -78,7 +79,8 @@ const AppContent = () => {
         <Route path="/free-dashboard" element={<FreeDashboard />} />
         <Route path="/admin-dashboard" element={<AdminDashboard />} />
         <Route path="/admin" element={<AdminDashboard />} />
-        <Route path="/admin/wiki" element={<AdminWikiPage />} />
+        <Route path="/admin/wiki" element={<AdminWikiHomePage />} />
+        <Route path="/admin/wiki/content" element={<AdminWikiPage />} />
         <Route path="/admin/wiki/directory" element={<AdminWikiDirectoryPage />} />
         <Route path="/admin/wiki/groups" element={<AdminWikiGroupsPage />} />
         <Route path="/admin/wiki/reports/content" element={<AdminWikiReportsContent />} />
