@@ -118,6 +118,8 @@ const CategoryLeaderboard = ({ category }: CategoryLeaderboardProps) => {
   }, [entries, category]);
 
   // Now we can do conditional rendering AFTER all hooks are called
+  if (!enabled || isUserExcluded) return null;
+
   if (loading) {
     return (
       <div className="space-y-4">
