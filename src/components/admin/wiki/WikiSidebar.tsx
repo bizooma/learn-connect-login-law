@@ -92,7 +92,7 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
 
         <SidebarGroup>
           <SidebarGroupLabel>
-            {!collapsed && <span>Subjects</span>}
+            {!collapsed && <span>Content</span>}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
