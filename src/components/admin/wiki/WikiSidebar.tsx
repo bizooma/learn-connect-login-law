@@ -66,6 +66,7 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateC
 
       <SidebarContent>
         <SidebarGroup>
+          <SidebarGroupLabel>{!collapsed && <span>Content</span>}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
@@ -77,14 +78,6 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateC
                   {!collapsed && <span>Home</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroupContent>
-        </SidebarGroup>
-
-        <SidebarGroup>
-          <SidebarGroupLabel>{!collapsed && <span>Content</span>}</SidebarGroupLabel>
-          <SidebarGroupContent>
-            <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={() => goToCategory(null)}
