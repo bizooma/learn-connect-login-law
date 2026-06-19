@@ -141,19 +141,9 @@ export const UserCard = ({
                 />
               )}
               {isAdmin && (
-                <TeamAssignmentDialog
-                  user={user}
-                  onAssignmentComplete={() => {}}
-                  trigger={
-                    <button className="w-full flex items-center justify-between gap-2 px-3 py-2 text-[12px] font-semibold text-foreground bg-background border border-border rounded-lg hover:border-[#213C82] hover:text-[#213C82] transition-all shadow-sm">
-                      <span className="flex items-center gap-2">
-                        <UserPlus className="h-3.5 w-3.5" />
-                        Assign Team
-                      </span>
-                      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />
-                    </button>
-                  }
-                />
+                <div className="[&>button]:w-full [&>button]:justify-start [&>button]:bg-background [&>button]:border [&>button]:border-border [&>button]:rounded-lg [&>button]:shadow-sm [&>button]:text-[12px] [&>button]:font-semibold [&>button]:text-foreground [&>button]:hover:border-[#213C82] [&>button]:hover:text-[#213C82]">
+                  <TeamAssignmentDialog user={user} onAssignmentComplete={() => {}} />
+                </div>
               )}
             </div>
           </div>
