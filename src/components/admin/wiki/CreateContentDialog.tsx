@@ -18,13 +18,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useWikiArticles, contentTypeLabels, type WikiContentType } from "@/hooks/useWikiArticles";
+import { useWikiArticles, contentTypeLabels, type WikiContentType, type WikiSubjectKind } from "@/hooks/useWikiArticles";
+import { SUBJECT_CATEGORIES } from "./subjectCategoryMeta";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface Category {
   id: string;
   title: string;
+  category?: WikiSubjectKind;
 }
 
 interface CreateContentDialogProps {
@@ -47,6 +49,7 @@ const CreateContentDialog = ({
   const { createArticle } = useWikiArticles();
   const [title, setTitle] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
+  const [subjectKind, setSubjectKind] = useState<WikiSubjectKind>("company");
   const [videoUrl, setVideoUrl] = useState("");
   const [fileUrl, setFileUrl] = useState("");
   const [fileName, setFileName] = useState("");
@@ -59,9 +62,18 @@ const CreateContentDialog = ({
       setVideoUrl("");
       setFileUrl("");
       setFileName("");
-      setCategoryId(defaultCategoryId || categories[0]?.id || "");
+      const initialId = defaultCategoryId || categories[0]?.id || "";
+      setCategoryId(initialId);
+      const initialCat = categories.find((c) => c.id === initialId);
+      setSubjectKind(initialCat?.category || "company");
     }
   }, [open, defaultCategoryId, categories]);
+
+  // Keep kind in sync when subject changes
+  useEffect(() => {
+    const cat = categories.find((c) => c.id === categoryId);
+    if (cat?.category) setSubjectKind(cat.category);
+  }, [categoryId, categories]);
 
   if (!contentType) return null;
 
@@ -109,6 +121,7 @@ const CreateContentDialog = ({
         category_id: categoryId,
         title: title.trim(),
         content_type: contentType,
+        subject_category: subjectKind,
         content: contentType === "video" ? videoUrl : undefined,
         file_url: contentType === "file" ? fileUrl : undefined,
         file_name: contentType === "file" ? fileName : undefined,
@@ -140,6 +153,25 @@ const CreateContentDialog = ({
                 {categories.map((c) => (
                   <SelectItem key={c.id} value={c.id}>
                     {c.title}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="cc-kind">What kind of training is this?</Label>
+            <Select value={subjectKind} onValueChange={(v) => setSubjectKind(v as WikiSubjectKind)}>
+              <SelectTrigger id="cc-kind">
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                {SUBJECT_CATEGORIES.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>
+                    <span className="flex items-center gap-2">
+                      <s.Icon className={`h-4 w-4 ${s.iconColor}`} />
+                      {s.label}
+                    </span>
                   </SelectItem>
                 ))}
               </SelectContent>

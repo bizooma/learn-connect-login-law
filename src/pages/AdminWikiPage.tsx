@@ -224,7 +224,7 @@ const AdminWikiPage = () => {
         open={!!createContentType}
         onOpenChange={(o) => !o && setCreateContentType(null)}
         contentType={createContentType}
-        categories={categories.map((c) => ({ id: c.id, title: c.title }))}
+        categories={categories.map((c) => ({ id: c.id, title: c.title, category: c.category }))}
         defaultCategoryId={activeCategoryId}
       />
 

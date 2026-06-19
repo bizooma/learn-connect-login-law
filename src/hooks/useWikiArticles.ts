@@ -13,12 +13,15 @@ export type WikiContentType =
   | "policy"
   | "procedure";
 
+export type WikiSubjectKind = "company" | "policy" | "procedure";
+
 export interface WikiArticle {
   id: string;
   category_id: string;
   title: string;
   content: string | null;
   content_type: WikiContentType;
+  subject_category: WikiSubjectKind | null;
   file_url: string | null;
   file_name: string | null;
   tags: string[];
@@ -63,7 +66,7 @@ export const useWikiArticles = (categoryId?: string) => {
   });
 
   const createArticle = useMutation({
-    mutationFn: async (article: { category_id: string; title: string; content?: string; tags?: string[]; content_type?: WikiContentType; file_url?: string; file_name?: string }) => {
+    mutationFn: async (article: { category_id: string; title: string; content?: string; tags?: string[]; content_type?: WikiContentType; subject_category?: WikiSubjectKind; file_url?: string; file_name?: string }) => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error("Not authenticated");
 
@@ -83,6 +86,7 @@ export const useWikiArticles = (categoryId?: string) => {
           title: article.title,
           content: article.content || "",
           content_type: article.content_type || "document",
+          subject_category: article.subject_category || null,
           file_url: article.file_url || null,
           file_name: article.file_name || null,
           tags: article.tags || [],
@@ -104,7 +108,7 @@ export const useWikiArticles = (categoryId?: string) => {
   });
 
   const updateArticle = useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string; title?: string; content?: string; tags?: string[]; is_published?: boolean; sort_order?: number; file_url?: string; file_name?: string }) => {
+    mutationFn: async ({ id, ...updates }: { id: string; title?: string; content?: string; tags?: string[]; is_published?: boolean; sort_order?: number; file_url?: string; file_name?: string; subject_category?: WikiSubjectKind }) => {
       const { data, error } = await supabase
         .from("wiki_articles")
         .update(updates)
