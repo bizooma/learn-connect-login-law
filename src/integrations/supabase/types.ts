@@ -1016,6 +1016,51 @@ export type Database = {
         }
         Relationships: []
       }
+      organization_settings: {
+        Row: {
+          accent_color: string | null
+          employee_count: string | null
+          id: string
+          industry: string | null
+          logo_bg_color: string | null
+          logo_url: string | null
+          name: string
+          phone: string | null
+          singleton: boolean
+          updated_at: string
+          updated_by: string | null
+          website: string | null
+        }
+        Insert: {
+          accent_color?: string | null
+          employee_count?: string | null
+          id?: string
+          industry?: string | null
+          logo_bg_color?: string | null
+          logo_url?: string | null
+          name?: string
+          phone?: string | null
+          singleton?: boolean
+          updated_at?: string
+          updated_by?: string | null
+          website?: string | null
+        }
+        Update: {
+          accent_color?: string | null
+          employee_count?: string | null
+          id?: string
+          industry?: string | null
+          logo_bg_color?: string | null
+          logo_url?: string | null
+          name?: string
+          phone?: string | null
+          singleton?: boolean
+          updated_at?: string
+          updated_by?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       orphaned_progress_backup: {
         Row: {
           backed_up_at: string | null
