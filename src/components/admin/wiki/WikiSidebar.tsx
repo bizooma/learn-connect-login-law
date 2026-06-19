@@ -92,13 +92,8 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateC
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="flex items-center justify-between">
+          <SidebarGroupLabel>
             {!collapsed && <span>Subjects</span>}
-            {!collapsed && (
-              <Button variant="ghost" size="icon" className="h-5 w-5" onClick={onCreateCategory}>
-                <Plus className="h-3 w-3" />
-              </Button>
-            )}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
