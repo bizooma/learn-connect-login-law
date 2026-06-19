@@ -692,6 +692,86 @@ export type Database = {
         }
         Relationships: []
       }
+      group_members: {
+        Row: {
+          added_by: string | null
+          created_at: string
+          group_id: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          added_by?: string | null
+          created_at?: string
+          group_id: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          added_by?: string | null
+          created_at?: string
+          group_id?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "group_members_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "group_members_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      groups: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          id: string
+          manager_id: string | null
+          name: string
+          type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          manager_id?: string | null
+          name: string
+          type?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          id?: string
+          manager_id?: string | null
+          name?: string
+          type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "groups_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       law_firm_calendars: {
         Row: {
           created_at: string
@@ -1020,6 +1100,8 @@ export type Database = {
         Row: {
           accent_color: string | null
           employee_count: string | null
+          gamification_enabled: boolean
+          gamification_excluded_groups: string[]
           id: string
           industry: string | null
           logo_bg_color: string | null
@@ -1027,6 +1109,7 @@ export type Database = {
           name: string
           phone: string | null
           singleton: boolean
+          streak_frequency: string
           updated_at: string
           updated_by: string | null
           website: string | null
@@ -1034,6 +1117,8 @@ export type Database = {
         Insert: {
           accent_color?: string | null
           employee_count?: string | null
+          gamification_enabled?: boolean
+          gamification_excluded_groups?: string[]
           id?: string
           industry?: string | null
           logo_bg_color?: string | null
@@ -1041,6 +1126,7 @@ export type Database = {
           name?: string
           phone?: string | null
           singleton?: boolean
+          streak_frequency?: string
           updated_at?: string
           updated_by?: string | null
           website?: string | null
@@ -1048,6 +1134,8 @@ export type Database = {
         Update: {
           accent_color?: string | null
           employee_count?: string | null
+          gamification_enabled?: boolean
+          gamification_excluded_groups?: string[]
           id?: string
           industry?: string | null
           logo_bg_color?: string | null
@@ -1055,6 +1143,7 @@ export type Database = {
           name?: string
           phone?: string | null
           singleton?: boolean
+          streak_frequency?: string
           updated_at?: string
           updated_by?: string | null
           website?: string | null
