@@ -33,10 +33,10 @@ const ReportsShell = ({ title, subtitle, actions, children }: ReportsShellProps)
             }))}
             activeCategoryId={null}
             onCategorySelect={(id) =>
-              navigate("/admin/wiki", { state: { activeCategoryId: id } })
+              navigate("/admin/wiki/content", { state: { activeCategoryId: id } })
             }
             onCreateCategory={() =>
-              navigate("/admin/wiki", { state: { openCreateCategory: true } })
+              navigate("/admin/wiki/content", { state: { openCreateCategory: true } })
             }
           />
 
