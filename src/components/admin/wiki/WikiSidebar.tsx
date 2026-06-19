@@ -65,7 +65,6 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
 
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>{!collapsed && <span>Content</span>}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
@@ -82,12 +81,15 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
         </SidebarGroup>
 
         <SidebarGroup>
+          <SidebarGroupLabel>{!collapsed && <span>Content</span>}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {categories.length === 0 && !collapsed && (
+              {categories.filter(c => c.title.toLowerCase() !== 'content').length === 0 && !collapsed && (
                 <p className="px-3 py-2 text-xs text-muted-foreground">No categories yet</p>
               )}
-              {categories.map((category) => (
+              {categories
+                .filter((category) => category.title.toLowerCase() !== 'content')
+                .map((category) => (
                 <SidebarMenuItem key={category.id}>
                   <SidebarMenuButton
                     onClick={() => goToCategory(category.id)}
