@@ -15,6 +15,7 @@ import CreateContentMenu, { type CreateContentChoice } from "@/components/admin/
 import CreateContentDialog from "@/components/admin/wiki/CreateContentDialog";
 import BubblesBanner from "@/components/admin/wiki/BubblesBanner";
 import ButterfliesBanner from "@/components/admin/wiki/ButterfliesBanner";
+import SnowBanner from "@/components/admin/wiki/SnowBanner";
 import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
 
 
