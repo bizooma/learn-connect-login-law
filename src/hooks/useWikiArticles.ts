@@ -108,7 +108,7 @@ export const useWikiArticles = (categoryId?: string) => {
   });
 
   const updateArticle = useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string; title?: string; content?: string; tags?: string[]; is_published?: boolean; sort_order?: number; file_url?: string; file_name?: string }) => {
+    mutationFn: async ({ id, ...updates }: { id: string; title?: string; content?: string; tags?: string[]; is_published?: boolean; sort_order?: number; file_url?: string; file_name?: string; subject_category?: WikiSubjectKind }) => {
       const { data, error } = await supabase
         .from("wiki_articles")
         .update(updates)
