@@ -91,9 +91,6 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel>
-            {!collapsed && <span>Content</span>}
-          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {categories.length === 0 && !collapsed && (
