@@ -1,4 +1,4 @@
-import { BookOpen, Home, FolderOpen, Plus, Users, UsersRound } from "lucide-react";
+import { BookOpen, Home, FolderOpen, Plus, Users, UsersRound, BarChart3, UserCheck, Activity } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Sidebar,
