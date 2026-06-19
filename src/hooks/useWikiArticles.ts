@@ -22,6 +22,7 @@ export interface WikiArticle {
   content: string | null;
   content_type: WikiContentType;
   subject_category: WikiSubjectKind | null;
+  owner_id: string | null;
   file_url: string | null;
   file_name: string | null;
   tags: string[];
@@ -66,7 +67,7 @@ export const useWikiArticles = (categoryId?: string) => {
   });
 
   const createArticle = useMutation({
-    mutationFn: async (article: { category_id: string; title: string; content?: string; tags?: string[]; content_type?: WikiContentType; subject_category?: WikiSubjectKind; file_url?: string; file_name?: string }) => {
+    mutationFn: async (article: { category_id: string; title: string; content?: string; tags?: string[]; content_type?: WikiContentType; subject_category?: WikiSubjectKind; owner_id?: string | null; file_url?: string; file_name?: string }) => {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error("Not authenticated");
 
@@ -87,6 +88,7 @@ export const useWikiArticles = (categoryId?: string) => {
           content: article.content || "",
           content_type: article.content_type || "document",
           subject_category: article.subject_category || null,
+          owner_id: article.owner_id ?? null,
           file_url: article.file_url || null,
           file_name: article.file_name || null,
           tags: article.tags || [],
@@ -108,7 +110,7 @@ export const useWikiArticles = (categoryId?: string) => {
   });
 
   const updateArticle = useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string; title?: string; content?: string; tags?: string[]; is_published?: boolean; sort_order?: number; file_url?: string; file_name?: string; subject_category?: WikiSubjectKind }) => {
+    mutationFn: async ({ id, ...updates }: { id: string; title?: string; content?: string; tags?: string[]; is_published?: boolean; sort_order?: number; file_url?: string; file_name?: string; subject_category?: WikiSubjectKind; owner_id?: string | null }) => {
       const { data, error } = await supabase
         .from("wiki_articles")
         .update(updates)

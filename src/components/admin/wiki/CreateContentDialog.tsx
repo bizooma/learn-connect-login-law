@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Upload } from "lucide-react";
 import {
   Dialog,
@@ -50,11 +51,28 @@ const CreateContentDialog = ({
   const [title, setTitle] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
   const [subjectKind, setSubjectKind] = useState<WikiSubjectKind>("company");
+  const [ownerId, setOwnerId] = useState<string>("");
   const [videoUrl, setVideoUrl] = useState("");
   const [fileUrl, setFileUrl] = useState("");
   const [fileName, setFileName] = useState("");
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: ownerOptions = [] } = useQuery({
+    queryKey: ["wiki-owner-options"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, email, job_title")
+        .eq("is_deleted", false)
+        .order("first_name", { ascending: true })
+        .limit(1000);
+      if (error) throw error;
+      return data as { id: string; first_name: string | null; last_name: string | null; email: string | null; job_title: string | null }[];
+    },
+    enabled: open,
+  });
+
 
   useEffect(() => {
     if (open) {
@@ -66,6 +84,10 @@ const CreateContentDialog = ({
       setCategoryId(initialId);
       const initialCat = categories.find((c) => c.id === initialId);
       setSubjectKind(initialCat?.category || "company");
+      // Default Owner to current user
+      supabase.auth.getUser().then(({ data }) => {
+        if (data.user?.id) setOwnerId(data.user.id);
+      });
     }
   }, [open, defaultCategoryId, categories]);
 
@@ -122,6 +144,7 @@ const CreateContentDialog = ({
         title: title.trim(),
         content_type: contentType,
         subject_category: subjectKind,
+        owner_id: ownerId || null,
         content: contentType === "video" ? videoUrl : undefined,
         file_url: contentType === "file" ? fileUrl : undefined,
         file_name: contentType === "file" ? fileName : undefined,
@@ -158,6 +181,28 @@ const CreateContentDialog = ({
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="cc-owner">Owner</Label>
+            <Select value={ownerId} onValueChange={setOwnerId}>
+              <SelectTrigger id="cc-owner">
+                <SelectValue placeholder="Assign to a teammate" />
+              </SelectTrigger>
+              <SelectContent className="max-h-72">
+                {ownerOptions.map((o) => {
+                  const name = [o.first_name, o.last_name].filter(Boolean).join(" ").trim() || o.email || "Unnamed";
+                  return (
+                    <SelectItem key={o.id} value={o.id}>
+                      <span className="flex flex-col">
+                        <span className="text-sm">{name}</span>
+                        {o.job_title && <span className="text-xs text-muted-foreground">{o.job_title}</span>}
+                      </span>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+
 
           <div className="space-y-2">
             <Label htmlFor="cc-kind">What kind of training is this?</Label>
