@@ -22,6 +22,7 @@ export interface WikiArticle {
   content: string | null;
   content_type: WikiContentType;
   subject_category: WikiSubjectKind | null;
+  owner_id: string | null;
   file_url: string | null;
   file_name: string | null;
   tags: string[];
