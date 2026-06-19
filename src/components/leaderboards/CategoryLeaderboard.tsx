@@ -23,6 +23,8 @@ const CategoryLeaderboard = ({ category }: CategoryLeaderboardProps) => {
   const [entries, setEntries] = useState<CategoryLeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { enabled, isUserExcluded } = useGamificationSettings();
+
 
   const fetchCategoryLeaderboard = useCallback(async () => {
     try {
