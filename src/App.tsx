@@ -29,6 +29,7 @@ import ClientDashboard from "./pages/ClientDashboard";
 import FreeDashboard from "./pages/FreeDashboard";
 import AdminDashboard from "./components/AdminDashboard";
 import AdminWikiPage from "./pages/AdminWikiPage";
+import AdminWikiHomePage from "./pages/AdminWikiHomePage";
 import AdminWikiDirectoryPage from "./pages/AdminWikiDirectoryPage";
 import AdminWikiGroupsPage from "./pages/AdminWikiGroupsPage";
 import AdminWikiReportsContent from "./pages/AdminWikiReportsContent";
