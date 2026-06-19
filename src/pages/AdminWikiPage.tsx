@@ -178,6 +178,7 @@ const AdminWikiPage = () => {
                   {!activeCategoryId && (
                     activeCategoryFilter === "company" ? <ButterfliesBanner />
                     : activeCategoryFilter === "policy" ? <SnowBanner />
+                    : activeCategoryFilter === "procedure" ? <ConfettiBanner />
                     : <BubblesBanner />
                   )}
 
