@@ -181,28 +181,19 @@ export const UserCard = ({
               Account Controls
             </h4>
             {isAdmin && (
-              <SafeDeleteUserDialog
-                user={user}
-                onUserDeleted={onUserDeleted}
-                trigger={
-                  <button className="text-[10px] font-bold text-destructive hover:text-destructive/80 uppercase tracking-wider">
-                    Delete User
-                  </button>
-                }
-              />
+              <div className="[&>button]:h-auto [&>button]:px-2 [&>button]:py-0 [&>button]:text-[10px] [&>button]:font-bold [&>button]:text-destructive [&>button]:bg-transparent [&>button]:hover:bg-transparent [&>button]:hover:text-destructive/80 [&>button]:uppercase [&>button]:tracking-wider [&>button]:shadow-none [&>button]:border-0">
+                <SafeDeleteUserDialog user={user} onUserDeleted={onUserDeleted} />
+              </div>
             )}
           </div>
           <div className="flex flex-wrap gap-2">
-            <SafeRoleUpdateDialog
-              user={user}
-              currentRole={userRole}
-              onRoleUpdated={() => {}}
-              trigger={
-                <button className="flex-1 min-w-[90px] px-3 py-1.5 text-[11px] font-bold text-foreground bg-background border border-border rounded shadow-sm hover:bg-muted/50">
-                  Change Role
-                </button>
-              }
-            />
+            <div className="flex-1 min-w-[90px] [&>button]:w-full [&>button]:px-3 [&>button]:py-1.5 [&>button]:text-[11px] [&>button]:font-bold [&>button]:text-foreground [&>button]:bg-background [&>button]:border [&>button]:border-border [&>button]:rounded [&>button]:shadow-sm [&>button]:hover:bg-muted/50">
+              <SafeRoleUpdateDialog
+                user={user}
+                currentRole={userRole}
+                onRoleUpdated={() => {}}
+              />
+            </div>
             {isAdmin && (
               <button
                 onClick={() => setShowEmailDialog(true)}
