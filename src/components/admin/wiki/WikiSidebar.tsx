@@ -34,6 +34,7 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAdmin } = useUserRole();
   const onHome = location.pathname === "/admin/wiki";
   const onContent = location.pathname.startsWith("/admin/wiki/content");
   const onDirectory = location.pathname.startsWith("/admin/wiki/directory");
@@ -42,6 +43,8 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
   const onReportsContent = location.pathname === "/admin/wiki/reports/content";
   const onReportsPeople = location.pathname === "/admin/wiki/reports/people";
   const onReportsActivity = location.pathname === "/admin/wiki/reports/activity";
+  const onManageUsers = location.pathname === "/admin/wiki/account/users";
+  const onSettings = location.pathname === "/admin/wiki/account/settings";
 
   const goToCategory = (id: string | null) => {
     if (onContent) {
