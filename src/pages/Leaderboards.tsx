@@ -15,6 +15,7 @@ const Leaderboards = () => {
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [cacheStatus, setCacheStatus] = useState<'checking' | 'empty' | 'populated'>('checking');
   const { refreshCache } = useLeaderboards();
+  const { enabled, isUserExcluded, loading: gamLoading } = useGamificationSettings();
 
   const handleRefreshCache = async () => {
     try {
