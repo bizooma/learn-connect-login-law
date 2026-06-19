@@ -28,7 +28,7 @@ interface WikiSidebarProps {
   onCategorySelect: (id: string | null) => void;
 }
 
-const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateCategory }: WikiSidebarProps) => {
+const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSidebarProps) => {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
