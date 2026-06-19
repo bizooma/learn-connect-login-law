@@ -139,6 +139,41 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateC
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>{!collapsed && <span>Reports</span>}</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => navigate("/admin/wiki/reports/content")}
+                  className={`${onReportsContent ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                >
+                  <BarChart3 className="h-4 w-4" />
+                  {!collapsed && <span>Content Report</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => navigate("/admin/wiki/reports/people")}
+                  className={`${onReportsPeople ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                >
+                  <UserCheck className="h-4 w-4" />
+                  {!collapsed && <span>People Report</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => navigate("/admin/wiki/reports/activity")}
+                  className={`${onReportsActivity ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                >
+                  <Activity className="h-4 w-4" />
+                  {!collapsed && <span>Activity</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
       </SidebarContent>
     </Sidebar>
   );
