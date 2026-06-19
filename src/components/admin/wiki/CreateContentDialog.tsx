@@ -84,6 +84,10 @@ const CreateContentDialog = ({
       setCategoryId(initialId);
       const initialCat = categories.find((c) => c.id === initialId);
       setSubjectKind(initialCat?.category || "company");
+      // Default Owner to current user
+      supabase.auth.getUser().then(({ data }) => {
+        if (data.user?.id) setOwnerId(data.user.id);
+      });
     }
   }, [open, defaultCategoryId, categories]);
 
