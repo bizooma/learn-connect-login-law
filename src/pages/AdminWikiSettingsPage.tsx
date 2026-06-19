@@ -13,7 +13,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, Loader2 } from "lucide-react";
+import { Upload, Loader2, Check } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useGroups } from "@/hooks/useGroups";
+import { invalidateGamificationCache } from "@/hooks/useGamificationSettings";
 
 const EMPLOYEE_RANGES = ["1 - 10", "11 - 25", "26 - 100", "101 - 500", "500+"];
 const INDUSTRIES = ["Legal", "Healthcare", "Technology", "Education", "Finance", "Retail", "Manufacturing", "Other"];
