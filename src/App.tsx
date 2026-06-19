@@ -35,6 +35,8 @@ import AdminWikiGroupsPage from "./pages/AdminWikiGroupsPage";
 import AdminWikiReportsContent from "./pages/AdminWikiReportsContent";
 import AdminWikiReportsPeople from "./pages/AdminWikiReportsPeople";
 import AdminWikiReportsActivity from "./pages/AdminWikiReportsActivity";
+import AdminWikiManageUsersPage from "./pages/AdminWikiManageUsersPage";
+import AdminWikiSettingsPage from "./pages/AdminWikiSettingsPage";
 
 import AuthPage from "./components/AuthPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -86,6 +88,8 @@ const AppContent = () => {
         <Route path="/admin/wiki/reports/content" element={<AdminWikiReportsContent />} />
         <Route path="/admin/wiki/reports/people" element={<AdminWikiReportsPeople />} />
         <Route path="/admin/wiki/reports/activity" element={<AdminWikiReportsActivity />} />
+        <Route path="/admin/wiki/account/users" element={<AdminWikiManageUsersPage />} />
+        <Route path="/admin/wiki/account/settings" element={<AdminWikiSettingsPage />} />
 
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />

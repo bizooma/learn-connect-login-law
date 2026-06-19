@@ -1,4 +1,5 @@
-import { BookOpen, Home, FolderOpen, Users, UsersRound, BarChart3, UserCheck, Activity } from "lucide-react";
+import { BookOpen, Home, FolderOpen, Users, UsersRound, BarChart3, UserCheck, Activity, UserCog, Settings } from "lucide-react";
+import { useUserRole } from "@/hooks/useUserRole";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -33,6 +34,7 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
   const location = useLocation();
+  const { isAdmin } = useUserRole();
   const onHome = location.pathname === "/admin/wiki";
   const onContent = location.pathname.startsWith("/admin/wiki/content");
   const onDirectory = location.pathname.startsWith("/admin/wiki/directory");
@@ -41,6 +43,8 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
   const onReportsContent = location.pathname === "/admin/wiki/reports/content";
   const onReportsPeople = location.pathname === "/admin/wiki/reports/people";
   const onReportsActivity = location.pathname === "/admin/wiki/reports/activity";
+  const onManageUsers = location.pathname === "/admin/wiki/account/users";
+  const onSettings = location.pathname === "/admin/wiki/account/settings";
 
   const goToCategory = (id: string | null) => {
     if (onContent) {
@@ -175,6 +179,34 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>{!collapsed && <span>Account</span>}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => navigate("/admin/wiki/account/users")}
+                    className={`${onManageUsers ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                  >
+                    <UserCog className="h-4 w-4" />
+                    {!collapsed && <span>Manage Users</span>}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => navigate("/admin/wiki/account/settings")}
+                    className={`${onSettings ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                  >
+                    <Settings className="h-4 w-4" />
+                    {!collapsed && <span>Settings</span>}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
     </Sidebar>
   );
