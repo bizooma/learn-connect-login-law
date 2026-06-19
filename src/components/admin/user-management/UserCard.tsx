@@ -1,6 +1,6 @@
-
 import { useState } from "react";
-import { Card, CardContent } from "@/components/ui/card";
+import { useNavigate } from "react-router-dom";
+import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
@@ -10,10 +10,22 @@ import UserCourseAssignment from "./UserCourseAssignment";
 import UserEmailEditDialog from "./UserEmailEditDialog";
 import UserPasswordResetDialog from "./UserPasswordResetDialog";
 import TeamAssignmentDialog from "./TeamAssignmentDialog";
+import UserGroupsDialog from "./UserGroupsDialog";
 import { UserProfile } from "./types";
 import { getUserRole, getRoleBadgeColor } from "./userRoleUtils";
 import { useUserRole } from "@/hooks/useUserRole";
-import { BookOpen, BarChart3, Mail, Lock, AlertTriangle, Calendar } from "lucide-react";
+import {
+  BookOpen,
+  BarChart3,
+  Mail,
+  Lock,
+  AlertTriangle,
+  Users,
+  UserPlus,
+  Star,
+  BookMarked,
+  ChevronRight,
+} from "lucide-react";
 import { formatUserJoinDate } from "@/utils/dateUtils";
 
 interface UserCardProps {
@@ -24,174 +36,213 @@ interface UserCardProps {
   onViewProgress?: (userId: string) => void;
 }
 
-export const UserCard = ({ 
-  user, 
-  onRoleUpdate, 
-  onUserDeleted, 
+export const UserCard = ({
+  user,
+  onUserDeleted,
   onCourseAssigned,
-  onViewProgress 
+  onViewProgress,
 }: UserCardProps) => {
   const [showCourseDialog, setShowCourseDialog] = useState(false);
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [showGroupsDialog, setShowGroupsDialog] = useState(false);
   const { isAdmin } = useUserRole();
-  
+  const navigate = useNavigate();
+
   const userRole = getUserRole(user);
   const roleBadgeColor = getRoleBadgeColor(userRole);
+  const displayName =
+    user.first_name && user.last_name
+      ? `${user.first_name} ${user.last_name}`
+      : user.email;
 
-  const getInitials = (firstName?: string, lastName?: string) => {
-    const first = firstName?.charAt(0) || '';
-    const last = lastName?.charAt(0) || '';
+  const getInitials = () => {
+    const first = user.first_name?.charAt(0) || "";
+    const last = user.last_name?.charAt(0) || "";
     return (first + last).toUpperCase() || user.email.charAt(0).toUpperCase();
   };
 
-  const handleRoleUpdated = () => {
-    // Role updates don't need to trigger course assignment refresh
-  };
-
-  const handleEmailUpdated = () => {
-    // Email updates don't need to trigger course assignment refresh
-  };
-
-  const handlePasswordReset = () => {
-    // Password resets don't need to trigger course assignment refresh
-  };
+  const isTeamLeader = userRole === "team_leader" || !!user.team_leader_id;
 
   return (
     <>
-      <Card className="hover:shadow-md transition-shadow">
-        <CardContent className="p-6">
-          <div className="flex items-start space-x-4">
-            <Avatar className="h-12 w-12">
-              <AvatarImage src={user.profile_image_url || undefined} />
-              <AvatarFallback>
-                {getInitials(user.first_name, user.last_name)}
-              </AvatarFallback>
-            </Avatar>
-            
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-lg font-semibold text-gray-900 truncate">
-                  {user.first_name && user.last_name 
-                    ? `${user.first_name} ${user.last_name}` 
-                    : user.email
-                  }
+      <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+        {/* Identity Header */}
+        <div className="p-5 pb-4">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex gap-3 min-w-0">
+              <Avatar className="h-12 w-12 border-2 border-background shadow-sm">
+                <AvatarImage src={user.profile_image_url || undefined} />
+                <AvatarFallback className="bg-muted text-[#213C82] font-bold">
+                  {getInitials()}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                <h3 className="text-base font-bold text-foreground leading-tight truncate">
+                  {displayName}
                 </h3>
-                <Badge className={roleBadgeColor}>
-                  {userRole}
-                </Badge>
-              </div>
-              
-              <p className="text-sm text-gray-600 mb-2 truncate">
-                {user.email}
-              </p>
-
-              {user.law_firm_name && (
-                <p className="text-sm text-gray-500 mb-2 truncate">
-                  {user.law_firm_name}
-                </p>
-              )}
-
-              {user.team_leader_id && (
-                <p className="text-sm text-orange-600 mb-2">
-                  Assigned to team leader
-                </p>
-              )}
-
-              <div className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
-                <Calendar className="h-3 w-3" />
-                <span>Joined: {formatUserJoinDate(user.created_at)}</span>
-              </div>
-              
-              <div className="space-y-3">
-                <div className="flex items-center gap-2 mb-3">
-                  <AlertTriangle className="h-4 w-4 text-orange-500" />
-                  <span className="text-sm text-orange-600 font-medium">Protected User Management</span>
-                </div>
-                
-                <SafeRoleUpdateDialog
-                  user={user}
-                  currentRole={userRole}
-                  onRoleUpdated={handleRoleUpdated}
-                />
-                
-                <div className="flex flex-wrap gap-2 mt-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowCourseDialog(true)}
-                    className="flex items-center gap-1"
-                  >
-                    <BookOpen className="h-3 w-3" />
-                    Assign Course
-                  </Button>
-                  
-                  {onViewProgress && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => onViewProgress(user.id)}
-                      className="flex items-center gap-1"
-                    >
-                      <BarChart3 className="h-3 w-3" />
-                      View Progress
-                    </Button>
-                  )}
-
-                  {isAdmin && (
-                    <TeamAssignmentDialog
-                      user={user}
-                      onAssignmentComplete={handleRoleUpdated}
-                    />
-                  )}
-
-                  {isAdmin && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowEmailDialog(true)}
-                      className="flex items-center gap-1"
-                    >
-                      <Mail className="h-3 w-3" />
-                      Edit Email
-                    </Button>
-                  )}
-
-                  {isAdmin && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setShowPasswordDialog(true)}
-                      className="flex items-center gap-1"
-                    >
-                      <Lock className="h-3 w-3" />
-                      Reset Password
-                    </Button>
-                  )}
-                  
-                  {isAdmin && (
-                    <SafeDeleteUserDialog
-                      user={user}
-                      onUserDeleted={onUserDeleted}
-                    />
-                  )}
-                </div>
+                <p className="text-sm text-muted-foreground truncate">{user.email}</p>
               </div>
             </div>
+            <Badge className={`${roleBadgeColor} text-[10px] uppercase tracking-wider`}>
+              {userRole}
+            </Badge>
           </div>
-        </CardContent>
+
+          <div className="mt-3 flex flex-wrap gap-2 items-center">
+            {isTeamLeader && (
+              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#FFDA00]/15 text-amber-900 text-[10px] font-bold uppercase tracking-wider border border-[#FFDA00]/40">
+                <Star className="h-3 w-3" />
+                Team Leader
+              </span>
+            )}
+            {user.law_firm_name && (
+              <span className="text-[11px] text-muted-foreground truncate max-w-[160px]">
+                {user.law_firm_name}
+              </span>
+            )}
+            <span className="text-[11px] text-muted-foreground/80 font-medium ml-auto">
+              Joined {formatUserJoinDate(user.created_at)}
+            </span>
+          </div>
+        </div>
+
+        {/* Protected Strip */}
+        <div className="px-5 py-2 bg-amber-50/60 border-y border-amber-100 flex items-center gap-2">
+          <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
+          <span className="text-[10px] font-semibold text-amber-700 uppercase tracking-wide">
+            Protected User Management
+          </span>
+        </div>
+
+        {/* Platform Actions Split */}
+        <div className="grid grid-cols-2 bg-muted/20">
+          {/* LMS */}
+          <div className="p-4 border-r border-border/60">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-1 h-3.5 bg-[#213C82] rounded-full" />
+              <h4 className="text-[10px] font-extrabold text-[#213C82] uppercase tracking-[0.1em]">
+                LMS
+              </h4>
+            </div>
+            <div className="flex flex-col gap-2">
+              <ZoneButton
+                icon={<BookOpen className="h-3.5 w-3.5" />}
+                label="Assign Course"
+                onClick={() => setShowCourseDialog(true)}
+                accent="blue"
+              />
+              {onViewProgress && (
+                <ZoneButton
+                  icon={<BarChart3 className="h-3.5 w-3.5" />}
+                  label="View Progress"
+                  onClick={() => onViewProgress(user.id)}
+                  accent="blue"
+                />
+              )}
+              {isAdmin && (
+                <TeamAssignmentDialog
+                  user={user}
+                  onAssignmentComplete={() => {}}
+                  trigger={
+                    <button className="w-full flex items-center justify-between gap-2 px-3 py-2 text-[12px] font-semibold text-foreground bg-background border border-border rounded-lg hover:border-[#213C82] hover:text-[#213C82] transition-all shadow-sm">
+                      <span className="flex items-center gap-2">
+                        <UserPlus className="h-3.5 w-3.5" />
+                        Assign Team
+                      </span>
+                      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />
+                    </button>
+                  }
+                />
+              )}
+            </div>
+          </div>
+
+          {/* P&P */}
+          <div className="p-4">
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-1 h-3.5 bg-muted-foreground/60 rounded-full" />
+              <h4 className="text-[10px] font-extrabold text-muted-foreground uppercase tracking-[0.1em]">
+                Policies & Proc
+              </h4>
+            </div>
+            <div className="flex flex-col gap-2">
+              <ZoneButton
+                icon={<Users className="h-3.5 w-3.5" />}
+                label="Manage Groups"
+                onClick={() => setShowGroupsDialog(true)}
+                accent="slate"
+                disabled={!isAdmin}
+              />
+              <ZoneButton
+                icon={<BookMarked className="h-3.5 w-3.5" />}
+                label="Wiki Access"
+                onClick={() => navigate(`/admin/wiki/directory?user=${user.id}`)}
+                accent="slate"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Account Controls */}
+        <div className="p-4 bg-muted/40 border-t border-border/60">
+          <div className="mb-2 flex items-center justify-between">
+            <h4 className="text-[9px] font-bold text-muted-foreground uppercase tracking-widest">
+              Account Controls
+            </h4>
+            {isAdmin && (
+              <SafeDeleteUserDialog
+                user={user}
+                onUserDeleted={onUserDeleted}
+                trigger={
+                  <button className="text-[10px] font-bold text-destructive hover:text-destructive/80 uppercase tracking-wider">
+                    Delete User
+                  </button>
+                }
+              />
+            )}
+          </div>
+          <div className="flex flex-wrap gap-2">
+            <SafeRoleUpdateDialog
+              user={user}
+              currentRole={userRole}
+              onRoleUpdated={() => {}}
+              trigger={
+                <button className="flex-1 min-w-[90px] px-3 py-1.5 text-[11px] font-bold text-foreground bg-background border border-border rounded shadow-sm hover:bg-muted/50">
+                  Change Role
+                </button>
+              }
+            />
+            {isAdmin && (
+              <button
+                onClick={() => setShowEmailDialog(true)}
+                className="flex-1 min-w-[90px] px-3 py-1.5 text-[11px] font-bold text-foreground bg-background border border-border rounded shadow-sm hover:bg-muted/50 inline-flex items-center justify-center gap-1"
+              >
+                <Mail className="h-3 w-3" />
+                Edit Email
+              </button>
+            )}
+            {isAdmin && (
+              <button
+                onClick={() => setShowPasswordDialog(true)}
+                className="flex-1 min-w-[90px] px-3 py-1.5 text-[11px] font-bold text-foreground bg-background border border-border rounded shadow-sm hover:bg-muted/50 inline-flex items-center justify-center gap-1"
+              >
+                <Lock className="h-3 w-3" />
+                Reset PWD
+              </button>
+            )}
+          </div>
+        </div>
       </Card>
 
       {showCourseDialog && (
         <UserCourseAssignment
           userId={user.id}
           userEmail={user.email}
-          userName={`${user.first_name || ''} ${user.last_name || ''}`.trim() || user.email}
+          userName={displayName}
           onAssignmentComplete={() => {
             setShowCourseDialog(false);
-            if (onCourseAssigned) {
-              onCourseAssigned();
-            }
+            onCourseAssigned?.();
           }}
         />
       )}
@@ -201,7 +252,7 @@ export const UserCard = ({
           user={user}
           open={showEmailDialog}
           onOpenChange={setShowEmailDialog}
-          onEmailUpdated={handleEmailUpdated}
+          onEmailUpdated={() => {}}
         />
       )}
 
@@ -210,9 +261,44 @@ export const UserCard = ({
           user={user}
           open={showPasswordDialog}
           onOpenChange={setShowPasswordDialog}
-          onPasswordReset={handlePasswordReset}
+          onPasswordReset={() => {}}
         />
       )}
+
+      <UserGroupsDialog
+        open={showGroupsDialog}
+        onOpenChange={setShowGroupsDialog}
+        userId={user.id}
+        userName={displayName}
+      />
     </>
+  );
+};
+
+interface ZoneButtonProps {
+  icon: React.ReactNode;
+  label: string;
+  onClick: () => void;
+  accent: "blue" | "slate";
+  disabled?: boolean;
+}
+
+const ZoneButton = ({ icon, label, onClick, accent, disabled }: ZoneButtonProps) => {
+  const hoverClass =
+    accent === "blue"
+      ? "hover:border-[#213C82] hover:text-[#213C82]"
+      : "hover:border-muted-foreground/60";
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      className={`w-full flex items-center justify-between gap-2 px-3 py-2 text-[12px] font-semibold text-foreground bg-background border border-border rounded-lg transition-all shadow-sm disabled:opacity-40 disabled:cursor-not-allowed ${hoverClass}`}
+    >
+      <span className="flex items-center gap-2">
+        {icon}
+        {label}
+      </span>
+      <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />
+    </button>
   );
 };
