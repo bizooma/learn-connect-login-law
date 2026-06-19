@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import LeaderboardCard from "./LeaderboardCard";
+import { useGamificationSettings } from "@/hooks/useGamificationSettings";
 
 interface StreakLeaderboardEntry {
   user_id: string;
@@ -17,6 +18,9 @@ const StreakLeaderboard = () => {
   const [entries, setEntries] = useState<StreakLeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { enabled, isUserExcluded } = useGamificationSettings();
+
+
 
   const fetchStreakLeaderboard = useCallback(async () => {
     try {
@@ -71,6 +75,8 @@ const StreakLeaderboard = () => {
     fetchStreakLeaderboard();
   }, [fetchStreakLeaderboard]);
 
+
+  if (!enabled || isUserExcluded) return null;
 
   if (loading) {
     return (

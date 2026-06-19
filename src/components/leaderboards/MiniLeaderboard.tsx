@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Trophy, TrendingUp, AlertCircle, RefreshCw } from "lucide-react";
 import { useCacheManager } from "@/hooks/useCacheManager";
 import { logger } from "@/utils/logger";
+import { useGamificationSettings } from "@/hooks/useGamificationSettings";
 
 interface MiniLeaderboardProps {
   type: 'learning_streak' | 'sales_training' | 'legal_training';
@@ -25,6 +26,8 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { autoRefreshIfNeeded, isRefreshing } = useCacheManager();
+  const { enabled, isUserExcluded } = useGamificationSettings();
+
 
   const fetchMiniLeaderboard = useCallback(async () => {
     try {
@@ -172,6 +175,8 @@ const MiniLeaderboard = ({ type, title, icon, limit = 5 }: MiniLeaderboardProps)
       </div>
     )), [entries, formatScore]
   );
+
+  if (!enabled || isUserExcluded) return null;
 
   if (loading) {
     return (

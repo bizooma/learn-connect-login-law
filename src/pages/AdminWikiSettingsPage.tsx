@@ -13,7 +13,11 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, Loader2 } from "lucide-react";
+import { Upload, Loader2, Check } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useGroups } from "@/hooks/useGroups";
+import { invalidateGamificationCache } from "@/hooks/useGamificationSettings";
 
 const EMPLOYEE_RANGES = ["1 - 10", "11 - 25", "26 - 100", "101 - 500", "500+"];
 const INDUSTRIES = ["Legal", "Healthcare", "Technology", "Education", "Finance", "Retail", "Manufacturing", "Other"];
@@ -38,6 +42,13 @@ const AdminWikiSettingsPage = () => {
   const [logoUrl, setLogoUrl] = useState<string>("");
   const [logoBgColor, setLogoBgColor] = useState("#ffffff");
   const [accentColor, setAccentColor] = useState("#213C82");
+
+  // Gamification
+  const [gamificationEnabled, setGamificationEnabled] = useState(true);
+  const [streakFrequency, setStreakFrequency] = useState<"weekly" | "monthly" | "quarterly">("weekly");
+  const [excludedGroups, setExcludedGroups] = useState<string[]>([]);
+  const [savingGamification, setSavingGamification] = useState(false);
+  const { groups } = useGroups();
 
   useEffect(() => {
     if (!loading && !isAdmin) {
@@ -66,6 +77,9 @@ const AdminWikiSettingsPage = () => {
         setLogoUrl(row.logo_url ?? "");
         setLogoBgColor(row.logo_bg_color ?? "#ffffff");
         setAccentColor(row.accent_color ?? "#213C82");
+        setGamificationEnabled(row.gamification_enabled ?? true);
+        setStreakFrequency((row.streak_frequency ?? "weekly") as any);
+        setExcludedGroups(row.gamification_excluded_groups ?? []);
       }
       setLoadingData(false);
     };
@@ -122,6 +136,35 @@ const AdminWikiSettingsPage = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleSaveGamification = async () => {
+    setSavingGamification(true);
+    try {
+      const payload = {
+        gamification_enabled: gamificationEnabled,
+        streak_frequency: streakFrequency,
+        gamification_excluded_groups: excludedGroups,
+        updated_by: (await supabase.auth.getUser()).data.user?.id,
+      };
+      const { error } = settingsId
+        ? await supabase.from("organization_settings" as any).update(payload).eq("id", settingsId)
+        : await supabase.from("organization_settings" as any).insert({ ...payload, singleton: true });
+      if (error) throw error;
+      invalidateGamificationCache();
+      toast({ title: "Gamification settings saved" });
+    } catch (err: any) {
+      console.error(err);
+      toast({ title: "Save failed", description: err.message, variant: "destructive" });
+    } finally {
+      setSavingGamification(false);
+    }
+  };
+
+  const toggleExcluded = (groupId: string) => {
+    setExcludedGroups((prev) =>
+      prev.includes(groupId) ? prev.filter((g) => g !== groupId) : [...prev, groupId]
+    );
   };
 
   return (
@@ -336,8 +379,101 @@ const AdminWikiSettingsPage = () => {
 
                   <TabsContent value="gamification" className="mt-6">
                     <Card>
-                      <CardContent className="pt-6">
-                        <p className="text-sm text-muted-foreground">Gamification settings coming soon.</p>
+                      <CardContent className="pt-6 space-y-6">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-3">
+                              <Switch
+                                id="gam-enabled"
+                                checked={gamificationEnabled}
+                                onCheckedChange={setGamificationEnabled}
+                              />
+                              <Label htmlFor="gam-enabled" className="text-base font-semibold">
+                                Enable gamification
+                              </Label>
+                            </div>
+                            <p className="text-sm text-muted-foreground pl-12">
+                              Toggle on to enable gamification features on your account, including training streaks and a leaderboard.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className={`space-y-4 border-t border-border pt-6 ${!gamificationEnabled ? "opacity-50 pointer-events-none" : ""}`}>
+                          <div>
+                            <h3 className="text-base font-semibold text-foreground">Completion streaks</h3>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Encourage users to get to 100% completion every week, month, or quarter. Keeping a streak helps them move up the leaderboard. People in your exception list won't have the streaks or leaderboard experience.
+                            </p>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Streak frequency</Label>
+                            <div className="flex gap-6">
+                              {(["weekly", "monthly", "quarterly"] as const).map((freq) => (
+                                <label key={freq} className="flex items-center gap-2 cursor-pointer">
+                                  <input
+                                    type="radio"
+                                    name="streak-frequency"
+                                    value={freq}
+                                    checked={streakFrequency === freq}
+                                    onChange={() => setStreakFrequency(freq)}
+                                    className="accent-primary"
+                                  />
+                                  <span className="text-sm capitalize">{freq}</span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Exceptions</Label>
+                            <p className="text-xs text-muted-foreground">
+                              Select groups to exclude from streaks and the leaderboard.
+                            </p>
+                            {groups.length === 0 ? (
+                              <p className="text-sm text-muted-foreground italic">
+                                No groups exist yet. Create groups on the Groups page to use them here.
+                              </p>
+                            ) : (
+                              <div className="border border-border rounded-md max-h-64 overflow-auto">
+                                {groups.map((g) => {
+                                  const checked = excludedGroups.includes(g.id);
+                                  return (
+                                    <label
+                                      key={g.id}
+                                      className="flex items-center justify-between gap-3 p-3 border-b border-border last:border-0 hover:bg-muted/50 cursor-pointer"
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <Checkbox
+                                          checked={checked}
+                                          onCheckedChange={() => toggleExcluded(g.id)}
+                                        />
+                                        <div>
+                                          <div className="text-sm font-medium">{g.name}</div>
+                                          <div className="text-xs text-muted-foreground">
+                                            {g.type} · {g.member_count ?? 0} {g.member_count === 1 ? "member" : "members"}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      {checked && <Check className="h-4 w-4 text-primary" />}
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                            )}
+                            {excludedGroups.length > 0 && (
+                              <p className="text-xs text-muted-foreground">
+                                {excludedGroups.length} {excludedGroups.length === 1 ? "group" : "groups"} excluded
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end pt-4 border-t border-border">
+                          <Button onClick={handleSaveGamification} disabled={savingGamification}>
+                            {savingGamification ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</> : "Save"}
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   </TabsContent>

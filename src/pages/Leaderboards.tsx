@@ -2,10 +2,11 @@
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Trophy, Flame, Target, Users, RefreshCw, AlertCircle, CheckCircle } from "lucide-react";
+import { Trophy, Flame, Target, Users, RefreshCw, AlertCircle, CheckCircle, Lock } from "lucide-react";
 import StreakLeaderboard from "@/components/leaderboards/StreakLeaderboard";
 import CategoryLeaderboard from "@/components/leaderboards/CategoryLeaderboard";
 import { useLeaderboards } from "@/hooks/useLeaderboards";
+import { useGamificationSettings } from "@/hooks/useGamificationSettings";
 import { supabase } from "@/integrations/supabase/client";
 
 const Leaderboards = () => {
@@ -14,6 +15,7 @@ const Leaderboards = () => {
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [cacheStatus, setCacheStatus] = useState<'checking' | 'empty' | 'populated'>('checking');
   const { refreshCache } = useLeaderboards();
+  const { enabled, isUserExcluded, loading: gamLoading } = useGamificationSettings();
 
   const handleRefreshCache = async () => {
     try {
@@ -86,6 +88,24 @@ const Leaderboards = () => {
         return 'Cache empty - click refresh';
     }
   };
+
+  if (!gamLoading && (!enabled || isUserExcluded)) {
+    return (
+      <div className="container mx-auto p-6">
+        <Card>
+          <CardContent className="py-16 text-center space-y-3">
+            <Lock className="h-10 w-10 mx-auto text-muted-foreground" />
+            <h2 className="text-xl font-semibold text-foreground">Leaderboards unavailable</h2>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              {isUserExcluded
+                ? "Your group is excluded from gamification features."
+                : "Gamification has been turned off for this account. An admin can enable it in Settings → Gamification."}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-6 space-y-6">
