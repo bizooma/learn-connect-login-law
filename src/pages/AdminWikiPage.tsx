@@ -16,7 +16,7 @@ import CreateContentDialog from "@/components/admin/wiki/CreateContentDialog";
 import BubblesBanner from "@/components/admin/wiki/BubblesBanner";
 import ButterfliesBanner from "@/components/admin/wiki/ButterfliesBanner";
 import SnowBanner from "@/components/admin/wiki/SnowBanner";
-import ConfettiBanner from "@/components/admin/wiki/ConfettiBanner";
+import BunniesBanner from "@/components/admin/wiki/BunniesBanner";
 import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
 
 
