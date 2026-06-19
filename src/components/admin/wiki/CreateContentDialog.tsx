@@ -51,11 +51,33 @@ const CreateContentDialog = ({
   const [title, setTitle] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
   const [subjectKind, setSubjectKind] = useState<WikiSubjectKind>("company");
+  const [ownerId, setOwnerId] = useState<string>("");
   const [videoUrl, setVideoUrl] = useState("");
   const [fileUrl, setFileUrl] = useState("");
   const [fileName, setFileName] = useState("");
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const { data: ownerOptions = [] } = useQuery({
+    queryKey: ["wiki-owner-options"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, email, job_title")
+        .eq("is_deleted", false)
+        .order("first_name", { ascending: true })
+        .limit(1000);
+      if (error) throw error;
+      return data as { id: string; first_name: string | null; last_name: string | null; email: string | null; job_title: string | null }[];
+    },
+    enabled: open,
+  });
+
+  const currentUserId = useMemo(() => {
+    let v: string | null = null;
+    supabase.auth.getUser().then(({ data }) => { v = data.user?.id ?? null; });
+    return v;
+  }, []);
 
   useEffect(() => {
     if (open) {
