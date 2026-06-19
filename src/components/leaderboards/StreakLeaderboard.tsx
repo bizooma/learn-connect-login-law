@@ -18,6 +18,12 @@ const StreakLeaderboard = () => {
   const [entries, setEntries] = useState<StreakLeaderboardEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { enabled, isUserExcluded } = useGamificationSettings();
+
+  if (!enabled || isUserExcluded) return null;
+
+  // continue
+
 
   const fetchStreakLeaderboard = useCallback(async () => {
     try {
