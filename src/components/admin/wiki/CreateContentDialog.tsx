@@ -160,6 +160,25 @@ const CreateContentDialog = ({
           </div>
 
           <div className="space-y-2">
+            <Label htmlFor="cc-kind">What kind of training is this?</Label>
+            <Select value={subjectKind} onValueChange={(v) => setSubjectKind(v as WikiSubjectKind)}>
+              <SelectTrigger id="cc-kind">
+                <SelectValue placeholder="Select type" />
+              </SelectTrigger>
+              <SelectContent>
+                {SUBJECT_CATEGORIES.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>
+                    <span className="flex items-center gap-2">
+                      <s.Icon className={`h-4 w-4 ${s.iconColor}`} />
+                      {s.label}
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
             <Label htmlFor="cc-title">Title</Label>
             <Input
               id="cc-title"
