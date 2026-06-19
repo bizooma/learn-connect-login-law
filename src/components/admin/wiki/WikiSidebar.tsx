@@ -1,4 +1,4 @@
-import { BookOpen, Home, FolderOpen, Plus, Users, UsersRound } from "lucide-react";
+import { BookOpen, Home, FolderOpen, Plus, Users, UsersRound, BarChart3, UserCheck, Activity } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -36,7 +36,11 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateC
   const location = useLocation();
   const onDirectory = location.pathname.startsWith("/admin/wiki/directory");
   const onGroups = location.pathname.startsWith("/admin/wiki/groups");
-  const onContent = !onDirectory && !onGroups;
+  const onReports = location.pathname.startsWith("/admin/wiki/reports");
+  const onReportsContent = location.pathname === "/admin/wiki/reports/content";
+  const onReportsPeople = location.pathname === "/admin/wiki/reports/people";
+  const onReportsActivity = location.pathname === "/admin/wiki/reports/activity";
+  const onContent = !onDirectory && !onGroups && !onReports;
 
 
   return (
@@ -130,6 +134,41 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateC
                 >
                   <UsersRound className="h-4 w-4" />
                   {!collapsed && <span>Groups</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>{!collapsed && <span>Reports</span>}</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => navigate("/admin/wiki/reports/content")}
+                  className={`${onReportsContent ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                >
+                  <BarChart3 className="h-4 w-4" />
+                  {!collapsed && <span>Content Report</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => navigate("/admin/wiki/reports/people")}
+                  className={`${onReportsPeople ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                >
+                  <UserCheck className="h-4 w-4" />
+                  {!collapsed && <span>People Report</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => navigate("/admin/wiki/reports/activity")}
+                  className={`${onReportsActivity ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                >
+                  <Activity className="h-4 w-4" />
+                  {!collapsed && <span>Activity</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>

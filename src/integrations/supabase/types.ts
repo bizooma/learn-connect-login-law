@@ -2243,6 +2243,35 @@ export type Database = {
           },
         ]
       }
+      wiki_article_views: {
+        Row: {
+          article_id: string
+          id: string
+          user_id: string
+          viewed_at: string
+        }
+        Insert: {
+          article_id: string
+          id?: string
+          user_id: string
+          viewed_at?: string
+        }
+        Update: {
+          article_id?: string
+          id?: string
+          user_id?: string
+          viewed_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wiki_article_views_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "wiki_articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wiki_articles: {
         Row: {
           category_id: string

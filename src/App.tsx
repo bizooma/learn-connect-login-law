@@ -31,6 +31,9 @@ import AdminDashboard from "./components/AdminDashboard";
 import AdminWikiPage from "./pages/AdminWikiPage";
 import AdminWikiDirectoryPage from "./pages/AdminWikiDirectoryPage";
 import AdminWikiGroupsPage from "./pages/AdminWikiGroupsPage";
+import AdminWikiReportsContent from "./pages/AdminWikiReportsContent";
+import AdminWikiReportsPeople from "./pages/AdminWikiReportsPeople";
+import AdminWikiReportsActivity from "./pages/AdminWikiReportsActivity";
 
 import AuthPage from "./components/AuthPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -78,6 +81,9 @@ const AppContent = () => {
         <Route path="/admin/wiki" element={<AdminWikiPage />} />
         <Route path="/admin/wiki/directory" element={<AdminWikiDirectoryPage />} />
         <Route path="/admin/wiki/groups" element={<AdminWikiGroupsPage />} />
+        <Route path="/admin/wiki/reports/content" element={<AdminWikiReportsContent />} />
+        <Route path="/admin/wiki/reports/people" element={<AdminWikiReportsPeople />} />
+        <Route path="/admin/wiki/reports/activity" element={<AdminWikiReportsActivity />} />
 
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
