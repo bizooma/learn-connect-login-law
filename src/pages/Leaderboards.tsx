@@ -89,6 +89,24 @@ const Leaderboards = () => {
     }
   };
 
+  if (!gamLoading && (!enabled || isUserExcluded)) {
+    return (
+      <div className="container mx-auto p-6">
+        <Card>
+          <CardContent className="py-16 text-center space-y-3">
+            <Lock className="h-10 w-10 mx-auto text-muted-foreground" />
+            <h2 className="text-xl font-semibold text-foreground">Leaderboards unavailable</h2>
+            <p className="text-muted-foreground max-w-md mx-auto">
+              {isUserExcluded
+                ? "Your group is excluded from gamification features."
+                : "Gamification has been turned off for this account. An admin can enable it in Settings → Gamification."}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center justify-between">
