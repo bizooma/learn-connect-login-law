@@ -43,6 +43,13 @@ const AdminWikiSettingsPage = () => {
   const [logoBgColor, setLogoBgColor] = useState("#ffffff");
   const [accentColor, setAccentColor] = useState("#213C82");
 
+  // Gamification
+  const [gamificationEnabled, setGamificationEnabled] = useState(true);
+  const [streakFrequency, setStreakFrequency] = useState<"weekly" | "monthly" | "quarterly">("weekly");
+  const [excludedGroups, setExcludedGroups] = useState<string[]>([]);
+  const [savingGamification, setSavingGamification] = useState(false);
+  const { groups } = useGroups();
+
   useEffect(() => {
     if (!loading && !isAdmin) {
       navigate("/admin/wiki", { replace: true });
