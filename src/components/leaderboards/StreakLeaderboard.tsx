@@ -76,6 +76,8 @@ const StreakLeaderboard = () => {
   }, [fetchStreakLeaderboard]);
 
 
+  if (!enabled || isUserExcluded) return null;
+
   if (loading) {
     return (
       <div className="space-y-4">
