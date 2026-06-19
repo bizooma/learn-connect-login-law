@@ -179,6 +179,34 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
+        {isAdmin && (
+          <SidebarGroup>
+            <SidebarGroupLabel>{!collapsed && <span>Account</span>}</SidebarGroupLabel>
+            <SidebarGroupContent>
+              <SidebarMenu>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => navigate("/admin/wiki/account/users")}
+                    className={`${onManageUsers ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                  >
+                    <UserCog className="h-4 w-4" />
+                    {!collapsed && <span>Manage Users</span>}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => navigate("/admin/wiki/account/settings")}
+                    className={`${onSettings ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                  >
+                    <Settings className="h-4 w-4" />
+                    {!collapsed && <span>Settings</span>}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              </SidebarMenu>
+            </SidebarGroupContent>
+          </SidebarGroup>
+        )}
       </SidebarContent>
     </Sidebar>
   );
