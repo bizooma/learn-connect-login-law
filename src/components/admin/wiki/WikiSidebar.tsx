@@ -1,4 +1,4 @@
-import { BookOpen, Home, FolderOpen, Plus, Users, UsersRound, BarChart3, UserCheck, Activity } from "lucide-react";
+import { BookOpen, Home, FolderOpen, Users, UsersRound, BarChart3, UserCheck, Activity } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -26,7 +26,6 @@ interface WikiSidebarProps {
   categories: WikiCategory[];
   activeCategoryId: string | null;
   onCategorySelect: (id: string | null) => void;
-  onCreateCategory: () => void;
 }
 
 const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateCategory }: WikiSidebarProps) => {
