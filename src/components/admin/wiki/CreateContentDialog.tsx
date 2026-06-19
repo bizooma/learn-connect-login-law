@@ -18,13 +18,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useWikiArticles, contentTypeLabels, type WikiContentType } from "@/hooks/useWikiArticles";
+import { useWikiArticles, contentTypeLabels, type WikiContentType, type WikiSubjectKind } from "@/hooks/useWikiArticles";
+import { SUBJECT_CATEGORIES } from "./subjectCategoryMeta";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
 interface Category {
   id: string;
   title: string;
+  category?: WikiSubjectKind;
 }
 
 interface CreateContentDialogProps {
