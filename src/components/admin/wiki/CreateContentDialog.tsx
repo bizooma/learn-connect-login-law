@@ -49,6 +49,7 @@ const CreateContentDialog = ({
   const { createArticle } = useWikiArticles();
   const [title, setTitle] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
+  const [subjectKind, setSubjectKind] = useState<WikiSubjectKind>("company");
   const [videoUrl, setVideoUrl] = useState("");
   const [fileUrl, setFileUrl] = useState("");
   const [fileName, setFileName] = useState("");
@@ -61,9 +62,18 @@ const CreateContentDialog = ({
       setVideoUrl("");
       setFileUrl("");
       setFileName("");
-      setCategoryId(defaultCategoryId || categories[0]?.id || "");
+      const initialId = defaultCategoryId || categories[0]?.id || "";
+      setCategoryId(initialId);
+      const initialCat = categories.find((c) => c.id === initialId);
+      setSubjectKind(initialCat?.category || "company");
     }
   }, [open, defaultCategoryId, categories]);
+
+  // Keep kind in sync when subject changes
+  useEffect(() => {
+    const cat = categories.find((c) => c.id === categoryId);
+    if (cat?.category) setSubjectKind(cat.category);
+  }, [categoryId, categories]);
 
   if (!contentType) return null;
 
