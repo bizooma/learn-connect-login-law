@@ -181,6 +181,28 @@ const CreateContentDialog = ({
               </SelectContent>
             </Select>
           </div>
+          <div className="space-y-2">
+            <Label htmlFor="cc-owner">Owner</Label>
+            <Select value={ownerId} onValueChange={setOwnerId}>
+              <SelectTrigger id="cc-owner">
+                <SelectValue placeholder="Assign to a teammate" />
+              </SelectTrigger>
+              <SelectContent className="max-h-72">
+                {ownerOptions.map((o) => {
+                  const name = [o.first_name, o.last_name].filter(Boolean).join(" ").trim() || o.email || "Unnamed";
+                  return (
+                    <SelectItem key={o.id} value={o.id}>
+                      <span className="flex flex-col">
+                        <span className="text-sm">{name}</span>
+                        {o.job_title && <span className="text-xs text-muted-foreground">{o.job_title}</span>}
+                      </span>
+                    </SelectItem>
+                  );
+                })}
+              </SelectContent>
+            </Select>
+          </div>
+
 
           <div className="space-y-2">
             <Label htmlFor="cc-kind">What kind of training is this?</Label>
