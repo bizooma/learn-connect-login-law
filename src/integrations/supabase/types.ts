@@ -2417,6 +2417,7 @@ export type Database = {
           file_url: string | null
           id: string
           is_published: boolean
+          owner_id: string | null
           sort_order: number
           subject_category: string | null
           tags: string[] | null
@@ -2433,6 +2434,7 @@ export type Database = {
           file_url?: string | null
           id?: string
           is_published?: boolean
+          owner_id?: string | null
           sort_order?: number
           subject_category?: string | null
           tags?: string[] | null
@@ -2449,6 +2451,7 @@ export type Database = {
           file_url?: string | null
           id?: string
           is_published?: boolean
+          owner_id?: string | null
           sort_order?: number
           subject_category?: string | null
           tags?: string[] | null
@@ -2461,6 +2464,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "wiki_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wiki_articles_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
