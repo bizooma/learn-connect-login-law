@@ -379,8 +379,101 @@ const AdminWikiSettingsPage = () => {
 
                   <TabsContent value="gamification" className="mt-6">
                     <Card>
-                      <CardContent className="pt-6">
-                        <p className="text-sm text-muted-foreground">Gamification settings coming soon.</p>
+                      <CardContent className="pt-6 space-y-6">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-3">
+                              <Switch
+                                id="gam-enabled"
+                                checked={gamificationEnabled}
+                                onCheckedChange={setGamificationEnabled}
+                              />
+                              <Label htmlFor="gam-enabled" className="text-base font-semibold">
+                                Enable gamification
+                              </Label>
+                            </div>
+                            <p className="text-sm text-muted-foreground pl-12">
+                              Toggle on to enable gamification features on your account, including training streaks and a leaderboard.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className={`space-y-4 border-t border-border pt-6 ${!gamificationEnabled ? "opacity-50 pointer-events-none" : ""}`}>
+                          <div>
+                            <h3 className="text-base font-semibold text-foreground">Completion streaks</h3>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Encourage users to get to 100% completion every week, month, or quarter. Keeping a streak helps them move up the leaderboard. People in your exception list won't have the streaks or leaderboard experience.
+                            </p>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Streak frequency</Label>
+                            <div className="flex gap-6">
+                              {(["weekly", "monthly", "quarterly"] as const).map((freq) => (
+                                <label key={freq} className="flex items-center gap-2 cursor-pointer">
+                                  <input
+                                    type="radio"
+                                    name="streak-frequency"
+                                    value={freq}
+                                    checked={streakFrequency === freq}
+                                    onChange={() => setStreakFrequency(freq)}
+                                    className="accent-primary"
+                                  />
+                                  <span className="text-sm capitalize">{freq}</span>
+                                </label>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label>Exceptions</Label>
+                            <p className="text-xs text-muted-foreground">
+                              Select groups to exclude from streaks and the leaderboard.
+                            </p>
+                            {groups.length === 0 ? (
+                              <p className="text-sm text-muted-foreground italic">
+                                No groups exist yet. Create groups on the Groups page to use them here.
+                              </p>
+                            ) : (
+                              <div className="border border-border rounded-md max-h-64 overflow-auto">
+                                {groups.map((g) => {
+                                  const checked = excludedGroups.includes(g.id);
+                                  return (
+                                    <label
+                                      key={g.id}
+                                      className="flex items-center justify-between gap-3 p-3 border-b border-border last:border-0 hover:bg-muted/50 cursor-pointer"
+                                    >
+                                      <div className="flex items-center gap-3">
+                                        <Checkbox
+                                          checked={checked}
+                                          onCheckedChange={() => toggleExcluded(g.id)}
+                                        />
+                                        <div>
+                                          <div className="text-sm font-medium">{g.name}</div>
+                                          <div className="text-xs text-muted-foreground">
+                                            {g.type} · {g.member_count ?? 0} {g.member_count === 1 ? "member" : "members"}
+                                          </div>
+                                        </div>
+                                      </div>
+                                      {checked && <Check className="h-4 w-4 text-primary" />}
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                            )}
+                            {excludedGroups.length > 0 && (
+                              <p className="text-xs text-muted-foreground">
+                                {excludedGroups.length} {excludedGroups.length === 1 ? "group" : "groups"} excluded
+                              </p>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end pt-4 border-t border-border">
+                          <Button onClick={handleSaveGamification} disabled={savingGamification}>
+                            {savingGamification ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</> : "Save"}
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   </TabsContent>
