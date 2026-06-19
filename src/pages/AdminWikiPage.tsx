@@ -174,7 +174,11 @@ const AdminWikiPage = () => {
                     </div>
                   )}
 
-                  {!activeCategoryId && (activeCategoryFilter === "company" ? <ButterfliesBanner /> : <BubblesBanner />)}
+                  {!activeCategoryId && (
+                    activeCategoryFilter === "company" ? <ButterfliesBanner />
+                    : activeCategoryFilter === "policy" ? <SnowBanner />
+                    : <BubblesBanner />
+                  )}
 
                   <WikiSearchBar value={searchQuery} onChange={setSearchQuery} />
 
