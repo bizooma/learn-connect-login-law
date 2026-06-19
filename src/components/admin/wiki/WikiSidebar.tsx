@@ -36,7 +36,11 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateC
   const location = useLocation();
   const onDirectory = location.pathname.startsWith("/admin/wiki/directory");
   const onGroups = location.pathname.startsWith("/admin/wiki/groups");
-  const onContent = !onDirectory && !onGroups;
+  const onReports = location.pathname.startsWith("/admin/wiki/reports");
+  const onReportsContent = location.pathname === "/admin/wiki/reports/content";
+  const onReportsPeople = location.pathname === "/admin/wiki/reports/people";
+  const onReportsActivity = location.pathname === "/admin/wiki/reports/activity";
+  const onContent = !onDirectory && !onGroups && !onReports;
 
 
   return (
