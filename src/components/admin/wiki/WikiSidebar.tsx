@@ -34,13 +34,22 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateC
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
   const location = useLocation();
+  const onHome = location.pathname === "/admin/wiki";
+  const onContent = location.pathname.startsWith("/admin/wiki/content");
   const onDirectory = location.pathname.startsWith("/admin/wiki/directory");
   const onGroups = location.pathname.startsWith("/admin/wiki/groups");
   const onReports = location.pathname.startsWith("/admin/wiki/reports");
   const onReportsContent = location.pathname === "/admin/wiki/reports/content";
   const onReportsPeople = location.pathname === "/admin/wiki/reports/people";
   const onReportsActivity = location.pathname === "/admin/wiki/reports/activity";
-  const onContent = !onDirectory && !onGroups && !onReports;
+
+  const goToCategory = (id: string | null) => {
+    if (onContent) {
+      onCategorySelect(id);
+    } else {
+      navigate("/admin/wiki/content", { state: { activeCategoryId: id } });
+    }
+  };
 
 
   return (
@@ -61,17 +70,30 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateC
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton
-                  onClick={() => {
-                    if (onDirectory) navigate("/admin/wiki");
-                    onCategorySelect(null);
-                  }}
-                  className={`${onContent && !activeCategoryId ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                  onClick={() => navigate("/admin/wiki")}
+                  className={`${onHome ? 'bg-accent text-accent-foreground font-medium' : ''}`}
                 >
                   <Home className="h-4 w-4" />
+                  {!collapsed && <span>Home</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+
+        <SidebarGroup>
+          <SidebarGroupLabel>{!collapsed && <span>Content</span>}</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => goToCategory(null)}
+                  className={`${onContent && !activeCategoryId ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                >
+                  <FolderOpen className="h-4 w-4" />
                   {!collapsed && <span>All Content</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
-
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
@@ -93,8 +115,8 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateC
               {categories.map((category) => (
                 <SidebarMenuItem key={category.id}>
                   <SidebarMenuButton
-                    onClick={() => onCategorySelect(category.id)}
-                    className={`${activeCategoryId === category.id ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                    onClick={() => goToCategory(category.id)}
+                    className={`${onContent && activeCategoryId === category.id ? 'bg-accent text-accent-foreground font-medium' : ''}`}
                   >
                     <FolderOpen className="h-4 w-4" />
                     {!collapsed && (
@@ -113,6 +135,7 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateC
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
+
 
         <SidebarGroup>
           <SidebarGroupLabel>{!collapsed && <span>People</span>}</SidebarGroupLabel>
