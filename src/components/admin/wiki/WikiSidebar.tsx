@@ -1,4 +1,4 @@
-import { BookOpen, Home, FolderOpen, Plus, Users, UsersRound, BarChart3, UserCheck, Activity } from "lucide-react";
+import { BookOpen, Home, FolderOpen, Users, UsersRound, BarChart3, UserCheck, Activity } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -26,10 +26,9 @@ interface WikiSidebarProps {
   categories: WikiCategory[];
   activeCategoryId: string | null;
   onCategorySelect: (id: string | null) => void;
-  onCreateCategory: () => void;
 }
 
-const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateCategory }: WikiSidebarProps) => {
+const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSidebarProps) => {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
   const navigate = useNavigate();
@@ -92,13 +91,8 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect, onCreateC
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="flex items-center justify-between">
+          <SidebarGroupLabel>
             {!collapsed && <span>Subjects</span>}
-            {!collapsed && (
-              <Button variant="ghost" size="icon" className="h-5 w-5" onClick={onCreateCategory}>
-                <Plus className="h-3 w-3" />
-              </Button>
-            )}
           </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
