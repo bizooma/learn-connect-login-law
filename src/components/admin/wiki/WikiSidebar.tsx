@@ -65,7 +65,6 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
 
       <SidebarContent className="pt-8">
         <SidebarGroup>
-          <SidebarGroupLabel>{!collapsed && <span>Content</span>}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               <SidebarMenuItem>
@@ -102,6 +101,9 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
+              {!collapsed && (
+                <div className="flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/70">Content</div>
+              )}
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={() => goToCategory(null)}
