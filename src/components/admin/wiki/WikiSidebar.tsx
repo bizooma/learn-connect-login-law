@@ -63,7 +63,7 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
         {collapsed && <BookOpen className="h-5 w-5 text-primary mx-auto" />}
       </SidebarHeader>
 
-      <SidebarContent className="pt-8">
+      <SidebarContent className="pt-12">
         <SidebarGroup>
           <SidebarGroupContent>
             <SidebarMenu>
