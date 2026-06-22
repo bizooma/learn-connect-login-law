@@ -20,8 +20,11 @@ const AddUserDialog = ({ onUserAdded }: AddUserDialogProps) => {
     email: "",
     firstName: "",
     lastName: "",
+    password: "",
+    confirmPassword: "",
     role: "student" as 'admin' | 'owner' | 'student' | 'client' | 'free'
   });
+  const [showPassword, setShowPassword] = useState(false);
   const { toast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
