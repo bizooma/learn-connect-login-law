@@ -29,10 +29,24 @@ const AddUserDialog = ({ onUserAdded }: AddUserDialogProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    if (!formData.password || !formData.confirmPassword) {
+      toast({ title: "Error", description: "Please enter and confirm a password", variant: "destructive" });
+      return;
+    }
+    if (formData.password !== formData.confirmPassword) {
+      toast({ title: "Error", description: "Passwords do not match", variant: "destructive" });
+      return;
+    }
+    if (formData.password.length < 8) {
+      toast({ title: "Error", description: "Password must be at least 8 characters long", variant: "destructive" });
+      return;
+    }
+
     setLoading(true);
 
     try {
-      console.log('Attempting to create user via edge function:', formData);
+      console.log('Attempting to create user via edge function:', formData.email);
 
       // Get the current session to ensure we have an auth token
       const { data: { session } } = await supabase.auth.getSession();
@@ -46,6 +60,7 @@ const AddUserDialog = ({ onUserAdded }: AddUserDialogProps) => {
           email: formData.email,
           firstName: formData.firstName,
           lastName: formData.lastName,
+          password: formData.password,
           role: formData.role
         },
         headers: {
@@ -73,6 +88,8 @@ const AddUserDialog = ({ onUserAdded }: AddUserDialogProps) => {
         email: "",
         firstName: "",
         lastName: "",
+        password: "",
+        confirmPassword: "",
         role: "student"
       });
       setOpen(false);
