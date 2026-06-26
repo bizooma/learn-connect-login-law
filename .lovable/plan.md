@@ -1,20 +1,18 @@
-## Add password fields back to Admin "Add User" dialog
+## Problem
 
-The admin **Add New User** dialog (`src/components/admin/user-management/AddUserDialog.tsx`) currently only collects email, name, and role — no password input. The owner-side `AddEmployeeDialog` still has password + confirm-password fields, and the `create-single-user` edge function already accepts an optional `password` (falling back to a temp password when omitted). So this is a UI regression on the admin dialog only.
+Admin gets "Edge Function returned a non-2xx status code" when adding a user with the last name **Gómez Sánchez**. The `create-single-user` edge function validates names with `/^[a-zA-Z\s'-]+$/`, which rejects any accented or non-ASCII character (ó, á, ñ, é, etc.). This blocks legitimate names — a real problem for an immigration law firm dealing with Hispanic and international clients/staff.
 
-### Changes
+Bonus issue: the toast just says "Edge Function returned a non-2xx status code" instead of the actual server message (e.g. "Names can only contain letters, spaces, hyphens, and apostrophes"), so the admin had no idea what went wrong.
+
+## Fix
+
+**`supabase/functions/create-single-user/validation.ts`**
+- Change the name regex from `/^[a-zA-Z\s'-]+$/` to a Unicode-aware version: `/^[\p{L}\s'-]+$/u` — allows letters from any script (Latin with accents, Cyrillic, CJK, etc.) plus spaces, hyphens, apostrophes.
+
+**`supabase/functions/import-users-csv/userCreator.ts`** (and any sibling validator there)
+- Check for the same regex and apply the same fix so CSV imports don't fail on accented names either.
 
 **`src/components/admin/user-management/AddUserDialog.tsx`**
-- Add `password` and `confirmPassword` to `formData` state, plus a `showPassword` toggle.
-- Add two new fields below Last Name, matching the existing grid layout:
-  - **Password** — input with eye/eye-off toggle button, min 8 chars
-  - **Confirm Password** — input using the same show/hide state
-- Validate on submit:
-  - both passwords filled
-  - `password === confirmPassword`
-  - length ≥ 8
-  - show toast + abort if any check fails
-- Pass `password: formData.password` in the `create-single-user` invoke body (the edge function already handles this field).
-- Reset the two new fields when closing/submitting.
+- When `supabase.functions.invoke` returns an error, try to surface the real message from `data?.error` (the edge function already returns it in the JSON body) instead of just `error.message`. So the admin sees the actual validation reason in the toast.
 
-No backend or edge-function changes needed.
+No DB or schema changes. No UI changes beyond a better error toast.
