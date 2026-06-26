@@ -71,7 +71,14 @@ const AddUserDialog = ({ onUserAdded }: AddUserDialogProps) => {
       console.log('Edge function response:', { data, error });
 
       if (error) {
-        throw new Error(error.message || 'Failed to create user');
+        // Try to extract the real error message from the edge function response body
+        let serverMessage: string | undefined;
+        const ctx: any = (error as any).context;
+        try {
+          if (ctx?.json) serverMessage = (await ctx.json())?.error;
+          else if (ctx?.text) serverMessage = JSON.parse(await ctx.text())?.error;
+        } catch (_) { /* ignore parse errors */ }
+        throw new Error(serverMessage || error.message || 'Failed to create user');
       }
 
       if (data?.error) {
