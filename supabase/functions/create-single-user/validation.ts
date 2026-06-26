@@ -27,7 +27,7 @@ export function validateCreateUserRequest(body: any): { isValid: boolean; error?
   }
 
   // Name validation (prevent XSS)
-  const nameRegex = /^[a-zA-Z\s'-]+$/;
+  const nameRegex = /^[\p{L}\s'’\-]+$/u;
   if (!nameRegex.test(firstName.trim()) || !nameRegex.test(lastName.trim())) {
     return {
       isValid: false,
