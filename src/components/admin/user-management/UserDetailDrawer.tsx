@@ -279,7 +279,7 @@ const UserDetailDrawer = ({
                           <span className="font-medium">{r.new_role || "—"}</span>
                         </div>
                         <div className="text-xs text-muted-foreground">
-                          {format(new Date(r.performed_at), "MMM d, yyyy")} ·{" "}
+                          {r.changed_at ? format(new Date(r.changed_at), "MMM d, yyyy") : "—"} ·{" "}
                           {r.reason || "no reason"}
                         </div>
                       </div>
