@@ -49,7 +49,7 @@ const WikiCategoryList = ({
           onTogglePublish={onTogglePublishCategory}
           onEditArticle={onEditArticle}
           searchQuery={searchQuery}
-          defaultExpanded={!!searchQuery}
+          defaultExpanded={!!searchQuery || categories.length === 1}
         />
       ))}
 
