@@ -49,6 +49,7 @@ const CreateContentDialog = ({
   defaultCategoryId,
 }: CreateContentDialogProps) => {
   const { createArticle } = useWikiArticles();
+  const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
   const [subjectKind, setSubjectKind] = useState<WikiSubjectKind>("company");
