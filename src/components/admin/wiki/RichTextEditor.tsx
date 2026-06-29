@@ -523,6 +523,7 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       TextStyle,
       FontFamily,
+      FontSize,
       Color,
       Highlight,
       Subscript,
