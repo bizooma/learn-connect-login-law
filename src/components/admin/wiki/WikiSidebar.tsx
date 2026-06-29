@@ -1,4 +1,4 @@
-import { BookOpen, Home, FolderOpen, Users, UsersRound, BarChart3, UserCheck, Activity, UserCog, Settings } from "lucide-react";
+import { BookOpen, Home, FolderOpen, Users, UsersRound, BarChart3, UserCheck, Activity, UserCog, Settings, Route as RouteIcon } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -37,6 +37,7 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
   const { isAdmin } = useUserRole();
   const onHome = location.pathname === "/admin/wiki";
   const onContent = location.pathname.startsWith("/admin/wiki/content");
+  const onTrainingPaths = location.pathname.startsWith("/admin/wiki/training-paths");
   const onDirectory = location.pathname.startsWith("/admin/wiki/directory");
   const onGroups = location.pathname.startsWith("/admin/wiki/groups");
   const onReports = location.pathname.startsWith("/admin/wiki/reports");
@@ -91,6 +92,15 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
                 >
                   <FolderOpen className="h-4 w-4" />
                   {!collapsed && <span>All Content</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => navigate("/admin/wiki/training-paths")}
+                  className={`${onTrainingPaths ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                >
+                  <RouteIcon className="h-4 w-4" />
+                  {!collapsed && <span>Training Paths</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
             </SidebarMenu>
