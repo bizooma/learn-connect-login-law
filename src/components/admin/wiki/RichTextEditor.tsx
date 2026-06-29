@@ -445,16 +445,6 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
           <RemoveFormatting className="h-4 w-4" />
         </ToolbarButton>
 
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-8 px-2 text-xs"
-          title="Remove bold from entire page"
-          onClick={() => editor.chain().focus().selectAll().unsetBold().run()}
-        >
-          Un-bold all
-        </Button>
 
 
         {uploading && <span className="text-xs text-muted-foreground ml-2">Uploading…</span>}
@@ -466,7 +456,9 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
 const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        bold: { HTMLAttributes: { "data-bold": "true" } },
+      }),
       Underline,
       Link.configure({ openOnClick: false, HTMLAttributes: { class: "text-primary underline" } }),
       Image,
@@ -506,8 +498,24 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
   return (
     <div className="flex flex-col h-full">
       <Toolbar editor={editor} />
+      <style>{`
+        .wiki-editor-surface p,
+        .wiki-editor-surface li,
+        .wiki-editor-surface p strong,
+        .wiki-editor-surface li strong,
+        .wiki-editor-surface p b,
+        .wiki-editor-surface li b,
+        .wiki-editor-surface p span,
+        .wiki-editor-surface li span {
+          font-weight: 400 !important;
+        }
+        .wiki-editor-surface p [data-bold="true"],
+        .wiki-editor-surface li [data-bold="true"] {
+          font-weight: 700 !important;
+        }
+      `}</style>
       <div className="flex-1 overflow-auto bg-muted/20">
-        <div className="max-w-4xl mx-auto bg-background min-h-full px-12 shadow-sm">
+        <div className="max-w-4xl mx-auto bg-background min-h-full px-12 shadow-sm wiki-editor-surface">
           <EditorContent editor={editor} />
         </div>
       </div>

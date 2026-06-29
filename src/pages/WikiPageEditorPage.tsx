@@ -8,6 +8,15 @@ import { toast } from "sonner";
 import RichTextEditor from "@/components/admin/wiki/RichTextEditor";
 import { useWikiPages, WikiPage } from "@/hooks/useWikiPages";
 
+// Strip legacy bold so old content renders at normal weight.
+// Removes <strong>/<b> wrappers and inline font-weight styles.
+const sanitizeContent = (html: string): string => {
+  if (!html) return "";
+  return html
+    .replace(/<\/?(strong|b)(\s[^>]*)?>/gi, "")
+    .replace(/font-weight\s*:\s*[^;"']+;?/gi, "");
+};
+
 const WikiPageEditorPage = () => {
   const { pageId } = useParams<{ pageId: string }>();
   const navigate = useNavigate();
@@ -38,7 +47,7 @@ const WikiPageEditorPage = () => {
       const p = data as unknown as WikiPage;
       setPage(p);
       setTitle(p.title);
-      setContent(p.content || "");
+      setContent(sanitizeContent(p.content || ""));
       setLoading(false);
     })();
     return () => {
@@ -56,7 +65,7 @@ const WikiPageEditorPage = () => {
     setSaving(true);
     const { error } = await supabase
       .from("wiki_pages" as any)
-      .update({ title: trimmed, content })
+      .update({ title: trimmed, content: sanitizeContent(content) })
       .eq("id", page.id);
     setSaving(false);
     if (error) {
