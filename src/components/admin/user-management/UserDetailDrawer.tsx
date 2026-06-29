@@ -106,10 +106,10 @@ const UserDetailDrawer = ({
             .order("session_start", { ascending: false })
             .limit(20),
           supabase
-            .from("user_role_audit" as any)
-            .select("id, performed_at, old_role, new_role, reason")
-            .eq("target_user_id", user.id)
-            .order("performed_at", { ascending: false })
+            .from("user_role_audit")
+            .select("id, changed_at, old_role, new_role, reason")
+            .eq("user_id", user.id)
+            .order("changed_at", { ascending: false })
             .limit(20),
           supabase
             .from("wiki_article_views" as any)
