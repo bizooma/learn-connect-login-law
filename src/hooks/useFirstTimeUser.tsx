@@ -28,10 +28,10 @@ export const useFirstTimeUser = () => {
     
     console.log('useFirstTimeUser: hasSeenWelcome =', hasSeenWelcome);
 
-    if (!hasSeenWelcome) {
+    if (false && !hasSeenWelcome) {
+      // Welcome modal temporarily disabled - keep code for future re-enable
       console.log('useFirstTimeUser: First time user detected, showing welcome');
       setIsFirstTime(true);
-      // Small delay to let the page load before showing effects
       setTimeout(() => {
         setShowConfetti(true);
         setShowWelcome(true);
