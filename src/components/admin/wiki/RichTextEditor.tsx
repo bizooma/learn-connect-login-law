@@ -230,7 +230,7 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
         </Select>
 
         <Select
-          value={currentFont}
+          value={currentFont || "__default"}
           onValueChange={(val) => {
             if (!val) editor.chain().focus().unsetFontFamily().run();
             else editor.chain().focus().setFontFamily(val).run();
