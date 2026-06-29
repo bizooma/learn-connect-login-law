@@ -228,8 +228,26 @@ export const UserCard = ({
                 onClick={() => navigate(`/admin/wiki/directory?user=${user.id}`)}
                 accent="slate"
               />
+              {isAdmin && (
+                <div className="flex items-center justify-between gap-2 px-3 py-2 bg-background border border-border rounded-lg shadow-sm">
+                  <div className="flex flex-col">
+                    <span className="text-[12px] font-semibold text-foreground">
+                      Tester
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      Grants P&P button access
+                    </span>
+                  </div>
+                  <Switch
+                    checked={isTester}
+                    disabled={testerSaving}
+                    onCheckedChange={toggleTester}
+                  />
+                </div>
+              )}
             </div>
           </div>
+
         </div>
 
         {/* Account Controls */}
