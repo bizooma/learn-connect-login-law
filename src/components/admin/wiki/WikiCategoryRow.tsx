@@ -52,6 +52,9 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
         <span className={`text-xs px-2 py-0.5 rounded w-fit ${category.is_published ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-muted text-muted-foreground'}`}>
           {category.is_published ? 'Published' : 'Draft'}
         </span>
+        <span className="text-xs text-muted-foreground truncate">—</span>
+        <span className="text-xs text-muted-foreground truncate">—</span>
+
         <div className="flex items-center justify-end">
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
