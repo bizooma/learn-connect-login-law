@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { ChevronRight, ChevronDown, MoreVertical, Pencil, Trash2, Eye, EyeOff, Copy, Link2, Printer, Archive, Tag, Type } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
