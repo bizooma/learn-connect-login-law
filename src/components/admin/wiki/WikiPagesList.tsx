@@ -1,6 +1,6 @@
 import { useState, KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, Pencil, Trash2 } from "lucide-react";
+import { FileText, Pencil, Trash2, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useWikiPages } from "@/hooks/useWikiPages";
