@@ -15,20 +15,26 @@ interface UserGridProps {
   hasPreviousPage: boolean;
   onCourseAssigned?: () => void;
   onViewProgress?: (userId: string) => void;
+  selectedIds?: Set<string>;
+  onToggleSelected?: (userId: string, selected: boolean) => void;
+  onOpenDetail?: (userId: string) => void;
 }
 
-export const UserGrid = ({ 
-  users, 
-  onRoleUpdate, 
-  onUserDeleted, 
-  currentPage, 
-  totalPages, 
-  totalUsers, 
-  onPageChange, 
-  hasNextPage, 
+export const UserGrid = ({
+  users,
+  onRoleUpdate,
+  onUserDeleted,
+  currentPage,
+  totalPages,
+  totalUsers,
+  onPageChange,
+  hasNextPage,
   hasPreviousPage,
   onCourseAssigned,
-  onViewProgress 
+  onViewProgress,
+  selectedIds,
+  onToggleSelected,
+  onOpenDetail,
 }: UserGridProps) => {
   if (users.length === 0) {
     return (
@@ -49,6 +55,11 @@ export const UserGrid = ({
             onUserDeleted={onUserDeleted}
             onCourseAssigned={onCourseAssigned}
             onViewProgress={onViewProgress}
+            selected={selectedIds?.has(user.id)}
+            onSelectedChange={
+              onToggleSelected ? (sel) => onToggleSelected(user.id, sel) : undefined
+            }
+            onOpenDetail={onOpenDetail}
           />
         ))}
       </div>
