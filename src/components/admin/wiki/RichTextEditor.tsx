@@ -222,10 +222,11 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="p">Normal text</SelectItem>
+            <SelectItem value="p">Paragraph</SelectItem>
             <SelectItem value="h1">Heading 1</SelectItem>
             <SelectItem value="h2">Heading 2</SelectItem>
             <SelectItem value="h3">Heading 3</SelectItem>
+
           </SelectContent>
         </Select>
 
