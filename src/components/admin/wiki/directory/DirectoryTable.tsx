@@ -77,9 +77,33 @@ const DirectoryTable = ({ users, onSelect }: Props) => {
               </TableCell>
               <TableCell className="text-muted-foreground">{u.email}</TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => onSelect?.(u)}>
+                      <User className="h-4 w-4 mr-2" /> View profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        navigator.clipboard.writeText(u.email);
+                        toast({ title: "Email copied", description: u.email });
+                      }}
+                    >
+                      <Copy className="h-4 w-4 mr-2" /> Copy email
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        window.location.href = `mailto:${u.email}`;
+                      }}
+                    >
+                      <Mail className="h-4 w-4 mr-2" /> Send email
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
           ))}
