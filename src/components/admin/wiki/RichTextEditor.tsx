@@ -456,7 +456,9 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
 const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        bold: { HTMLAttributes: { "data-bold": "true" } },
+      }),
       Underline,
       Link.configure({ openOnClick: false, HTMLAttributes: { class: "text-primary underline" } }),
       Image,
