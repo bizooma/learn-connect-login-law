@@ -2514,6 +2514,50 @@ export type Database = {
         }
         Relationships: []
       }
+      wiki_pages: {
+        Row: {
+          article_id: string
+          content: string | null
+          created_at: string
+          created_by: string
+          id: string
+          is_published: boolean
+          sort_order: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          article_id: string
+          content?: string | null
+          created_at?: string
+          created_by: string
+          id?: string
+          is_published?: boolean
+          sort_order?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          article_id?: string
+          content?: string | null
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_published?: boolean
+          sort_order?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wiki_pages_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "wiki_articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
