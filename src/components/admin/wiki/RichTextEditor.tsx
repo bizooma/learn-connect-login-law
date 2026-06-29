@@ -582,9 +582,10 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         }
         .wiki-editor-surface ul.task-list { list-style: none; padding-left: 0; }
         .wiki-editor-surface ul.task-list li.task-item { display: flex; align-items: flex-start; gap: 0.5rem; margin: 0.25rem 0; }
-        .wiki-editor-surface ul.task-list li.task-item > label { margin-top: 0.25rem; }
-        .wiki-editor-surface ul.task-list li.task-item > label input[type="checkbox"] { width: 1rem; height: 1rem; cursor: pointer; }
-        .wiki-editor-surface ul.task-list li.task-item > div { flex: 1; }
+        .wiki-editor-surface ul.task-list li.task-item > label { flex: 0 0 auto; margin-top: 0.35rem; display: inline-flex; align-items: center; user-select: none; }
+        .wiki-editor-surface ul.task-list li.task-item > label input[type="checkbox"] { width: 1rem; height: 1rem; cursor: pointer; margin: 0; }
+        .wiki-editor-surface ul.task-list li.task-item > div { flex: 1 1 auto; min-width: 0; }
+        .wiki-editor-surface ul.task-list li.task-item > div > p { margin: 0; min-height: 1.5em; }
         .wiki-editor-surface ul.task-list li.task-item[data-checked="true"] > div { text-decoration: line-through; opacity: 0.6; }
       `}</style>
       <div className="flex-1 overflow-auto bg-muted/20">
