@@ -22,6 +22,14 @@ import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
 
 const AdminWikiPage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const openArticle = (a: WikiArticle) => {
+    if (a.content_type === "flowchart") {
+      navigate(`/admin/wiki/flowchart/${a.id}`);
+    } else {
+      setEditingArticle(a);
+    }
+  };
   const navState = (location.state ?? {}) as { activeCategoryId?: string | null; openCreateCategory?: boolean };
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(navState.activeCategoryId ?? null);
