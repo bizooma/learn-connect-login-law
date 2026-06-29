@@ -111,7 +111,16 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
             <ChevronRight className="h-4 w-4 text-muted-foreground shrink-0" />
           )}
           <CategoryIcon className={`h-5 w-5 shrink-0 ${meta.iconColor}`} />
-          <span className="font-medium text-foreground truncate">{category.title}</span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate("/admin/wiki/content", { state: { activeCategoryId: category.id } });
+            }}
+            className="font-medium text-foreground truncate text-left hover:text-primary hover:underline"
+          >
+            {category.title}
+          </button>
         </div>
         <span className="text-xs text-muted-foreground">
           {count} {count === 1 ? "item" : "items"}
