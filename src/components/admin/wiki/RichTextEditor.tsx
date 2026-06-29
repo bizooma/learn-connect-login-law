@@ -102,6 +102,7 @@ import {
   Trash2,
   Plus,
   Minus,
+  CheckSquare,
 } from "lucide-react";
 
 const EmojiPicker = lazy(() => import("emoji-picker-react"));
