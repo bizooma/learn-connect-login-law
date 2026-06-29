@@ -83,6 +83,7 @@ const AppContent = () => {
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/wiki" element={<AdminWikiHomePage />} />
         <Route path="/admin/wiki/content" element={<AdminWikiPage />} />
+        <Route path="/admin/wiki/training-paths" element={<AdminWikiTrainingPathsPage />} />
         <Route path="/admin/wiki/directory" element={<AdminWikiDirectoryPage />} />
         <Route path="/admin/wiki/groups" element={<AdminWikiGroupsPage />} />
         <Route path="/admin/wiki/reports/content" element={<AdminWikiReportsContent />} />
