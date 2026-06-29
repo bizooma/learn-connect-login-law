@@ -246,25 +246,8 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
           <Redo className="h-4 w-4" />
         </ToolbarButton>
 
-        <Select
-          value={(editor.getAttributes("textStyle").fontSize || "").replace("px", "") || "__default"}
-          onValueChange={(val) => {
-            if (val === "__default") (editor.chain().focus() as any).unsetFontSize().run();
-            else (editor.chain().focus() as any).setFontSize(`${val}px`).run();
-          }}
-        >
-          <SelectTrigger className="w-20 h-8" title="Font size">
-            <SelectValue placeholder="Size" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="__default">Default</SelectItem>
-            {FONT_SIZES.map((s) => (
-              <SelectItem key={s} value={s}>{s}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-
         <div className="w-px h-6 bg-border mx-1" />
+
 
         <Select
           value={headingValue}
