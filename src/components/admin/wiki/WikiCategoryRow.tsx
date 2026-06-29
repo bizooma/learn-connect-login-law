@@ -31,7 +31,7 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
   return (
     <div className="border-b border-border">
       <div
-        className="grid grid-cols-[1fr_100px_140px_100px_60px] items-center gap-4 px-4 py-3 hover:bg-muted/30 cursor-pointer transition-colors"
+        className="grid grid-cols-[1fr_90px_120px_90px_140px_80px_60px] items-center gap-4 px-4 py-3 hover:bg-muted/30 cursor-pointer transition-colors"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-3 min-w-0">
