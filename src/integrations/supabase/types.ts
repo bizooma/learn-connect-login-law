@@ -2525,6 +2525,42 @@ export type Database = {
           },
         ]
       }
+      wiki_category_groups: {
+        Row: {
+          category_id: string
+          created_at: string
+          group_id: string
+          id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          group_id: string
+          id?: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          group_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wiki_category_groups_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "wiki_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wiki_category_groups_group_id_fkey"
+            columns: ["group_id"]
+            isOneToOne: false
+            referencedRelation: "groups"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wiki_pages: {
         Row: {
           article_id: string
