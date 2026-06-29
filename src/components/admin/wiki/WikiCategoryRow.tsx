@@ -35,6 +35,66 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
   const count = category.article_count || 0;
   const meta = getSubjectCategoryMeta(category.category);
   const CategoryIcon = meta.Icon;
+  const { updateCategory } = useWikiCategories();
+  const queryClient = useQueryClient();
+
+  const handleRename = async () => {
+    const newTitle = window.prompt("Rename subject", category.title);
+    if (!newTitle || newTitle.trim() === "" || newTitle === category.title) return;
+    updateCategory.mutate({ id: category.id, title: newTitle.trim() });
+  };
+
+  const handleDuplicate = async () => {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error("Not authenticated");
+      const { data: maxRow } = await supabase
+        .from("wiki_categories")
+        .select("sort_order")
+        .order("sort_order", { ascending: false })
+        .limit(1);
+      const nextOrder = maxRow && maxRow.length > 0 ? (maxRow[0] as any).sort_order + 1 : 0;
+      const { error } = await supabase.from("wiki_categories").insert({
+        title: `${category.title} (Copy)`,
+        description: category.description,
+        icon_name: category.icon_name,
+        category: category.category,
+        sort_order: nextOrder,
+        is_published: false,
+        created_by: userData.user.id,
+      } as any);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["wiki-categories"] });
+      toast.success("Subject duplicated");
+    } catch (e: any) {
+      toast.error("Failed to duplicate: " + e.message);
+    }
+  };
+
+  const handleChangeCategory = (newCat: WikiSubjectCategory) => {
+    if (newCat === category.category) return;
+    updateCategory.mutate({ id: category.id, category: newCat });
+  };
+
+  const handleCopyLink = async () => {
+    const url = `${window.location.origin}/admin/wiki/content?subject=${category.id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied");
+    } catch {
+      toast.error("Failed to copy link");
+    }
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleArchive = () => {
+    updateCategory.mutate({ id: category.id, is_published: false });
+    toast.success("Subject archived");
+  };
+
 
   return (
     <div className="border-b border-border">
