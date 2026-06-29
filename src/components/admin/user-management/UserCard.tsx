@@ -38,6 +38,9 @@ interface UserCardProps {
   onUserDeleted: () => void;
   onCourseAssigned?: () => void;
   onViewProgress?: (userId: string) => void;
+  selected?: boolean;
+  onSelectedChange?: (selected: boolean) => void;
+  onOpenDetail?: (userId: string) => void;
 }
 
 export const UserCard = ({
