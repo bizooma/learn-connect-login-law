@@ -1,5 +1,7 @@
 import { useState, KeyboardEvent } from "react";
-import { FileText, Trash2 } from "lucide-react";
+import { FileText, Pencil, Trash2 } from "lucide-react";
+import EditPageDialog from "./EditPageDialog";
+import { WikiPage } from "@/hooks/useWikiPages";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useWikiPages } from "@/hooks/useWikiPages";
@@ -67,30 +69,53 @@ const PageInput = ({ articleId, onCreated }: { articleId: string; onCreated: () 
 const WikiPagesList = ({ articleId }: WikiPagesListProps) => {
   const { pages, deletePage } = useWikiPages(articleId);
   const [, force] = useState(0);
+  const [editingPage, setEditingPage] = useState<WikiPage | null>(null);
 
   return (
     <div onClick={(e) => e.stopPropagation()}>
       {pages.map((page) => (
         <div
           key={page.id}
-          className="flex items-center justify-between px-4 py-2 pl-16 bg-background border-b border-border hover:bg-muted/30 group"
+          className="flex items-center justify-between px-4 py-2 pl-16 bg-background border-b border-border hover:bg-muted/30 group cursor-pointer"
+          onClick={() => setEditingPage(page)}
         >
           <div className="flex items-center gap-2">
             <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">Page</span>
             <FileText className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm text-foreground">{page.title}</span>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-7 w-7 opacity-0 group-hover:opacity-100"
-            onClick={() => deletePage.mutate(page.id)}
-          >
-            <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 opacity-0 group-hover:opacity-100"
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditingPage(page);
+              }}
+            >
+              <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 opacity-0 group-hover:opacity-100"
+              onClick={(e) => {
+                e.stopPropagation();
+                deletePage.mutate(page.id);
+              }}
+            >
+              <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+            </Button>
+          </div>
         </div>
       ))}
       <PageInput articleId={articleId} onCreated={() => force((n) => n + 1)} />
+      <EditPageDialog
+        page={editingPage}
+        open={!!editingPage}
+        onOpenChange={(open) => !open && setEditingPage(null)}
+      />
     </div>
   );
 };

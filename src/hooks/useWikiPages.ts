@@ -66,6 +66,21 @@ export const useWikiPages = (articleId?: string) => {
     onError: (error: any) => toast.error("Failed to create page: " + error.message),
   });
 
+  const updatePage = useMutation({
+    mutationFn: async ({ id, title, content }: { id: string; title?: string; content?: string }) => {
+      const updates: Record<string, any> = {};
+      if (title !== undefined) updates.title = title;
+      if (content !== undefined) updates.content = content;
+      const { error } = await supabase.from("wiki_pages" as any).update(updates).eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["wiki-pages"] });
+      toast.success("Page updated");
+    },
+    onError: (error: any) => toast.error("Failed to update: " + error.message),
+  });
+
   const deletePage = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase.from("wiki_pages" as any).delete().eq("id", id);
@@ -82,6 +97,7 @@ export const useWikiPages = (articleId?: string) => {
     pages: pagesQuery.data || [],
     isLoading: pagesQuery.isLoading,
     createPage,
+    updatePage,
     deletePage,
   };
 };
