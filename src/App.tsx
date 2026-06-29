@@ -95,6 +95,7 @@ const AppContent = () => {
         <Route path="/admin/wiki/account/users" element={<AdminWikiManageUsersPage />} />
         <Route path="/admin/wiki/account/settings" element={<AdminWikiSettingsPage />} />
         <Route path="/admin/wiki/pages/:pageId" element={<WikiPageEditorPage />} />
+        <Route path="/admin/wiki/flowchart/:articleId" element={<WikiFlowchartEditorPage />} />
 
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
