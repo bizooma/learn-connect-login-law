@@ -48,6 +48,9 @@ export const UserCard = ({
   onUserDeleted,
   onCourseAssigned,
   onViewProgress,
+  selected,
+  onSelectedChange,
+  onOpenDetail,
 }: UserCardProps) => {
   const [showCourseDialog, setShowCourseDialog] = useState(false);
   const [showEmailDialog, setShowEmailDialog] = useState(false);
