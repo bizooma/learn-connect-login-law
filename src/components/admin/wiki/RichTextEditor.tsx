@@ -205,10 +205,20 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
   };
 
   const addVideo = () => {
-    const url = window.prompt("Enter video URL (YouTube, Vimeo, or any embeddable URL)");
+    const url = window.prompt("Enter video URL (YouTube, Loom, Vimeo, or any embeddable URL)");
     if (!url) return;
+    const loomMatch = url.match(/loom\.com\/(?:share|embed)\/([a-zA-Z0-9]+)/);
     if (/youtu\.?be/.test(url)) {
       editor.commands.setYoutubeVideo({ src: url, width: 640, height: 360 });
+    } else if (loomMatch) {
+      const id = loomMatch[1];
+      editor
+        .chain()
+        .focus()
+        .insertContent(
+          `<div class="my-4"><iframe src="https://www.loom.com/embed/${id}" class="w-full aspect-video rounded-md" frameborder="0" allowfullscreen webkitallowfullscreen mozallowfullscreen></iframe></div>`
+        )
+        .run();
     } else {
       editor
         .chain()

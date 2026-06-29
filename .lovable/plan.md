@@ -1,22 +1,27 @@
-## Goal
-Make the editor's paragraph text render at a normal weight and color (matching the "Back to Content" link), and remove the non-working "Un-bold all" button.
+## Add Loom Video Embed Support
 
-## Changes
+Extend the existing "Insert video" toolbar action in `src/components/admin/wiki/RichTextEditor.tsx` so pasting a Loom share URL embeds the video using Loom's official embed format.
 
-1. **Remove the "Un-bold all" button** from `src/components/admin/wiki/RichTextEditor.tsx` toolbar.
+### Behavior
+- User clicks the Video (🎥) toolbar button (same one used today for YouTube/iframe).
+- Prompt text updated to: "Enter video URL (YouTube, Loom, Vimeo, or any embeddable URL)".
+- Detection logic in `addVideo`:
+  1. If URL matches `youtu.be` / `youtube.com` → existing YouTube extension (unchanged).
+  2. **New:** If URL matches `loom.com/share/{id}` or `loom.com/embed/{id}` → extract the video ID and insert:
+     ```html
+     <div class="my-4">
+       <iframe src="https://www.loom.com/embed/{id}"
+               class="w-full aspect-video rounded-md"
+               frameborder="0"
+               allowfullscreen
+               webkitallowfullscreen
+               mozallowfullscreen></iframe>
+     </div>
+     ```
+  3. Otherwise → existing generic iframe fallback (unchanged).
 
-2. **Sanitize legacy bold on load** in `src/pages/WikiPageEditorPage.tsx`:
-   - After fetching `wiki_pages.content`, strip `<strong>` / `<b>` wrappers and `font-weight` inline styles before passing to the editor. This is why "Un-bold all" appeared to do nothing — selectAll+unsetBold only acts on TipTap mark nodes; the existing content has hard-coded `<strong>` tags inside paragraphs that TipTap may also be treating as text styling that doesn't unset cleanly in one call.
-   - Run the same sanitize step on save so the cleaned version persists.
-
-3. **Force normal paragraph weight in the editor surface** in `RichTextEditor.tsx`:
-   - Update the `EditorContent` prose classes so `p`, `li`, `strong`, and `b` all render at `font-weight: 400` and `text-foreground` by default. Headings keep their bold.
-   - This guarantees body copy looks like the "Back to Content" text regardless of any residual inline weight.
-
-4. **Keep bold functional going forward**: the Bold toolbar button still applies a TipTap `bold` mark, which we'll style explicitly (e.g. `[data-bold] { font-weight: 700 }`) so newly bolded text shows weight, but un-styled paragraphs never inherit it.
-
-## Files touched
-- `src/components/admin/wiki/RichTextEditor.tsx`
-- `src/pages/WikiPageEditorPage.tsx`
-
-No database or schema changes.
+### Notes
+- No new dependencies; Loom embeds via plain iframe.
+- Works for the example URL `https://www.loom.com/share/4d8d76a332344105b8d7c3b2ccca404d` → embeds `https://www.loom.com/embed/4d8d76a332344105b8d7c3b2ccca404d`.
+- Strips any query string (e.g. `?sid=...`) from the share URL before building the embed src.
+- No DB or schema changes; the embed HTML is stored in the page content like other media.
