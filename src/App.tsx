@@ -40,6 +40,7 @@ import AdminWikiSettingsPage from "./pages/AdminWikiSettingsPage";
 import AdminWikiTrainingPathsPage from "./pages/AdminWikiTrainingPathsPage";
 import WikiPageEditorPage from "./pages/WikiPageEditorPage";
 import WikiFlowchartEditorPage from "./pages/WikiFlowchartEditorPage";
+import WikiKnowledgeCheckPage from "./pages/WikiKnowledgeCheckPage";
 
 import AuthPage from "./components/AuthPage";
 import RegisterPage from "./pages/RegisterPage";
