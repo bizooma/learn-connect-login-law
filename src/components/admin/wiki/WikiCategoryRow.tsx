@@ -1,14 +1,24 @@
 import { useState } from "react";
-import { ChevronRight, ChevronDown, MoreVertical, Pencil, Trash2, Eye, EyeOff } from "lucide-react";
+import { ChevronRight, ChevronDown, MoreVertical, Pencil, Trash2, Eye, EyeOff, Copy, Link2, Printer, Archive, Tag, Type } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { WikiCategory } from "@/hooks/useWikiCategories";
+import { WikiCategory, useWikiCategories, WikiSubjectCategory } from "@/hooks/useWikiCategories";
 import { WikiArticle } from "@/hooks/useWikiArticles";
+import WikiArticleList from "./WikiArticleList";
+import { getSubjectCategoryMeta } from "./subjectCategoryMeta";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+
 import WikiArticleList from "./WikiArticleList";
 import { getSubjectCategoryMeta } from "./subjectCategoryMeta";
 
