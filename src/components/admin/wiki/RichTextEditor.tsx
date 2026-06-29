@@ -7,6 +7,45 @@ import Underline from "@tiptap/extension-underline";
 import { Color } from "@tiptap/extension-color";
 import { TextStyle } from "@tiptap/extension-text-style";
 import FontFamily from "@tiptap/extension-font-family";
+import { Extension } from "@tiptap/core";
+
+const FontSize = Extension.create({
+  name: "fontSize",
+  addOptions() {
+    return { types: ["textStyle"] };
+  },
+  addGlobalAttributes() {
+    return [
+      {
+        types: this.options.types,
+        attributes: {
+          fontSize: {
+            default: null,
+            parseHTML: (element: HTMLElement) => element.style.fontSize?.replace(/['"]/g, "") || null,
+            renderHTML: (attributes: any) => {
+              if (!attributes.fontSize) return {};
+              return { style: `font-size: ${attributes.fontSize}` };
+            },
+          },
+        },
+      },
+    ];
+  },
+  addCommands() {
+    return {
+      setFontSize:
+        (fontSize: string) =>
+        ({ chain }: any) =>
+          chain().setMark("textStyle", { fontSize }).run(),
+      unsetFontSize:
+        () =>
+        ({ chain }: any) =>
+          chain().setMark("textStyle", { fontSize: null }).removeEmptyTextStyle().run(),
+    } as any;
+  },
+});
+
+const FONT_SIZES = ["10", "12", "14", "16", "18", "20", "24", "28", "32", "36", "48", "60", "72"];
 import Highlight from "@tiptap/extension-highlight";
 import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
