@@ -39,7 +39,7 @@ interface CreateContentDialogProps {
   defaultCategoryId?: string | null;
 }
 
-const STUB_TYPES: WikiContentType[] = ["flowchart", "checklist", "test"];
+const STUB_TYPES: WikiContentType[] = ["checklist", "test"];
 
 const CreateContentDialog = ({
   open,
