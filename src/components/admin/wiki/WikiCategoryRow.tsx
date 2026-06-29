@@ -31,10 +31,10 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
   return (
     <div className="border-b border-border">
       <div
-        className="flex items-center justify-between px-4 py-3 hover:bg-muted/30 cursor-pointer transition-colors"
+        className="grid grid-cols-[1fr_100px_140px_100px_60px] items-center gap-4 px-4 py-3 hover:bg-muted/30 cursor-pointer transition-colors"
         onClick={() => setExpanded(!expanded)}
       >
-        <div className="flex items-center gap-3 min-w-0 flex-1">
+        <div className="flex items-center gap-3 min-w-0">
           {expanded ? (
             <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
           ) : (
@@ -42,17 +42,17 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
           )}
           <CategoryIcon className={`h-5 w-5 shrink-0 ${meta.iconColor}`} />
           <span className="font-medium text-foreground truncate">{category.title}</span>
-          <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full shrink-0">
-            {count} {count === 1 ? "item" : "items"}
-          </span>
-          <span className={`text-xs px-2 py-0.5 rounded-full border shrink-0 ${meta.badgeClass}`}>
-            {meta.label}
-          </span>
-          {!category.is_published && (
-            <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded shrink-0">Draft</span>
-          )}
         </div>
-        <div className="flex items-center gap-2">
+        <span className="text-xs text-muted-foreground">
+          {count} {count === 1 ? "item" : "items"}
+        </span>
+        <span className={`text-xs px-2 py-0.5 rounded-full border w-fit ${meta.badgeClass}`}>
+          {meta.label}
+        </span>
+        <span className={`text-xs px-2 py-0.5 rounded w-fit ${category.is_published ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-muted text-muted-foreground'}`}>
+          {category.is_published ? 'Published' : 'Draft'}
+        </span>
+        <div className="flex items-center justify-end">
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
               <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -74,6 +74,7 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
           </DropdownMenu>
         </div>
       </div>
+
       {expanded && (
         <WikiArticleList
           categoryId={category.id}
