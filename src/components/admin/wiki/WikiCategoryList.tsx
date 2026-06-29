@@ -30,13 +30,16 @@ const WikiCategoryList = ({
 
   return (
     <div className="border border-border rounded-lg overflow-hidden bg-background">
-      <div className="grid grid-cols-[1fr_100px_140px_100px_60px] items-center gap-4 px-4 py-2 bg-muted/40 border-b border-border text-xs font-medium text-muted-foreground uppercase tracking-wide">
+      <div className="grid grid-cols-[1fr_90px_120px_90px_140px_80px_60px] items-center gap-4 px-4 py-2 bg-muted/40 border-b border-border text-xs font-medium text-muted-foreground uppercase tracking-wide">
         <span>Name</span>
         <span>Items</span>
         <span>Category</span>
         <span>Status</span>
+        <span>Shared with</span>
+        <span>Owner</span>
         <span></span>
       </div>
+
       {categories.map((category) => (
         <WikiCategoryRow
           key={category.id}

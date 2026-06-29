@@ -31,7 +31,7 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
   return (
     <div className="border-b border-border">
       <div
-        className="grid grid-cols-[1fr_100px_140px_100px_60px] items-center gap-4 px-4 py-3 hover:bg-muted/30 cursor-pointer transition-colors"
+        className="grid grid-cols-[1fr_90px_120px_90px_140px_80px_60px] items-center gap-4 px-4 py-3 hover:bg-muted/30 cursor-pointer transition-colors"
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-3 min-w-0">
@@ -52,6 +52,9 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
         <span className={`text-xs px-2 py-0.5 rounded w-fit ${category.is_published ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-muted text-muted-foreground'}`}>
           {category.is_published ? 'Published' : 'Draft'}
         </span>
+        <span className="text-xs text-muted-foreground truncate">—</span>
+        <span className="text-xs text-muted-foreground truncate">—</span>
+
         <div className="flex items-center justify-end">
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
