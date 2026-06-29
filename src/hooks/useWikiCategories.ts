@@ -57,10 +57,25 @@ export const useWikiCategories = () => {
         ownersMap = Object.fromEntries((owners || []).map((o: any) => [o.id, o]));
       }
 
+      // Get shared groups
+      const categoryIds = (data as any[]).map((c) => c.id);
+      const sharesMap: Record<string, { id: string; name: string }[]> = {};
+      if (categoryIds.length > 0) {
+        const { data: shares } = await supabase
+          .from("wiki_category_groups")
+          .select("category_id, group:groups(id, name)")
+          .in("category_id", categoryIds);
+        (shares || []).forEach((s: any) => {
+          if (!s.group) return;
+          (sharesMap[s.category_id] ||= []).push({ id: s.group.id, name: s.group.name });
+        });
+      }
+
       return (data as WikiCategory[]).map((cat) => ({
         ...cat,
         article_count: counts[cat.id] || 0,
         owner: cat.owner_id ? ownersMap[cat.owner_id] || null : null,
+        shared_groups: sharesMap[cat.id] || [],
       }));
     },
   });
