@@ -217,7 +217,7 @@ const AdminWikiPage = () => {
                       onTogglePublishCategory={(c) =>
                         updateCategory.mutate({ id: c.id, is_published: !c.is_published })
                       }
-                      onEditArticle={setEditingArticle}
+                      onEditArticle={openArticle}
                       searchQuery={searchQuery}
                     />
                   )}
