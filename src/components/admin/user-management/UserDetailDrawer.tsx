@@ -123,7 +123,7 @@ const UserDetailDrawer = ({
         ]);
         if (cancelled) return;
         setSessions((s.data || []) as SessionRow[]);
-        setRoleAudit((ra.data || []) as RoleAuditRow[]);
+        setRoleAudit(((ra.data as unknown) || []) as RoleAuditRow[]);
         setWikiViews(wv.count || 0);
         if (st.data) {
           setStreak({
