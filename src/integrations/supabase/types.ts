@@ -2341,6 +2341,39 @@ export type Database = {
         }
         Relationships: []
       }
+      user_wiki_streaks: {
+        Row: {
+          created_at: string
+          current_streak: number
+          id: string
+          last_activity_date: string | null
+          longest_streak: number
+          streak_start_date: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number
+          streak_start_date?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_activity_date?: string | null
+          longest_streak?: number
+          streak_start_date?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       wiki_article_groups: {
         Row: {
           article_id: string
@@ -2956,6 +2989,7 @@ export type Database = {
         }
         Returns: Json
       }
+      update_wiki_streak: { Args: { p_user_id: string }; Returns: undefined }
     }
     Enums: {
       activity_type:
