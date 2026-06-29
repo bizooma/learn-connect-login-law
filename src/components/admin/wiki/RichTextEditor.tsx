@@ -363,6 +363,9 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
         <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive("bulletList")} title="Bullet list">
           <List className="h-4 w-4" />
         </ToolbarButton>
+        <ToolbarButton onClick={() => editor.chain().focus().toggleTaskList().run()} active={editor.isActive("taskList")} title="Checklist">
+          <CheckSquare className="h-4 w-4" />
+        </ToolbarButton>
         <ToolbarButton onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive("orderedList")} title="Numbered list">
           <ListOrdered className="h-4 w-4" />
         </ToolbarButton>
