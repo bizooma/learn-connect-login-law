@@ -1,41 +1,65 @@
 
-## Current state
+# Manage Users — Bulk Actions, Filters, and Detail Drawer
 
-- The Create dialog already shows "Flowchart" as a content type, but it's listed as a stub — selecting it just creates a `wiki_articles` row with `content_type='flowchart'` and no editor opens.
-- The project already has `@xyflow/react` installed and an LMS-specific `FlowchartCanvas`, but that one is hard-wired to courses/modules/lessons and isn't reusable for a generic process diagram.
-- `wiki_articles.content` is a text column we can reuse to store the flowchart JSON (nodes + edges), so no schema change is needed.
+Two improvements to the Active Users tab on `/admin/wiki/account/users`.
 
-## What I'll build
+## 1. Filters bar (above the user list)
 
-**1. A new wiki flowchart editor page** at `/admin/wiki/flowchart/:articleId`
-- Full-page React Flow canvas (same library already in use).
-- Left toolbar: Add Box, Add Diamond (decision), Add Oval, Add Text, Delete, Undo/Redo.
-- Click a node to rename inline.
-- Drag to connect nodes; arrow style edges by default.
-- "Back to Content" + autosave to `wiki_articles.content` as JSON (`{ nodes, edges }`).
-- Read-only viewer mode when the user is not an admin (renders the same canvas with interaction disabled).
+A horizontal filter bar between the search input and the user grid:
 
-**2. Wire up the Create flow**
-- Remove `flowchart` from `STUB_TYPES` in `CreateContentDialog.tsx`.
-- After creating a flowchart article, navigate to the new editor route.
-- In `WikiArticleRow` / `WikiCategoryRow`, clicking a flowchart article opens the flowchart editor instead of the page editor.
+- **Role** dropdown (Admin, Owner, Team Leader, Student, Client, Free) — multi-select.
+- **Tester** toggle (P&P access on/off/any).
+- **Group** dropdown sourced from `public.groups` — multi-select.
+- **Status** dropdown — Active / Inactive / Pending (no login yet).
+- **Activity** dropdown — Logged in last 7d / 30d / 90d / Never.
+- **Assignment** dropdown — No group / No training path / No course.
+- A "Clear filters" link appears when any filter is active. Filter state is held in the page (not persisted yet).
 
-**3. Seed the Onboarding flowchart**
-- Insert a new `wiki_categories` row titled "Onboarding" (under the appropriate subject area — I'll place it in the HR/People area; confirm below if you'd prefer a different parent).
-- Insert one `wiki_articles` row with `content_type='flowchart'`, title "Onboarding", and pre-populated `content` JSON containing the 7 boxes from your screenshot connected left-to-right:
-  Offer signed → Hire into Bamboo → email new hire → Add to new hire excel tracker → Add to systems → Host onboarding → 30 & 90 day check-ins
+Search keeps working and combines with filters (AND).
+
+## 2. Bulk actions
+
+- A checkbox is added to every `UserCard` in the grid plus a "select all on this page" checkbox in a new toolbar above the grid.
+- When 1+ users are selected, a sticky action bar appears showing the count and these actions:
+  - **Assign to group(s)** — opens a picker, writes to `group_members`.
+  - **Remove from group(s)** — same picker, deletes matching rows.
+  - **Change role** — single role dropdown, uses existing `updateUserRoleSafe`.
+  - **Toggle Tester** — adds/removes the `tester` role.
+  - **Send password reset** — calls existing reset flow per user.
+  - **Deactivate / Reactivate** — bulk wrapper around existing safe deactivate.
+  - **Export CSV** — downloads name, email, role, groups, last login, status for the selection (or all filtered if none selected).
+- Each bulk op runs sequentially with a progress toast and refreshes the list at the end. Errors per row are surfaced in the toast summary.
+
+## 3. User detail drawer
+
+Clicking a user's name/avatar (not the action menu) opens a right-side `Sheet` drawer instead of jumping into separate dialogs. Tabs inside:
+
+- **Overview** — name, email, role badges (incl. Tester), groups, last login, account created, deactivation status. Inline "Edit email", "Reset password", "Deactivate" buttons reuse existing dialogs.
+- **LMS Activity** — assigned courses, completion %, last activity (from `user_course_progress` + `course_assignments`). Reuses `UserProgressModal` content embedded as a tab.
+- **P&P Activity** — current streak, longest streak, last article viewed, total views (from `user_wiki_streaks` + `wiki_article_views`).
+- **Groups** — list of group memberships with add/remove (reuses `UserGroupsDialog` logic inline).
+- **Audit** — recent rows from `user_role_audit` and `user_management_audit` for that user.
+
+The existing per-card dropdown stays for power users; the drawer is the new primary surface.
 
 ## Technical notes
 
-- Storage: serialize `{ nodes: Node[], edges: Edge[] }` to `wiki_articles.content` (text). No migration needed.
-- Autosave: debounce 800ms on canvas change, same pattern as the page editor.
-- Node types: a single custom `BoxNode` (rounded white card with editable label) covers the screenshot; diamond/oval are visual variants of the same component driven by a `shape` field in node data.
-- Reuse existing admin route guard.
+- New files:
+  - `src/components/admin/user-management/UserFiltersBar.tsx`
+  - `src/components/admin/user-management/BulkActionsBar.tsx`
+  - `src/components/admin/user-management/UserDetailDrawer.tsx` (with internal tab components, or split into `UserDetail{Overview,Lms,Wiki,Groups,Audit}.tsx` if it gets long)
+  - `src/lib/exportUsersCsv.ts`
+- Modify:
+  - `UserManagement.tsx` — owns filter state, selection state (Set of user IDs), passes both to grid; renders filter bar + bulk bar + grid + drawer.
+  - `UserGrid.tsx` / `UserCard.tsx` — accept `selected`, `onToggleSelect`, `onOpenDetail`; render checkbox; clicking the card body (outside the action menu) opens the drawer.
+  - `filterUsers` in `userRoleUtils.ts` — extend to apply role/group/status/activity filters in addition to the search term.
+- No schema changes. All data already exists: `profiles`, `user_roles`, `groups` + `group_members`, `course_assignments`, `user_course_progress`, `user_wiki_streaks`, `wiki_article_views`, `user_role_audit`, `user_management_audit`.
+- Bulk ops use existing services (`updateUserRoleSafe`, password reset, deactivate) so RLS and audit trails stay intact.
 
-## Open question
+## Out of scope (can be follow-ups)
 
-Where should the new "Onboarding" subject live? Options:
-- Create a new top-level subject titled **Onboarding**.
-- Place the flowchart inside an existing subject (e.g. one of the People/HR ones you've already created).
-
-I'll default to creating a new **Onboarding** subject unless you say otherwise.
+- Saved filter views.
+- Invite-by-email / Pending tab.
+- CSV import.
+- Tab-bar reorg (Diagnostics/Data Check under a Tools tab).
+- "Impersonate / view as user".
