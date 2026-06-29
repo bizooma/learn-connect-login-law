@@ -66,8 +66,7 @@ export const useUserRole = () => {
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', user.id)
-        .maybeSingle();
+        .eq('user_id', user.id);
 
       logger.log('useUserRole: Database query result', { 
         data, 
@@ -78,21 +77,28 @@ export const useUserRole = () => {
       if (error) {
         logger.error('useUserRole: Database error, defaulting to free role', error);
         setRole('free');
+        setExtraRoles([]);
       } else {
-        const userRole = data?.role || 'free';
+        const allRoles = (data || []).map((r: any) => r.role);
+        // Primary role excludes 'tester' (which is an additive add-on role)
+        const primary = allRoles.find((r) => r !== 'tester') || 'free';
         logger.log('useUserRole: Setting role from database', { 
-          role: userRole, 
+          role: primary, 
+          allRoles,
           userId: user.id 
         });
-        setRole(userRole);
+        setRole(primary);
+        setExtraRoles(allRoles);
       }
     } catch (error) {
       logger.error('useUserRole: Exception during role fetch, defaulting to free', error);
       setRole('free');
+      setExtraRoles([]);
     } finally {
       setLoading(false);
     }
   }, [user?.id, user?.email, authLoading, isDirectAdmin]);
+
 
   useEffect(() => {
     logger.log('useUserRole: useEffect triggered', { 
