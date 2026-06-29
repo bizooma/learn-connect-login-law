@@ -21,6 +21,7 @@ import { toast } from "sonner";
 import { useQueryClient } from "@tanstack/react-query";
 import { useWikiColumns } from "./WikiColumnsContext";
 import { printSubjectPdf } from "@/lib/printSubjectPdf";
+import OwnerPicker from "./OwnerPicker";
 
 
 interface WikiCategoryRowProps {
@@ -136,7 +137,13 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
           {category.is_published ? 'Published' : 'Draft'}
         </span>
         <span className="text-xs text-muted-foreground truncate">—</span>
-        <span className="text-xs text-muted-foreground truncate">—</span>
+        <div className="min-w-0" onClick={(e) => e.stopPropagation()}>
+          <OwnerPicker
+            value={category.owner_id}
+            ownerDisplay={category.owner}
+            onChange={(id) => updateCategory.mutate({ id: category.id, owner_id: id })}
+          />
+        </div>
 
         <div className="flex items-center justify-end">
           <DropdownMenu>
