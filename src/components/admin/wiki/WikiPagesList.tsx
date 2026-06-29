@@ -1,5 +1,7 @@
 import { useState, KeyboardEvent } from "react";
-import { FileText, Trash2 } from "lucide-react";
+import { FileText, Pencil, Trash2 } from "lucide-react";
+import EditPageDialog from "./EditPageDialog";
+import { WikiPage } from "@/hooks/useWikiPages";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useWikiPages } from "@/hooks/useWikiPages";
