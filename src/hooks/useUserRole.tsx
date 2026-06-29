@@ -146,7 +146,12 @@ export const useUserRole = () => {
   
   const isClient = useMemo(() => role === 'client', [role]);
   const isFree = useMemo(() => role === 'free', [role]);
+  const isTester = useMemo(() => extraRoles.includes('tester'), [extraRoles]);
   const hasAdminPrivileges = useMemo(() => isAdmin || isOwner, [isAdmin, isOwner]);
+  const canAccessWiki = useMemo(
+    () => isAdmin || isOwner || isTester,
+    [isAdmin, isOwner, isTester]
+  );
 
   // Simplified loading state - only loading if auth is loading OR we're loading roles
   const actualLoading = authLoading || loading;
@@ -169,8 +174,11 @@ export const useUserRole = () => {
     isStudent, 
     isClient, 
     isFree, 
+    isTester,
     hasAdminPrivileges,
+    canAccessWiki,
     loading: actualLoading,
     refreshRole
   };
 };
+
