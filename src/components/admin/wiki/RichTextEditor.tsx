@@ -539,6 +539,8 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       TableRow,
       TableHeader.configure({ HTMLAttributes: { class: "border border-border bg-muted p-2 font-semibold text-left" } }),
       TableCell.configure({ HTMLAttributes: { class: "border border-border p-2" } }),
+      TaskList.configure({ HTMLAttributes: { class: "task-list not-prose" } }),
+      TaskItem.configure({ nested: true, HTMLAttributes: { class: "task-item" } }),
     ],
     content: content || "",
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
