@@ -6,11 +6,21 @@ import TextAlign from "@tiptap/extension-text-align";
 import Underline from "@tiptap/extension-underline";
 import { Color } from "@tiptap/extension-color";
 import { TextStyle } from "@tiptap/extension-text-style";
+import FontFamily from "@tiptap/extension-font-family";
 import Highlight from "@tiptap/extension-highlight";
 import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
-import { useEffect } from "react";
+import Youtube from "@tiptap/extension-youtube";
+import { Table } from "@tiptap/extension-table";
+import { TableRow } from "@tiptap/extension-table-row";
+import { TableCell } from "@tiptap/extension-table-cell";
+import { TableHeader } from "@tiptap/extension-table-header";
+import { useEffect, useRef, useState, lazy, Suspense } from "react";
 import { Button } from "@/components/ui/button";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Input } from "@/components/ui/input";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -35,16 +45,29 @@ import {
   Redo,
   Code,
   Quote,
-  Heading1,
-  Heading2,
-  Heading3,
   Subscript as SubIcon,
   Superscript as SupIcon,
   Highlighter,
   RemoveFormatting,
   Indent,
   Outdent,
+  Video,
+  Smile,
+  Table as TableIcon,
+  CodeXml,
+  Paperclip,
+  Sparkles,
+  Type,
+  Trash2,
+  Plus,
+  Minus,
 } from "lucide-react";
+
+const EmojiPicker = lazy(() => import("emoji-picker-react"));
+
+const ICON_SET = [
+  "✅","❌","⭐","🔥","💡","📌","📝","📎","📁","📂","📅","📊","📈","📉","🎯","🚀","⚡","⚠️","ℹ️","❓","❗","🔒","🔓","🔑","💼","🏢","👥","👤","💬","📧","📞","🌐","🛠️","⚙️","🔧","✏️","🖊️","📖","📚","🎓","🏆","🎉","💯","👍","👎","🙌","🤝","💪","✨","🌟",
+];
 
 interface RichTextEditorProps {
   content: string;
@@ -77,7 +100,25 @@ const ToolbarButton = ({
   </Button>
 );
 
+const FONT_FAMILIES = [
+  { label: "Default", value: "" },
+  { label: "Sans Serif", value: "ui-sans-serif, system-ui, sans-serif" },
+  { label: "Serif", value: "ui-serif, Georgia, serif" },
+  { label: "Monospace", value: "ui-monospace, SFMono-Regular, Menlo, monospace" },
+  { label: "Inter", value: "Inter, sans-serif" },
+  { label: "Arial", value: "Arial, sans-serif" },
+  { label: "Helvetica", value: "Helvetica, sans-serif" },
+  { label: "Georgia", value: "Georgia, serif" },
+  { label: "Times New Roman", value: "'Times New Roman', Times, serif" },
+  { label: "Courier New", value: "'Courier New', Courier, monospace" },
+  { label: "Verdana", value: "Verdana, sans-serif" },
+];
+
 const Toolbar = ({ editor }: { editor: Editor }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const attachInputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
   if (!editor) return null;
 
   const setLink = () => {
@@ -90,9 +131,60 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
     editor.chain().focus().setLink({ href: url }).run();
   };
 
-  const addImage = () => {
-    const url = window.prompt("Enter image URL");
-    if (url) editor.chain().focus().setImage({ src: url }).run();
+  const uploadAndInsert = async (file: File, kind: "image" | "file") => {
+    setUploading(true);
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      const uid = userData.user?.id ?? "anon";
+      const path = `${uid}/${Date.now()}-${file.name.replace(/[^a-zA-Z0-9._-]/g, "_")}`;
+      const { error: upErr } = await supabase.storage.from("wiki-files").upload(path, file);
+      if (upErr) throw upErr;
+      const { data: signed, error: sErr } = await supabase.storage
+        .from("wiki-files")
+        .createSignedUrl(path, 60 * 60 * 24 * 365 * 10);
+      if (sErr || !signed) throw sErr ?? new Error("Failed to sign URL");
+      if (kind === "image") {
+        editor.chain().focus().setImage({ src: signed.signedUrl, alt: file.name }).run();
+      } else {
+        editor
+          .chain()
+          .focus()
+          .insertContent(
+            `<a href="${signed.signedUrl}" target="_blank" rel="noopener">📎 ${file.name}</a>`
+          )
+          .run();
+      }
+      toast.success("Uploaded");
+    } catch (e: any) {
+      toast.error(e.message || "Upload failed");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const addVideo = () => {
+    const url = window.prompt("Enter video URL (YouTube, Vimeo, or any embeddable URL)");
+    if (!url) return;
+    if (/youtu\.?be/.test(url)) {
+      editor.commands.setYoutubeVideo({ src: url, width: 640, height: 360 });
+    } else {
+      editor
+        .chain()
+        .focus()
+        .insertContent(
+          `<div class="my-4"><iframe src="${url}" class="w-full aspect-video rounded-md" frameborder="0" allowfullscreen></iframe></div>`
+        )
+        .run();
+    }
+  };
+
+  const addEmbed = () => {
+    const code = window.prompt("Paste embed HTML (iframe/script):");
+    if (code) editor.chain().focus().insertContent(code).run();
+  };
+
+  const insertTable = () => {
+    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
   };
 
   const headingValue = editor.isActive("heading", { level: 1 })
@@ -103,9 +195,11 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
     ? "h3"
     : "p";
 
+  const currentFont = editor.getAttributes("textStyle").fontFamily || "";
+
   return (
     <div className="sticky top-0 z-10 bg-background border-b border-border">
-      <div className="flex flex-wrap items-center gap-1 p-2 max-w-4xl mx-auto">
+      <div className="flex flex-wrap items-center gap-1 p-2 max-w-5xl mx-auto">
         <ToolbarButton onClick={() => editor.chain().focus().undo().run()} disabled={!editor.can().undo()} title="Undo">
           <Undo className="h-4 w-4" />
         </ToolbarButton>
@@ -132,6 +226,26 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
             <SelectItem value="h1">Heading 1</SelectItem>
             <SelectItem value="h2">Heading 2</SelectItem>
             <SelectItem value="h3">Heading 3</SelectItem>
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={currentFont || "__default"}
+          onValueChange={(val) => {
+            if (!val || val === "__default") editor.chain().focus().unsetFontFamily().run();
+            else editor.chain().focus().setFontFamily(val).run();
+          }}
+        >
+          <SelectTrigger className="w-36 h-8" title="Font family">
+            <Type className="h-3.5 w-3.5 mr-1" />
+            <SelectValue placeholder="Font" />
+          </SelectTrigger>
+          <SelectContent>
+            {FONT_FAMILIES.map((f) => (
+              <SelectItem key={f.label} value={f.value || "__default"} onSelect={() => {}}>
+                <span style={{ fontFamily: f.value || undefined }}>{f.label}</span>
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
 
@@ -211,12 +325,126 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
         <ToolbarButton onClick={() => editor.chain().focus().toggleBlockquote().run()} active={editor.isActive("blockquote")} title="Blockquote">
           <Quote className="h-4 w-4" />
         </ToolbarButton>
-        <ToolbarButton onClick={addImage} title="Insert image">
+
+        <div className="w-px h-6 bg-border mx-1" />
+
+        {/* Image upload */}
+        <ToolbarButton onClick={() => fileInputRef.current?.click()} title="Insert image">
           <ImageIcon className="h-4 w-4" />
         </ToolbarButton>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) uploadAndInsert(f, "image");
+            e.target.value = "";
+          }}
+        />
+
+        {/* File attachment */}
+        <ToolbarButton onClick={() => attachInputRef.current?.click()} title="Attach file">
+          <Paperclip className="h-4 w-4" />
+        </ToolbarButton>
+        <input
+          ref={attachInputRef}
+          type="file"
+          className="hidden"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) uploadAndInsert(f, "file");
+            e.target.value = "";
+          }}
+        />
+
+        {/* Video */}
+        <ToolbarButton onClick={addVideo} title="Insert video (YouTube, Vimeo, URL)">
+          <Video className="h-4 w-4" />
+        </ToolbarButton>
+
+        {/* Embed */}
+        <ToolbarButton onClick={addEmbed} title="Embed code (iframe)">
+          <CodeXml className="h-4 w-4" />
+        </ToolbarButton>
+
+        {/* Table */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" title="Table">
+              <TableIcon className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-56 p-2 space-y-1">
+            <Button variant="ghost" size="sm" className="w-full justify-start" onClick={insertTable}>
+              <Plus className="h-4 w-4 mr-2" />Insert table (3×3)
+            </Button>
+            <div className="h-px bg-border my-1" />
+            <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => editor.chain().focus().addRowAfter().run()}>
+              <Plus className="h-4 w-4 mr-2" />Row below
+            </Button>
+            <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => editor.chain().focus().addColumnAfter().run()}>
+              <Plus className="h-4 w-4 mr-2" />Column right
+            </Button>
+            <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => editor.chain().focus().deleteRow().run()}>
+              <Minus className="h-4 w-4 mr-2" />Delete row
+            </Button>
+            <Button variant="ghost" size="sm" className="w-full justify-start" onClick={() => editor.chain().focus().deleteColumn().run()}>
+              <Minus className="h-4 w-4 mr-2" />Delete column
+            </Button>
+            <Button variant="ghost" size="sm" className="w-full justify-start text-destructive" onClick={() => editor.chain().focus().deleteTable().run()}>
+              <Trash2 className="h-4 w-4 mr-2" />Delete table
+            </Button>
+          </PopoverContent>
+        </Popover>
+
+        {/* Emoji */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" title="Emoji">
+              <Smile className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="p-0 w-auto border-0" align="start">
+            <Suspense fallback={<div className="p-4 text-sm">Loading…</div>}>
+              <EmojiPicker
+                onEmojiClick={(d: any) => editor.chain().focus().insertContent(d.emoji).run()}
+                width={320}
+                height={400}
+              />
+            </Suspense>
+          </PopoverContent>
+        </Popover>
+
+        {/* Icon set */}
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button type="button" variant="ghost" size="sm" className="h-8 w-8 p-0" title="Insert icon">
+              <Sparkles className="h-4 w-4" />
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-64 p-2">
+            <div className="grid grid-cols-8 gap-1 text-lg">
+              {ICON_SET.map((ico) => (
+                <button
+                  key={ico}
+                  type="button"
+                  className="hover:bg-muted rounded p-1"
+                  onClick={() => editor.chain().focus().insertContent(ico).run()}
+                >
+                  {ico}
+                </button>
+              ))}
+            </div>
+          </PopoverContent>
+        </Popover>
+
         <ToolbarButton onClick={() => editor.chain().focus().unsetAllMarks().clearNodes().run()} title="Clear formatting">
           <RemoveFormatting className="h-4 w-4" />
         </ToolbarButton>
+
+        {uploading && <span className="text-xs text-muted-foreground ml-2">Uploading…</span>}
       </div>
     </div>
   );
@@ -231,10 +459,16 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       Image,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       TextStyle,
+      FontFamily,
       Color,
       Highlight,
       Subscript,
       Superscript,
+      Youtube.configure({ controls: true, nocookie: true, HTMLAttributes: { class: "rounded-md my-4 mx-auto" } }),
+      Table.configure({ resizable: true, HTMLAttributes: { class: "border-collapse table-auto w-full my-4" } }),
+      TableRow,
+      TableHeader.configure({ HTMLAttributes: { class: "border border-border bg-muted p-2 font-semibold text-left" } }),
+      TableCell.configure({ HTMLAttributes: { class: "border border-border p-2" } }),
     ],
     content: content || "",
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
