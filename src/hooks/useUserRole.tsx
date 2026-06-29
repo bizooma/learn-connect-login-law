@@ -57,7 +57,9 @@ export const useUserRole = () => {
     if (isDirectAdmin(user.email)) {
       logger.log('useUserRole: User is direct admin, setting admin role');
       setRole('admin');
+      setExtraRoles(['admin']);
       setLoading(false);
+
       return;
     }
 
