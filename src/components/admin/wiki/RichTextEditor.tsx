@@ -212,7 +212,7 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
         <Select
           value={headingValue}
           onValueChange={(val) => {
-            if (val === "p") editor.chain().focus().setParagraph().run();
+            if (val === "p") editor.chain().focus().setParagraph().unsetBold().run();
             else if (val === "h1") editor.chain().focus().toggleHeading({ level: 1 }).run();
             else if (val === "h2") editor.chain().focus().toggleHeading({ level: 2 }).run();
             else if (val === "h3") editor.chain().focus().toggleHeading({ level: 3 }).run();
@@ -222,10 +222,11 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="p">Normal text</SelectItem>
+            <SelectItem value="p">Paragraph</SelectItem>
             <SelectItem value="h1">Heading 1</SelectItem>
             <SelectItem value="h2">Heading 2</SelectItem>
             <SelectItem value="h3">Heading 3</SelectItem>
+
           </SelectContent>
         </Select>
 
@@ -475,7 +476,8 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm sm:prose-base max-w-none focus:outline-none min-h-[600px] py-8",
+          "prose prose-sm sm:prose-base max-w-none focus:outline-none min-h-[600px] py-8 prose-p:font-normal prose-li:font-normal prose-p:text-foreground",
+
       },
     },
   });
