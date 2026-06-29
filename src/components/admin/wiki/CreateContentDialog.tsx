@@ -147,11 +147,18 @@ const CreateContentDialog = ({
         content_type: contentType,
         subject_category: subjectKind,
         owner_id: ownerId || null,
-        content: contentType === "video" ? videoUrl : undefined,
+        content: contentType === "video" ? videoUrl : contentType === "flowchart" ? JSON.stringify({ nodes: [], edges: [] }) : undefined,
         file_url: contentType === "file" ? fileUrl : undefined,
         file_name: contentType === "file" ? fileName : undefined,
       },
-      { onSuccess: () => onOpenChange(false) },
+      {
+        onSuccess: (created: any) => {
+          onOpenChange(false);
+          if (contentType === "flowchart" && created?.id) {
+            navigate(`/admin/wiki/flowchart/${created.id}`);
+          }
+        },
+      },
     );
   };
 
