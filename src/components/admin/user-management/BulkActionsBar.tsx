@@ -154,10 +154,7 @@ const BulkActionsBar = ({
   const deactivate = async () => {
     if (!confirm(`Deactivate ${selectedIds.length} user(s)?`)) return;
     await runBulk(async (user) => {
-      const { error } = await supabase.rpc("soft_delete_user", {
-        user_id_param: user.id,
-      } as any);
-      if (error) throw error;
+      await softDeleteUserSafe(user.id, "Bulk deactivation");
     }, "Deactivated");
   };
 
