@@ -39,6 +39,7 @@ import AdminWikiManageUsersPage from "./pages/AdminWikiManageUsersPage";
 import AdminWikiSettingsPage from "./pages/AdminWikiSettingsPage";
 import AdminWikiTrainingPathsPage from "./pages/AdminWikiTrainingPathsPage";
 import WikiPageEditorPage from "./pages/WikiPageEditorPage";
+import WikiFlowchartEditorPage from "./pages/WikiFlowchartEditorPage";
 
 import AuthPage from "./components/AuthPage";
 import RegisterPage from "./pages/RegisterPage";
