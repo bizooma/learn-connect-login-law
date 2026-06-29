@@ -80,31 +80,10 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
                   {!collapsed && <span>Home</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
-              {categories
-                .filter((category) => category.title.toLowerCase() !== 'content')
-                .map((category) => (
-                <SidebarMenuItem key={category.id}>
-                  <SidebarMenuButton
-                    onClick={() => goToCategory(category.id)}
-                    className={`${onContent && activeCategoryId === category.id ? 'bg-accent text-accent-foreground font-medium' : ''}`}
-                  >
-                    <FolderOpen className="h-4 w-4" />
-                    {!collapsed && (
-                      <div className="flex items-center justify-between flex-1 min-w-0">
-                        <span className="truncate">{category.title}</span>
-                        {category.article_count !== undefined && (
-                          <span className="text-xs text-muted-foreground ml-2">
-                            {category.article_count}
-                          </span>
-                        )}
-                      </div>
-                    )}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
               {!collapsed && (
                 <div className="flex h-8 shrink-0 items-center rounded-md px-2 text-xs font-medium text-sidebar-foreground/70">Content</div>
               )}
+
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={() => goToCategory(null)}
