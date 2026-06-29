@@ -476,7 +476,8 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
     editorProps: {
       attributes: {
         class:
-          "prose prose-sm sm:prose-base max-w-none focus:outline-none min-h-[600px] py-8",
+          "prose prose-sm sm:prose-base max-w-none focus:outline-none min-h-[600px] py-8 prose-p:font-normal prose-li:font-normal prose-p:text-foreground",
+
       },
     },
   });
