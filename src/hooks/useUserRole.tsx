@@ -7,7 +7,9 @@ import { logger } from '@/utils/logger';
 export const useUserRole = () => {
   const { user, loading: authLoading } = useAuth();
   const [role, setRole] = useState<string | null>(null);
+  const [extraRoles, setExtraRoles] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+
 
   logger.log('useUserRole: Hook called', { 
     userId: user?.id, 
@@ -55,7 +57,9 @@ export const useUserRole = () => {
     if (isDirectAdmin(user.email)) {
       logger.log('useUserRole: User is direct admin, setting admin role');
       setRole('admin');
+      setExtraRoles(['admin']);
       setLoading(false);
+
       return;
     }
 
@@ -66,8 +70,7 @@ export const useUserRole = () => {
       const { data, error } = await supabase
         .from('user_roles')
         .select('role')
-        .eq('user_id', user.id)
-        .maybeSingle();
+        .eq('user_id', user.id);
 
       logger.log('useUserRole: Database query result', { 
         data, 
@@ -78,21 +81,28 @@ export const useUserRole = () => {
       if (error) {
         logger.error('useUserRole: Database error, defaulting to free role', error);
         setRole('free');
+        setExtraRoles([]);
       } else {
-        const userRole = data?.role || 'free';
+        const allRoles = (data || []).map((r: any) => r.role);
+        // Primary role excludes 'tester' (which is an additive add-on role)
+        const primary = allRoles.find((r) => r !== 'tester') || 'free';
         logger.log('useUserRole: Setting role from database', { 
-          role: userRole, 
+          role: primary, 
+          allRoles,
           userId: user.id 
         });
-        setRole(userRole);
+        setRole(primary);
+        setExtraRoles(allRoles);
       }
     } catch (error) {
       logger.error('useUserRole: Exception during role fetch, defaulting to free', error);
       setRole('free');
+      setExtraRoles([]);
     } finally {
       setLoading(false);
     }
   }, [user?.id, user?.email, authLoading, isDirectAdmin]);
+
 
   useEffect(() => {
     logger.log('useUserRole: useEffect triggered', { 
@@ -138,7 +148,12 @@ export const useUserRole = () => {
   
   const isClient = useMemo(() => role === 'client', [role]);
   const isFree = useMemo(() => role === 'free', [role]);
+  const isTester = useMemo(() => extraRoles.includes('tester'), [extraRoles]);
   const hasAdminPrivileges = useMemo(() => isAdmin || isOwner, [isAdmin, isOwner]);
+  const canAccessWiki = useMemo(
+    () => isAdmin || isOwner || isTester,
+    [isAdmin, isOwner, isTester]
+  );
 
   // Simplified loading state - only loading if auth is loading OR we're loading roles
   const actualLoading = authLoading || loading;
@@ -161,8 +176,11 @@ export const useUserRole = () => {
     isStudent, 
     isClient, 
     isFree, 
+    isTester,
     hasAdminPrivileges,
+    canAccessWiki,
     loading: actualLoading,
     refreshRole
   };
 };
+

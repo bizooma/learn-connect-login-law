@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Switch } from "@/components/ui/switch";
 import SafeDeleteUserDialog from "./SafeDeleteUserDialog";
 import SafeRoleUpdateDialog from "./SafeRoleUpdateDialog";
 import UserCourseAssignment from "./UserCourseAssignment";
@@ -14,6 +15,9 @@ import UserGroupsDialog from "./UserGroupsDialog";
 import { UserProfile } from "./types";
 import { getUserRole, getRoleBadgeColor } from "./userRoleUtils";
 import { useUserRole } from "@/hooks/useUserRole";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
 import {
   BookOpen,
   BarChart3,
@@ -46,8 +50,62 @@ export const UserCard = ({
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [showGroupsDialog, setShowGroupsDialog] = useState(false);
+  const [isTester, setIsTester] = useState(false);
+  const [testerSaving, setTesterSaving] = useState(false);
   const { isAdmin } = useUserRole();
+  const { toast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "tester")
+        .maybeSingle();
+      if (active) setIsTester(!!data);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [user.id]);
+
+  const toggleTester = async (next: boolean) => {
+    setTesterSaving(true);
+    try {
+      if (next) {
+        const { error } = await supabase
+          .from("user_roles")
+          .insert({ user_id: user.id, role: "tester" });
+        if (error && !`${error.message}`.includes("duplicate")) throw error;
+      } else {
+        const { error } = await supabase
+          .from("user_roles")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("role", "tester");
+        if (error) throw error;
+      }
+      setIsTester(next);
+      toast({
+        title: next ? "Tester access granted" : "Tester access removed",
+        description: next
+          ? "User can now see the Policies & Procedures button."
+          : "User no longer has Policies & Procedures access.",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Update failed",
+        description: err.message || "Could not update tester access.",
+        variant: "destructive",
+      });
+    } finally {
+      setTesterSaving(false);
+    }
+  };
+
 
   const userRole = getUserRole(user);
   const roleBadgeColor = getRoleBadgeColor(userRole);
@@ -170,8 +228,26 @@ export const UserCard = ({
                 onClick={() => navigate(`/admin/wiki/directory?user=${user.id}`)}
                 accent="slate"
               />
+              {isAdmin && (
+                <div className="flex items-center justify-between gap-2 px-3 py-2 bg-background border border-border rounded-lg shadow-sm">
+                  <div className="flex flex-col">
+                    <span className="text-[12px] font-semibold text-foreground">
+                      Tester
+                    </span>
+                    <span className="text-[10px] text-muted-foreground">
+                      Grants P&P button access
+                    </span>
+                  </div>
+                  <Switch
+                    checked={isTester}
+                    disabled={testerSaving}
+                    onCheckedChange={toggleTester}
+                  />
+                </div>
+              )}
             </div>
           </div>
+
         </div>
 
         {/* Account Controls */}
