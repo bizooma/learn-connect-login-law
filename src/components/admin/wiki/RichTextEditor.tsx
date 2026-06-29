@@ -212,7 +212,7 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
         <Select
           value={headingValue}
           onValueChange={(val) => {
-            if (val === "p") editor.chain().focus().setParagraph().run();
+            if (val === "p") editor.chain().focus().setParagraph().unsetBold().run();
             else if (val === "h1") editor.chain().focus().toggleHeading({ level: 1 }).run();
             else if (val === "h2") editor.chain().focus().toggleHeading({ level: 2 }).run();
             else if (val === "h3") editor.chain().focus().toggleHeading({ level: 3 }).run();
