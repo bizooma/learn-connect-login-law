@@ -18,6 +18,7 @@ export interface WikiCategory {
   updated_at: string;
   article_count?: number;
   owner?: { id: string; first_name: string | null; last_name: string | null; email: string } | null;
+  shared_groups?: { id: string; name: string }[];
 }
 
 export const useWikiCategories = () => {
