@@ -94,6 +94,15 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
                   {!collapsed && <span>All Content</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
+              <SidebarMenuItem>
+                <SidebarMenuButton
+                  onClick={() => navigate("/admin/wiki/training-paths")}
+                  className={`${onTrainingPaths ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                >
+                  <RouteIcon className="h-4 w-4" />
+                  {!collapsed && <span>Training Paths</span>}
+                </SidebarMenuButton>
+              </SidebarMenuItem>
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
