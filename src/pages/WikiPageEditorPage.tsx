@@ -65,7 +65,7 @@ const WikiPageEditorPage = () => {
     setSaving(true);
     const { error } = await supabase
       .from("wiki_pages" as any)
-      .update({ title: trimmed, content })
+      .update({ title: trimmed, content: sanitizeContent(content) })
       .eq("id", page.id);
     setSaving(false);
     if (error) {
