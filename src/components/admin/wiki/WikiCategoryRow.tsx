@@ -22,6 +22,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useWikiColumns } from "./WikiColumnsContext";
 import { printSubjectPdf } from "@/lib/printSubjectPdf";
 import OwnerPicker from "./OwnerPicker";
+import ShareGroupsPicker from "./ShareGroupsPicker";
 
 
 interface WikiCategoryRowProps {
