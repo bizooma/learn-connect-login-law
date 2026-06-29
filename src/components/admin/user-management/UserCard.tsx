@@ -50,8 +50,62 @@ export const UserCard = ({
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
   const [showGroupsDialog, setShowGroupsDialog] = useState(false);
+  const [isTester, setIsTester] = useState(false);
+  const [testerSaving, setTesterSaving] = useState(false);
   const { isAdmin } = useUserRole();
+  const { toast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { data } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "tester")
+        .maybeSingle();
+      if (active) setIsTester(!!data);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [user.id]);
+
+  const toggleTester = async (next: boolean) => {
+    setTesterSaving(true);
+    try {
+      if (next) {
+        const { error } = await supabase
+          .from("user_roles")
+          .insert({ user_id: user.id, role: "tester" });
+        if (error && !`${error.message}`.includes("duplicate")) throw error;
+      } else {
+        const { error } = await supabase
+          .from("user_roles")
+          .delete()
+          .eq("user_id", user.id)
+          .eq("role", "tester");
+        if (error) throw error;
+      }
+      setIsTester(next);
+      toast({
+        title: next ? "Tester access granted" : "Tester access removed",
+        description: next
+          ? "User can now see the Policies & Procedures button."
+          : "User no longer has Policies & Procedures access.",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Update failed",
+        description: err.message || "Could not update tester access.",
+        variant: "destructive",
+      });
+    } finally {
+      setTesterSaving(false);
+    }
+  };
+
 
   const userRole = getUserRole(user);
   const roleBadgeColor = getRoleBadgeColor(userRole);
