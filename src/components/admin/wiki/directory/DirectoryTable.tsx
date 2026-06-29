@@ -34,7 +34,6 @@ const fullName = (u: DirectoryUser) =>
   [u.first_name, u.last_name].filter(Boolean).join(" ") || u.email;
 
 const DirectoryTable = ({ users, onSelect }: Props) => {
-const DirectoryTable = ({ users, onSelect }: Props) => {
   const { toast } = useToast();
   return (
     <div className="border border-border rounded-lg overflow-hidden bg-card">
