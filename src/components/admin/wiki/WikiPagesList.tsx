@@ -1,7 +1,6 @@
 import { useState, KeyboardEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import { FileText, Pencil, Trash2 } from "lucide-react";
-import EditPageDialog from "./EditPageDialog";
-import { WikiPage } from "@/hooks/useWikiPages";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useWikiPages } from "@/hooks/useWikiPages";
@@ -69,7 +68,9 @@ const PageInput = ({ articleId, onCreated }: { articleId: string; onCreated: () 
 const WikiPagesList = ({ articleId }: WikiPagesListProps) => {
   const { pages, deletePage } = useWikiPages(articleId);
   const [, force] = useState(0);
-  const [editingPage, setEditingPage] = useState<WikiPage | null>(null);
+  const navigate = useNavigate();
+
+  const openEditor = (id: string) => navigate(`/admin/wiki/pages/${id}`);
 
   return (
     <div onClick={(e) => e.stopPropagation()}>
@@ -77,7 +78,7 @@ const WikiPagesList = ({ articleId }: WikiPagesListProps) => {
         <div
           key={page.id}
           className="flex items-center justify-between px-4 py-2 pl-16 bg-background border-b border-border hover:bg-muted/30 group cursor-pointer"
-          onClick={() => setEditingPage(page)}
+          onClick={() => openEditor(page.id)}
         >
           <div className="flex items-center gap-2">
             <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">Page</span>
@@ -91,7 +92,7 @@ const WikiPagesList = ({ articleId }: WikiPagesListProps) => {
               className="h-7 w-7 opacity-0 group-hover:opacity-100"
               onClick={(e) => {
                 e.stopPropagation();
-                setEditingPage(page);
+                openEditor(page.id);
               }}
             >
               <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
@@ -111,11 +112,6 @@ const WikiPagesList = ({ articleId }: WikiPagesListProps) => {
         </div>
       ))}
       <PageInput articleId={articleId} onCreated={() => force((n) => n + 1)} />
-      <EditPageDialog
-        page={editingPage}
-        open={!!editingPage}
-        onOpenChange={(open) => !open && setEditingPage(null)}
-      />
     </div>
   );
 };
