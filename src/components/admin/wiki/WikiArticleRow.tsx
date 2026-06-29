@@ -7,6 +7,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { WikiArticle, contentTypeLabels, WikiContentType } from "@/hooks/useWikiArticles";
+import WikiPagesList from "./WikiPagesList";
 
 interface WikiArticleRowProps {
   article: WikiArticle;
