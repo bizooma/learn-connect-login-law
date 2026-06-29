@@ -38,6 +38,7 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
   const CategoryIcon = meta.Icon;
   const { updateCategory } = useWikiCategories();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const handleRename = async () => {
     const newTitle = window.prompt("Rename subject", category.title);
