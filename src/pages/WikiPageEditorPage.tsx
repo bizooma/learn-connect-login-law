@@ -47,7 +47,7 @@ const WikiPageEditorPage = () => {
       const p = data as unknown as WikiPage;
       setPage(p);
       setTitle(p.title);
-      setContent(p.content || "");
+      setContent(sanitizeContent(p.content || ""));
       setLoading(false);
     })();
     return () => {
