@@ -37,6 +37,7 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
   const { isAdmin } = useUserRole();
   const onHome = location.pathname === "/admin/wiki";
   const onContent = location.pathname.startsWith("/admin/wiki/content");
+  const onTrainingPaths = location.pathname.startsWith("/admin/wiki/training-paths");
   const onDirectory = location.pathname.startsWith("/admin/wiki/directory");
   const onGroups = location.pathname.startsWith("/admin/wiki/groups");
   const onReports = location.pathname.startsWith("/admin/wiki/reports");
