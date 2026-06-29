@@ -1,8 +1,9 @@
 
-import { BookOpen, Menu, LogOut, HelpCircle } from "lucide-react";
+import { BookOpen, Menu, LogOut, HelpCircle, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { useUserRole } from "@/hooks/useUserRole";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +15,7 @@ import {
 const StudentMainHeader = () => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
+  const { canAccessWiki } = useUserRole();
 
   const handleSignOut = async () => {
     try {
@@ -51,6 +53,17 @@ const StudentMainHeader = () => {
           </div>
 
           <div className="flex items-center space-x-4">
+            {canAccessWiki && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate('/admin/wiki')}
+                className="text-white hover:bg-white/10 text-sm px-4 py-1.5 rounded-md"
+              >
+                <FileText className="h-4 w-4 mr-2" />
+                Policies & Procedures
+              </Button>
+            )}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" size="icon" className="text-white hover:bg-white/10">
