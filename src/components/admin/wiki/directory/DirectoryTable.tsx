@@ -1,7 +1,14 @@
-import { MoreVertical } from "lucide-react";
+import { MoreVertical, User, Copy, Mail } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
 import {
   Table,
   TableBody,
@@ -27,6 +34,7 @@ const fullName = (u: DirectoryUser) =>
   [u.first_name, u.last_name].filter(Boolean).join(" ") || u.email;
 
 const DirectoryTable = ({ users, onSelect }: Props) => {
+  const { toast } = useToast();
   return (
     <div className="border border-border rounded-lg overflow-hidden bg-card">
       <Table>
@@ -69,9 +77,33 @@ const DirectoryTable = ({ users, onSelect }: Props) => {
               </TableCell>
               <TableCell className="text-muted-foreground">{u.email}</TableCell>
               <TableCell onClick={(e) => e.stopPropagation()}>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <MoreVertical className="h-4 w-4" />
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => onSelect?.(u)}>
+                      <User className="h-4 w-4 mr-2" /> View profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        navigator.clipboard.writeText(u.email);
+                        toast({ title: "Email copied", description: u.email });
+                      }}
+                    >
+                      <Copy className="h-4 w-4 mr-2" /> Copy email
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => {
+                        window.location.href = `mailto:${u.email}`;
+                      }}
+                    >
+                      <Mail className="h-4 w-4 mr-2" /> Send email
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </TableCell>
             </TableRow>
           ))}
