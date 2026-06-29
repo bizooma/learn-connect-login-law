@@ -1,0 +1,2 @@
+ALTER TABLE public.wiki_categories ADD COLUMN IF NOT EXISTS owner_id uuid REFERENCES public.profiles(id) ON DELETE SET NULL;
+CREATE INDEX IF NOT EXISTS idx_wiki_categories_owner_id ON public.wiki_categories(owner_id);

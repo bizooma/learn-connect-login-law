@@ -12,10 +12,12 @@ export interface WikiCategory {
   category: WikiSubjectCategory;
   sort_order: number;
   is_published: boolean;
+  owner_id: string | null;
   created_by: string;
   created_at: string;
   updated_at: string;
   article_count?: number;
+  owner?: { id: string; first_name: string | null; last_name: string | null; email: string } | null;
 }
 
 export const useWikiCategories = () => {
@@ -41,9 +43,23 @@ export const useWikiCategories = () => {
         counts[a.category_id] = (counts[a.category_id] || 0) + 1;
       });
 
+      // Get owner profiles
+      const ownerIds = Array.from(
+        new Set((data as any[]).map((c) => c.owner_id).filter(Boolean)),
+      ) as string[];
+      let ownersMap: Record<string, any> = {};
+      if (ownerIds.length > 0) {
+        const { data: owners } = await supabase
+          .from("profiles")
+          .select("id, first_name, last_name, email")
+          .in("id", ownerIds);
+        ownersMap = Object.fromEntries((owners || []).map((o: any) => [o.id, o]));
+      }
+
       return (data as WikiCategory[]).map((cat) => ({
         ...cat,
         article_count: counts[cat.id] || 0,
+        owner: cat.owner_id ? ownersMap[cat.owner_id] || null : null,
       }));
     },
   });
@@ -84,7 +100,7 @@ export const useWikiCategories = () => {
   });
 
   const updateCategory = useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string; title?: string; description?: string; icon_name?: string; category?: WikiSubjectCategory; is_published?: boolean; sort_order?: number }) => {
+    mutationFn: async ({ id, ...updates }: { id: string; title?: string; description?: string; icon_name?: string; category?: WikiSubjectCategory; is_published?: boolean; sort_order?: number; owner_id?: string | null }) => {
       const { data, error } = await supabase
         .from("wiki_categories")
         .update(updates as any)
