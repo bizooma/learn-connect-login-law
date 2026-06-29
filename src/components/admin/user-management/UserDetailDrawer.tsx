@@ -47,7 +47,7 @@ interface SessionRow {
 
 interface RoleAuditRow {
   id: string;
-  performed_at: string;
+  changed_at: string | null;
   old_role: string | null;
   new_role: string | null;
   reason: string | null;
