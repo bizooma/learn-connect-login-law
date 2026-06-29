@@ -7,6 +7,45 @@ import Underline from "@tiptap/extension-underline";
 import { Color } from "@tiptap/extension-color";
 import { TextStyle } from "@tiptap/extension-text-style";
 import FontFamily from "@tiptap/extension-font-family";
+import { Extension } from "@tiptap/core";
+
+const FontSize = Extension.create({
+  name: "fontSize",
+  addOptions() {
+    return { types: ["textStyle"] };
+  },
+  addGlobalAttributes() {
+    return [
+      {
+        types: this.options.types,
+        attributes: {
+          fontSize: {
+            default: null,
+            parseHTML: (element: HTMLElement) => element.style.fontSize?.replace(/['"]/g, "") || null,
+            renderHTML: (attributes: any) => {
+              if (!attributes.fontSize) return {};
+              return { style: `font-size: ${attributes.fontSize}` };
+            },
+          },
+        },
+      },
+    ];
+  },
+  addCommands() {
+    return {
+      setFontSize:
+        (fontSize: string) =>
+        ({ chain }: any) =>
+          chain().setMark("textStyle", { fontSize }).run(),
+      unsetFontSize:
+        () =>
+        ({ chain }: any) =>
+          chain().setMark("textStyle", { fontSize: null }).removeEmptyTextStyle().run(),
+    } as any;
+  },
+});
+
+const FONT_SIZES = ["10", "12", "14", "16", "18", "20", "24", "28", "32", "36", "48", "60", "72"];
 import Highlight from "@tiptap/extension-highlight";
 import Subscript from "@tiptap/extension-subscript";
 import Superscript from "@tiptap/extension-superscript";
@@ -209,6 +248,7 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
 
         <div className="w-px h-6 bg-border mx-1" />
 
+
         <Select
           value={headingValue}
           onValueChange={(val) => {
@@ -246,6 +286,24 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
               <SelectItem key={f.label} value={f.value || "__default"} onSelect={() => {}}>
                 <span style={{ fontFamily: f.value || undefined }}>{f.label}</span>
               </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        <Select
+          value={(editor.getAttributes("textStyle").fontSize || "").replace("px", "") || "__default"}
+          onValueChange={(val) => {
+            if (val === "__default") (editor.chain().focus() as any).unsetFontSize().run();
+            else (editor.chain().focus() as any).setFontSize(`${val}px`).run();
+          }}
+        >
+          <SelectTrigger className="w-20 h-8" title="Font size">
+            <SelectValue placeholder="Size" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="__default">Default</SelectItem>
+            {FONT_SIZES.map((s) => (
+              <SelectItem key={s} value={s}>{s}</SelectItem>
             ))}
           </SelectContent>
         </Select>
@@ -465,6 +523,7 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       TextStyle,
       FontFamily,
+      FontSize,
       Color,
       Highlight,
       Subscript,
