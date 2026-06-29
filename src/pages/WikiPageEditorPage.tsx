@@ -83,7 +83,7 @@ const WikiPageEditorPage = () => {
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => navigate(-1)}
+              onClick={() => navigate("/admin/wiki")}
               className="gap-2 shrink-0"
             >
               <ArrowLeft className="h-4 w-4" /> Back to Content
