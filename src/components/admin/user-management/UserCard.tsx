@@ -38,6 +38,9 @@ interface UserCardProps {
   onUserDeleted: () => void;
   onCourseAssigned?: () => void;
   onViewProgress?: (userId: string) => void;
+  selected?: boolean;
+  onSelectedChange?: (selected: boolean) => void;
+  onOpenDetail?: (userId: string) => void;
 }
 
 export const UserCard = ({
@@ -45,6 +48,9 @@ export const UserCard = ({
   onUserDeleted,
   onCourseAssigned,
   onViewProgress,
+  selected,
+  onSelectedChange,
+  onOpenDetail,
 }: UserCardProps) => {
   const [showCourseDialog, setShowCourseDialog] = useState(false);
   const [showEmailDialog, setShowEmailDialog] = useState(false);
@@ -124,11 +130,20 @@ export const UserCard = ({
 
   return (
     <>
-      <Card className="overflow-hidden hover:shadow-lg transition-shadow">
+      <Card className={`overflow-hidden hover:shadow-lg transition-shadow ${selected ? "ring-2 ring-primary" : ""}`}>
         {/* Identity Header */}
         <div className="p-5 pb-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex gap-3 min-w-0">
+              {onSelectedChange && (
+                <input
+                  type="checkbox"
+                  checked={!!selected}
+                  onChange={(e) => onSelectedChange(e.target.checked)}
+                  className="mt-1 h-4 w-4 accent-primary cursor-pointer"
+                  aria-label="Select user"
+                />
+              )}
               <Avatar className="h-12 w-12 border-2 border-background shadow-sm">
                 <AvatarImage src={user.profile_image_url || undefined} />
                 <AvatarFallback className="bg-muted text-[#213C82] font-bold">
@@ -136,9 +151,14 @@ export const UserCard = ({
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0">
-                <h3 className="text-base font-bold text-foreground leading-tight truncate">
+                <button
+                  type="button"
+                  onClick={() => onOpenDetail?.(user.id)}
+                  className="text-left text-base font-bold text-foreground leading-tight truncate hover:text-primary hover:underline"
+                  disabled={!onOpenDetail}
+                >
                   {displayName}
-                </h3>
+                </button>
                 <p className="text-sm text-muted-foreground truncate">{user.email}</p>
               </div>
             </div>
