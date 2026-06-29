@@ -445,6 +445,18 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
           <RemoveFormatting className="h-4 w-4" />
         </ToolbarButton>
 
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-8 px-2 text-xs"
+          title="Remove bold from entire page"
+          onClick={() => editor.chain().focus().selectAll().unsetBold().run()}
+        >
+          Un-bold all
+        </Button>
+
+
         {uploading && <span className="text-xs text-muted-foreground ml-2">Uploading…</span>}
       </div>
     </div>
