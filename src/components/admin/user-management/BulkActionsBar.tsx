@@ -25,7 +25,7 @@ import { useGroups } from "@/hooks/useGroups";
 import { toast } from "sonner";
 import { ChevronDown, Loader2, X, Search } from "lucide-react";
 import { UserProfile } from "./types";
-import { updateUserRoleSafe } from "./updatedUserManagementService";
+import { updateUserRoleSafe, softDeleteUserSafe } from "./updatedUserManagementService";
 import { exportUsersCsv, ExportableUser } from "@/lib/exportUsersCsv";
 import { EnrichedUserMeta } from "./userRoleUtils";
 
