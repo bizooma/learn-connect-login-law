@@ -38,6 +38,7 @@ import AdminWikiReportsActivity from "./pages/AdminWikiReportsActivity";
 import AdminWikiManageUsersPage from "./pages/AdminWikiManageUsersPage";
 import AdminWikiSettingsPage from "./pages/AdminWikiSettingsPage";
 import AdminWikiTrainingPathsPage from "./pages/AdminWikiTrainingPathsPage";
+import WikiPageEditorPage from "./pages/WikiPageEditorPage";
 
 import AuthPage from "./components/AuthPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -92,6 +93,7 @@ const AppContent = () => {
         <Route path="/admin/wiki/reports/activity" element={<AdminWikiReportsActivity />} />
         <Route path="/admin/wiki/account/users" element={<AdminWikiManageUsersPage />} />
         <Route path="/admin/wiki/account/settings" element={<AdminWikiSettingsPage />} />
+        <Route path="/admin/wiki/pages/:pageId" element={<WikiPageEditorPage />} />
 
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />
