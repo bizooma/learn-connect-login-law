@@ -1,16 +1,24 @@
 import { useState } from "react";
-import { ChevronRight, ChevronDown, MoreVertical, Pencil, Trash2, Eye, EyeOff } from "lucide-react";
+import { ChevronRight, ChevronDown, MoreVertical, Pencil, Trash2, Eye, EyeOff, Copy, Link2, Printer, Archive, Tag, Type } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { WikiCategory } from "@/hooks/useWikiCategories";
+import { WikiCategory, useWikiCategories, WikiSubjectCategory } from "@/hooks/useWikiCategories";
 import { WikiArticle } from "@/hooks/useWikiArticles";
 import WikiArticleList from "./WikiArticleList";
 import { getSubjectCategoryMeta } from "./subjectCategoryMeta";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { useQueryClient } from "@tanstack/react-query";
+
 
 interface WikiCategoryRowProps {
   category: WikiCategory;
@@ -27,6 +35,66 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
   const count = category.article_count || 0;
   const meta = getSubjectCategoryMeta(category.category);
   const CategoryIcon = meta.Icon;
+  const { updateCategory } = useWikiCategories();
+  const queryClient = useQueryClient();
+
+  const handleRename = async () => {
+    const newTitle = window.prompt("Rename subject", category.title);
+    if (!newTitle || newTitle.trim() === "" || newTitle === category.title) return;
+    updateCategory.mutate({ id: category.id, title: newTitle.trim() });
+  };
+
+  const handleDuplicate = async () => {
+    try {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error("Not authenticated");
+      const { data: maxRow } = await supabase
+        .from("wiki_categories")
+        .select("sort_order")
+        .order("sort_order", { ascending: false })
+        .limit(1);
+      const nextOrder = maxRow && maxRow.length > 0 ? (maxRow[0] as any).sort_order + 1 : 0;
+      const { error } = await supabase.from("wiki_categories").insert({
+        title: `${category.title} (Copy)`,
+        description: category.description,
+        icon_name: category.icon_name,
+        category: category.category,
+        sort_order: nextOrder,
+        is_published: false,
+        created_by: userData.user.id,
+      } as any);
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["wiki-categories"] });
+      toast.success("Subject duplicated");
+    } catch (e: any) {
+      toast.error("Failed to duplicate: " + e.message);
+    }
+  };
+
+  const handleChangeCategory = (newCat: WikiSubjectCategory) => {
+    if (newCat === category.category) return;
+    updateCategory.mutate({ id: category.id, category: newCat });
+  };
+
+  const handleCopyLink = async () => {
+    const url = `${window.location.origin}/admin/wiki/content?subject=${category.id}`;
+    try {
+      await navigator.clipboard.writeText(url);
+      toast.success("Link copied");
+    } catch {
+      toast.error("Failed to copy link");
+    }
+  };
+
+  const handlePrint = () => {
+    window.print();
+  };
+
+  const handleArchive = () => {
+    updateCategory.mutate({ id: category.id, is_published: false });
+    toast.success("Subject archived");
+  };
+
 
   return (
     <div className="border-b border-border">
@@ -62,13 +130,45 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
+            <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(category); }}>
                 <Pencil className="h-4 w-4 mr-2" /> Edit
               </DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleRename(); }}>
+                <Type className="h-4 w-4 mr-2" /> Rename
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDuplicate(); }}>
+                <Copy className="h-4 w-4 mr-2" /> Duplicate
+              </DropdownMenuItem>
+              <DropdownMenuSub>
+                <DropdownMenuSubTrigger onClick={(e) => e.stopPropagation()}>
+                  <Tag className="h-4 w-4 mr-2" /> Change category
+                </DropdownMenuSubTrigger>
+                <DropdownMenuSubContent>
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleChangeCategory("company"); }}>
+                    Company
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleChangeCategory("policy"); }}>
+                    Policy
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleChangeCategory("procedure"); }}>
+                    Procedure
+                  </DropdownMenuItem>
+                </DropdownMenuSubContent>
+              </DropdownMenuSub>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleCopyLink(); }}>
+                <Link2 className="h-4 w-4 mr-2" /> Copy link
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handlePrint(); }}>
+                <Printer className="h-4 w-4 mr-2" /> Print PDF
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
               <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onTogglePublish(category); }}>
                 {category.is_published ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
                 {category.is_published ? "Unpublish" : "Publish"}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleArchive(); }}>
+                <Archive className="h-4 w-4 mr-2" /> Archive
               </DropdownMenuItem>
               <DropdownMenuItem className="text-destructive" onClick={(e) => { e.stopPropagation(); onDelete(category.id); }}>
                 <Trash2 className="h-4 w-4 mr-2" /> Delete
