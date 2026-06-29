@@ -54,6 +54,8 @@ import { Table } from "@tiptap/extension-table";
 import { TableRow } from "@tiptap/extension-table-row";
 import { TableCell } from "@tiptap/extension-table-cell";
 import { TableHeader } from "@tiptap/extension-table-header";
+import TaskList from "@tiptap/extension-task-list";
+import TaskItem from "@tiptap/extension-task-item";
 import { useEffect, useRef, useState, lazy, Suspense } from "react";
 import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -100,6 +102,7 @@ import {
   Trash2,
   Plus,
   Minus,
+  CheckSquare,
 } from "lucide-react";
 
 const EmojiPicker = lazy(() => import("emoji-picker-react"));
@@ -360,6 +363,9 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
         <ToolbarButton onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive("bulletList")} title="Bullet list">
           <List className="h-4 w-4" />
         </ToolbarButton>
+        <ToolbarButton onClick={() => editor.chain().focus().toggleTaskList().run()} active={editor.isActive("taskList")} title="Checklist">
+          <CheckSquare className="h-4 w-4" />
+        </ToolbarButton>
         <ToolbarButton onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive("orderedList")} title="Numbered list">
           <ListOrdered className="h-4 w-4" />
         </ToolbarButton>
@@ -533,6 +539,8 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
       TableRow,
       TableHeader.configure({ HTMLAttributes: { class: "border border-border bg-muted p-2 font-semibold text-left" } }),
       TableCell.configure({ HTMLAttributes: { class: "border border-border p-2" } }),
+      TaskList.configure({ HTMLAttributes: { class: "task-list not-prose" } }),
+      TaskItem.configure({ nested: true, HTMLAttributes: { class: "task-item" } }),
     ],
     content: content || "",
     onUpdate: ({ editor }) => onChange(editor.getHTML()),
@@ -572,6 +580,12 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
         .wiki-editor-surface li [data-bold="true"] {
           font-weight: 700 !important;
         }
+        .wiki-editor-surface ul.task-list { list-style: none; padding-left: 0; }
+        .wiki-editor-surface ul.task-list li.task-item { display: flex; align-items: flex-start; gap: 0.5rem; margin: 0.25rem 0; }
+        .wiki-editor-surface ul.task-list li.task-item > label { margin-top: 0.25rem; }
+        .wiki-editor-surface ul.task-list li.task-item > label input[type="checkbox"] { width: 1rem; height: 1rem; cursor: pointer; }
+        .wiki-editor-surface ul.task-list li.task-item > div { flex: 1; }
+        .wiki-editor-surface ul.task-list li.task-item[data-checked="true"] > div { text-decoration: line-through; opacity: 0.6; }
       `}</style>
       <div className="flex-1 overflow-auto bg-muted/20">
         <div className="max-w-4xl mx-auto bg-background min-h-full px-12 shadow-sm wiki-editor-surface">
