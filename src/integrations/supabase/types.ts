@@ -2933,6 +2933,7 @@ export type Database = {
         | "client"
         | "free"
         | "team_leader"
+        | "tester"
       notification_audience:
         | "new_frontier_only"
         | "all_students"
@@ -3084,7 +3085,15 @@ export const Constants = {
         "course_exit",
         "session_timeout",
       ],
-      app_role: ["admin", "owner", "student", "client", "free", "team_leader"],
+      app_role: [
+        "admin",
+        "owner",
+        "student",
+        "client",
+        "free",
+        "team_leader",
+        "tester",
+      ],
       notification_audience: [
         "new_frontier_only",
         "all_students",
