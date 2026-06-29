@@ -40,6 +40,7 @@ import AdminWikiSettingsPage from "./pages/AdminWikiSettingsPage";
 import AdminWikiTrainingPathsPage from "./pages/AdminWikiTrainingPathsPage";
 import WikiPageEditorPage from "./pages/WikiPageEditorPage";
 import WikiFlowchartEditorPage from "./pages/WikiFlowchartEditorPage";
+import WikiKnowledgeCheckPage from "./pages/WikiKnowledgeCheckPage";
 
 import AuthPage from "./components/AuthPage";
 import RegisterPage from "./pages/RegisterPage";
@@ -96,6 +97,8 @@ const AppContent = () => {
         <Route path="/admin/wiki/account/settings" element={<AdminWikiSettingsPage />} />
         <Route path="/admin/wiki/pages/:pageId" element={<WikiPageEditorPage />} />
         <Route path="/admin/wiki/flowchart/:articleId" element={<WikiFlowchartEditorPage />} />
+        <Route path="/admin/wiki/knowledge-check/:articleId" element={<WikiKnowledgeCheckPage />} />
+
 
         <Route path="/auth" element={<AuthPage />} />
         <Route path="/payment-success" element={<PaymentSuccess />} />

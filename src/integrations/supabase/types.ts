@@ -2638,6 +2638,82 @@ export type Database = {
           },
         ]
       }
+      wiki_question_choices: {
+        Row: {
+          choice_text: string
+          created_at: string
+          id: string
+          is_correct: boolean
+          question_id: string
+          sort_order: number
+        }
+        Insert: {
+          choice_text?: string
+          created_at?: string
+          id?: string
+          is_correct?: boolean
+          question_id: string
+          sort_order?: number
+        }
+        Update: {
+          choice_text?: string
+          created_at?: string
+          id?: string
+          is_correct?: boolean
+          question_id?: string
+          sort_order?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wiki_question_choices_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "wiki_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wiki_questions: {
+        Row: {
+          article_id: string
+          created_at: string
+          created_by: string
+          id: string
+          question_text: string
+          question_type: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          article_id: string
+          created_at?: string
+          created_by: string
+          id?: string
+          question_text?: string
+          question_type?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          article_id?: string
+          created_at?: string
+          created_by?: string
+          id?: string
+          question_text?: string
+          question_type?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wiki_questions_article_id_fkey"
+            columns: ["article_id"]
+            isOneToOne: false
+            referencedRelation: "wiki_articles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
