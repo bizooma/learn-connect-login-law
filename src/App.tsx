@@ -37,6 +37,7 @@ import AdminWikiReportsPeople from "./pages/AdminWikiReportsPeople";
 import AdminWikiReportsActivity from "./pages/AdminWikiReportsActivity";
 import AdminWikiManageUsersPage from "./pages/AdminWikiManageUsersPage";
 import AdminWikiSettingsPage from "./pages/AdminWikiSettingsPage";
+import AdminWikiTrainingPathsPage from "./pages/AdminWikiTrainingPathsPage";
 
 import AuthPage from "./components/AuthPage";
 import RegisterPage from "./pages/RegisterPage";
