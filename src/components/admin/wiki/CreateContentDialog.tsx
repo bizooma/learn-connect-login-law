@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { Upload } from "lucide-react";
 import {
@@ -38,7 +39,7 @@ interface CreateContentDialogProps {
   defaultCategoryId?: string | null;
 }
 
-const STUB_TYPES: WikiContentType[] = ["flowchart", "checklist", "test"];
+const STUB_TYPES: WikiContentType[] = ["checklist", "test"];
 
 const CreateContentDialog = ({
   open,
@@ -48,6 +49,7 @@ const CreateContentDialog = ({
   defaultCategoryId,
 }: CreateContentDialogProps) => {
   const { createArticle } = useWikiArticles();
+  const navigate = useNavigate();
   const [title, setTitle] = useState("");
   const [categoryId, setCategoryId] = useState<string>("");
   const [subjectKind, setSubjectKind] = useState<WikiSubjectKind>("company");
@@ -145,11 +147,18 @@ const CreateContentDialog = ({
         content_type: contentType,
         subject_category: subjectKind,
         owner_id: ownerId || null,
-        content: contentType === "video" ? videoUrl : undefined,
+        content: contentType === "video" ? videoUrl : contentType === "flowchart" ? JSON.stringify({ nodes: [], edges: [] }) : undefined,
         file_url: contentType === "file" ? fileUrl : undefined,
         file_name: contentType === "file" ? fileName : undefined,
       },
-      { onSuccess: () => onOpenChange(false) },
+      {
+        onSuccess: (created: any) => {
+          onOpenChange(false);
+          if (contentType === "flowchart" && created?.id) {
+            navigate(`/admin/wiki/flowchart/${created.id}`);
+          }
+        },
+      },
     );
   };
 

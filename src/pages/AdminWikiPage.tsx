@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Plus, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -22,6 +22,14 @@ import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
 
 const AdminWikiPage = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const openArticle = (a: WikiArticle) => {
+    if (a.content_type === "flowchart") {
+      navigate(`/admin/wiki/flowchart/${a.id}`);
+    } else {
+      setEditingArticle(a);
+    }
+  };
   const navState = (location.state ?? {}) as { activeCategoryId?: string | null; openCreateCategory?: boolean };
   const [searchQuery, setSearchQuery] = useState("");
   const [activeCategoryId, setActiveCategoryId] = useState<string | null>(navState.activeCategoryId ?? null);
@@ -209,7 +217,7 @@ const AdminWikiPage = () => {
                       onTogglePublishCategory={(c) =>
                         updateCategory.mutate({ id: c.id, is_published: !c.is_published })
                       }
-                      onEditArticle={setEditingArticle}
+                      onEditArticle={openArticle}
                       searchQuery={searchQuery}
                     />
                   )}
