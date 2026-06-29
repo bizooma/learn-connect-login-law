@@ -2484,6 +2484,7 @@ export type Database = {
           icon_name: string | null
           id: string
           is_published: boolean
+          owner_id: string | null
           sort_order: number
           title: string
           updated_at: string
@@ -2496,6 +2497,7 @@ export type Database = {
           icon_name?: string | null
           id?: string
           is_published?: boolean
+          owner_id?: string | null
           sort_order?: number
           title: string
           updated_at?: string
@@ -2508,11 +2510,20 @@ export type Database = {
           icon_name?: string | null
           id?: string
           is_published?: boolean
+          owner_id?: string | null
           sort_order?: number
           title?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "wiki_categories_owner_id_fkey"
+            columns: ["owner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       wiki_pages: {
         Row: {
