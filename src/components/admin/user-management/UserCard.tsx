@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
+import { Switch } from "@/components/ui/switch";
 import SafeDeleteUserDialog from "./SafeDeleteUserDialog";
 import SafeRoleUpdateDialog from "./SafeRoleUpdateDialog";
 import UserCourseAssignment from "./UserCourseAssignment";
@@ -14,6 +15,9 @@ import UserGroupsDialog from "./UserGroupsDialog";
 import { UserProfile } from "./types";
 import { getUserRole, getRoleBadgeColor } from "./userRoleUtils";
 import { useUserRole } from "@/hooks/useUserRole";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
+
 import {
   BookOpen,
   BarChart3,
