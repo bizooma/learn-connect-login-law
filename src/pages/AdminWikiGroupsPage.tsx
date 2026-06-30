@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
 import WikiSidebar from "@/components/admin/wiki/WikiSidebar";
-import PeopleBanner from "@/components/admin/wiki/PeopleBanner";
 import { useWikiCategories } from "@/hooks/useWikiCategories";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useGroups, useGroupMembers, Group, GroupType } from "@/hooks/useGroups";
