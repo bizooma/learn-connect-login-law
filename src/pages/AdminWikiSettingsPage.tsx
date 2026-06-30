@@ -50,6 +50,15 @@ const AdminWikiSettingsPage = () => {
   const [savingGamification, setSavingGamification] = useState(false);
   const { groups } = useGroups();
 
+  // Content tab
+  const [publicShareEnabled, setPublicShareEnabled] = useState(true);
+  const [pdfDownloadsEnabled, setPdfDownloadsEnabled] = useState(true);
+  const [esignaturePermission, setEsignaturePermission] = useState("billing_admin");
+  const [feedbackEnabled, setFeedbackEnabled] = useState(true);
+  const [defaultDiscoverability, setDefaultDiscoverability] = useState<"discoverable" | "request" | "private">("discoverable");
+  const [savingContent, setSavingContent] = useState(false);
+
+
   useEffect(() => {
     if (!loading && !isAdmin) {
       navigate("/admin/wiki", { replace: true });
