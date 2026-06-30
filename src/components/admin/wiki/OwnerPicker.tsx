@@ -44,7 +44,7 @@ const OwnerPicker = ({ value, ownerDisplay, onChange, disabled }: OwnerPickerPro
     setLoading(true);
     supabase
       .from("profiles")
-      .select("id, first_name, last_name, email")
+      .select("id, first_name, last_name, email, profile_image_url")
       .eq("is_deleted", false)
       .order("first_name", { ascending: true })
       .limit(500)
