@@ -224,7 +224,7 @@ const AdminWikiGroupsPage = () => {
                 <div className="flex flex-wrap items-center gap-2">
                   {FILTER_TABS.map((t) => {
                     const active = typeFilter === t;
-                    const count = t === "All" ? groups.length : groups.filter((g) => g.type === t).length;
+                    const count = groups.filter((g) => matchesTypeFilter(g, t)).length;
                     return (
                       <button
                         key={t}
