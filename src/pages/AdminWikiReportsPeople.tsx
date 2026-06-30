@@ -43,6 +43,11 @@ const AdminWikiReportsPeople = () => {
   const [search, setSearch] = useState("");
   const [directReportIds, setDirectReportIds] = useState<string[] | null>(null);
   const [detailsUser, setDetailsUser] = useState<{ id: string; name: string } | null>(null);
+  const cols = useResizableColumns({
+    storageKey: "report-people-cols",
+    defaults: [280, 200, 260, 100, 200, 140],
+  });
+
 
 
   // If sharing with direct reports is on and viewer isn't admin, fetch their direct reports.
