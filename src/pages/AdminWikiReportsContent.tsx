@@ -97,12 +97,13 @@ const AdminWikiReportsContent = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead>Category</TableHead>
-              <TableHead className="w-[220px]">Read by staff</TableHead>
-              <TableHead className="w-[100px]">Views</TableHead>
-              <TableHead className="w-[140px]">Last updated</TableHead>
-              <TableHead className="w-[100px]">Status</TableHead>
+              <ResizableHead width={cols.widths[0]} onResize={cols.onMouseDown(0)}>Name</ResizableHead>
+              <ResizableHead width={cols.widths[1]} onResize={cols.onMouseDown(1)}>Category</ResizableHead>
+              <ResizableHead width={cols.widths[2]} onResize={cols.onMouseDown(2)}>Read by staff</ResizableHead>
+              <ResizableHead width={cols.widths[3]} onResize={cols.onMouseDown(3)}>Views</ResizableHead>
+              <ResizableHead width={cols.widths[4]} onResize={cols.onMouseDown(4)}>Last updated</ResizableHead>
+              <ResizableHead width={cols.widths[5]}>Status</ResizableHead>
+
             </TableRow>
           </TableHeader>
           <TableBody>
