@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
+import WikiFooter from "@/components/admin/wiki/WikiFooter";
 import WikiSidebar from "@/components/admin/wiki/WikiSidebar";
 import UserManagementTabs from "@/components/admin/user-management/UserManagementTabs";
 import { useWikiCategories } from "@/hooks/useWikiCategories";
@@ -46,10 +47,13 @@ const AdminWikiManageUsersPage = () => {
               </div>
             </div>
 
-            <div className="flex-1 overflow-auto p-6">
+            <div className="flex-1 overflow-auto flex flex-col">
+              <div className="flex-1 p-6">
               <div className="w-full px-2">
                 {isAdmin && <UserManagementTabs />}
               </div>
+              </div>
+              <WikiFooter />
             </div>
           </div>
         </div>

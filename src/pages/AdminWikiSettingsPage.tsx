@@ -2,6 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
+import WikiFooter from "@/components/admin/wiki/WikiFooter";
 import WikiSidebar from "@/components/admin/wiki/WikiSidebar";
 import { useWikiCategories } from "@/hooks/useWikiCategories";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -288,7 +289,8 @@ const AdminWikiSettingsPage = () => {
               </div>
             </div>
 
-            <div className="flex-1 overflow-auto p-6">
+            <div className="flex-1 overflow-auto flex flex-col">
+              <div className="flex-1 p-6">
               <div className="w-full px-2 space-y-6">
                 <h1 className="text-3xl font-bold text-foreground">Settings</h1>
 
@@ -804,6 +806,8 @@ const AdminWikiSettingsPage = () => {
                   </TabsContent>
                 </Tabs>
               </div>
+              </div>
+              <WikiFooter />
             </div>
           </div>
         </div>

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
+import WikiFooter from "@/components/admin/wiki/WikiFooter";
 import WikiSidebar from "@/components/admin/wiki/WikiSidebar";
 import { useWikiCategories } from "@/hooks/useWikiCategories";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -224,7 +225,8 @@ const AdminWikiGroupsPage = () => {
               </div>
             </div>
 
-            <div className="flex-1 overflow-auto p-6">
+            <div className="flex-1 overflow-auto flex flex-col">
+              <div className="flex-1 p-6">
               <div className="w-full px-2 space-y-4">
                 <div className="rounded-lg border border-border bg-background p-5 flex items-start justify-between gap-4">
                   <div>
@@ -356,6 +358,8 @@ const AdminWikiGroupsPage = () => {
                   </Table>
                 </div>
               </div>
+              </div>
+              <WikiFooter />
             </div>
           </div>
         </div>

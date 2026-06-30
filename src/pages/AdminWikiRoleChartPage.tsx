@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
+import WikiFooter from "@/components/admin/wiki/WikiFooter";
 import WikiSidebar from "@/components/admin/wiki/WikiSidebar";
 import { useWikiCategories } from "@/hooks/useWikiCategories";
 import { useOrgPeopleSettings, useFeatureAccess } from "@/hooks/useOrgPeopleSettings";
@@ -97,7 +98,8 @@ const AdminWikiRoleChartPage = () => {
               </div>
             </div>
 
-            <div className="flex-1 overflow-auto p-6">
+            <div className="flex-1 overflow-auto flex flex-col">
+              <div className="flex-1 p-6">
               {!accessLoading && !allowed ? (
                 <div className="flex flex-col items-center justify-center py-20 text-center">
                   <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
@@ -152,6 +154,8 @@ const AdminWikiRoleChartPage = () => {
                   ))}
                 </div>
               )}
+              </div>
+              <WikiFooter />
             </div>
           </div>
         </div>
