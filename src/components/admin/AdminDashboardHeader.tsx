@@ -104,14 +104,6 @@ const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
               <UserCsvExport />
             </div>
             
-            <Button
-              variant="ghost"
-              onClick={handleDemoWelcome}
-              className="text-white hover:bg-white/10 text-sm px-3 py-2"
-            >
-              <Sparkles className="h-4 w-4 mr-2" />
-              Demo
-            </Button>
             
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
