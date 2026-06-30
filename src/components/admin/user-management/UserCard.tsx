@@ -333,6 +333,27 @@ export const UserCard = ({
             )}
           </div>
 
+          <div className="mt-2 flex items-center gap-2 text-xs">
+            <span className="text-muted-foreground shrink-0">Department:</span>
+            {isAdmin ? (
+              <Select value={department ?? "__none__"} onValueChange={saveDepartment}>
+                <SelectTrigger className="h-7 text-xs flex-1">
+                  <SelectValue placeholder="Select department" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">—</SelectItem>
+                  {DEPARTMENTS.map((d) => (
+                    <SelectItem key={d} value={d}>{d}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <span className="text-foreground truncate">{department || "—"}</span>
+            )}
+          </div>
+
+
+
 
           <div className="mt-3 flex flex-wrap gap-2 items-center">
             {isTeamLeader && (
