@@ -1,5 +1,7 @@
 import { BookOpen, Home, FolderOpen, Users, UsersRound, BarChart3, UserCheck, Activity, UserCog, Settings, Route as RouteIcon } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useOrgPeopleSettings, useFeatureAccess } from "@/hooks/useOrgPeopleSettings";
+
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   Sidebar,
@@ -35,6 +37,12 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
   const navigate = useNavigate();
   const location = useLocation();
   const { isAdmin } = useUserRole();
+  const { settings: peopleSettings } = useOrgPeopleSettings();
+  const { allowed: showDirectory } = useFeatureAccess(
+    peopleSettings.directoryEnabled,
+    peopleSettings.directoryRestrictedGroups
+  );
+
   const onHome = location.pathname === "/admin/wiki";
   const onContent = location.pathname.startsWith("/admin/wiki/content");
   const onTrainingPaths = location.pathname.startsWith("/admin/wiki/training-paths");
@@ -112,15 +120,18 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
           <SidebarGroupLabel>{!collapsed && <span>People</span>}</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton
-                  onClick={() => navigate("/admin/wiki/directory")}
-                  className={`${onDirectory ? 'bg-accent text-accent-foreground font-medium' : ''}`}
-                >
-                  <Users className="h-4 w-4" />
-                  {!collapsed && <span>Directory</span>}
-                </SidebarMenuButton>
-              </SidebarMenuItem>
+              {showDirectory && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => navigate("/admin/wiki/directory")}
+                    className={`${onDirectory ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                  >
+                    <Users className="h-4 w-4" />
+                    {!collapsed && <span>Directory</span>}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={() => navigate("/admin/wiki/groups")}

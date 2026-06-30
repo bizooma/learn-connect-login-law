@@ -11,15 +11,24 @@ import { useWikiCategories } from "@/hooks/useWikiCategories";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Users } from "lucide-react";
 
+import { useOrgPeopleSettings, useFeatureAccess } from "@/hooks/useOrgPeopleSettings";
+import { Lock } from "lucide-react";
+
 const PAGE_SIZE = 20;
 
 const AdminWikiDirectoryPage = () => {
   const navigate = useNavigate();
   const { data: users = [], isLoading } = useDirectoryUsers();
   const { categories } = useWikiCategories();
+  const { settings } = useOrgPeopleSettings();
+  const { allowed: canAccessDirectory, isLoading: accessLoading } = useFeatureAccess(
+    settings.directoryEnabled,
+    settings.directoryRestrictedGroups
+  );
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<DirectoryUser | null>(null);
+
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -79,7 +88,21 @@ const AdminWikiDirectoryPage = () => {
                   }}
                 />
 
-                {isLoading ? (
+                {!accessLoading && !canAccessDirectory ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                      <Lock className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-foreground mb-1">
+                      Directory unavailable
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {settings.directoryEnabled
+                        ? "Your group does not have access to the Directory."
+                        : "The Directory has been disabled by an admin."}
+                    </p>
+                  </div>
+                ) : isLoading ? (
                   <div className="text-center py-12 text-muted-foreground">Loading directory…</div>
                 ) : filtered.length === 0 ? (
                   <div className="flex flex-col items-center justify-center py-20 text-center">
@@ -93,6 +116,7 @@ const AdminWikiDirectoryPage = () => {
                       Try a different search term.
                     </p>
                   </div>
+
                 ) : (
                   <>
                     <DirectoryTable users={pageRows} onSelect={setSelected} />
