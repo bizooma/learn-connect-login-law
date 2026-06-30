@@ -40,6 +40,8 @@ const AdminWikiReportsPeople = () => {
   const { isAdmin } = useUserRole();
   const [search, setSearch] = useState("");
   const [directReportIds, setDirectReportIds] = useState<string[] | null>(null);
+  const [detailsUser, setDetailsUser] = useState<{ id: string; name: string } | null>(null);
+
 
   // If sharing with direct reports is on and viewer isn't admin, fetch their direct reports.
   useEffect(() => {
