@@ -15,6 +15,17 @@ export interface WikiSharedGroup {
   member_count?: number;
 }
 
+export interface WikiSharedUser {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  email: string;
+  profile_image_url: string | null;
+  job_title?: string | null;
+  access_level: WikiAccessLevel;
+  completion_required: boolean;
+}
+
 export interface WikiCategory {
   id: string;
   title: string;
@@ -32,6 +43,7 @@ export interface WikiCategory {
   article_count?: number;
   owner?: { id: string; first_name: string | null; last_name: string | null; email: string; profile_image_url: string | null } | null;
   shared_groups?: WikiSharedGroup[];
+  shared_users?: WikiSharedUser[];
 }
 
 export const useWikiCategories = () => {
@@ -105,6 +117,41 @@ export const useWikiCategories = () => {
         });
       }
 
+      // Get shared individual users
+      const userSharesMap: Record<string, WikiSharedUser[]> = {};
+      if (categoryIds.length > 0) {
+        const { data: userShares } = await supabase
+          .from("wiki_category_users" as any)
+          .select("category_id, user_id, access_level, completion_required")
+          .in("category_id", categoryIds);
+
+        const sharedUserIds = Array.from(
+          new Set((userShares || []).map((s: any) => s.user_id).filter(Boolean)),
+        ) as string[];
+        let userProfileMap: Record<string, any> = {};
+        if (sharedUserIds.length > 0) {
+          const { data: profs } = await supabase
+            .from("profiles")
+            .select("id, first_name, last_name, email, profile_image_url, job_title")
+            .in("id", sharedUserIds);
+          userProfileMap = Object.fromEntries((profs || []).map((p: any) => [p.id, p]));
+        }
+        (userShares || []).forEach((s: any) => {
+          const p = userProfileMap[s.user_id];
+          if (!p) return;
+          (userSharesMap[s.category_id] ||= []).push({
+            id: p.id,
+            first_name: p.first_name,
+            last_name: p.last_name,
+            email: p.email,
+            profile_image_url: p.profile_image_url,
+            job_title: p.job_title,
+            access_level: (s.access_level as WikiAccessLevel) || "view",
+            completion_required: !!s.completion_required,
+          });
+        });
+      }
+
       return (data as any[]).map((cat) => ({
         ...cat,
         discoverability: (cat.discoverability as WikiDiscoverability) || "discoverable",
@@ -112,6 +159,7 @@ export const useWikiCategories = () => {
         article_count: counts[cat.id] || 0,
         owner: cat.owner_id ? ownersMap[cat.owner_id] || null : null,
         shared_groups: sharesMap[cat.id] || [],
+        shared_users: userSharesMap[cat.id] || [],
       })) as WikiCategory[];
     },
   });
