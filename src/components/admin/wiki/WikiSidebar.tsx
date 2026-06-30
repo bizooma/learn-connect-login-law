@@ -144,6 +144,30 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
                 </SidebarMenuItem>
               )}
 
+              {showPeopleChart && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => navigate("/admin/wiki/people-chart")}
+                    className={`${onPeopleChart ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                  >
+                    <Network className="h-4 w-4" />
+                    {!collapsed && <span>People Chart</span>}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+
+              {showRoleChart && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => navigate("/admin/wiki/role-chart")}
+                    className={`${onRoleChart ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                  >
+                    <Briefcase className="h-4 w-4" />
+                    {!collapsed && <span>Role Chart</span>}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={() => navigate("/admin/wiki/groups")}
@@ -153,6 +177,7 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
                   {!collapsed && <span>Groups</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
+
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
