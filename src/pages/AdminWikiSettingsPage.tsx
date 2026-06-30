@@ -680,24 +680,75 @@ const AdminWikiSettingsPage = () => {
                             </p>
                           </div>
 
-                          <div className="space-y-2">
-                            <Label>Streak frequency</Label>
-                            <div className="flex gap-6">
-                              {(["weekly", "monthly", "quarterly"] as const).map((freq) => (
-                                <label key={freq} className="flex items-center gap-2 cursor-pointer">
-                                  <input
-                                    type="radio"
-                                    name="streak-frequency"
-                                    value={freq}
-                                    checked={streakFrequency === freq}
-                                    onChange={() => setStreakFrequency(freq)}
-                                    className="accent-primary"
-                                  />
-                                  <span className="text-sm capitalize">{freq}</span>
-                                </label>
-                              ))}
+                          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start bg-muted/30 border border-border rounded-lg p-5">
+                            <div className="space-y-2">
+                              <Label>Streak frequency</Label>
+                              <div className="flex flex-col gap-2">
+                                {(["weekly", "monthly", "quarterly"] as const).map((freq) => (
+                                  <label key={freq} className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                      type="radio"
+                                      name="streak-frequency"
+                                      value={freq}
+                                      checked={streakFrequency === freq}
+                                      onChange={() => setStreakFrequency(freq)}
+                                      className="accent-primary"
+                                    />
+                                    <span className="text-sm capitalize">{freq}</span>
+                                  </label>
+                                ))}
+                              </div>
                             </div>
+
+                            {/* Live streak preview */}
+                            {(() => {
+                              const unit = streakFrequency === "weekly" ? "week" : streakFrequency === "monthly" ? "month" : "quarter";
+                              const count = 11;
+                              const labels = (() => {
+                                const now = new Date();
+                                const out: { label: string; done: boolean }[] = [];
+                                for (let i = 4; i >= 0; i--) {
+                                  const d = new Date(now);
+                                  if (streakFrequency === "weekly") d.setDate(d.getDate() - i * 7);
+                                  else if (streakFrequency === "monthly") d.setMonth(d.getMonth() - i);
+                                  else d.setMonth(d.getMonth() - i * 3);
+                                  out.push({
+                                    label: d.toLocaleDateString("en-US", { month: "short", day: streakFrequency === "weekly" ? "numeric" : undefined }),
+                                    done: i >= 1,
+                                  });
+                                }
+                                return out;
+                              })();
+                              return (
+                                <div className="bg-card border border-border rounded-lg p-4 shadow-sm">
+                                  <div className="flex items-start gap-3">
+                                    <div className="text-3xl leading-none">🔥</div>
+                                    <div className="flex-1">
+                                      <div className="font-semibold text-foreground">{count} {unit} streak</div>
+                                      <div className="text-xs text-muted-foreground mt-0.5">
+                                        Great work—you hit 100% completion {count} {unit}s in a row!
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <div className="mt-4 flex items-end justify-between gap-2">
+                                    {labels.map((l, i) => (
+                                      <div key={i} className="flex flex-col items-center gap-1 flex-1">
+                                        <div className="text-[10px] text-muted-foreground">{l.label}</div>
+                                        <div
+                                          className={`h-6 w-6 rounded-full flex items-center justify-center text-[10px] font-bold ${
+                                            l.done ? "bg-emerald-400 text-white" : "bg-muted text-muted-foreground"
+                                          }`}
+                                        >
+                                          {l.done ? "✓" : ""}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              );
+                            })()}
                           </div>
+
 
                           <div className="space-y-2">
                             <Label>Exceptions</Label>
