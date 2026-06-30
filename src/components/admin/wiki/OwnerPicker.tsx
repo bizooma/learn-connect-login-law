@@ -3,6 +3,7 @@ import { Check, ChevronDown, User as UserIcon, X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Profile {
@@ -10,7 +11,14 @@ interface Profile {
   first_name: string | null;
   last_name: string | null;
   email: string;
+  profile_image_url?: string | null;
 }
+
+const initialsFor = (p: Profile) => {
+  const f = (p.first_name?.[0] || "").toUpperCase();
+  const l = (p.last_name?.[0] || "").toUpperCase();
+  return (f + l) || (p.email?.[0]?.toUpperCase() ?? "?");
+};
 
 interface OwnerPickerProps {
   value: string | null;
