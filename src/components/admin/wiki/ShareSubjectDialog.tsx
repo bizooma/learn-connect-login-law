@@ -47,6 +47,7 @@ import {
   WikiSharedUser,
   useWikiCategories,
 } from "@/hooks/useWikiCategories";
+import { useOrgContentSettings } from "@/hooks/useOrgContentSettings";
 
 interface Props {
   open: boolean;
@@ -63,6 +64,7 @@ const accessLabel: Record<WikiAccessLevel, string> = {
 const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
   const qc = useQueryClient();
   const { updateCategory } = useWikiCategories();
+  const { settings: orgSettings } = useOrgContentSettings();
   const [shares, setShares] = useState<WikiSharedGroup[]>([]);
   const [userShares, setUserShares] = useState<WikiSharedUser[]>([]);
   const [discoverability, setDiscoverability] = useState<WikiDiscoverability>(
@@ -595,31 +597,33 @@ const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
         </div>
 
         {/* Public share */}
-        <div className="border rounded-lg p-4 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 min-w-0">
-            <Globe className="h-4 w-4 text-muted-foreground shrink-0" />
-            <div className="min-w-0">
-              <div className="text-sm font-medium">Public share</div>
-              <div className="text-xs text-muted-foreground truncate">
-                Anyone with the link can view (no sign-in required).
+        {orgSettings.publicShareEnabled && (
+          <div className="border rounded-lg p-4 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-2 min-w-0">
+              <Globe className="h-4 w-4 text-muted-foreground shrink-0" />
+              <div className="min-w-0">
+                <div className="text-sm font-medium">Public share</div>
+                <div className="text-xs text-muted-foreground truncate">
+                  Anyone with the link can view (no sign-in required).
+                </div>
               </div>
             </div>
+            <div className="flex items-center gap-2">
+              {publicShare && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={copyPublicLink}
+                >
+                  <Link2 className="h-3.5 w-3.5 mr-1.5" />
+                  Copy link
+                </Button>
+              )}
+              <Switch checked={publicShare} onCheckedChange={setPublicShare} />
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            {publicShare && (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={copyPublicLink}
-              >
-                <Link2 className="h-3.5 w-3.5 mr-1.5" />
-                Copy link
-              </Button>
-            )}
-            <Switch checked={publicShare} onCheckedChange={setPublicShare} />
-          </div>
-        </div>
+        )}
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={saving}>

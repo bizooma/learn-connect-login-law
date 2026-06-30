@@ -177,6 +177,15 @@ export const useWikiCategories = () => {
 
       const nextOrder = existing && existing.length > 0 ? (existing[0] as any).sort_order + 1 : 0;
 
+      // Pull org-wide default discoverability so new subjects respect the setting
+      const { data: orgRow } = await supabase
+        .from("organization_settings" as any)
+        .select("content_default_discoverability")
+        .eq("singleton", true)
+        .maybeSingle();
+      const defaultDiscoverability =
+        (orgRow as any)?.content_default_discoverability || "discoverable";
+
       const { data, error } = await supabase
         .from("wiki_categories")
         .insert({
@@ -185,6 +194,7 @@ export const useWikiCategories = () => {
           icon_name: category.icon_name || "FileText",
           category: category.category || "company",
           sort_order: nextOrder,
+          discoverability: defaultDiscoverability,
           created_by: userData.user.id,
         } as any)
         .select()

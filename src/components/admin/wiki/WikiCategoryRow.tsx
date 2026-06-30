@@ -24,6 +24,7 @@ import { printSubjectPdf } from "@/lib/printSubjectPdf";
 import OwnerPicker from "./OwnerPicker";
 import ShareGroupsPicker from "./ShareGroupsPicker";
 import { useWikiAccess } from "@/hooks/useWikiAccess";
+import { useOrgContentSettings } from "@/hooks/useOrgContentSettings";
 
 
 
@@ -48,6 +49,7 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
   const navigate = useNavigate();
   const { gridTemplate } = useWikiColumns();
   const { canEdit, canDelete } = useWikiAccess();
+  const { settings: orgSettings } = useOrgContentSettings();
   const editable = canEdit(category);
   const deletable = canDelete(category);
 
@@ -194,12 +196,16 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
               )}
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleCopyLink(); }}>
-                <Link2 className="h-4 w-4 mr-2" /> Copy link
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handlePrint(); }}>
-                <Printer className="h-4 w-4 mr-2" /> Print PDF
-              </DropdownMenuItem>
+              {orgSettings.publicShareEnabled && (
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleCopyLink(); }}>
+                  <Link2 className="h-4 w-4 mr-2" /> Copy link
+                </DropdownMenuItem>
+              )}
+              {orgSettings.pdfDownloadsEnabled && (
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handlePrint(); }}>
+                  <Printer className="h-4 w-4 mr-2" /> Print PDF
+                </DropdownMenuItem>
+              )}
               {editable && (
                 <>
                   <DropdownMenuSeparator />
