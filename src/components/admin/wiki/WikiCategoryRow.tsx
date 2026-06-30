@@ -23,6 +23,9 @@ import { useWikiColumns } from "./WikiColumnsContext";
 import { printSubjectPdf } from "@/lib/printSubjectPdf";
 import OwnerPicker from "./OwnerPicker";
 import ShareGroupsPicker from "./ShareGroupsPicker";
+import { useWikiAccess } from "@/hooks/useWikiAccess";
+
+
 
 
 interface WikiCategoryRowProps {
@@ -44,6 +47,10 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { gridTemplate } = useWikiColumns();
+  const { canEdit, canDelete } = useWikiAccess();
+  const editable = canEdit(category);
+  const deletable = canDelete(category);
+
 
   const handleRename = async () => {
     const newTitle = window.prompt("Rename subject", category.title);
@@ -156,51 +163,64 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(category); }}>
-                <Pencil className="h-4 w-4 mr-2" /> Edit
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleRename(); }}>
-                <Type className="h-4 w-4 mr-2" /> Rename
-              </DropdownMenuItem>
+              {editable && (
+                <>
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onEdit(category); }}>
+                    <Pencil className="h-4 w-4 mr-2" /> Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleRename(); }}>
+                    <Type className="h-4 w-4 mr-2" /> Rename
+                  </DropdownMenuItem>
+                </>
+              )}
               <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleDuplicate(); }}>
                 <Copy className="h-4 w-4 mr-2" /> Duplicate
               </DropdownMenuItem>
-              <DropdownMenuSub>
-                <DropdownMenuSubTrigger onClick={(e) => e.stopPropagation()}>
-                  <Tag className="h-4 w-4 mr-2" /> Change category
-                </DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleChangeCategory("company"); }}>
-                    Company
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleChangeCategory("policy"); }}>
-                    Policy
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleChangeCategory("procedure"); }}>
-                    Procedure
-                  </DropdownMenuItem>
-                </DropdownMenuSubContent>
-              </DropdownMenuSub>
+              {editable && (
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger onClick={(e) => e.stopPropagation()}>
+                    <Tag className="h-4 w-4 mr-2" /> Change category
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent>
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleChangeCategory("company"); }}>
+                      Company
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleChangeCategory("policy"); }}>
+                      Policy
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleChangeCategory("procedure"); }}>
+                      Procedure
+                    </DropdownMenuItem>
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
+              )}
               <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleCopyLink(); }}>
                 <Link2 className="h-4 w-4 mr-2" /> Copy link
               </DropdownMenuItem>
               <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handlePrint(); }}>
                 <Printer className="h-4 w-4 mr-2" /> Print PDF
               </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onTogglePublish(category); }}>
-                {category.is_published ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
-                {category.is_published ? "Unpublish" : "Publish"}
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleArchive(); }}>
-                <Archive className="h-4 w-4 mr-2" /> Archive
-              </DropdownMenuItem>
-              <DropdownMenuItem className="text-destructive" onClick={(e) => { e.stopPropagation(); onDelete(category.id); }}>
-                <Trash2 className="h-4 w-4 mr-2" /> Delete
-              </DropdownMenuItem>
+              {editable && (
+                <>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); onTogglePublish(category); }}>
+                    {category.is_published ? <EyeOff className="h-4 w-4 mr-2" /> : <Eye className="h-4 w-4 mr-2" />}
+                    {category.is_published ? "Unpublish" : "Publish"}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleArchive(); }}>
+                    <Archive className="h-4 w-4 mr-2" /> Archive
+                  </DropdownMenuItem>
+                </>
+              )}
+              {deletable && (
+                <DropdownMenuItem className="text-destructive" onClick={(e) => { e.stopPropagation(); onDelete(category.id); }}>
+                  <Trash2 className="h-4 w-4 mr-2" /> Delete
+                </DropdownMenuItem>
+              )}
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+
       </div>
 
       {expanded && (
