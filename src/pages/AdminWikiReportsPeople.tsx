@@ -8,10 +8,12 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ResizableHead } from "@/components/admin/wiki/ResizableHead";
+import { useResizableColumns } from "@/hooks/useResizableColumns";
+
 import { useOrgPeopleSettings } from "@/hooks/useOrgPeopleSettings";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
