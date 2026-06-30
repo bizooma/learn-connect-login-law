@@ -265,6 +265,9 @@ const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
           <div className="grid grid-cols-[1fr_auto_auto_auto] gap-3 items-center px-1">
             <div className="flex items-center gap-2 min-w-0">
               <Avatar className="h-8 w-8">
+                {category.owner?.profile_image_url && (
+                  <AvatarImage src={category.owner.profile_image_url} alt={ownerName} />
+                )}
                 <AvatarFallback className="text-xs">
                   {ownerName.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
