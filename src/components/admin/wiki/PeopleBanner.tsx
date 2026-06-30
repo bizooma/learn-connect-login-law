@@ -63,11 +63,11 @@ const PeopleBanner = ({
   subtext = "Bulk-share content and gate features by role, department, team and more.",
 }: PeopleBannerProps) => {
   const people = useMemo<Person[]>(() => {
-    return Array.from({ length: 7 }, () => ({
-      startY: 30 + Math.random() * 35,
+    return Array.from({ length: 14 }, () => ({
+      startY: 25 + Math.random() * 45,
       size: 14 + Math.random() * 8,
-      delay: Math.random() * 10,
-      speed: 12 + Math.random() * 8,
+      delay: Math.random() * 20,
+      speed: 28 + Math.random() * 18,
       skin: SKIN[Math.floor(Math.random() * SKIN.length)],
       shirt: SHIRT[Math.floor(Math.random() * SHIRT.length)],
       pants: PANTS[Math.floor(Math.random() * PANTS.length)],
@@ -97,10 +97,10 @@ const PeopleBanner = ({
           50% { transform: translateY(0); }
           75% { transform: translateY(-1.5px); }
         }
-        .person-leg-l { transform-origin: 8px 18.5px; animation: leg-l 0.6s ease-in-out infinite; }
-        .person-leg-r { transform-origin: 12px 18.5px; animation: leg-r 0.6s ease-in-out infinite; }
-        .person-arm-l { transform-origin: 5.4px 9.5px; animation: leg-r 0.6s ease-in-out infinite; }
-        .person-arm-r { transform-origin: 14.6px 9.5px; animation: leg-l 0.6s ease-in-out infinite; }
+        .person-leg-l { transform-origin: 8px 18.5px; animation: leg-l 1.1s ease-in-out infinite; }
+        .person-leg-r { transform-origin: 12px 18.5px; animation: leg-r 1.1s ease-in-out infinite; }
+        .person-arm-l { transform-origin: 5.4px 9.5px; animation: leg-r 1.1s ease-in-out infinite; }
+        .person-arm-r { transform-origin: 14.6px 9.5px; animation: leg-l 1.1s ease-in-out infinite; }
         @keyframes leg-l {
           0%, 100% { transform: rotate(-15deg); }
           50% { transform: rotate(15deg); }
@@ -151,7 +151,7 @@ const PeopleBanner = ({
               animation: `person-walk-${p.direction} ${p.speed}s linear ${p.delay}s infinite`,
             }}
           >
-            <div style={{ animation: "person-bob 0.6s ease-in-out infinite" }}>
+            <div style={{ animation: "person-bob 1.1s ease-in-out infinite" }}>
               <PersonSVG
                 size={p.size}
                 skin={p.skin}
