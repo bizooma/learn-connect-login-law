@@ -1,47 +1,28 @@
+## Add real drag-and-drop to Training Paths
 
-## Goal
+Wire up the decorative drag handles on `AdminWikiTrainingPathsPage.tsx` using `@dnd-kit` (already installed) so admins can reorder subjects by dragging rows, in addition to the existing dropdown.
 
-Replace the current lightweight `ShareGroupsPicker` popover with a full **Share** dialog modeled on the Trainual screenshot — adding per-group **Completion**, **Access level**, plus subject-wide **Discoverability** and **Public share** controls.
+### Changes
 
-## UI changes
+1. **`src/pages/AdminWikiTrainingPathsPage.tsx`**
+   - Wrap the rows in `<DndContext>` + `<SortableContext>` (vertical list strategy).
+   - Use `PointerSensor` (with a small activation distance so clicks on the dropdown still work) + `KeyboardSensor` for accessibility.
+   - On `onDragEnd`, compute the new array via `arrayMove` and call the existing `handleReorder` logic so it writes `sort_order` to every row in `wiki_categories` (same DB path the dropdown uses — single source of truth).
 
-Open a modal (not popover) from the "Shared with" cell with:
+2. **New row component (or inline)** — `SortableTrainingPathRow`
+   - Uses `useSortable({ id: category.id })`.
+   - Applies `transform`/`transition` styles.
+   - Attaches `listeners` + `attributes` only to the existing drag-handle icon (not the whole row), so the dropdown, title link, and other controls remain clickable.
+   - Adds a "grabbing" cursor and subtle opacity/shadow while dragging.
 
-- **Header**: "Share [Subject Title]" + published/draft badge + short helper text.
-- **Search people and groups** input (groups for now; people-share can come later).
-- **Shared with list**: row per added group
-  - Avatar + group name + member count
-  - **Completion** column: "Required" checkbox
-  - **Access** column: dropdown — `View`, `Edit`, `Full`
-  - Remove (×) button
-- Owner row pinned at top (read-only, always Full).
-- **Discoverability** section: dropdown — `Discoverable` (all users can find/view) / `Not discoverable` (only shared users).
-- **Public share** toggle in footer (generates/copies a public link — link generation is out of scope for v1; toggle persists state).
-- Footer: Cancel / Save.
+### Behavior
 
-The "Shared with" column on the Content page still shows the same compact summary (group names or "N groups" badge); clicking opens the new dialog.
+- Drag handle on the left becomes the grab affordance.
+- Dropping persists immediately (same toast: "Training path order updated").
+- Dropdown reorder keeps working unchanged.
+- Admin-only (RLS already enforces this).
 
-## Data model
+### Out of scope
 
-Extend `wiki_category_groups` with:
-- `access_level` text — `view` | `edit` | `full`, default `view`
-- `completion_required` boolean, default `false`
-
-Extend `wiki_categories` with:
-- `discoverability` text — `discoverable` | `restricted`, default `discoverable`
-- `public_share_enabled` boolean, default `false`
-
-(No new tables. GRANTs already in place on existing tables.)
-
-## Files
-
-- New: `src/components/admin/wiki/ShareSubjectDialog.tsx` — the full modal.
-- Modify: `src/components/admin/wiki/ShareGroupsPicker.tsx` → becomes a thin trigger that opens `ShareSubjectDialog` while keeping the same compact display in the table cell.
-- Modify: `src/hooks/useWikiCategories.ts` → include `access_level` + `completion_required` in `shared_groups` payload; expose `discoverability` and `public_share_enabled` on category.
-- Modify: `WikiCategoryRow.tsx` only if needed to pass the new fields (display unchanged).
-
-## Out of scope (for this pass)
-
-- Adding individual people (non-group) to share list — keep groups-only like today.
-- Actually generating/copying a public share URL — toggle stores state only; we can wire URL generation in a follow-up.
-- Enforcing access_level/completion_required on the student wiki reader — schema + UI now; enforcement in a follow-up.
+- No schema changes.
+- No changes to All Content ordering logic (it already reads `sort_order`).
