@@ -138,7 +138,7 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
           {category.is_published ? 'Published' : 'Draft'}
         </span>
         <div className="min-w-0" onClick={(e) => e.stopPropagation()}>
-          <ShareGroupsPicker categoryId={category.id} sharedGroups={category.shared_groups || []} />
+          <ShareGroupsPicker category={category} />
         </div>
         <div className="min-w-0" onClick={(e) => e.stopPropagation()}>
           <OwnerPicker
