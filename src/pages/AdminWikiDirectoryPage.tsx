@@ -11,15 +11,24 @@ import { useWikiCategories } from "@/hooks/useWikiCategories";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Users } from "lucide-react";
 
+import { useOrgPeopleSettings, useFeatureAccess } from "@/hooks/useOrgPeopleSettings";
+import { Lock } from "lucide-react";
+
 const PAGE_SIZE = 20;
 
 const AdminWikiDirectoryPage = () => {
   const navigate = useNavigate();
   const { data: users = [], isLoading } = useDirectoryUsers();
   const { categories } = useWikiCategories();
+  const { settings } = useOrgPeopleSettings();
+  const { allowed: canAccessDirectory, isLoading: accessLoading } = useFeatureAccess(
+    settings.directoryEnabled,
+    settings.directoryRestrictedGroups
+  );
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [selected, setSelected] = useState<DirectoryUser | null>(null);
+
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
