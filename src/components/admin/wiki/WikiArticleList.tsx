@@ -23,9 +23,8 @@ const WikiArticleList = ({ categoryId, onEditArticle, searchQuery }: WikiArticle
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const filtered = searchQuery
-    ? articles.filter((a) => a.title.toLowerCase().includes(searchQuery.toLowerCase()))
-    : articles;
+  // Show all articles when expanded; the parent category already matched the search.
+  const filtered = articles;
 
   const handleCreate = (contentType: WikiContentType) => {
     const title = `New ${contentType.charAt(0).toUpperCase() + contentType.slice(1)}`;
