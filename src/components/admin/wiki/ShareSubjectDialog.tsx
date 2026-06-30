@@ -47,6 +47,7 @@ import {
   WikiSharedUser,
   useWikiCategories,
 } from "@/hooks/useWikiCategories";
+import { useOrgContentSettings } from "@/hooks/useOrgContentSettings";
 
 interface Props {
   open: boolean;
