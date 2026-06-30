@@ -2796,6 +2796,18 @@ export type Database = {
           total_units: number
         }[]
       }
+      can_delete_wiki_category: {
+        Args: { _category_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_edit_wiki_category: {
+        Args: { _category_id: string; _user_id: string }
+        Returns: boolean
+      }
+      can_view_wiki_category: {
+        Args: { _category_id: string; _user_id: string }
+        Returns: boolean
+      }
       cancel_owner_account: {
         Args: { p_owner_id: string; p_reason?: string }
         Returns: Json
@@ -3078,6 +3090,10 @@ export type Database = {
         Returns: Json
       }
       update_wiki_streak: { Args: { p_user_id: string }; Returns: undefined }
+      wiki_category_access: {
+        Args: { _category_id: string; _user_id: string }
+        Returns: string
+      }
     }
     Enums: {
       activity_type:
