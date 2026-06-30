@@ -17,6 +17,9 @@ import {
 
   TableRow,
 } from "@/components/ui/table";
+import { ResizableHead } from "@/components/admin/wiki/ResizableHead";
+import { useResizableColumns } from "@/hooks/useResizableColumns";
+
 import { DirectoryUser } from "@/hooks/useDirectoryUsers";
 
 interface Props {
