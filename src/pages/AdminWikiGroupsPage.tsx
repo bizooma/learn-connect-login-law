@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
 import WikiSidebar from "@/components/admin/wiki/WikiSidebar";
+import PeopleBanner from "@/components/admin/wiki/PeopleBanner";
 import { useWikiCategories } from "@/hooks/useWikiCategories";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useGroups, useGroupMembers, Group, GroupType } from "@/hooks/useGroups";
@@ -190,17 +191,8 @@ const AdminWikiGroupsPage = () => {
 
             <div className="flex-1 overflow-auto p-6">
               <div className="max-w-6xl mx-auto space-y-4">
-                <div className="rounded-lg border border-border p-5 flex items-start justify-between gap-4" style={{ backgroundColor: "#FFDA00" }}>
-                  <div>
-                    <h3 className="text-lg font-semibold text-[#213C82]">
-                      Keep your account organized with groups
-                    </h3>
-                    <p className="text-sm text-[#213C82]/80 mt-1">
-                      Bulk-share content and gate features by role, department, team and more.
-                    </p>
-                  </div>
-                  <Users className="h-10 w-10 text-[#213C82] shrink-0" />
-                </div>
+                <PeopleBanner />
+
 
                 <div className="flex items-center gap-3">
                   <div className="relative flex-1">
