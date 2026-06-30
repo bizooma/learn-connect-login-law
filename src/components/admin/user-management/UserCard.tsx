@@ -29,8 +29,13 @@ import {
   Star,
   BookMarked,
   ChevronRight,
+  Pencil,
+  Check,
+  X,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { formatUserJoinDate } from "@/utils/dateUtils";
+
 
 interface UserCardProps {
   user: UserProfile;
