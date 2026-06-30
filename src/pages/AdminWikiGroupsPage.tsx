@@ -249,7 +249,15 @@ const AdminWikiGroupsPage = () => {
                           <TableRow key={g.id} className="hover:bg-muted/50">
                             <TableCell className="font-medium text-foreground">{g.name}</TableCell>
                             <TableCell className="text-muted-foreground">
-                              {g.manager_name ?? <span className="italic">None</span>}
+                              {g.manager_names && g.manager_names.length > 0 ? (
+                                <div className="flex flex-wrap gap-1">
+                                  {g.manager_names.map((n, i) => (
+                                    <Badge key={i} variant="outline" className="font-normal">{n}</Badge>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="italic">None</span>
+                              )}
                             </TableCell>
                             <TableCell className="text-muted-foreground">{g.member_count ?? 0}</TableCell>
                             <TableCell>
