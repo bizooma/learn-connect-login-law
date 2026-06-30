@@ -36,10 +36,10 @@ interface FormState {
   name: string;
   type: GroupType;
   description: string;
-  manager_id: string;
+  manager_ids: string[];
 }
 
-const EMPTY_FORM: FormState = { name: "", type: "Custom", description: "", manager_id: "" };
+const EMPTY_FORM: FormState = { name: "", type: "Custom", description: "", manager_ids: [] };
 
 const AdminWikiGroupsPage = () => {
   const navigate = useNavigate();
