@@ -15,6 +15,8 @@ import {
 import { useOrgPeopleSettings } from "@/hooks/useOrgPeopleSettings";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
+import UserSubjectProgressDialog from "@/components/admin/wiki/reports/UserSubjectProgressDialog";
+
 
 
 const formatDate = (iso: string | null) => {
