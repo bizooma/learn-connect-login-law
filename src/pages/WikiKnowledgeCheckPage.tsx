@@ -121,14 +121,29 @@ const ChoiceRow = ({
 };
 
 const WikiKnowledgeCheckPage = () => {
-  const { articleId } = useParams<{ articleId: string }>();
+  const { articleId, categoryId } = useParams<{ articleId?: string; categoryId?: string }>();
   const navigate = useNavigate();
   const [articleTitle, setArticleTitle] = useState("");
   const [loading, setLoading] = useState(true);
-  const api = useWikiQuestions(articleId);
+  const api = useWikiQuestions(articleId, categoryId);
 
   useEffect(() => {
     (async () => {
+      if (categoryId) {
+        const { data, error } = await supabase
+          .from("wiki_categories")
+          .select("name")
+          .eq("id", categoryId)
+          .single();
+        if (error) {
+          toast.error("Failed to load");
+          navigate(-1);
+          return;
+        }
+        setArticleTitle(data.name);
+        setLoading(false);
+        return;
+      }
       if (!articleId) return;
       const { data, error } = await supabase
         .from("wiki_articles")
@@ -143,7 +158,7 @@ const WikiKnowledgeCheckPage = () => {
       setArticleTitle(data.title);
       setLoading(false);
     })();
-  }, [articleId, navigate]);
+  }, [articleId, categoryId, navigate]);
 
   if (loading) {
     return (
@@ -182,7 +197,7 @@ const WikiKnowledgeCheckPage = () => {
         ))}
 
         <Button
-          onClick={() => articleId && api.createQuestion.mutate(articleId)}
+          onClick={() => api.createQuestion.mutate(articleId || "")}
           variant="outline"
           className="w-full gap-2 mt-4"
           disabled={api.createQuestion.isPending}
