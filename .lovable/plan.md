@@ -1,39 +1,28 @@
-## Current state
+**What the error means**
 
-The five Content-tab fields save to `organization_settings` and reload correctly, but no other code reads them. Each toggle currently has no real effect.
+The publish failure is not pointing to a specific problem in your app code. The error text says:
 
-## Plan: wire each setting end-to-end
+```text
+Production build error: Temporary infrastructure issue while preparing the build environment.
+```
 
-**1. Shared settings hook**
-Create `src/hooks/useOrgContentSettings.ts` — a React Query hook that fetches the singleton `organization_settings` row once and exposes `{ publicShareEnabled, pdfDownloadsEnabled, esignaturePermission, feedbackEnabled, defaultDiscoverability }`. Used by all consumers below so we don't refetch per component.
+That means Lovable’s publishing/build environment failed before it could complete the production build setup. In plain English: the publish worker/build container had an internal temporary issue while preparing the environment.
 
-**2. Enable "Public share" feature**
-- In `ShareSubjectDialog.tsx`, hide/disable the "Public share" toggle when `publicShareEnabled === false`.
-- In `WikiCategoryRow.tsx` action menu, hide "Copy link" (public share link) when disabled.
+**What it is not showing**
 
-**3. Enable PDF downloads**
-- In `WikiCategoryRow.tsx` action menu, hide the "Print PDF" item when `pdfDownloadsEnabled === false`.
-- Same for any page-level PDF action in `WikiPageEditorPage.tsx` if present.
+- It is not showing a TypeScript error.
+- It is not showing a Vite build error.
+- It is not showing a missing file/import error.
+- It is not showing a Supabase/database error.
+- It is not currently identifying one of our recent code changes as the cause.
 
-**4. E-signature permission**
-- We don't have an e-signature feature in the app yet. Two options:
-  - (a) Save the preference only and note "applies when e-signatures ship" — what we have today.
-  - (b) Add a minimal "Require e-signature" toggle on subjects, gated by this permission.
-- Recommend (a) for now since building the full e-sig flow is a separate feature.
+**Recommended next steps**
 
-**5. Allow content feedback**
-- We don't have a feedback UI on articles/pages yet. Either:
-  - (a) Save preference only, wire later when feedback UI is built.
-  - (b) Add a small "Flag / Suggest improvement" button to `WikiPageEditorPage` viewer that respects the toggle.
-- Recommend (a) unless you want the feedback button built now.
+1. Try publishing again after a short wait.
+2. If it fails with the exact same message, open the publish/build details and check whether a more specific error appears below the temporary infrastructure message.
+3. If the only error remains “Temporary infrastructure issue while preparing the build environment,” treat it as a Lovable platform-side build preparation issue rather than an app bug.
+4. If a different detailed build error appears, send that message and I’ll trace it to the exact file or dependency.
 
-**6. Default content discoverability**
-- In the "Create subject" dialog, pre-select the new subject's `discoverability` to `defaultDiscoverability` instead of hard-coding `"discoverable"`.
-- Existing subjects are unaffected; admins can still override per subject in Share dialog.
+**Bottom line**
 
-## Questions before I build
-
-- For **e-signatures** and **content feedback**: do you want me to (a) just leave the preference saved for later, or (b) build the minimal feature so the toggle controls something visible today?
-- Should the **public share** and **PDF downloads** toggles also hide the corresponding actions for admins, or only for non-admins?
-
-Once you answer those, I'll switch to build mode and wire everything.
+Right now, the error says the publish system itself had a temporary environment setup failure, not that your app code is broken.
