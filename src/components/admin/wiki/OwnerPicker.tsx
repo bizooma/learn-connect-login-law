@@ -110,6 +110,10 @@ const OwnerPicker = ({ value, ownerDisplay, onChange, disabled }: OwnerPickerPro
                   }}
                 >
                   <Check className={`h-4 w-4 mr-2 ${value === p.id ? "opacity-100" : "opacity-0"}`} />
+                  <Avatar className="h-6 w-6 mr-2 shrink-0">
+                    {p.profile_image_url && <AvatarImage src={p.profile_image_url} alt="" />}
+                    <AvatarFallback className="text-[10px]">{initialsFor(p)}</AvatarFallback>
+                  </Avatar>
                   <div className="flex flex-col min-w-0">
                     <span className="truncate text-sm">{labelFor(p)}</span>
                     <span className="truncate text-[11px] text-muted-foreground">{p.email}</span>
