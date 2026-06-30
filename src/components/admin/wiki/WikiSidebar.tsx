@@ -1,6 +1,7 @@
-import { BookOpen, Home, FolderOpen, Users, UsersRound, BarChart3, UserCheck, Activity, UserCog, Settings, Route as RouteIcon } from "lucide-react";
+import { BookOpen, Home, FolderOpen, Users, UsersRound, BarChart3, UserCheck, Activity, UserCog, Settings, Route as RouteIcon, Network, Briefcase } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useOrgPeopleSettings, useFeatureAccess } from "@/hooks/useOrgPeopleSettings";
+
 
 import { useNavigate, useLocation } from "react-router-dom";
 import {
@@ -42,11 +43,22 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
     peopleSettings.directoryEnabled,
     peopleSettings.directoryRestrictedGroups
   );
+  const { allowed: showPeopleChart } = useFeatureAccess(
+    peopleSettings.peopleChartEnabled,
+    peopleSettings.peopleChartRestrictedGroups
+  );
+  const { allowed: showRoleChart } = useFeatureAccess(
+    peopleSettings.roleChartEnabled,
+    peopleSettings.roleChartRestrictedGroups
+  );
 
   const onHome = location.pathname === "/admin/wiki";
   const onContent = location.pathname.startsWith("/admin/wiki/content");
   const onTrainingPaths = location.pathname.startsWith("/admin/wiki/training-paths");
   const onDirectory = location.pathname.startsWith("/admin/wiki/directory");
+  const onPeopleChart = location.pathname.startsWith("/admin/wiki/people-chart");
+  const onRoleChart = location.pathname.startsWith("/admin/wiki/role-chart");
+
   const onGroups = location.pathname.startsWith("/admin/wiki/groups");
   const onReports = location.pathname.startsWith("/admin/wiki/reports");
   const onReportsContent = location.pathname === "/admin/wiki/reports/content";
@@ -132,6 +144,30 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
                 </SidebarMenuItem>
               )}
 
+              {showPeopleChart && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => navigate("/admin/wiki/people-chart")}
+                    className={`${onPeopleChart ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                  >
+                    <Network className="h-4 w-4" />
+                    {!collapsed && <span>People Chart</span>}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+
+              {showRoleChart && (
+                <SidebarMenuItem>
+                  <SidebarMenuButton
+                    onClick={() => navigate("/admin/wiki/role-chart")}
+                    className={`${onRoleChart ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                  >
+                    <Briefcase className="h-4 w-4" />
+                    {!collapsed && <span>Role Chart</span>}
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )}
+
               <SidebarMenuItem>
                 <SidebarMenuButton
                   onClick={() => navigate("/admin/wiki/groups")}
@@ -141,6 +177,7 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
                   {!collapsed && <span>Groups</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
+
             </SidebarMenu>
           </SidebarGroupContent>
         </SidebarGroup>
