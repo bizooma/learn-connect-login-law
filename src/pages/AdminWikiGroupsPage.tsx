@@ -45,7 +45,7 @@ const AdminWikiGroupsPage = () => {
   const navigate = useNavigate();
   const { categories } = useWikiCategories();
   const { isAdmin } = useUserRole();
-  const { groups, loading, createGroup, updateGroup, deleteGroup, fetchGroups } = useGroups();
+  const { groups, loading, createGroup, updateGroup, deleteGroup, setGroupManagers, fetchGroups } = useGroups();
   const { toast } = useToast();
 
   const [search, setSearch] = useState("");
