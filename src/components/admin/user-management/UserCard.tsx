@@ -18,6 +18,9 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import OwnerPicker from "@/components/admin/wiki/OwnerPicker";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const DEPARTMENTS = ["CEO", "Legal", "Legal Support", "Marketing & Sales", "Operations", "Sales & Intake", "Support Staff"] as const;
 
 
 import {
@@ -71,6 +74,7 @@ export const UserCard = ({
   const [titleSaving, setTitleSaving] = useState(false);
   const [managerId, setManagerId] = useState<string | null>(user.manager_id ?? null);
   const [managerDisplay, setManagerDisplay] = useState<{ id: string; first_name: string | null; last_name: string | null; email: string; profile_image_url?: string | null } | null>(null);
+  const [department, setDepartment] = useState<string | null>((user as any).department ?? null);
   const { isAdmin } = useUserRole();
 
   const { toast } = useToast();
@@ -128,6 +132,22 @@ export const UserCard = ({
       });
     } else {
       toast({ title: newId ? "Manager assigned" : "Manager cleared" });
+    }
+  };
+
+  const saveDepartment = async (value: string) => {
+    const next = value === "__none__" ? null : value;
+    const prev = department;
+    setDepartment(next);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ department: next } as any)
+      .eq("id", user.id);
+    if (error) {
+      setDepartment(prev);
+      toast({ title: "Update failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: next ? `Department set to ${next}` : "Department cleared" });
     }
   };
 
@@ -312,6 +332,27 @@ export const UserCard = ({
               </span>
             )}
           </div>
+
+          <div className="mt-2 flex items-center gap-2 text-xs">
+            <span className="text-muted-foreground shrink-0">Department:</span>
+            {isAdmin ? (
+              <Select value={department ?? "__none__"} onValueChange={saveDepartment}>
+                <SelectTrigger className="h-7 text-xs flex-1">
+                  <SelectValue placeholder="Select department" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="__none__">—</SelectItem>
+                  {DEPARTMENTS.map((d) => (
+                    <SelectItem key={d} value={d}>{d}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : (
+              <span className="text-foreground truncate">{department || "—"}</span>
+            )}
+          </div>
+
+
 
 
           <div className="mt-3 flex flex-wrap gap-2 items-center">
