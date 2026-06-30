@@ -12,8 +12,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table, TableBody, TableCell, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { ResizableHead } from "@/components/admin/wiki/ResizableHead";
+import { useResizableColumns } from "@/hooks/useResizableColumns";
+
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
