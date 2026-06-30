@@ -52,10 +52,13 @@ const AdminWikiGroupsPage = () => {
   const { toast } = useToast();
 
   const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState<"All" | GroupType>("All");
   const cols = useResizableColumns({
     storageKey: "groups-cols",
     defaults: [240, 220, 120, 140, 400, 60],
   });
+
+  const FILTER_TABS: Array<"All" | GroupType> = ["All", "Role", "Team", "Department", "Custom"];
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Group | null>(null);
