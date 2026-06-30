@@ -196,12 +196,16 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
                   </DropdownMenuSubContent>
                 </DropdownMenuSub>
               )}
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleCopyLink(); }}>
-                <Link2 className="h-4 w-4 mr-2" /> Copy link
-              </DropdownMenuItem>
-              <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handlePrint(); }}>
-                <Printer className="h-4 w-4 mr-2" /> Print PDF
-              </DropdownMenuItem>
+              {orgSettings.publicShareEnabled && (
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handleCopyLink(); }}>
+                  <Link2 className="h-4 w-4 mr-2" /> Copy link
+                </DropdownMenuItem>
+              )}
+              {orgSettings.pdfDownloadsEnabled && (
+                <DropdownMenuItem onClick={(e) => { e.stopPropagation(); handlePrint(); }}>
+                  <Printer className="h-4 w-4 mr-2" /> Print PDF
+                </DropdownMenuItem>
+              )}
               {editable && (
                 <>
                   <DropdownMenuSeparator />
