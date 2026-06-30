@@ -43,11 +43,22 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
     peopleSettings.directoryEnabled,
     peopleSettings.directoryRestrictedGroups
   );
+  const { allowed: showPeopleChart } = useFeatureAccess(
+    peopleSettings.peopleChartEnabled,
+    peopleSettings.peopleChartRestrictedGroups
+  );
+  const { allowed: showRoleChart } = useFeatureAccess(
+    peopleSettings.roleChartEnabled,
+    peopleSettings.roleChartRestrictedGroups
+  );
 
   const onHome = location.pathname === "/admin/wiki";
   const onContent = location.pathname.startsWith("/admin/wiki/content");
   const onTrainingPaths = location.pathname.startsWith("/admin/wiki/training-paths");
   const onDirectory = location.pathname.startsWith("/admin/wiki/directory");
+  const onPeopleChart = location.pathname.startsWith("/admin/wiki/people-chart");
+  const onRoleChart = location.pathname.startsWith("/admin/wiki/role-chart");
+
   const onGroups = location.pathname.startsWith("/admin/wiki/groups");
   const onReports = location.pathname.startsWith("/admin/wiki/reports");
   const onReportsContent = location.pathname === "/admin/wiki/reports/content";
