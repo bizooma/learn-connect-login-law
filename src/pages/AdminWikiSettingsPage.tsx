@@ -403,11 +403,93 @@ const AdminWikiSettingsPage = () => {
 
                   <TabsContent value="content" className="mt-6">
                     <Card>
-                      <CardContent className="pt-6">
-                        <p className="text-sm text-muted-foreground">Content settings coming soon.</p>
+                      <CardContent className="pt-6 space-y-8">
+                        <div>
+                          <h3 className="text-lg font-semibold mb-4">Creating and sharing content</h3>
+
+                          <div className="space-y-6">
+                            <div className="flex items-start gap-4">
+                              <Switch checked={publicShareEnabled} onCheckedChange={setPublicShareEnabled} />
+                              <div className="flex-1">
+                                <Label className="text-base font-semibold">Enable "Public share" feature</Label>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  Public share allows users to share your content/training outside of the platform.
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-start gap-4">
+                              <Switch checked={pdfDownloadsEnabled} onCheckedChange={setPdfDownloadsEnabled} />
+                              <div className="flex-1">
+                                <Label className="text-base font-semibold">Enable PDF downloads</Label>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  Allow admins to download PDFs of your content.
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2 pt-2 border-t border-border">
+                              <Label className="text-base font-semibold">Select who can add e-signatures to content</Label>
+                              <p className="text-sm text-muted-foreground">
+                                Select which permission you would like to allow to require legally binding e-signatures to content.
+                              </p>
+                              <Select value={esignaturePermission} onValueChange={setEsignaturePermission}>
+                                <SelectTrigger className="max-w-md">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="billing_admin">Billing Admin</SelectItem>
+                                  <SelectItem value="admin">Admin</SelectItem>
+                                  <SelectItem value="manager">Manager</SelectItem>
+                                  <SelectItem value="everyone">Everyone</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <p className="text-xs text-muted-foreground">
+                                By default, the Billing admin will always be able to add an e-signature.
+                              </p>
+                            </div>
+
+                            <div className="flex items-start gap-4 pt-2 border-t border-border">
+                              <Switch checked={feedbackEnabled} onCheckedChange={setFeedbackEnabled} />
+                              <div className="flex-1">
+                                <Label className="text-base font-semibold">Allow all users to give content feedback (recommended)</Label>
+                                <p className="text-sm text-muted-foreground mt-1">
+                                  Let anyone flag issues or suggest improvements on training. Turning this off disables feedback across all content.
+                                </p>
+                              </div>
+                            </div>
+
+                            <div className="space-y-2 pt-2 border-t border-border">
+                              <Label className="text-base font-semibold">Content discoverability</Label>
+                              <p className="text-sm text-muted-foreground">
+                                Set your default access settings for all newly created content. Content creators and admins will be able to override this on a subject-by-subject basis.
+                              </p>
+                              <Select
+                                value={defaultDiscoverability}
+                                onValueChange={(v) => setDefaultDiscoverability(v as any)}
+                              >
+                                <SelectTrigger className="max-w-md">
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem value="discoverable">Discoverable</SelectItem>
+                                  <SelectItem value="request">Request</SelectItem>
+                                  <SelectItem value="private">Private</SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end pt-4 border-t border-border">
+                          <Button onClick={handleSaveContent} disabled={savingContent}>
+                            {savingContent ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</> : "Save"}
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   </TabsContent>
+
 
                   <TabsContent value="people" className="mt-6">
                     <Card>
