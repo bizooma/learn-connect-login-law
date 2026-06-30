@@ -364,11 +364,22 @@ const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
             value={discoverability}
             onValueChange={(v) => setDiscoverability(v as WikiDiscoverability)}
           >
-            <SelectTrigger>
+            <SelectTrigger
+              className={
+                discoverability === "discoverable"
+                  ? "bg-green-100 dark:bg-green-950/40 border-green-300 dark:border-green-900"
+                  : discoverability === "request"
+                  ? "bg-yellow-100 dark:bg-yellow-950/40 border-yellow-300 dark:border-yellow-900"
+                  : "bg-red-100 dark:bg-red-950/40 border-red-300 dark:border-red-900"
+              }
+            >
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="discoverable">
+              <SelectItem
+                value="discoverable"
+                className="bg-green-100 dark:bg-green-950/40 focus:bg-green-200 dark:focus:bg-green-900/50 my-1 rounded-md"
+              >
                 <div className="flex flex-col">
                   <span className="font-medium">Discoverable</span>
                   <span className="text-xs text-muted-foreground">
@@ -376,7 +387,10 @@ const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
                   </span>
                 </div>
               </SelectItem>
-              <SelectItem value="request">
+              <SelectItem
+                value="request"
+                className="bg-yellow-100 dark:bg-yellow-950/40 focus:bg-yellow-200 dark:focus:bg-yellow-900/50 my-1 rounded-md"
+              >
                 <div className="flex flex-col">
                   <span className="font-medium">Request</span>
                   <span className="text-xs text-muted-foreground">
@@ -384,7 +398,10 @@ const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
                   </span>
                 </div>
               </SelectItem>
-              <SelectItem value="private">
+              <SelectItem
+                value="private"
+                className="bg-red-100 dark:bg-red-950/40 focus:bg-red-200 dark:focus:bg-red-900/50 my-1 rounded-md"
+              >
                 <div className="flex flex-col">
                   <span className="font-medium">Private</span>
                   <span className="text-xs text-muted-foreground">
