@@ -85,10 +85,15 @@ const AdminWikiGroupsPage = () => {
     );
   };
 
+  const matchesTypeFilter = (g: Group, t: "All" | GroupType) => {
+    if (t === "All") return true;
+    if (t === "Team") return g.type === "Team" || g.name.toLowerCase().includes("team");
+    return g.type === t;
+  };
+
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    let list = groups;
-    if (typeFilter !== "All") list = list.filter((g) => g.type === typeFilter);
+    let list = groups.filter((g) => matchesTypeFilter(g, typeFilter));
     if (!q) return list;
     return list.filter(
       (g) =>
@@ -219,7 +224,7 @@ const AdminWikiGroupsPage = () => {
                 <div className="flex flex-wrap items-center gap-2">
                   {FILTER_TABS.map((t) => {
                     const active = typeFilter === t;
-                    const count = t === "All" ? groups.length : groups.filter((g) => g.type === t).length;
+                    const count = groups.filter((g) => matchesTypeFilter(g, t)).length;
                     return (
                       <button
                         key={t}
