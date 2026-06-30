@@ -332,17 +332,47 @@ const AdminWikiGroupsPage = () => {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="g-manager">Manager (optional)</Label>
+              <Label>Managers (optional, multiple)</Label>
+              {form.manager_ids.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {form.manager_ids.map((id) => {
+                    const p = profileOptions.find((o) => o.id === id);
+                    return (
+                      <Badge key={id} variant="secondary" className="gap-1">
+                        {p?.label ?? "Unknown"}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setForm({
+                              ...form,
+                              manager_ids: form.manager_ids.filter((x) => x !== id),
+                            })
+                          }
+                          className="ml-1 hover:text-destructive"
+                          aria-label="Remove manager"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    );
+                  })}
+                </div>
+              )}
               <Select
-                value={form.manager_id || "__none__"}
-                onValueChange={(v) => setForm({ ...form, manager_id: v === "__none__" ? "" : v })}
+                value=""
+                onValueChange={(v) => {
+                  if (!form.manager_ids.includes(v)) {
+                    setForm({ ...form, manager_ids: [...form.manager_ids, v] });
+                  }
+                }}
               >
-                <SelectTrigger id="g-manager"><SelectValue placeholder="No manager" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Add a manager…" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">No manager</SelectItem>
-                  {profileOptions.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>{p.label}</SelectItem>
-                  ))}
+                  {profileOptions
+                    .filter((p) => !form.manager_ids.includes(p.id))
+                    .map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{p.label}</SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
