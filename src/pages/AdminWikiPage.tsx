@@ -18,6 +18,7 @@ import ButterfliesBanner from "@/components/admin/wiki/ButterfliesBanner";
 import SnowBanner from "@/components/admin/wiki/SnowBanner";
 import BunniesBanner from "@/components/admin/wiki/BunniesBanner";
 import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
+import WikiFooter from "@/components/admin/wiki/WikiFooter";
 
 
 const AdminWikiPage = () => {
@@ -143,7 +144,8 @@ const AdminWikiPage = () => {
 
 
 
-            <div className="flex-1 overflow-auto p-6">
+            <div className="flex-1 overflow-auto flex flex-col">
+              <div className="flex-1 p-6">
               {editingArticle ? (
                 <WikiArticleEditor
                   article={editingArticle}
@@ -223,6 +225,8 @@ const AdminWikiPage = () => {
                   )}
                 </div>
               )}
+              </div>
+              <WikiFooter />
             </div>
           </div>
         </div>

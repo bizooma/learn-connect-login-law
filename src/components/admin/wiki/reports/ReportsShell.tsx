@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
 import WikiSidebar from "@/components/admin/wiki/WikiSidebar";
+import WikiFooter from "@/components/admin/wiki/WikiFooter";
 import { useWikiCategories } from "@/hooks/useWikiCategories";
 
 interface ReportsShellProps {
@@ -47,8 +48,9 @@ const ReportsShell = ({ title, subtitle, actions, children }: ReportsShellProps)
               {actions}
             </div>
 
-            <div className="flex-1 overflow-auto p-6">
-              <div className="w-full px-2 space-y-4">{children}</div>
+            <div className="flex-1 overflow-auto">
+              <div className="w-full px-2 p-6 space-y-4">{children}</div>
+              <WikiFooter />
             </div>
           </div>
         </div>

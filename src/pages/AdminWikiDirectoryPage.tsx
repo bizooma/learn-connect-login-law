@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
+import WikiFooter from "@/components/admin/wiki/WikiFooter";
 import WikiSidebar from "@/components/admin/wiki/WikiSidebar";
 import DirectorySearchBar from "@/components/admin/wiki/directory/DirectorySearchBar";
 import DirectoryTable from "@/components/admin/wiki/directory/DirectoryTable";
@@ -78,7 +79,8 @@ const AdminWikiDirectoryPage = () => {
               </div>
             </div>
 
-            <div className="flex-1 overflow-auto p-6">
+            <div className="flex-1 overflow-auto flex flex-col">
+              <div className="flex-1 p-6">
               <div className="w-full px-2 space-y-4">
                 <DirectorySearchBar
                   value={search}
@@ -153,6 +155,8 @@ const AdminWikiDirectoryPage = () => {
                   </>
                 )}
               </div>
+              </div>
+              <WikiFooter />
             </div>
           </div>
         </div>
