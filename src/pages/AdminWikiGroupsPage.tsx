@@ -216,6 +216,26 @@ const AdminWikiGroupsPage = () => {
                 </div>
 
 
+                <div className="flex flex-wrap items-center gap-2">
+                  {FILTER_TABS.map((t) => {
+                    const active = typeFilter === t;
+                    const count = t === "All" ? groups.length : groups.filter((g) => g.type === t).length;
+                    return (
+                      <button
+                        key={t}
+                        onClick={() => setTypeFilter(t)}
+                        className={`px-4 py-2 rounded-md border text-sm font-medium transition-colors ${
+                          active
+                            ? "bg-[#213C82] text-white border-[#213C82]"
+                            : "bg-background text-foreground border-border hover:bg-muted"
+                        }`}
+                      >
+                        {t} <span className={active ? "opacity-80" : "text-muted-foreground"}>({count})</span>
+                      </button>
+                    );
+                  })}
+                </div>
+
                 <div className="flex items-center gap-3">
                   <div className="relative flex-1">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
