@@ -64,6 +64,7 @@ const accessLabel: Record<WikiAccessLevel, string> = {
 const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
   const qc = useQueryClient();
   const { updateCategory } = useWikiCategories();
+  const { settings: orgSettings } = useOrgContentSettings();
   const [shares, setShares] = useState<WikiSharedGroup[]>([]);
   const [userShares, setUserShares] = useState<WikiSharedUser[]>([]);
   const [discoverability, setDiscoverability] = useState<WikiDiscoverability>(
