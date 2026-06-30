@@ -152,7 +152,7 @@ export const useWikiCategories = () => {
   });
 
   const updateCategory = useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string; title?: string; description?: string; icon_name?: string; category?: WikiSubjectCategory; is_published?: boolean; sort_order?: number; owner_id?: string | null }) => {
+    mutationFn: async ({ id, ...updates }: { id: string; title?: string; description?: string; icon_name?: string; category?: WikiSubjectCategory; is_published?: boolean; sort_order?: number; owner_id?: string | null; discoverability?: WikiDiscoverability; public_share_enabled?: boolean }) => {
       const { data, error } = await supabase
         .from("wiki_categories")
         .update(updates as any)
