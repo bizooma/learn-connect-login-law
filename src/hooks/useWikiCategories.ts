@@ -5,7 +5,7 @@ import { toast } from "sonner";
 export type WikiSubjectCategory = "policy" | "procedure" | "company";
 
 export type WikiAccessLevel = "view" | "edit" | "full";
-export type WikiDiscoverability = "discoverable" | "restricted";
+export type WikiDiscoverability = "discoverable" | "request" | "private";
 
 export interface WikiSharedGroup {
   id: string;
