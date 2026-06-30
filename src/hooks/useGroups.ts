@@ -111,15 +111,20 @@ export const useGroups = () => {
   const createGroup = useCallback(
     async (input: { name: string; type: GroupType; description?: string; manager_id?: string | null }) => {
       const userRes = await supabase.auth.getUser();
-      const { error } = await supabase.from("groups" as any).insert({
-        name: input.name,
-        type: input.type,
-        description: input.description || null,
-        manager_id: input.manager_id || null,
-        created_by: userRes.data.user?.id ?? null,
-      });
+      const { data, error } = await supabase
+        .from("groups" as any)
+        .insert({
+          name: input.name,
+          type: input.type,
+          description: input.description || null,
+          manager_id: input.manager_id || null,
+          created_by: userRes.data.user?.id ?? null,
+        })
+        .select("id")
+        .single();
       if (error) throw error;
       await fetchGroups();
+      return data as { id: string } | null;
     },
     [fetchGroups]
   );
