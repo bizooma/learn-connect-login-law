@@ -295,6 +295,25 @@ export const UserCard = ({
             </Badge>
           </div>
 
+          <div className="mt-2 flex items-center gap-2 text-xs">
+            <span className="text-muted-foreground shrink-0">Manager:</span>
+            {isAdmin ? (
+              <OwnerPicker
+                value={managerId}
+                ownerDisplay={managerDisplay as any}
+                onChange={saveManager}
+              />
+            ) : (
+              <span className="text-foreground truncate">
+                {managerDisplay
+                  ? `${managerDisplay.first_name ?? ""} ${managerDisplay.last_name ?? ""}`.trim() ||
+                    managerDisplay.email
+                  : "—"}
+              </span>
+            )}
+          </div>
+
+
           <div className="mt-3 flex flex-wrap gap-2 items-center">
             {isTeamLeader && (
               <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-[#FFDA00]/15 text-amber-900 text-[10px] font-bold uppercase tracking-wider border border-[#FFDA00]/40">
