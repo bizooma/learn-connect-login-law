@@ -189,7 +189,7 @@ const AdminWikiGroupsPage = () => {
             </div>
 
             <div className="flex-1 overflow-auto p-6">
-              <div className="max-w-6xl mx-auto space-y-4">
+              <div className="w-full px-2 space-y-4">
                 <div className="rounded-lg border border-border bg-background p-5 flex items-start justify-between gap-4">
                   <div>
                     <h3 className="text-lg font-semibold text-[#213C82]">
