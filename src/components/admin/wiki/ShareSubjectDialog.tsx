@@ -403,46 +403,105 @@ const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
             <div className="w-6" />
           </div>
 
-          {shares.length === 0 ? (
-            <div className="text-sm text-muted-foreground px-1 py-3 text-center border border-dashed rounded-md">
-              No groups added yet. Search above to add one.
+          {shares.map((s) => (
+            <div
+              key={`g-${s.id}`}
+              className="grid grid-cols-[1fr_auto_auto_auto] gap-3 items-center px-1"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                    <Users className="h-4 w-4" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0">
+                  <div className="text-sm font-medium truncate">{s.name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {s.member_count ?? 0} member{s.member_count === 1 ? "" : "s"}
+                  </div>
+                </div>
+              </div>
+              <div className="w-24 flex items-center justify-center gap-2">
+                <Checkbox
+                  id={`req-${s.id}`}
+                  checked={s.completion_required}
+                  onCheckedChange={(v) =>
+                    updateShare(s.id, { completion_required: !!v })
+                  }
+                />
+                <Label htmlFor={`req-${s.id}`} className="text-xs cursor-pointer">
+                  Required
+                </Label>
+              </div>
+              <div className="w-24">
+                <Select
+                  value={s.access_level}
+                  onValueChange={(v) =>
+                    updateShare(s.id, { access_level: v as WikiAccessLevel })
+                  }
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="view">{accessLabel.view}</SelectItem>
+                    <SelectItem value="edit">{accessLabel.edit}</SelectItem>
+                    <SelectItem value="full">{accessLabel.full}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={() => removeGroup(s.id)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
-          ) : (
-            shares.map((s) => (
+          ))}
+
+          {userShares.map((u) => {
+            const name =
+              [u.first_name, u.last_name].filter(Boolean).join(" ") || u.email;
+            return (
               <div
-                key={s.id}
+                key={`u-${u.id}`}
                 className="grid grid-cols-[1fr_auto_auto_auto] gap-3 items-center px-1"
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <Avatar className="h-8 w-8">
-                    <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                      <Users className="h-4 w-4" />
+                    {u.profile_image_url && (
+                      <AvatarImage src={u.profile_image_url} alt={name} />
+                    )}
+                    <AvatarFallback className="text-xs">
+                      {name.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
-                    <div className="text-sm font-medium truncate">{s.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {s.member_count ?? 0} member{s.member_count === 1 ? "" : "s"}
+                    <div className="text-sm font-medium truncate">{name}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {u.job_title || u.email}
                     </div>
                   </div>
                 </div>
                 <div className="w-24 flex items-center justify-center gap-2">
                   <Checkbox
-                    id={`req-${s.id}`}
-                    checked={s.completion_required}
+                    id={`req-u-${u.id}`}
+                    checked={u.completion_required}
                     onCheckedChange={(v) =>
-                      updateShare(s.id, { completion_required: !!v })
+                      updateUserShare(u.id, { completion_required: !!v })
                     }
                   />
-                  <Label htmlFor={`req-${s.id}`} className="text-xs cursor-pointer">
+                  <Label htmlFor={`req-u-${u.id}`} className="text-xs cursor-pointer">
                     Required
                   </Label>
                 </div>
                 <div className="w-24">
                   <Select
-                    value={s.access_level}
+                    value={u.access_level}
                     onValueChange={(v) =>
-                      updateShare(s.id, { access_level: v as WikiAccessLevel })
+                      updateUserShare(u.id, { access_level: v as WikiAccessLevel })
                     }
                   >
                     <SelectTrigger className="h-8 text-xs">
@@ -459,12 +518,18 @@ const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
                   variant="ghost"
                   size="icon"
                   className="h-7 w-7"
-                  onClick={() => removeGroup(s.id)}
+                  onClick={() => removeUser(u.id)}
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
-            ))
+            );
+          })}
+
+          {shares.length === 0 && userShares.length === 0 && (
+            <div className="text-sm text-muted-foreground px-1 py-3 text-center border border-dashed rounded-md">
+              No people or groups added yet. Search above to add someone.
+            </div>
           )}
         </div>
 
