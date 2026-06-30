@@ -74,6 +74,7 @@ export const UserCard = ({
   const [titleSaving, setTitleSaving] = useState(false);
   const [managerId, setManagerId] = useState<string | null>(user.manager_id ?? null);
   const [managerDisplay, setManagerDisplay] = useState<{ id: string; first_name: string | null; last_name: string | null; email: string; profile_image_url?: string | null } | null>(null);
+  const [department, setDepartment] = useState<string | null>((user as any).department ?? null);
   const { isAdmin } = useUserRole();
 
   const { toast } = useToast();
