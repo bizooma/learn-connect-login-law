@@ -99,7 +99,7 @@ const AdminWikiGroupsPage = () => {
       name: g.name,
       type: g.type,
       description: g.description ?? "",
-      manager_id: g.manager_id ?? "",
+      manager_ids: g.manager_ids ?? [],
     });
     setFormOpen(true);
   };
@@ -115,14 +115,26 @@ const AdminWikiGroupsPage = () => {
         name: form.name.trim(),
         type: form.type,
         description: form.description.trim(),
-        manager_id: form.manager_id || null,
+        manager_id: form.manager_ids[0] || null,
       };
+      let groupId: string | undefined;
       if (editing) {
         await updateGroup(editing.id, payload);
+        groupId = editing.id;
         toast({ title: "Group updated" });
       } else {
-        await createGroup(payload);
+        const created: any = await createGroup(payload);
+        // createGroup currently returns void; refetch and find by name as fallback
+        groupId = created?.id;
         toast({ title: "Group created" });
+      }
+      if (groupId) {
+        await setGroupManagers(groupId, form.manager_ids);
+      } else {
+        // fallback: refetch then locate
+        await fetchGroups();
+        const found = (groups || []).find((g) => g.name === payload.name);
+        if (found) await setGroupManagers(found.id, form.manager_ids);
       }
       setFormOpen(false);
     } catch (err: any) {
