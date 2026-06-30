@@ -10,6 +10,8 @@ export interface Group {
   description: string | null;
   manager_id: string | null;
   manager_name?: string | null;
+  manager_ids?: string[];
+  manager_names?: string[];
   member_count?: number;
   created_at: string;
 }
