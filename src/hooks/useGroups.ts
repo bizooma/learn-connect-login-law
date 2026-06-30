@@ -49,16 +49,29 @@ export const useGroups = () => {
         counts.set(m.group_id, (counts.get(m.group_id) ?? 0) + 1);
       });
 
-      // Manager names
-      const managerIds = Array.from(
-        new Set(rows.map((g) => g.manager_id).filter(Boolean))
-      ) as string[];
+      // Manager assignments (multi)
+      const { data: gmRows } = await supabase
+        .from("group_managers" as any)
+        .select("group_id, user_id");
+      const managerIdsByGroup = new Map<string, string[]>();
+      (gmRows ?? []).forEach((r: any) => {
+        const arr = managerIdsByGroup.get(r.group_id) ?? [];
+        arr.push(r.user_id);
+        managerIdsByGroup.set(r.group_id, arr);
+      });
+
+      // Legacy single manager + multi managers
+      const allManagerIds = new Set<string>();
+      rows.forEach((g) => {
+        if (g.manager_id) allManagerIds.add(g.manager_id);
+        (managerIdsByGroup.get(g.id) ?? []).forEach((id) => allManagerIds.add(id));
+      });
       let managerMap = new Map<string, string>();
-      if (managerIds.length > 0) {
+      if (allManagerIds.size > 0) {
         const { data: managers } = await supabase
           .from("profiles")
           .select("id, first_name, last_name, email")
-          .in("id", managerIds);
+          .in("id", Array.from(allManagerIds));
         (managers ?? []).forEach((p: any) => {
           managerMap.set(
             p.id,
@@ -67,11 +80,22 @@ export const useGroups = () => {
         });
       }
 
-      const enriched: Group[] = rows.map((g) => ({
-        ...g,
-        manager_name: g.manager_id ? managerMap.get(g.manager_id) ?? null : null,
-        member_count: counts.get(g.id) ?? 0,
-      }));
+      const enriched: Group[] = rows.map((g) => {
+        const ids = Array.from(
+          new Set([
+            ...(managerIdsByGroup.get(g.id) ?? []),
+            ...(g.manager_id ? [g.manager_id] : []),
+          ])
+        );
+        const names = ids.map((id) => managerMap.get(id) ?? "Unknown");
+        return {
+          ...g,
+          manager_name: ids.length > 0 ? names[0] : null,
+          manager_ids: ids,
+          manager_names: names,
+          member_count: counts.get(g.id) ?? 0,
+        };
+      });
       setGroups(enriched);
     } catch (err) {
       console.error("Failed to fetch groups", err);
