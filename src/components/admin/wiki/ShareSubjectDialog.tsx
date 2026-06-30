@@ -43,6 +43,7 @@ import {
   WikiAccessLevel,
   WikiDiscoverability,
   WikiSharedGroup,
+  WikiSharedUser,
   useWikiCategories,
 } from "@/hooks/useWikiCategories";
 
@@ -62,6 +63,7 @@ const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
   const qc = useQueryClient();
   const { updateCategory } = useWikiCategories();
   const [shares, setShares] = useState<WikiSharedGroup[]>([]);
+  const [userShares, setUserShares] = useState<WikiSharedUser[]>([]);
   const [discoverability, setDiscoverability] = useState<WikiDiscoverability>(
     category.discoverability,
   );
@@ -73,6 +75,7 @@ const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
   useEffect(() => {
     if (open) {
       setShares(category.shared_groups || []);
+      setUserShares(category.shared_users || []);
       setDiscoverability(category.discoverability);
       setPublicShare(category.public_share_enabled);
     }
