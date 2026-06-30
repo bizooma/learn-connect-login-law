@@ -17,7 +17,7 @@ export interface WikiCategory {
   created_at: string;
   updated_at: string;
   article_count?: number;
-  owner?: { id: string; first_name: string | null; last_name: string | null; email: string } | null;
+  owner?: { id: string; first_name: string | null; last_name: string | null; email: string; profile_image_url: string | null } | null;
   shared_groups?: { id: string; name: string }[];
 }
 
@@ -52,7 +52,7 @@ export const useWikiCategories = () => {
       if (ownerIds.length > 0) {
         const { data: owners } = await supabase
           .from("profiles")
-          .select("id, first_name, last_name, email")
+          .select("id, first_name, last_name, email, profile_image_url")
           .in("id", ownerIds);
         ownersMap = Object.fromEntries((owners || []).map((o: any) => [o.id, o]));
       }

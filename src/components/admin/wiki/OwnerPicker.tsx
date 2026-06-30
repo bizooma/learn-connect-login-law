@@ -3,6 +3,7 @@ import { Check, ChevronDown, User as UserIcon, X } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { supabase } from "@/integrations/supabase/client";
 
 interface Profile {
@@ -10,7 +11,14 @@ interface Profile {
   first_name: string | null;
   last_name: string | null;
   email: string;
+  profile_image_url?: string | null;
 }
+
+const initialsFor = (p: Profile) => {
+  const f = (p.first_name?.[0] || "").toUpperCase();
+  const l = (p.last_name?.[0] || "").toUpperCase();
+  return (f + l) || (p.email?.[0]?.toUpperCase() ?? "?");
+};
 
 interface OwnerPickerProps {
   value: string | null;
@@ -36,7 +44,7 @@ const OwnerPicker = ({ value, ownerDisplay, onChange, disabled }: OwnerPickerPro
     setLoading(true);
     supabase
       .from("profiles")
-      .select("id, first_name, last_name, email")
+      .select("id, first_name, last_name, email, profile_image_url")
       .eq("is_deleted", false)
       .order("first_name", { ascending: true })
       .limit(500)
@@ -61,9 +69,16 @@ const OwnerPicker = ({ value, ownerDisplay, onChange, disabled }: OwnerPickerPro
           size="sm"
           disabled={disabled}
           onClick={(e) => e.stopPropagation()}
-          className="h-7 px-2 -ml-2 text-xs font-normal text-foreground hover:bg-muted/60 max-w-full justify-start"
+          className="h-7 px-2 -ml-2 text-xs font-normal text-foreground hover:bg-muted/60 max-w-full justify-start gap-1.5"
         >
-          <UserIcon className="h-3.5 w-3.5 mr-1.5 text-muted-foreground shrink-0" />
+          {ownerDisplay ? (
+            <Avatar className="h-5 w-5 shrink-0">
+              {ownerDisplay.profile_image_url && <AvatarImage src={ownerDisplay.profile_image_url} alt="" />}
+              <AvatarFallback className="text-[9px]">{initialsFor(ownerDisplay)}</AvatarFallback>
+            </Avatar>
+          ) : (
+            <UserIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+          )}
           <span className="truncate">{ownerDisplay ? labelFor(ownerDisplay) : "Unassigned"}</span>
           <ChevronDown className="h-3 w-3 ml-1 text-muted-foreground shrink-0" />
         </Button>
@@ -95,6 +110,10 @@ const OwnerPicker = ({ value, ownerDisplay, onChange, disabled }: OwnerPickerPro
                   }}
                 >
                   <Check className={`h-4 w-4 mr-2 ${value === p.id ? "opacity-100" : "opacity-0"}`} />
+                  <Avatar className="h-6 w-6 mr-2 shrink-0">
+                    {p.profile_image_url && <AvatarImage src={p.profile_image_url} alt="" />}
+                    <AvatarFallback className="text-[10px]">{initialsFor(p)}</AvatarFallback>
+                  </Avatar>
                   <div className="flex flex-col min-w-0">
                     <span className="truncate text-sm">{labelFor(p)}</span>
                     <span className="truncate text-[11px] text-muted-foreground">{p.email}</span>
