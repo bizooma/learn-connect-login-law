@@ -31,6 +31,11 @@ const formatDate = (iso: string) => {
 const AdminWikiReportsContent = () => {
   const { data = [], isLoading } = useContentReport();
   const [search, setSearch] = useState("");
+  const cols = useResizableColumns({
+    storageKey: "report-content-cols",
+    defaults: [320, 240, 240, 100, 160, 120],
+  });
+
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
