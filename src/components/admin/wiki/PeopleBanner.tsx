@@ -63,11 +63,11 @@ const PeopleBanner = ({
   subtext = "Bulk-share content and gate features by role, department, team and more.",
 }: PeopleBannerProps) => {
   const people = useMemo<Person[]>(() => {
-    return Array.from({ length: 7 }, () => ({
-      startY: 30 + Math.random() * 35,
+    return Array.from({ length: 14 }, () => ({
+      startY: 25 + Math.random() * 45,
       size: 14 + Math.random() * 8,
-      delay: Math.random() * 10,
-      speed: 12 + Math.random() * 8,
+      delay: Math.random() * 20,
+      speed: 28 + Math.random() * 18,
       skin: SKIN[Math.floor(Math.random() * SKIN.length)],
       shirt: SHIRT[Math.floor(Math.random() * SHIRT.length)],
       pants: PANTS[Math.floor(Math.random() * PANTS.length)],
