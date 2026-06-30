@@ -1131,6 +1131,11 @@ export type Database = {
       organization_settings: {
         Row: {
           accent_color: string | null
+          content_default_discoverability: string
+          content_esignature_permission: string
+          content_feedback_enabled: boolean
+          content_pdf_downloads_enabled: boolean
+          content_public_share_enabled: boolean
           employee_count: string | null
           gamification_enabled: boolean
           gamification_excluded_groups: string[]
@@ -1148,6 +1153,11 @@ export type Database = {
         }
         Insert: {
           accent_color?: string | null
+          content_default_discoverability?: string
+          content_esignature_permission?: string
+          content_feedback_enabled?: boolean
+          content_pdf_downloads_enabled?: boolean
+          content_public_share_enabled?: boolean
           employee_count?: string | null
           gamification_enabled?: boolean
           gamification_excluded_groups?: string[]
@@ -1165,6 +1175,11 @@ export type Database = {
         }
         Update: {
           accent_color?: string | null
+          content_default_discoverability?: string
+          content_esignature_permission?: string
+          content_feedback_enabled?: boolean
+          content_pdf_downloads_enabled?: boolean
+          content_public_share_enabled?: boolean
           employee_count?: string | null
           gamification_enabled?: boolean
           gamification_excluded_groups?: string[]
