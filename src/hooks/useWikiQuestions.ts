@@ -22,17 +22,18 @@ export interface WikiQuestion {
   choices: WikiQuestionChoice[];
 }
 
-export const useWikiQuestions = (articleId?: string) => {
+export const useWikiQuestions = (articleId?: string, categoryId?: string) => {
   const qc = useQueryClient();
+  const scope = categoryId ? { col: "category_id", val: categoryId } : { col: "article_id", val: articleId };
 
   const questionsQuery = useQuery({
-    queryKey: ["wiki-questions", articleId],
+    queryKey: ["wiki-questions", scope.col, scope.val],
     queryFn: async () => {
-      if (!articleId) return [] as WikiQuestion[];
+      if (!scope.val) return [] as WikiQuestion[];
       const { data: qs, error } = await supabase
         .from("wiki_questions" as any)
         .select("*")
-        .eq("article_id", articleId)
+        .eq(scope.col, scope.val)
         .order("sort_order", { ascending: true });
       if (error) throw error;
       const questions = (qs || []) as any[];
@@ -50,23 +51,25 @@ export const useWikiQuestions = (articleId?: string) => {
       });
       return questions.map((q) => ({ ...q, choices: byQ[q.id] || [] })) as WikiQuestion[];
     },
-    enabled: !!articleId,
+    enabled: !!scope.val,
   });
 
   const createQuestion = useMutation({
-    mutationFn: async (article_id: string) => {
+    mutationFn: async (_ignored?: string) => {
       const { data: u } = await supabase.auth.getUser();
       if (!u.user) throw new Error("Not authenticated");
       const { data: existing } = await supabase
         .from("wiki_questions" as any)
         .select("sort_order")
-        .eq("article_id", article_id)
+        .eq(scope.col, scope.val as string)
         .order("sort_order", { ascending: false })
         .limit(1);
       const next = existing && existing.length ? (existing[0] as any).sort_order + 1 : 0;
+      const insertRow: any = { sort_order: next, created_by: u.user.id };
+      insertRow[scope.col] = scope.val;
       const { data: q, error } = await supabase
         .from("wiki_questions" as any)
-        .insert({ article_id, sort_order: next, created_by: u.user.id })
+        .insert(insertRow)
         .select()
         .single();
       if (error) throw error;

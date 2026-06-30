@@ -104,6 +104,7 @@ const AppContent = () => {
         <Route path="/admin/wiki/pages/:pageId" element={<WikiPageEditorPage />} />
         <Route path="/admin/wiki/flowchart/:articleId" element={<WikiFlowchartEditorPage />} />
         <Route path="/admin/wiki/knowledge-check/:articleId" element={<WikiKnowledgeCheckPage />} />
+        <Route path="/admin/wiki/knowledge-check/category/:categoryId" element={<WikiKnowledgeCheckPage />} />
 
 
         <Route path="/auth" element={<AuthPage />} />

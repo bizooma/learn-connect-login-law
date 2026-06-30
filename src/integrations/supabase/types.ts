@@ -2803,7 +2803,8 @@ export type Database = {
       }
       wiki_questions: {
         Row: {
-          article_id: string
+          article_id: string | null
+          category_id: string | null
           created_at: string
           created_by: string
           id: string
@@ -2813,7 +2814,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          article_id: string
+          article_id?: string | null
+          category_id?: string | null
           created_at?: string
           created_by: string
           id?: string
@@ -2823,7 +2825,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          article_id?: string
+          article_id?: string | null
+          category_id?: string | null
           created_at?: string
           created_by?: string
           id?: string
@@ -2838,6 +2841,13 @@ export type Database = {
             columns: ["article_id"]
             isOneToOne: false
             referencedRelation: "wiki_articles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wiki_questions_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "wiki_categories"
             referencedColumns: ["id"]
           },
         ]

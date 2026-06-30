@@ -1,0 +1,1 @@
+ALTER TABLE public.wiki_questions ADD COLUMN IF NOT EXISTS category_id uuid REFERENCES public.wiki_categories(id) ON DELETE CASCADE; ALTER TABLE public.wiki_questions ALTER COLUMN article_id DROP NOT NULL;
