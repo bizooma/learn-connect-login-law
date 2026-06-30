@@ -18,6 +18,9 @@ import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import OwnerPicker from "@/components/admin/wiki/OwnerPicker";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+
+const DEPARTMENTS = ["CEO", "Legal", "Legal Support", "Marketing & Sales", "Operations", "Sales & Intake", "Support Staff"] as const;
 
 
 import {
