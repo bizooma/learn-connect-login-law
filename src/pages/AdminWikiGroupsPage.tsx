@@ -52,10 +52,13 @@ const AdminWikiGroupsPage = () => {
   const { toast } = useToast();
 
   const [search, setSearch] = useState("");
+  const [typeFilter, setTypeFilter] = useState<"All" | GroupType>("All");
   const cols = useResizableColumns({
     storageKey: "groups-cols",
     defaults: [240, 220, 120, 140, 400, 60],
   });
+
+  const FILTER_TABS: Array<"All" | GroupType> = ["All", "Role", "Team", "Department", "Custom"];
 
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Group | null>(null);
@@ -84,14 +87,16 @@ const AdminWikiGroupsPage = () => {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return groups;
-    return groups.filter(
+    let list = groups;
+    if (typeFilter !== "All") list = list.filter((g) => g.type === typeFilter);
+    if (!q) return list;
+    return list.filter(
       (g) =>
         g.name.toLowerCase().includes(q) ||
         g.type.toLowerCase().includes(q) ||
         (g.description ?? "").toLowerCase().includes(q)
     );
-  }, [groups, search]);
+  }, [groups, search, typeFilter]);
 
   const openCreate = async () => {
     await loadProfiles();
@@ -210,6 +215,26 @@ const AdminWikiGroupsPage = () => {
                   <Users className="h-10 w-10 text-[#213C82] shrink-0" />
                 </div>
 
+
+                <div className="flex flex-wrap items-center gap-2">
+                  {FILTER_TABS.map((t) => {
+                    const active = typeFilter === t;
+                    const count = t === "All" ? groups.length : groups.filter((g) => g.type === t).length;
+                    return (
+                      <button
+                        key={t}
+                        onClick={() => setTypeFilter(t)}
+                        className={`px-4 py-2 rounded-md border text-sm font-medium transition-colors ${
+                          active
+                            ? "bg-[#213C82] text-white border-[#213C82]"
+                            : "bg-background text-foreground border-border hover:bg-muted"
+                        }`}
+                      >
+                        {t} <span className={active ? "opacity-80" : "text-muted-foreground"}>({count})</span>
+                      </button>
+                    );
+                  })}
+                </div>
 
                 <div className="flex items-center gap-3">
                   <div className="relative flex-1">
