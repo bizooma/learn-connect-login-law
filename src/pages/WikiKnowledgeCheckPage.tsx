@@ -132,7 +132,7 @@ const WikiKnowledgeCheckPage = () => {
       if (categoryId) {
         const { data, error } = await supabase
           .from("wiki_categories")
-          .select("name")
+          .select("title")
           .eq("id", categoryId)
           .single();
         if (error) {
@@ -140,7 +140,7 @@ const WikiKnowledgeCheckPage = () => {
           navigate(-1);
           return;
         }
-        setArticleTitle(data.name);
+        setArticleTitle(data.title);
         setLoading(false);
         return;
       }
