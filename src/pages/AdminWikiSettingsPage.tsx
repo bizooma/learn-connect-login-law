@@ -182,6 +182,31 @@ const AdminWikiSettingsPage = () => {
     );
   };
 
+  const handleSaveContent = async () => {
+    setSavingContent(true);
+    try {
+      const payload = {
+        content_public_share_enabled: publicShareEnabled,
+        content_pdf_downloads_enabled: pdfDownloadsEnabled,
+        content_esignature_permission: esignaturePermission,
+        content_feedback_enabled: feedbackEnabled,
+        content_default_discoverability: defaultDiscoverability,
+        updated_by: (await supabase.auth.getUser()).data.user?.id,
+      };
+      const { error } = settingsId
+        ? await supabase.from("organization_settings" as any).update(payload).eq("id", settingsId)
+        : await supabase.from("organization_settings" as any).insert({ ...payload, singleton: true });
+      if (error) throw error;
+      toast({ title: "Content settings saved" });
+    } catch (err: any) {
+      console.error(err);
+      toast({ title: "Save failed", description: err.message, variant: "destructive" });
+    } finally {
+      setSavingContent(false);
+    }
+  };
+
+
   return (
     <div className="min-h-screen flex flex-col bg-background">
       <div className="relative z-50">
