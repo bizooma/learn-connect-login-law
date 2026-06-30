@@ -210,7 +210,42 @@ const AdminWikiSettingsPage = () => {
         content_feedback_enabled: feedbackEnabled,
         content_default_discoverability: defaultDiscoverability,
         updated_by: (await supabase.auth.getUser()).data.user?.id,
+  };
+
+  const handleSavePeople = async () => {
+    setSavingPeople(true);
+    try {
+      const payload = {
+        people_directory_enabled: directoryEnabled,
+        people_directory_restricted_groups: directoryRestricted,
+        people_chart_enabled: peopleChartEnabled,
+        people_chart_restricted_groups: peopleChartRestricted,
+        people_role_chart_enabled: roleChartEnabled,
+        people_role_chart_restricted_groups: roleChartRestricted,
+        people_share_reports_direct_reports: shareReportsDirectReports,
+        updated_by: (await supabase.auth.getUser()).data.user?.id,
       };
+      const { error } = settingsId
+        ? await supabase.from("organization_settings" as any).update(payload).eq("id", settingsId)
+        : await supabase.from("organization_settings" as any).insert({ ...payload, singleton: true });
+      if (error) throw error;
+      toast({ title: "People settings saved" });
+    } catch (err: any) {
+      console.error(err);
+      toast({ title: "Save failed", description: err.message, variant: "destructive" });
+    } finally {
+      setSavingPeople(false);
+    }
+  };
+
+  const toggleInList = (
+    list: string[],
+    setter: (v: string[]) => void,
+    id: string,
+  ) => {
+    setter(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
+  };
+
       const { error } = settingsId
         ? await supabase.from("organization_settings" as any).update(payload).eq("id", settingsId)
         : await supabase.from("organization_settings" as any).insert({ ...payload, singleton: true });
