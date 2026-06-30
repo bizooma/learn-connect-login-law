@@ -121,6 +121,29 @@ export const UserCard = ({
       setTesterSaving(false);
     }
   };
+  const saveTitle = async () => {
+    const newTitle = titleDraft.trim();
+    setTitleSaving(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ job_title: newTitle || null })
+        .eq("id", user.id);
+      if (error) throw error;
+      setJobTitle(newTitle);
+      setEditingTitle(false);
+      toast({ title: "Title updated", description: newTitle || "Title cleared." });
+    } catch (err: any) {
+      toast({
+        title: "Update failed",
+        description: err.message || "Could not update title.",
+        variant: "destructive",
+      });
+    } finally {
+      setTitleSaving(false);
+    }
+  };
+
 
 
   const userRole = getUserRole(user);
