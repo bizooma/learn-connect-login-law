@@ -30,7 +30,7 @@ export const useOrgPeopleSettings = () => {
       const { data, error } = await supabase
         .from("organization_settings" as any)
         .select(
-          "people_directory_enabled, people_directory_restricted_groups, people_chart_enabled, people_chart_restricted_groups, people_role_chart_enabled, people_role_chart_restricted_groups, people_share_reports_with_direct_reports"
+          "people_directory_enabled, people_directory_restricted_groups, people_chart_enabled, people_chart_restricted_groups, people_role_chart_enabled, people_role_chart_restricted_groups, people_share_reports_direct_reports"
         )
         .eq("singleton", true)
         .maybeSingle();
@@ -43,7 +43,7 @@ export const useOrgPeopleSettings = () => {
         peopleChartRestrictedGroups: r.people_chart_restricted_groups ?? [],
         roleChartEnabled: r.people_role_chart_enabled ?? true,
         roleChartRestrictedGroups: r.people_role_chart_restricted_groups ?? [],
-        shareReportsWithDirectReports: r.people_share_reports_with_direct_reports ?? false,
+        shareReportsWithDirectReports: r.people_share_reports_direct_reports ?? false,
       };
     },
   });
