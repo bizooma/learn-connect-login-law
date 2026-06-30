@@ -29,8 +29,13 @@ import {
   Star,
   BookMarked,
   ChevronRight,
+  Pencil,
+  Check,
+  X,
 } from "lucide-react";
+import { Input } from "@/components/ui/input";
 import { formatUserJoinDate } from "@/utils/dateUtils";
+
 
 interface UserCardProps {
   user: UserProfile;
@@ -58,9 +63,14 @@ export const UserCard = ({
   const [showGroupsDialog, setShowGroupsDialog] = useState(false);
   const [isTester, setIsTester] = useState(false);
   const [testerSaving, setTesterSaving] = useState(false);
+  const [jobTitle, setJobTitle] = useState(user.job_title || "");
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState(user.job_title || "");
+  const [titleSaving, setTitleSaving] = useState(false);
   const { isAdmin } = useUserRole();
   const { toast } = useToast();
   const navigate = useNavigate();
+
 
   useEffect(() => {
     let active = true;
@@ -111,6 +121,29 @@ export const UserCard = ({
       setTesterSaving(false);
     }
   };
+  const saveTitle = async () => {
+    const newTitle = titleDraft.trim();
+    setTitleSaving(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ job_title: newTitle || null })
+        .eq("id", user.id);
+      if (error) throw error;
+      setJobTitle(newTitle);
+      setEditingTitle(false);
+      toast({ title: "Title updated", description: newTitle || "Title cleared." });
+    } catch (err: any) {
+      toast({
+        title: "Update failed",
+        description: err.message || "Could not update title.",
+        variant: "destructive",
+      });
+    } finally {
+      setTitleSaving(false);
+    }
+  };
+
 
 
   const userRole = getUserRole(user);
@@ -160,7 +193,58 @@ export const UserCard = ({
                   {displayName}
                 </button>
                 <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                {editingTitle ? (
+                  <div className="mt-1 flex items-center gap-1">
+                    <Input
+                      autoFocus
+                      value={titleDraft}
+                      onChange={(e) => setTitleDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") saveTitle();
+                        if (e.key === "Escape") {
+                          setEditingTitle(false);
+                          setTitleDraft(jobTitle);
+                        }
+                      }}
+                      placeholder="Job title"
+                      className="h-7 text-xs"
+                      disabled={titleSaving}
+                    />
+                    <button
+                      onClick={saveTitle}
+                      disabled={titleSaving}
+                      className="p-1 rounded hover:bg-muted text-green-600"
+                      aria-label="Save title"
+                    >
+                      <Check className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingTitle(false);
+                        setTitleDraft(jobTitle);
+                      }}
+                      disabled={titleSaving}
+                      className="p-1 rounded hover:bg-muted text-muted-foreground"
+                      aria-label="Cancel"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => isAdmin && setEditingTitle(true)}
+                    disabled={!isAdmin}
+                    className={`mt-0.5 flex items-center gap-1 text-xs truncate ${
+                      jobTitle ? "text-foreground" : "text-muted-foreground italic"
+                    } ${isAdmin ? "hover:text-primary" : "cursor-default"}`}
+                  >
+                    <span className="truncate">{jobTitle || "Add title"}</span>
+                    {isAdmin && <Pencil className="h-3 w-3 opacity-60" />}
+                  </button>
+                )}
               </div>
+
             </div>
             <Badge className={`${roleBadgeColor} text-[10px] uppercase tracking-wider`}>
               {userRole}
