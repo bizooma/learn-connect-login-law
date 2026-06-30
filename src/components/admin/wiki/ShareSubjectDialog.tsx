@@ -36,7 +36,8 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Search, X, Globe, Link2, Users, Plus } from "lucide-react";
+import { Search, X, Globe, Link2, Users, Plus, User as UserIcon } from "lucide-react";
+import { useDirectoryUsers } from "@/hooks/useDirectoryUsers";
 import { toast } from "sonner";
 import {
   WikiCategory,
@@ -94,8 +95,14 @@ const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
     enabled: open,
   });
 
-  const selectedIds = useMemo(() => new Set(shares.map((s) => s.id)), [shares]);
-  const availableGroups = allGroups.filter((g) => !selectedIds.has(g.id));
+  const { data: directoryUsers = [] } = useDirectoryUsers();
+
+  const selectedGroupIds = useMemo(() => new Set(shares.map((s) => s.id)), [shares]);
+  const selectedUserIds = useMemo(() => new Set(userShares.map((u) => u.id)), [userShares]);
+  const availableGroups = allGroups.filter((g) => !selectedGroupIds.has(g.id));
+  const availableUsers = directoryUsers.filter(
+    (u) => !selectedUserIds.has(u.id) && u.id !== category.owner_id,
+  );
 
   const ownerName =
     [category.owner?.first_name, category.owner?.last_name]
@@ -110,12 +117,37 @@ const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
     setAddOpen(false);
   };
 
+  const addUser = (u: typeof directoryUsers[number]) => {
+    setUserShares((prev) => [
+      ...prev,
+      {
+        id: u.id,
+        first_name: u.first_name,
+        last_name: u.last_name,
+        email: u.email,
+        profile_image_url: u.profile_image_url,
+        job_title: u.job_title,
+        access_level: "view",
+        completion_required: false,
+      },
+    ]);
+    setAddOpen(false);
+  };
+
   const removeGroup = (id: string) => {
     setShares((prev) => prev.filter((s) => s.id !== id));
   };
 
+  const removeUser = (id: string) => {
+    setUserShares((prev) => prev.filter((s) => s.id !== id));
+  };
+
   const updateShare = (id: string, patch: Partial<WikiSharedGroup>) => {
     setShares((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+  };
+
+  const updateUserShare = (id: string, patch: Partial<WikiSharedUser>) => {
+    setUserShares((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
   };
 
   const handleSave = async () => {
