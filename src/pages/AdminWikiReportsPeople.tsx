@@ -15,6 +15,8 @@ import {
 import { useOrgPeopleSettings } from "@/hooks/useOrgPeopleSettings";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
+import UserSubjectProgressDialog from "@/components/admin/wiki/reports/UserSubjectProgressDialog";
+
 
 
 const formatDate = (iso: string | null) => {
@@ -38,6 +40,8 @@ const AdminWikiReportsPeople = () => {
   const { isAdmin } = useUserRole();
   const [search, setSearch] = useState("");
   const [directReportIds, setDirectReportIds] = useState<string[] | null>(null);
+  const [detailsUser, setDetailsUser] = useState<{ id: string; name: string } | null>(null);
+
 
   // If sharing with direct reports is on and viewer isn't admin, fetch their direct reports.
   useEffect(() => {
@@ -140,67 +144,79 @@ const AdminWikiReportsPeople = () => {
               <TableHead className="w-[240px]">Completion</TableHead>
               <TableHead className="w-[100px]">Views</TableHead>
               <TableHead className="w-[200px]">Last activity</TableHead>
+              <TableHead className="w-[120px] text-right">Actions</TableHead>
             </TableRow>
+
           </TableHeader>
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground py-8">
+                <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
                   Loading...
                 </TableCell>
               </TableRow>
             ) : filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center text-muted-foreground py-12">
+                <TableCell colSpan={6} className="text-center text-muted-foreground py-12">
                   No people found.
                 </TableCell>
               </TableRow>
             ) : (
-              filtered.map((row) => (
-                <TableRow key={row.user_id}>
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
-                        <User className="h-4 w-4 text-muted-foreground" />
-                      </div>
-                      <div>
-                        <div className="font-medium">
-                          {`${row.first_name ?? ""} ${row.last_name ?? ""}`.trim() || row.email}
+              filtered.map((row) => {
+                const fullName = `${row.first_name ?? ""} ${row.last_name ?? ""}`.trim() || row.email;
+                return (
+                  <TableRow key={row.user_id}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <div className="h-8 w-8 rounded-full bg-muted flex items-center justify-center">
+                          <User className="h-4 w-4 text-muted-foreground" />
                         </div>
-                        <div className="text-xs text-muted-foreground">{row.email}</div>
+                        <div>
+                          <div className="font-medium">{fullName}</div>
+                          <div className="text-xs text-muted-foreground">{row.email}</div>
+                        </div>
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {row.job_title ?? "—"}
-                  </TableCell>
-                  <TableCell>
-                    <div className="flex items-center gap-3">
-                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
-                        <div
-                          className="h-full bg-primary"
-                          style={{ width: `${row.read_pct}%` }}
-                        />
+                    </TableCell>
+                    <TableCell className="text-muted-foreground">{row.job_title ?? "—"}</TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-3">
+                        <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                          <div className="h-full bg-primary" style={{ width: `${row.read_pct}%` }} />
+                        </div>
+                        <span className="text-xs text-muted-foreground w-12 text-right">{row.read_pct}%</span>
                       </div>
-                      <span className="text-xs text-muted-foreground w-12 text-right">
-                        {row.read_pct}%
-                      </span>
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {row.articles_read} {row.articles_read === 1 ? "article" : "articles"} read
-                    </div>
-                  </TableCell>
-                  <TableCell>{row.total_views}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {formatDate(row.last_activity)}
-                  </TableCell>
-                </TableRow>
-              ))
+                      <div className="text-xs text-muted-foreground mt-1">
+                        {row.articles_read} {row.articles_read === 1 ? "article" : "articles"} read
+                      </div>
+                    </TableCell>
+                    <TableCell>{row.total_views}</TableCell>
+                    <TableCell className="text-muted-foreground">{formatDate(row.last_activity)}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="link"
+                        size="sm"
+                        className="text-primary"
+                        onClick={() => setDetailsUser({ id: row.user_id, name: fullName })}
+                      >
+                        View details
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
             )}
           </TableBody>
         </Table>
       </div>
+
+      <UserSubjectProgressDialog
+        open={!!detailsUser}
+        onOpenChange={(o) => !o && setDetailsUser(null)}
+        userId={detailsUser?.id ?? null}
+        userName={detailsUser?.name ?? ""}
+      />
     </ReportsShell>
+
   );
 };
 
