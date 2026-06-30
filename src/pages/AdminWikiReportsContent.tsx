@@ -9,10 +9,12 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ResizableHead } from "@/components/admin/wiki/ResizableHead";
+import { useResizableColumns } from "@/hooks/useResizableColumns";
+
 
 const formatDate = (iso: string) => {
   try {
