@@ -210,6 +210,18 @@ const AdminWikiSettingsPage = () => {
         content_feedback_enabled: feedbackEnabled,
         content_default_discoverability: defaultDiscoverability,
         updated_by: (await supabase.auth.getUser()).data.user?.id,
+      };
+      const { error } = settingsId
+        ? await supabase.from("organization_settings" as any).update(payload).eq("id", settingsId)
+        : await supabase.from("organization_settings" as any).insert({ ...payload, singleton: true });
+      if (error) throw error;
+      toast({ title: "Content settings saved" });
+    } catch (err: any) {
+      console.error(err);
+      toast({ title: "Save failed", description: err.message, variant: "destructive" });
+    } finally {
+      setSavingContent(false);
+    }
   };
 
   const handleSavePeople = async () => {
@@ -246,18 +258,6 @@ const AdminWikiSettingsPage = () => {
     setter(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
   };
 
-      const { error } = settingsId
-        ? await supabase.from("organization_settings" as any).update(payload).eq("id", settingsId)
-        : await supabase.from("organization_settings" as any).insert({ ...payload, singleton: true });
-      if (error) throw error;
-      toast({ title: "Content settings saved" });
-    } catch (err: any) {
-      console.error(err);
-      toast({ title: "Save failed", description: err.message, variant: "destructive" });
-    } finally {
-      setSavingContent(false);
-    }
-  };
 
 
   return (
