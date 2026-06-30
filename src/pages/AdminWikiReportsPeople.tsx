@@ -141,12 +141,13 @@ const AdminWikiReportsPeople = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Person</TableHead>
-              <TableHead>Job title</TableHead>
-              <TableHead className="w-[240px]">Completion</TableHead>
-              <TableHead className="w-[100px]">Views</TableHead>
-              <TableHead className="w-[200px]">Last activity</TableHead>
-              <TableHead className="w-[120px] text-right">Actions</TableHead>
+              <ResizableHead width={cols.widths[0]} onResize={cols.onMouseDown(0)}>Person</ResizableHead>
+              <ResizableHead width={cols.widths[1]} onResize={cols.onMouseDown(1)}>Job title</ResizableHead>
+              <ResizableHead width={cols.widths[2]} onResize={cols.onMouseDown(2)}>Completion</ResizableHead>
+              <ResizableHead width={cols.widths[3]} onResize={cols.onMouseDown(3)}>Views</ResizableHead>
+              <ResizableHead width={cols.widths[4]} onResize={cols.onMouseDown(4)}>Last activity</ResizableHead>
+              <ResizableHead width={cols.widths[5]} className="text-right">Actions</ResizableHead>
+
             </TableRow>
 
           </TableHeader>
