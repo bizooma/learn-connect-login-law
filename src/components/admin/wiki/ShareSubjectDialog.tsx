@@ -316,21 +316,53 @@ const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
           </PopoverTrigger>
           <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
             <Command>
-              <CommandInput placeholder="Search groups…" />
+              <CommandInput placeholder="Search people and groups…" />
               <CommandList>
-                <CommandEmpty>No groups found.</CommandEmpty>
-                <CommandGroup>
-                  {availableGroups.map((g) => (
-                    <CommandItem
-                      key={g.id}
-                      onSelect={() => addGroup(g)}
-                      className="cursor-pointer"
-                    >
-                      <Users className="h-4 w-4 mr-2 text-muted-foreground" />
-                      {g.name}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
+                <CommandEmpty>No matches.</CommandEmpty>
+                {availableGroups.length > 0 && (
+                  <CommandGroup heading="Groups">
+                    {availableGroups.map((g) => (
+                      <CommandItem
+                        key={`g-${g.id}`}
+                        value={`group ${g.name}`}
+                        onSelect={() => addGroup(g)}
+                        className="cursor-pointer"
+                      >
+                        <Users className="h-4 w-4 mr-2 text-muted-foreground" />
+                        {g.name}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
+                {availableUsers.length > 0 && (
+                  <CommandGroup heading="People">
+                    {availableUsers.map((u) => {
+                      const name =
+                        [u.first_name, u.last_name].filter(Boolean).join(" ") || u.email;
+                      return (
+                        <CommandItem
+                          key={`u-${u.id}`}
+                          value={`person ${name} ${u.email}`}
+                          onSelect={() => addUser(u)}
+                          className="cursor-pointer"
+                        >
+                          <Avatar className="h-5 w-5 mr-2">
+                            {u.profile_image_url && (
+                              <AvatarImage src={u.profile_image_url} alt={name} />
+                            )}
+                            <AvatarFallback className="text-[10px]">
+                              {name.slice(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex flex-col">
+                            <span className="text-sm">{name}</span>
+                            <span className="text-xs text-muted-foreground">{u.email}</span>
+                          </div>
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                )}
               </CommandList>
             </Command>
           </PopoverContent>
