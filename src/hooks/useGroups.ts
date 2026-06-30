@@ -150,7 +150,32 @@ export const useGroups = () => {
     [fetchGroups]
   );
 
-  return { groups, loading, fetchGroups, createGroup, updateGroup, deleteGroup };
+  const setGroupManagers = useCallback(
+    async (groupId: string, userIds: string[]) => {
+      const unique = Array.from(new Set(userIds.filter(Boolean)));
+      const { error: delErr } = await supabase
+        .from("group_managers" as any)
+        .delete()
+        .eq("group_id", groupId);
+      if (delErr) throw delErr;
+      if (unique.length > 0) {
+        const userRes = await supabase.auth.getUser();
+        const rows = unique.map((uid) => ({
+          group_id: groupId,
+          user_id: uid,
+          added_by: userRes.data.user?.id ?? null,
+        }));
+        const { error: insErr } = await supabase.from("group_managers" as any).insert(rows);
+        if (insErr) throw insErr;
+      }
+      // Also clear legacy single field so it doesn't double-count
+      await supabase.from("groups" as any).update({ manager_id: unique[0] ?? null }).eq("id", groupId);
+      await fetchGroups();
+    },
+    [fetchGroups]
+  );
+
+  return { groups, loading, fetchGroups, createGroup, updateGroup, deleteGroup, setGroupManagers };
 };
 
 export const useGroupMembers = (groupId: string | null) => {
