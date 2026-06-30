@@ -8,10 +8,12 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableHead,
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { ResizableHead } from "@/components/admin/wiki/ResizableHead";
+import { useResizableColumns } from "@/hooks/useResizableColumns";
+
 import { useOrgPeopleSettings } from "@/hooks/useOrgPeopleSettings";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
@@ -41,6 +43,11 @@ const AdminWikiReportsPeople = () => {
   const [search, setSearch] = useState("");
   const [directReportIds, setDirectReportIds] = useState<string[] | null>(null);
   const [detailsUser, setDetailsUser] = useState<{ id: string; name: string } | null>(null);
+  const cols = useResizableColumns({
+    storageKey: "report-people-cols",
+    defaults: [280, 200, 260, 100, 200, 140],
+  });
+
 
 
   // If sharing with direct reports is on and viewer isn't admin, fetch their direct reports.
@@ -139,12 +146,13 @@ const AdminWikiReportsPeople = () => {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Person</TableHead>
-              <TableHead>Job title</TableHead>
-              <TableHead className="w-[240px]">Completion</TableHead>
-              <TableHead className="w-[100px]">Views</TableHead>
-              <TableHead className="w-[200px]">Last activity</TableHead>
-              <TableHead className="w-[120px] text-right">Actions</TableHead>
+              <ResizableHead width={cols.widths[0]} onResize={cols.onMouseDown(0)}>Person</ResizableHead>
+              <ResizableHead width={cols.widths[1]} onResize={cols.onMouseDown(1)}>Job title</ResizableHead>
+              <ResizableHead width={cols.widths[2]} onResize={cols.onMouseDown(2)}>Completion</ResizableHead>
+              <ResizableHead width={cols.widths[3]} onResize={cols.onMouseDown(3)}>Views</ResizableHead>
+              <ResizableHead width={cols.widths[4]} onResize={cols.onMouseDown(4)}>Last activity</ResizableHead>
+              <ResizableHead width={cols.widths[5]} className="text-right">Actions</ResizableHead>
+
             </TableRow>
 
           </TableHeader>

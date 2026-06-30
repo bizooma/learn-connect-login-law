@@ -289,7 +289,7 @@ const AdminWikiSettingsPage = () => {
             </div>
 
             <div className="flex-1 overflow-auto p-6">
-              <div className="max-w-5xl mx-auto space-y-6">
+              <div className="w-full px-2 space-y-6">
                 <h1 className="text-3xl font-bold text-foreground">Settings</h1>
 
                 <Tabs defaultValue="general" className="w-full">

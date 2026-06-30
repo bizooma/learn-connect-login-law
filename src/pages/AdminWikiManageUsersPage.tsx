@@ -47,7 +47,7 @@ const AdminWikiManageUsersPage = () => {
             </div>
 
             <div className="flex-1 overflow-auto p-6">
-              <div className="max-w-7xl mx-auto">
+              <div className="w-full px-2">
                 {isAdmin && <UserManagementTabs />}
               </div>
             </div>

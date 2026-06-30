@@ -12,8 +12,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import {
-  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+  Table, TableBody, TableCell, TableHeader, TableRow,
 } from "@/components/ui/table";
+import { ResizableHead } from "@/components/admin/wiki/ResizableHead";
+import { useResizableColumns } from "@/hooks/useResizableColumns";
+
 import {
   Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger,
 } from "@/components/ui/dialog";
@@ -49,6 +52,11 @@ const AdminWikiGroupsPage = () => {
   const { toast } = useToast();
 
   const [search, setSearch] = useState("");
+  const cols = useResizableColumns({
+    storageKey: "groups-cols",
+    defaults: [240, 220, 120, 140, 400, 60],
+  });
+
   const [formOpen, setFormOpen] = useState(false);
   const [editing, setEditing] = useState<Group | null>(null);
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
@@ -189,7 +197,7 @@ const AdminWikiGroupsPage = () => {
             </div>
 
             <div className="flex-1 overflow-auto p-6">
-              <div className="max-w-6xl mx-auto space-y-4">
+              <div className="w-full px-2 space-y-4">
                 <div className="rounded-lg border border-border bg-background p-5 flex items-start justify-between gap-4">
                   <div>
                     <h3 className="text-lg font-semibold text-[#213C82]">
@@ -224,12 +232,13 @@ const AdminWikiGroupsPage = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Manager</TableHead>
-                        <TableHead>Members</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead className="w-12" />
+                        <ResizableHead width={cols.widths[0]} onResize={cols.onMouseDown(0)}>Name</ResizableHead>
+                        <ResizableHead width={cols.widths[1]} onResize={cols.onMouseDown(1)}>Manager</ResizableHead>
+                        <ResizableHead width={cols.widths[2]} onResize={cols.onMouseDown(2)}>Members</ResizableHead>
+                        <ResizableHead width={cols.widths[3]} onResize={cols.onMouseDown(3)}>Type</ResizableHead>
+                        <ResizableHead width={cols.widths[4]} onResize={cols.onMouseDown(4)}>Description</ResizableHead>
+                        <ResizableHead width={cols.widths[5]} />
+
                       </TableRow>
                     </TableHeader>
                     <TableBody>
