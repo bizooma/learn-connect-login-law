@@ -69,9 +69,16 @@ const OwnerPicker = ({ value, ownerDisplay, onChange, disabled }: OwnerPickerPro
           size="sm"
           disabled={disabled}
           onClick={(e) => e.stopPropagation()}
-          className="h-7 px-2 -ml-2 text-xs font-normal text-foreground hover:bg-muted/60 max-w-full justify-start"
+          className="h-7 px-2 -ml-2 text-xs font-normal text-foreground hover:bg-muted/60 max-w-full justify-start gap-1.5"
         >
-          <UserIcon className="h-3.5 w-3.5 mr-1.5 text-muted-foreground shrink-0" />
+          {ownerDisplay ? (
+            <Avatar className="h-5 w-5 shrink-0">
+              {ownerDisplay.profile_image_url && <AvatarImage src={ownerDisplay.profile_image_url} alt="" />}
+              <AvatarFallback className="text-[9px]">{initialsFor(ownerDisplay)}</AvatarFallback>
+            </Avatar>
+          ) : (
+            <UserIcon className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+          )}
           <span className="truncate">{ownerDisplay ? labelFor(ownerDisplay) : "Unassigned"}</span>
           <ChevronDown className="h-3 w-3 ml-1 text-muted-foreground shrink-0" />
         </Button>
