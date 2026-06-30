@@ -13,6 +13,8 @@ export interface UserProfile {
   deleted_at?: string;
   law_firm_id?: string;
   team_leader_id?: string;
+  manager_id?: string | null;
+
   roles?: string[];
   hasCompleteProfile?: boolean;
 }

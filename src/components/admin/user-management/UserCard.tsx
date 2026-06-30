@@ -17,6 +17,8 @@ import { getUserRole, getRoleBadgeColor } from "./userRoleUtils";
 import { useUserRole } from "@/hooks/useUserRole";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import OwnerPicker from "@/components/admin/wiki/OwnerPicker";
+
 
 import {
   BookOpen,
@@ -67,7 +69,10 @@ export const UserCard = ({
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState(user.job_title || "");
   const [titleSaving, setTitleSaving] = useState(false);
+  const [managerId, setManagerId] = useState<string | null>(user.manager_id ?? null);
+  const [managerDisplay, setManagerDisplay] = useState<{ id: string; first_name: string | null; last_name: string | null; email: string; profile_image_url?: string | null } | null>(null);
   const { isAdmin } = useUserRole();
+
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -87,6 +92,45 @@ export const UserCard = ({
       active = false;
     };
   }, [user.id]);
+
+  useEffect(() => {
+    let active = true;
+    if (!managerId) {
+      setManagerDisplay(null);
+      return;
+    }
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, email, profile_image_url")
+        .eq("id", managerId)
+        .maybeSingle();
+      if (active) setManagerDisplay(data as any);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [managerId]);
+
+  const saveManager = async (newId: string | null) => {
+    const prev = managerId;
+    setManagerId(newId);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ manager_id: newId } as any)
+      .eq("id", user.id);
+    if (error) {
+      setManagerId(prev);
+      toast({
+        title: "Update failed",
+        description: error.message || "Could not update manager.",
+        variant: "destructive",
+      });
+    } else {
+      toast({ title: newId ? "Manager assigned" : "Manager cleared" });
+    }
+  };
+
 
   const toggleTester = async (next: boolean) => {
     setTesterSaving(true);
@@ -250,6 +294,25 @@ export const UserCard = ({
               {userRole}
             </Badge>
           </div>
+
+          <div className="mt-2 flex items-center gap-2 text-xs">
+            <span className="text-muted-foreground shrink-0">Manager:</span>
+            {isAdmin ? (
+              <OwnerPicker
+                value={managerId}
+                ownerDisplay={managerDisplay as any}
+                onChange={saveManager}
+              />
+            ) : (
+              <span className="text-foreground truncate">
+                {managerDisplay
+                  ? `${managerDisplay.first_name ?? ""} ${managerDisplay.last_name ?? ""}`.trim() ||
+                    managerDisplay.email
+                  : "—"}
+              </span>
+            )}
+          </div>
+
 
           <div className="mt-3 flex flex-wrap gap-2 items-center">
             {isTeamLeader && (

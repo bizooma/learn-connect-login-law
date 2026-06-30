@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import ReportsShell from "@/components/admin/wiki/reports/ReportsShell";
 import { usePeopleReport } from "@/hooks/useWikiReports";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useOrgPeopleSettings } from "@/hooks/useOrgPeopleSettings";
+import { useUserRole } from "@/hooks/useUserRole";
+import { supabase } from "@/integrations/supabase/client";
+
 
 const formatDate = (iso: string | null) => {
   if (!iso) return "Never";
@@ -30,12 +34,47 @@ const formatDate = (iso: string | null) => {
 
 const AdminWikiReportsPeople = () => {
   const { data = [], isLoading } = usePeopleReport();
+  const { settings } = useOrgPeopleSettings();
+  const { isAdmin } = useUserRole();
   const [search, setSearch] = useState("");
+  const [directReportIds, setDirectReportIds] = useState<string[] | null>(null);
+
+  // If sharing with direct reports is on and viewer isn't admin, fetch their direct reports.
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      if (isAdmin || !settings.shareReportsWithDirectReports) {
+        setDirectReportIds(null);
+        return;
+      }
+      const { data: auth } = await supabase.auth.getUser();
+      const uid = auth.user?.id;
+      if (!uid) {
+        if (active) setDirectReportIds([]);
+        return;
+      }
+      const { data: reports } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("manager_id", uid);
+      if (active) setDirectReportIds((reports ?? []).map((r: any) => r.id));
+    })();
+    return () => {
+      active = false;
+    };
+  }, [isAdmin, settings.shareReportsWithDirectReports]);
+
+  const scoped = useMemo(() => {
+    if (directReportIds === null) return data; // unrestricted view
+    const allow = new Set(directReportIds);
+    return data.filter((r) => allow.has(r.user_id));
+  }, [data, directReportIds]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const base = q
-      ? data.filter((r) => {
+      ? scoped.filter((r) => {
+
           const name = `${r.first_name ?? ""} ${r.last_name ?? ""}`.toLowerCase();
           return (
             name.includes(q) ||
@@ -43,9 +82,10 @@ const AdminWikiReportsPeople = () => {
             (r.job_title ?? "").toLowerCase().includes(q)
           );
         })
-      : data;
+      : scoped;
     return [...base].sort((a, b) => b.articles_read - a.articles_read);
-  }, [data, search]);
+  }, [scoped, search]);
+
 
   const exportCsv = () => {
     const headers = ["Name", "Email", "Job Title", "Articles Read", "Total Views", "Read %", "Last Activity"];

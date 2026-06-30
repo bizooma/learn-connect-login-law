@@ -1350,6 +1350,7 @@ export type Database = {
           last_name: string | null
           law_firm_id: string | null
           law_firm_name: string | null
+          manager_id: string | null
           profile_image_url: string | null
           team_leader_id: string | null
           updated_at: string | null
@@ -1365,6 +1366,7 @@ export type Database = {
           last_name?: string | null
           law_firm_id?: string | null
           law_firm_name?: string | null
+          manager_id?: string | null
           profile_image_url?: string | null
           team_leader_id?: string | null
           updated_at?: string | null
@@ -1380,6 +1382,7 @@ export type Database = {
           last_name?: string | null
           law_firm_id?: string | null
           law_firm_name?: string | null
+          manager_id?: string | null
           profile_image_url?: string | null
           team_leader_id?: string | null
           updated_at?: string | null
@@ -1390,6 +1393,13 @@ export type Database = {
             columns: ["law_firm_id"]
             isOneToOne: false
             referencedRelation: "law_firms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "profiles_manager_id_fkey"
+            columns: ["manager_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
