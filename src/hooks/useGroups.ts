@@ -124,7 +124,7 @@ export const useGroups = () => {
         .single();
       if (error) throw error;
       await fetchGroups();
-      return data as { id: string } | null;
+      return data as unknown as { id: string } | null;
     },
     [fetchGroups]
   );
