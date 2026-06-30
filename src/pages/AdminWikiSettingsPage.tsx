@@ -58,6 +58,17 @@ const AdminWikiSettingsPage = () => {
   const [defaultDiscoverability, setDefaultDiscoverability] = useState<"discoverable" | "request" | "private">("discoverable");
   const [savingContent, setSavingContent] = useState(false);
 
+  // People tab
+  const [directoryEnabled, setDirectoryEnabled] = useState(true);
+  const [directoryRestricted, setDirectoryRestricted] = useState<string[]>([]);
+  const [peopleChartEnabled, setPeopleChartEnabled] = useState(true);
+  const [peopleChartRestricted, setPeopleChartRestricted] = useState<string[]>([]);
+  const [roleChartEnabled, setRoleChartEnabled] = useState(true);
+  const [roleChartRestricted, setRoleChartRestricted] = useState<string[]>([]);
+  const [shareReportsDirectReports, setShareReportsDirectReports] = useState(true);
+  const [savingPeople, setSavingPeople] = useState(false);
+
+
 
   useEffect(() => {
     if (!loading && !isAdmin) {
