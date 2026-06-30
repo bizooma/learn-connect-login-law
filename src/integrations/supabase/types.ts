@@ -2606,6 +2606,44 @@ export type Database = {
           },
         ]
       }
+      wiki_category_users: {
+        Row: {
+          access_level: string
+          category_id: string
+          completion_required: boolean
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          access_level?: string
+          category_id: string
+          completion_required?: boolean
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          access_level?: string
+          category_id?: string
+          completion_required?: boolean
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wiki_category_users_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "wiki_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wiki_pages: {
         Row: {
           article_id: string
