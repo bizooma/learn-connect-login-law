@@ -44,7 +44,7 @@ const DirectoryTable = ({ users, onSelect }: Props) => {
   });
   return (
     <div className="border border-border rounded-lg overflow-hidden bg-card">
-      <Table>
+      <Table className="table-fixed w-full">
         <TableHeader>
           <TableRow className="bg-muted/50">
             <ResizableHead width={cols.widths[0]} onResize={cols.onMouseDown(0)}>Name</ResizableHead>

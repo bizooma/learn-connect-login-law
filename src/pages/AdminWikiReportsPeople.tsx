@@ -143,7 +143,7 @@ const AdminWikiReportsPeople = () => {
       </div>
 
       <div className="rounded-lg border border-border bg-card">
-        <Table>
+        <Table className="table-fixed w-full">
           <TableHeader>
             <TableRow>
               <ResizableHead width={cols.widths[0]} onResize={cols.onMouseDown(0)}>Person</ResizableHead>
