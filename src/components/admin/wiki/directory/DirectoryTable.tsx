@@ -38,18 +38,23 @@ const fullName = (u: DirectoryUser) =>
 
 const DirectoryTable = ({ users, onSelect }: Props) => {
   const { toast } = useToast();
+  const cols = useResizableColumns({
+    storageKey: "directory-cols",
+    defaults: [320, 140, 240, 320, 60],
+  });
   return (
     <div className="border border-border rounded-lg overflow-hidden bg-card">
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/50">
-            <TableHead>Name</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Job Title</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead className="w-12" />
+            <ResizableHead width={cols.widths[0]} onResize={cols.onMouseDown(0)}>Name</ResizableHead>
+            <ResizableHead width={cols.widths[1]} onResize={cols.onMouseDown(1)}>Status</ResizableHead>
+            <ResizableHead width={cols.widths[2]} onResize={cols.onMouseDown(2)}>Job Title</ResizableHead>
+            <ResizableHead width={cols.widths[3]} onResize={cols.onMouseDown(3)}>Email</ResizableHead>
+            <ResizableHead width={cols.widths[4]} />
           </TableRow>
         </TableHeader>
+
         <TableBody>
           {users.map((u) => (
             <TableRow
