@@ -193,7 +193,58 @@ export const UserCard = ({
                   {displayName}
                 </button>
                 <p className="text-sm text-muted-foreground truncate">{user.email}</p>
+                {editingTitle ? (
+                  <div className="mt-1 flex items-center gap-1">
+                    <Input
+                      autoFocus
+                      value={titleDraft}
+                      onChange={(e) => setTitleDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") saveTitle();
+                        if (e.key === "Escape") {
+                          setEditingTitle(false);
+                          setTitleDraft(jobTitle);
+                        }
+                      }}
+                      placeholder="Job title"
+                      className="h-7 text-xs"
+                      disabled={titleSaving}
+                    />
+                    <button
+                      onClick={saveTitle}
+                      disabled={titleSaving}
+                      className="p-1 rounded hover:bg-muted text-green-600"
+                      aria-label="Save title"
+                    >
+                      <Check className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => {
+                        setEditingTitle(false);
+                        setTitleDraft(jobTitle);
+                      }}
+                      disabled={titleSaving}
+                      className="p-1 rounded hover:bg-muted text-muted-foreground"
+                      aria-label="Cancel"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => isAdmin && setEditingTitle(true)}
+                    disabled={!isAdmin}
+                    className={`mt-0.5 flex items-center gap-1 text-xs truncate ${
+                      jobTitle ? "text-foreground" : "text-muted-foreground italic"
+                    } ${isAdmin ? "hover:text-primary" : "cursor-default"}`}
+                  >
+                    <span className="truncate">{jobTitle || "Add title"}</span>
+                    {isAdmin && <Pencil className="h-3 w-3 opacity-60" />}
+                  </button>
+                )}
               </div>
+
             </div>
             <Badge className={`${roleBadgeColor} text-[10px] uppercase tracking-wider`}>
               {userRole}
