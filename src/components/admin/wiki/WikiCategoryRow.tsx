@@ -23,6 +23,9 @@ import { useWikiColumns } from "./WikiColumnsContext";
 import { printSubjectPdf } from "@/lib/printSubjectPdf";
 import OwnerPicker from "./OwnerPicker";
 import ShareGroupsPicker from "./ShareGroupsPicker";
+import { useWikiAccess } from "@/hooks/useWikiAccess";
+
+
 
 
 interface WikiCategoryRowProps {
