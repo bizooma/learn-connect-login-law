@@ -41,6 +41,10 @@ export const useWikiAccess = () => {
       if (!groupSet.has(sg.id)) continue;
       if (!best || rank[sg.access_level] > rank[best]) best = sg.access_level;
     }
+    for (const su of category.shared_users || []) {
+      if (su.id !== user.id) continue;
+      if (!best || rank[su.access_level] > rank[best]) best = su.access_level;
+    }
     if (best) return best;
 
     if (category.is_published && category.discoverability === "discoverable") {
