@@ -52,7 +52,7 @@ export const useWikiCategories = () => {
       if (ownerIds.length > 0) {
         const { data: owners } = await supabase
           .from("profiles")
-          .select("id, first_name, last_name, email")
+          .select("id, first_name, last_name, email, profile_image_url")
           .in("id", ownerIds);
         ownersMap = Object.fromEntries((owners || []).map((o: any) => [o.id, o]));
       }
