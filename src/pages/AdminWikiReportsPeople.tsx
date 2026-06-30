@@ -82,9 +82,10 @@ const AdminWikiReportsPeople = () => {
             (r.job_title ?? "").toLowerCase().includes(q)
           );
         })
-      : data;
+      : scoped;
     return [...base].sort((a, b) => b.articles_read - a.articles_read);
-  }, [data, search]);
+  }, [scoped, search]);
+
 
   const exportCsv = () => {
     const headers = ["Name", "Email", "Job Title", "Articles Read", "Total Views", "Read %", "Last Activity"];
