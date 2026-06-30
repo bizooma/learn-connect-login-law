@@ -58,6 +58,17 @@ const AdminWikiSettingsPage = () => {
   const [defaultDiscoverability, setDefaultDiscoverability] = useState<"discoverable" | "request" | "private">("discoverable");
   const [savingContent, setSavingContent] = useState(false);
 
+  // People tab
+  const [directoryEnabled, setDirectoryEnabled] = useState(true);
+  const [directoryRestricted, setDirectoryRestricted] = useState<string[]>([]);
+  const [peopleChartEnabled, setPeopleChartEnabled] = useState(true);
+  const [peopleChartRestricted, setPeopleChartRestricted] = useState<string[]>([]);
+  const [roleChartEnabled, setRoleChartEnabled] = useState(true);
+  const [roleChartRestricted, setRoleChartRestricted] = useState<string[]>([]);
+  const [shareReportsDirectReports, setShareReportsDirectReports] = useState(true);
+  const [savingPeople, setSavingPeople] = useState(false);
+
+
 
   useEffect(() => {
     if (!loading && !isAdmin) {
@@ -94,6 +105,13 @@ const AdminWikiSettingsPage = () => {
         setEsignaturePermission(row.content_esignature_permission ?? "billing_admin");
         setFeedbackEnabled(row.content_feedback_enabled ?? true);
         setDefaultDiscoverability((row.content_default_discoverability ?? "discoverable") as any);
+        setDirectoryEnabled(row.people_directory_enabled ?? true);
+        setDirectoryRestricted(row.people_directory_restricted_groups ?? []);
+        setPeopleChartEnabled(row.people_chart_enabled ?? true);
+        setPeopleChartRestricted(row.people_chart_restricted_groups ?? []);
+        setRoleChartEnabled(row.people_role_chart_enabled ?? true);
+        setRoleChartRestricted(row.people_role_chart_restricted_groups ?? []);
+        setShareReportsDirectReports(row.people_share_reports_direct_reports ?? true);
       }
 
       setLoadingData(false);
@@ -205,6 +223,41 @@ const AdminWikiSettingsPage = () => {
       setSavingContent(false);
     }
   };
+
+  const handleSavePeople = async () => {
+    setSavingPeople(true);
+    try {
+      const payload = {
+        people_directory_enabled: directoryEnabled,
+        people_directory_restricted_groups: directoryRestricted,
+        people_chart_enabled: peopleChartEnabled,
+        people_chart_restricted_groups: peopleChartRestricted,
+        people_role_chart_enabled: roleChartEnabled,
+        people_role_chart_restricted_groups: roleChartRestricted,
+        people_share_reports_direct_reports: shareReportsDirectReports,
+        updated_by: (await supabase.auth.getUser()).data.user?.id,
+      };
+      const { error } = settingsId
+        ? await supabase.from("organization_settings" as any).update(payload).eq("id", settingsId)
+        : await supabase.from("organization_settings" as any).insert({ ...payload, singleton: true });
+      if (error) throw error;
+      toast({ title: "People settings saved" });
+    } catch (err: any) {
+      console.error(err);
+      toast({ title: "Save failed", description: err.message, variant: "destructive" });
+    } finally {
+      setSavingPeople(false);
+    }
+  };
+
+  const toggleInList = (
+    list: string[],
+    setter: (v: string[]) => void,
+    id: string,
+  ) => {
+    setter(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
+  };
+
 
 
   return (
@@ -493,11 +546,110 @@ const AdminWikiSettingsPage = () => {
 
                   <TabsContent value="people" className="mt-6">
                     <Card>
-                      <CardContent className="pt-6">
-                        <p className="text-sm text-muted-foreground">People settings coming soon.</p>
+                      <CardContent className="pt-6 space-y-8">
+                        {[
+                          {
+                            key: "directory",
+                            title: 'Share the "Directory" with your entire team',
+                            description:
+                              "Help your team feel more connected by letting them see each other's profiles. Only admins and Billing admins will have access to administrative functions, content management, and reports.",
+                            restrictLabel: "Restrict groups from accessing directory",
+                            restrictHelp: "Admins and Billing admins will have access to the directory, no matter their group.",
+                            enabled: directoryEnabled,
+                            setEnabled: setDirectoryEnabled,
+                            restricted: directoryRestricted,
+                            setRestricted: setDirectoryRestricted,
+                          },
+                          {
+                            key: "people-chart",
+                            title: 'Share the "People chart" with your entire team',
+                            description:
+                              'Give all team members access to your "People chart" regardless of permission level. Only admins can edit the chart.',
+                            restrictLabel: "Restrict groups from accessing people chart",
+                            restrictHelp: "Admins and Billing admins will have access to the people chart, no matter their group.",
+                            enabled: peopleChartEnabled,
+                            setEnabled: setPeopleChartEnabled,
+                            restricted: peopleChartRestricted,
+                            setRestricted: setPeopleChartRestricted,
+                          },
+                          {
+                            key: "role-chart",
+                            title: 'Share the "Role chart" with your entire team',
+                            description:
+                              'Give all team members access to your "Role chart" regardless of permission level. Only admins can edit the chart.',
+                            restrictLabel: "Restrict groups from accessing role chart",
+                            restrictHelp: "Admins and Billing admins will have access to the role chart, no matter their group.",
+                            enabled: roleChartEnabled,
+                            setEnabled: setRoleChartEnabled,
+                            restricted: roleChartRestricted,
+                            setRestricted: setRoleChartRestricted,
+                          },
+                        ].map((row) => (
+                          <div key={row.key} className="space-y-3 pb-6 border-b border-border last:border-0">
+                            <div className="flex items-start gap-4">
+                              <Switch checked={row.enabled} onCheckedChange={row.setEnabled} />
+                              <div className="flex-1">
+                                <Label className="text-base font-semibold">{row.title}</Label>
+                                <p className="text-sm text-muted-foreground mt-1">{row.description}</p>
+                              </div>
+                            </div>
+                            {row.enabled && (
+                              <div className="pl-14 space-y-2">
+                                <Label className="text-sm font-semibold">{row.restrictLabel}</Label>
+                                {groups.length === 0 ? (
+                                  <p className="text-sm text-muted-foreground italic">
+                                    No groups exist yet. Create groups on the Groups page to use them here.
+                                  </p>
+                                ) : (
+                                  <div className="border border-border rounded-md max-h-48 overflow-auto max-w-md">
+                                    {groups.map((g) => {
+                                      const checked = row.restricted.includes(g.id);
+                                      return (
+                                        <label
+                                          key={g.id}
+                                          className="flex items-center justify-between gap-3 p-2 border-b border-border last:border-0 hover:bg-muted/50 cursor-pointer"
+                                        >
+                                          <div className="flex items-center gap-3">
+                                            <Checkbox
+                                              checked={checked}
+                                              onCheckedChange={() => toggleInList(row.restricted, row.setRestricted, g.id)}
+                                            />
+                                            <div className="text-sm">{g.name}</div>
+                                          </div>
+                                          {checked && <Check className="h-4 w-4 text-primary" />}
+                                        </label>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                                <p className="text-xs text-muted-foreground">{row.restrictHelp}</p>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+
+                        <div className="flex items-start gap-4">
+                          <Switch
+                            checked={shareReportsDirectReports}
+                            onCheckedChange={setShareReportsDirectReports}
+                          />
+                          <div className="flex-1">
+                            <Label className="text-base font-semibold">Share reports with users who have direct reports</Label>
+                            <p className="text-sm text-muted-foreground mt-1">
+                              Give all users with direct reports access to the Content report, People report, Latest activity report, and Manage users table. Non-admin users will only be able to view or edit data for those who directly report to them.
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="flex justify-end pt-4 border-t border-border">
+                          <Button onClick={handleSavePeople} disabled={savingPeople}>
+                            {savingPeople ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</> : "Save"}
+                          </Button>
+                        </div>
                       </CardContent>
                     </Card>
                   </TabsContent>
+
 
                   <TabsContent value="gamification" className="mt-6">
                     <Card>

@@ -1144,6 +1144,13 @@ export type Database = {
           logo_bg_color: string | null
           logo_url: string | null
           name: string
+          people_chart_enabled: boolean
+          people_chart_restricted_groups: string[]
+          people_directory_enabled: boolean
+          people_directory_restricted_groups: string[]
+          people_role_chart_enabled: boolean
+          people_role_chart_restricted_groups: string[]
+          people_share_reports_direct_reports: boolean
           phone: string | null
           singleton: boolean
           streak_frequency: string
@@ -1166,6 +1173,13 @@ export type Database = {
           logo_bg_color?: string | null
           logo_url?: string | null
           name?: string
+          people_chart_enabled?: boolean
+          people_chart_restricted_groups?: string[]
+          people_directory_enabled?: boolean
+          people_directory_restricted_groups?: string[]
+          people_role_chart_enabled?: boolean
+          people_role_chart_restricted_groups?: string[]
+          people_share_reports_direct_reports?: boolean
           phone?: string | null
           singleton?: boolean
           streak_frequency?: string
@@ -1188,6 +1202,13 @@ export type Database = {
           logo_bg_color?: string | null
           logo_url?: string | null
           name?: string
+          people_chart_enabled?: boolean
+          people_chart_restricted_groups?: string[]
+          people_directory_enabled?: boolean
+          people_directory_restricted_groups?: string[]
+          people_role_chart_enabled?: boolean
+          people_role_chart_restricted_groups?: string[]
+          people_share_reports_direct_reports?: boolean
           phone?: string | null
           singleton?: boolean
           streak_frequency?: string
