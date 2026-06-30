@@ -63,9 +63,14 @@ export const UserCard = ({
   const [showGroupsDialog, setShowGroupsDialog] = useState(false);
   const [isTester, setIsTester] = useState(false);
   const [testerSaving, setTesterSaving] = useState(false);
+  const [jobTitle, setJobTitle] = useState(user.job_title || "");
+  const [editingTitle, setEditingTitle] = useState(false);
+  const [titleDraft, setTitleDraft] = useState(user.job_title || "");
+  const [titleSaving, setTitleSaving] = useState(false);
   const { isAdmin } = useUserRole();
   const { toast } = useToast();
   const navigate = useNavigate();
+
 
   useEffect(() => {
     let active = true;
