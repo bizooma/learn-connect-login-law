@@ -89,7 +89,13 @@ const AdminWikiSettingsPage = () => {
         setGamificationEnabled(row.gamification_enabled ?? true);
         setStreakFrequency((row.streak_frequency ?? "weekly") as any);
         setExcludedGroups(row.gamification_excluded_groups ?? []);
+        setPublicShareEnabled(row.content_public_share_enabled ?? true);
+        setPdfDownloadsEnabled(row.content_pdf_downloads_enabled ?? true);
+        setEsignaturePermission(row.content_esignature_permission ?? "billing_admin");
+        setFeedbackEnabled(row.content_feedback_enabled ?? true);
+        setDefaultDiscoverability((row.content_default_discoverability ?? "discoverable") as any);
       }
+
       setLoadingData(false);
     };
     load();
