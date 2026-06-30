@@ -11,6 +11,15 @@ interface Props {
 const ShareGroupsPicker = ({ category }: Props) => {
   const [open, setOpen] = useState(false);
   const sharedGroups = category.shared_groups || [];
+  const sharedUsers = category.shared_users || [];
+  const total = sharedGroups.length + sharedUsers.length;
+
+  const labels = [
+    ...sharedGroups.map((g) => g.name),
+    ...sharedUsers.map(
+      (u) => [u.first_name, u.last_name].filter(Boolean).join(" ") || u.email,
+    ),
+  ];
 
   return (
     <>
@@ -23,13 +32,13 @@ const ShareGroupsPicker = ({ category }: Props) => {
         }}
       >
         <Users className="h-3.5 w-3.5 shrink-0" />
-        {sharedGroups.length === 0 ? (
+        {total === 0 ? (
           <span className="text-muted-foreground/70">Share…</span>
-        ) : sharedGroups.length <= 2 ? (
-          <span className="truncate">{sharedGroups.map((g) => g.name).join(", ")}</span>
+        ) : total <= 2 ? (
+          <span className="truncate">{labels.join(", ")}</span>
         ) : (
           <Badge variant="secondary" className="text-xs">
-            {sharedGroups.length} groups
+            {total} shared
           </Badge>
         )}
       </button>

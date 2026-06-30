@@ -36,13 +36,15 @@ import {
   CommandItem,
   CommandList,
 } from "@/components/ui/command";
-import { Search, X, Globe, Link2, Users, Plus } from "lucide-react";
+import { Search, X, Globe, Link2, Users, Plus, User as UserIcon } from "lucide-react";
+import { useDirectoryUsers } from "@/hooks/useDirectoryUsers";
 import { toast } from "sonner";
 import {
   WikiCategory,
   WikiAccessLevel,
   WikiDiscoverability,
   WikiSharedGroup,
+  WikiSharedUser,
   useWikiCategories,
 } from "@/hooks/useWikiCategories";
 
@@ -62,6 +64,7 @@ const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
   const qc = useQueryClient();
   const { updateCategory } = useWikiCategories();
   const [shares, setShares] = useState<WikiSharedGroup[]>([]);
+  const [userShares, setUserShares] = useState<WikiSharedUser[]>([]);
   const [discoverability, setDiscoverability] = useState<WikiDiscoverability>(
     category.discoverability,
   );
@@ -73,6 +76,7 @@ const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
   useEffect(() => {
     if (open) {
       setShares(category.shared_groups || []);
+      setUserShares(category.shared_users || []);
       setDiscoverability(category.discoverability);
       setPublicShare(category.public_share_enabled);
     }
@@ -91,8 +95,14 @@ const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
     enabled: open,
   });
 
-  const selectedIds = useMemo(() => new Set(shares.map((s) => s.id)), [shares]);
-  const availableGroups = allGroups.filter((g) => !selectedIds.has(g.id));
+  const { data: directoryUsers = [] } = useDirectoryUsers();
+
+  const selectedGroupIds = useMemo(() => new Set(shares.map((s) => s.id)), [shares]);
+  const selectedUserIds = useMemo(() => new Set(userShares.map((u) => u.id)), [userShares]);
+  const availableGroups = allGroups.filter((g) => !selectedGroupIds.has(g.id));
+  const availableUsers = directoryUsers.filter(
+    (u) => !selectedUserIds.has(u.id) && u.id !== category.owner_id,
+  );
 
   const ownerName =
     [category.owner?.first_name, category.owner?.last_name]
@@ -107,12 +117,37 @@ const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
     setAddOpen(false);
   };
 
+  const addUser = (u: typeof directoryUsers[number]) => {
+    setUserShares((prev) => [
+      ...prev,
+      {
+        id: u.id,
+        first_name: u.first_name,
+        last_name: u.last_name,
+        email: u.email,
+        profile_image_url: u.profile_image_url,
+        job_title: u.job_title,
+        access_level: "view",
+        completion_required: false,
+      },
+    ]);
+    setAddOpen(false);
+  };
+
   const removeGroup = (id: string) => {
     setShares((prev) => prev.filter((s) => s.id !== id));
   };
 
+  const removeUser = (id: string) => {
+    setUserShares((prev) => prev.filter((s) => s.id !== id));
+  };
+
   const updateShare = (id: string, patch: Partial<WikiSharedGroup>) => {
     setShares((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+  };
+
+  const updateUserShare = (id: string, patch: Partial<WikiSharedUser>) => {
+    setUserShares((prev) => prev.map((s) => (s.id === id ? { ...s, ...patch } : s)));
   };
 
   const handleSave = async () => {
@@ -182,6 +217,55 @@ const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
         if (error) throw error;
       }
 
+      // Diff individual user shares
+      const origUsers = category.shared_users || [];
+      const origUserMap = new Map(origUsers.map((o) => [o.id, o]));
+      const newUserMap = new Map(userShares.map((s) => [s.id, s]));
+
+      const usersToDelete = origUsers.filter((o) => !newUserMap.has(o.id));
+      const usersToInsert = userShares.filter((s) => !origUserMap.has(s.id));
+      const usersToUpdate = userShares.filter((s) => {
+        const o = origUserMap.get(s.id);
+        return (
+          o &&
+          (o.access_level !== s.access_level ||
+            o.completion_required !== s.completion_required)
+        );
+      });
+
+      if (usersToDelete.length > 0) {
+        const { error } = await supabase
+          .from("wiki_category_users" as any)
+          .delete()
+          .eq("category_id", category.id)
+          .in("user_id", usersToDelete.map((d) => d.id));
+        if (error) throw error;
+      }
+
+      if (usersToInsert.length > 0) {
+        const { error } = await supabase.from("wiki_category_users" as any).insert(
+          usersToInsert.map((s) => ({
+            category_id: category.id,
+            user_id: s.id,
+            access_level: s.access_level,
+            completion_required: s.completion_required,
+          })) as any,
+        );
+        if (error) throw error;
+      }
+
+      for (const s of usersToUpdate) {
+        const { error } = await supabase
+          .from("wiki_category_users" as any)
+          .update({
+            access_level: s.access_level,
+            completion_required: s.completion_required,
+          } as any)
+          .eq("category_id", category.id)
+          .eq("user_id", s.id);
+        if (error) throw error;
+      }
+
       qc.invalidateQueries({ queryKey: ["wiki-categories"] });
       toast.success("Sharing updated");
       onOpenChange(false);
@@ -232,21 +316,53 @@ const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
           </PopoverTrigger>
           <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
             <Command>
-              <CommandInput placeholder="Search groups…" />
+              <CommandInput placeholder="Search people and groups…" />
               <CommandList>
-                <CommandEmpty>No groups found.</CommandEmpty>
-                <CommandGroup>
-                  {availableGroups.map((g) => (
-                    <CommandItem
-                      key={g.id}
-                      onSelect={() => addGroup(g)}
-                      className="cursor-pointer"
-                    >
-                      <Users className="h-4 w-4 mr-2 text-muted-foreground" />
-                      {g.name}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
+                <CommandEmpty>No matches.</CommandEmpty>
+                {availableGroups.length > 0 && (
+                  <CommandGroup heading="Groups">
+                    {availableGroups.map((g) => (
+                      <CommandItem
+                        key={`g-${g.id}`}
+                        value={`group ${g.name}`}
+                        onSelect={() => addGroup(g)}
+                        className="cursor-pointer"
+                      >
+                        <Users className="h-4 w-4 mr-2 text-muted-foreground" />
+                        {g.name}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                )}
+                {availableUsers.length > 0 && (
+                  <CommandGroup heading="People">
+                    {availableUsers.map((u) => {
+                      const name =
+                        [u.first_name, u.last_name].filter(Boolean).join(" ") || u.email;
+                      return (
+                        <CommandItem
+                          key={`u-${u.id}`}
+                          value={`person ${name} ${u.email}`}
+                          onSelect={() => addUser(u)}
+                          className="cursor-pointer"
+                        >
+                          <Avatar className="h-5 w-5 mr-2">
+                            {u.profile_image_url && (
+                              <AvatarImage src={u.profile_image_url} alt={name} />
+                            )}
+                            <AvatarFallback className="text-[10px]">
+                              {name.slice(0, 2).toUpperCase()}
+                            </AvatarFallback>
+                          </Avatar>
+                          <div className="flex flex-col">
+                            <span className="text-sm">{name}</span>
+                            <span className="text-xs text-muted-foreground">{u.email}</span>
+                          </div>
+                        </CommandItem>
+                      );
+                    })}
+                  </CommandGroup>
+                )}
               </CommandList>
             </Command>
           </PopoverContent>
@@ -287,46 +403,105 @@ const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
             <div className="w-6" />
           </div>
 
-          {shares.length === 0 ? (
-            <div className="text-sm text-muted-foreground px-1 py-3 text-center border border-dashed rounded-md">
-              No groups added yet. Search above to add one.
+          {shares.map((s) => (
+            <div
+              key={`g-${s.id}`}
+              className="grid grid-cols-[1fr_auto_auto_auto] gap-3 items-center px-1"
+            >
+              <div className="flex items-center gap-2 min-w-0">
+                <Avatar className="h-8 w-8">
+                  <AvatarFallback className="text-xs bg-primary/10 text-primary">
+                    <Users className="h-4 w-4" />
+                  </AvatarFallback>
+                </Avatar>
+                <div className="min-w-0">
+                  <div className="text-sm font-medium truncate">{s.name}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {s.member_count ?? 0} member{s.member_count === 1 ? "" : "s"}
+                  </div>
+                </div>
+              </div>
+              <div className="w-24 flex items-center justify-center gap-2">
+                <Checkbox
+                  id={`req-${s.id}`}
+                  checked={s.completion_required}
+                  onCheckedChange={(v) =>
+                    updateShare(s.id, { completion_required: !!v })
+                  }
+                />
+                <Label htmlFor={`req-${s.id}`} className="text-xs cursor-pointer">
+                  Required
+                </Label>
+              </div>
+              <div className="w-24">
+                <Select
+                  value={s.access_level}
+                  onValueChange={(v) =>
+                    updateShare(s.id, { access_level: v as WikiAccessLevel })
+                  }
+                >
+                  <SelectTrigger className="h-8 text-xs">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="view">{accessLabel.view}</SelectItem>
+                    <SelectItem value="edit">{accessLabel.edit}</SelectItem>
+                    <SelectItem value="full">{accessLabel.full}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7"
+                onClick={() => removeGroup(s.id)}
+              >
+                <X className="h-4 w-4" />
+              </Button>
             </div>
-          ) : (
-            shares.map((s) => (
+          ))}
+
+          {userShares.map((u) => {
+            const name =
+              [u.first_name, u.last_name].filter(Boolean).join(" ") || u.email;
+            return (
               <div
-                key={s.id}
+                key={`u-${u.id}`}
                 className="grid grid-cols-[1fr_auto_auto_auto] gap-3 items-center px-1"
               >
                 <div className="flex items-center gap-2 min-w-0">
                   <Avatar className="h-8 w-8">
-                    <AvatarFallback className="text-xs bg-primary/10 text-primary">
-                      <Users className="h-4 w-4" />
+                    {u.profile_image_url && (
+                      <AvatarImage src={u.profile_image_url} alt={name} />
+                    )}
+                    <AvatarFallback className="text-xs">
+                      {name.slice(0, 2).toUpperCase()}
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
-                    <div className="text-sm font-medium truncate">{s.name}</div>
-                    <div className="text-xs text-muted-foreground">
-                      {s.member_count ?? 0} member{s.member_count === 1 ? "" : "s"}
+                    <div className="text-sm font-medium truncate">{name}</div>
+                    <div className="text-xs text-muted-foreground truncate">
+                      {u.job_title || u.email}
                     </div>
                   </div>
                 </div>
                 <div className="w-24 flex items-center justify-center gap-2">
                   <Checkbox
-                    id={`req-${s.id}`}
-                    checked={s.completion_required}
+                    id={`req-u-${u.id}`}
+                    checked={u.completion_required}
                     onCheckedChange={(v) =>
-                      updateShare(s.id, { completion_required: !!v })
+                      updateUserShare(u.id, { completion_required: !!v })
                     }
                   />
-                  <Label htmlFor={`req-${s.id}`} className="text-xs cursor-pointer">
+                  <Label htmlFor={`req-u-${u.id}`} className="text-xs cursor-pointer">
                     Required
                   </Label>
                 </div>
                 <div className="w-24">
                   <Select
-                    value={s.access_level}
+                    value={u.access_level}
                     onValueChange={(v) =>
-                      updateShare(s.id, { access_level: v as WikiAccessLevel })
+                      updateUserShare(u.id, { access_level: v as WikiAccessLevel })
                     }
                   >
                     <SelectTrigger className="h-8 text-xs">
@@ -343,12 +518,18 @@ const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
                   variant="ghost"
                   size="icon"
                   className="h-7 w-7"
-                  onClick={() => removeGroup(s.id)}
+                  onClick={() => removeUser(u.id)}
                 >
                   <X className="h-4 w-4" />
                 </Button>
               </div>
-            ))
+            );
+          })}
+
+          {shares.length === 0 && userShares.length === 0 && (
+            <div className="text-sm text-muted-foreground px-1 py-3 text-center border border-dashed rounded-md">
+              No people or groups added yet. Search above to add someone.
+            </div>
           )}
         </div>
 
