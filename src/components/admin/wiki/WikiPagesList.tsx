@@ -1,6 +1,6 @@
 import { useState, KeyboardEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, Pencil, Trash2, HelpCircle } from "lucide-react";
+import { FileText, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useWikiPages } from "@/hooks/useWikiPages";
@@ -111,19 +111,6 @@ const WikiPagesList = ({ articleId }: WikiPagesListProps) => {
           </div>
         </div>
       ))}
-      <div
-        className="flex items-center justify-between px-4 py-2 pl-16 bg-background border-b border-border hover:bg-muted/30 group cursor-pointer"
-        onClick={(e) => {
-          e.stopPropagation();
-          navigate(`/admin/wiki/knowledge-check/${articleId}`);
-        }}
-      >
-        <div className="flex items-center gap-2">
-          <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">Test</span>
-          <HelpCircle className="h-4 w-4 text-muted-foreground" />
-          <span className="text-sm text-foreground">Knowledge Check</span>
-        </div>
-      </div>
       <PageInput articleId={articleId} onCreated={() => force((n) => n + 1)} />
     </div>
   );

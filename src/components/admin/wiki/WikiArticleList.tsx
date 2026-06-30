@@ -1,5 +1,6 @@
 import { useState, useRef } from "react";
-import { Plus, FileText, ScrollText, Upload, Shield } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Plus, FileText, ScrollText, Upload, Shield, HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -22,6 +23,7 @@ const WikiArticleList = ({ categoryId, onEditArticle, searchQuery }: WikiArticle
   const { articles, isLoading, createArticle, deleteArticle, updateArticle } = useWikiArticles(categoryId);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const navigate = useNavigate();
 
   // Show all articles when expanded; the parent category already matched the search.
   const filtered = articles;
@@ -93,6 +95,19 @@ const WikiArticleList = ({ categoryId, onEditArticle, searchQuery }: WikiArticle
               onTogglePublish={(a) => updateArticle.mutate({ id: a.id, is_published: !a.is_published })}
             />
           ))}
+          <div
+            className="flex items-center justify-between px-4 py-2 pl-12 bg-background border-b border-border hover:bg-muted/30 group cursor-pointer"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/admin/wiki/knowledge-check/category/${categoryId}`);
+            }}
+          >
+            <div className="flex items-center gap-2">
+              <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">Test</span>
+              <HelpCircle className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-foreground">Knowledge Check</span>
+            </div>
+          </div>
           <div className="px-4 py-2 pl-12">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
