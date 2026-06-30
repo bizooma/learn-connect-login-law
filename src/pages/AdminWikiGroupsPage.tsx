@@ -69,6 +69,23 @@ const AdminWikiGroupsPage = () => {
   const [membersTarget, setMembersTarget] = useState<Group | null>(null);
 
   const [profileOptions, setProfileOptions] = useState<{ id: string; label: string }[]>([]);
+  const [jobTitles, setJobTitles] = useState<Set<string>>(new Set());
+
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase
+        .from("profiles")
+        .select("job_title")
+        .eq("is_deleted", false)
+        .not("job_title", "is", null);
+      const set = new Set<string>();
+      (data ?? []).forEach((p: any) => {
+        const t = (p.job_title || "").trim().toLowerCase();
+        if (t) set.add(t);
+      });
+      setJobTitles(set);
+    })();
+  }, []);
 
   const loadProfiles = async () => {
     if (profileOptions.length > 0) return;
@@ -88,6 +105,7 @@ const AdminWikiGroupsPage = () => {
   const matchesTypeFilter = (g: Group, t: "All" | GroupType) => {
     if (t === "All") return true;
     if (t === "Team") return g.type === "Team" || g.name.toLowerCase().includes("team");
+    if (t === "Role") return g.type === "Role" || jobTitles.has(g.name.trim().toLowerCase());
     return g.type === t;
   };
 
