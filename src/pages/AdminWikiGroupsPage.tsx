@@ -87,14 +87,16 @@ const AdminWikiGroupsPage = () => {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return groups;
-    return groups.filter(
+    let list = groups;
+    if (typeFilter !== "All") list = list.filter((g) => g.type === typeFilter);
+    if (!q) return list;
+    return list.filter(
       (g) =>
         g.name.toLowerCase().includes(q) ||
         g.type.toLowerCase().includes(q) ||
         (g.description ?? "").toLowerCase().includes(q)
     );
-  }, [groups, search]);
+  }, [groups, search, typeFilter]);
 
   const openCreate = async () => {
     await loadProfiles();
