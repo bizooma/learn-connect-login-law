@@ -105,6 +105,13 @@ const AdminWikiSettingsPage = () => {
         setEsignaturePermission(row.content_esignature_permission ?? "billing_admin");
         setFeedbackEnabled(row.content_feedback_enabled ?? true);
         setDefaultDiscoverability((row.content_default_discoverability ?? "discoverable") as any);
+        setDirectoryEnabled(row.people_directory_enabled ?? true);
+        setDirectoryRestricted(row.people_directory_restricted_groups ?? []);
+        setPeopleChartEnabled(row.people_chart_enabled ?? true);
+        setPeopleChartRestricted(row.people_chart_restricted_groups ?? []);
+        setRoleChartEnabled(row.people_role_chart_enabled ?? true);
+        setRoleChartRestricted(row.people_role_chart_restricted_groups ?? []);
+        setShareReportsDirectReports(row.people_share_reports_direct_reports ?? true);
       }
 
       setLoadingData(false);
