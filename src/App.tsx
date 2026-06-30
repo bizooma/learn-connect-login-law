@@ -31,6 +31,9 @@ import AdminDashboard from "./components/AdminDashboard";
 import AdminWikiPage from "./pages/AdminWikiPage";
 import AdminWikiHomePage from "./pages/AdminWikiHomePage";
 import AdminWikiDirectoryPage from "./pages/AdminWikiDirectoryPage";
+import AdminWikiPeopleChartPage from "./pages/AdminWikiPeopleChartPage";
+import AdminWikiRoleChartPage from "./pages/AdminWikiRoleChartPage";
+
 import AdminWikiGroupsPage from "./pages/AdminWikiGroupsPage";
 import AdminWikiReportsContent from "./pages/AdminWikiReportsContent";
 import AdminWikiReportsPeople from "./pages/AdminWikiReportsPeople";
@@ -89,6 +92,9 @@ const AppContent = () => {
         <Route path="/admin/wiki/content" element={<AdminWikiPage />} />
         <Route path="/admin/wiki/training-paths" element={<AdminWikiTrainingPathsPage />} />
         <Route path="/admin/wiki/directory" element={<AdminWikiDirectoryPage />} />
+        <Route path="/admin/wiki/people-chart" element={<AdminWikiPeopleChartPage />} />
+        <Route path="/admin/wiki/role-chart" element={<AdminWikiRoleChartPage />} />
+
         <Route path="/admin/wiki/groups" element={<AdminWikiGroupsPage />} />
         <Route path="/admin/wiki/reports/content" element={<AdminWikiReportsContent />} />
         <Route path="/admin/wiki/reports/people" element={<AdminWikiReportsPeople />} />
