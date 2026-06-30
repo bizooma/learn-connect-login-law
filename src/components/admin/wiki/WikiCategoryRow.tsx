@@ -49,6 +49,7 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
   const navigate = useNavigate();
   const { gridTemplate } = useWikiColumns();
   const { canEdit, canDelete } = useWikiAccess();
+  const { settings: orgSettings } = useOrgContentSettings();
   const editable = canEdit(category);
   const deletable = canDelete(category);
 
