@@ -47,6 +47,10 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { gridTemplate } = useWikiColumns();
+  const { canEdit, canDelete } = useWikiAccess();
+  const editable = canEdit(category);
+  const deletable = canDelete(category);
+
 
   const handleRename = async () => {
     const newTitle = window.prompt("Rename subject", category.title);
