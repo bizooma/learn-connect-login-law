@@ -144,7 +144,9 @@ const AdminWikiReportsPeople = () => {
               <TableHead className="w-[240px]">Completion</TableHead>
               <TableHead className="w-[100px]">Views</TableHead>
               <TableHead className="w-[200px]">Last activity</TableHead>
+              <TableHead className="w-[120px] text-right">Actions</TableHead>
             </TableRow>
+
           </TableHeader>
           <TableBody>
             {isLoading ? (
