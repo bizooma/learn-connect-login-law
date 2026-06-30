@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Popover,
   PopoverContent,
@@ -265,6 +265,9 @@ const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
           <div className="grid grid-cols-[1fr_auto_auto_auto] gap-3 items-center px-1">
             <div className="flex items-center gap-2 min-w-0">
               <Avatar className="h-8 w-8">
+                {category.owner?.profile_image_url && (
+                  <AvatarImage src={category.owner.profile_image_url} alt={ownerName} />
+                )}
                 <AvatarFallback className="text-xs">
                   {ownerName.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
@@ -373,11 +376,19 @@ const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
                   </span>
                 </div>
               </SelectItem>
-              <SelectItem value="restricted">
+              <SelectItem value="request">
                 <div className="flex flex-col">
-                  <span className="font-medium">Not discoverable</span>
+                  <span className="font-medium">Request</span>
                   <span className="text-xs text-muted-foreground">
-                    Only users it's shared with can access.
+                    All users can find and request to view this content.
+                  </span>
+                </div>
+              </SelectItem>
+              <SelectItem value="private">
+                <div className="flex flex-col">
+                  <span className="font-medium">Private</span>
+                  <span className="text-xs text-muted-foreground">
+                    Only Admins and those shared with can view this content.
                   </span>
                 </div>
               </SelectItem>
