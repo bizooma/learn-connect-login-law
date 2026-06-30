@@ -232,12 +232,13 @@ const AdminWikiGroupsPage = () => {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Manager</TableHead>
-                        <TableHead>Members</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead className="w-12" />
+                        <ResizableHead width={cols.widths[0]} onResize={cols.onMouseDown(0)}>Name</ResizableHead>
+                        <ResizableHead width={cols.widths[1]} onResize={cols.onMouseDown(1)}>Manager</ResizableHead>
+                        <ResizableHead width={cols.widths[2]} onResize={cols.onMouseDown(2)}>Members</ResizableHead>
+                        <ResizableHead width={cols.widths[3]} onResize={cols.onMouseDown(3)}>Type</ResizableHead>
+                        <ResizableHead width={cols.widths[4]} onResize={cols.onMouseDown(4)}>Description</ResizableHead>
+                        <ResizableHead width={cols.widths[5]} />
+
                       </TableRow>
                     </TableHeader>
                     <TableBody>
