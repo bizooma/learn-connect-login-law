@@ -4,6 +4,17 @@ import { toast } from "sonner";
 
 export type WikiSubjectCategory = "policy" | "procedure" | "company";
 
+export type WikiAccessLevel = "view" | "edit" | "full";
+export type WikiDiscoverability = "discoverable" | "restricted";
+
+export interface WikiSharedGroup {
+  id: string;
+  name: string;
+  access_level: WikiAccessLevel;
+  completion_required: boolean;
+  member_count?: number;
+}
+
 export interface WikiCategory {
   id: string;
   title: string;
@@ -16,9 +27,11 @@ export interface WikiCategory {
   created_by: string;
   created_at: string;
   updated_at: string;
+  discoverability: WikiDiscoverability;
+  public_share_enabled: boolean;
   article_count?: number;
   owner?: { id: string; first_name: string | null; last_name: string | null; email: string; profile_image_url: string | null } | null;
-  shared_groups?: { id: string; name: string }[];
+  shared_groups?: WikiSharedGroup[];
 }
 
 export const useWikiCategories = () => {
