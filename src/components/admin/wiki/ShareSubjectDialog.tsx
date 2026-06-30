@@ -217,6 +217,55 @@ const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
         if (error) throw error;
       }
 
+      // Diff individual user shares
+      const origUsers = category.shared_users || [];
+      const origUserMap = new Map(origUsers.map((o) => [o.id, o]));
+      const newUserMap = new Map(userShares.map((s) => [s.id, s]));
+
+      const usersToDelete = origUsers.filter((o) => !newUserMap.has(o.id));
+      const usersToInsert = userShares.filter((s) => !origUserMap.has(s.id));
+      const usersToUpdate = userShares.filter((s) => {
+        const o = origUserMap.get(s.id);
+        return (
+          o &&
+          (o.access_level !== s.access_level ||
+            o.completion_required !== s.completion_required)
+        );
+      });
+
+      if (usersToDelete.length > 0) {
+        const { error } = await supabase
+          .from("wiki_category_users" as any)
+          .delete()
+          .eq("category_id", category.id)
+          .in("user_id", usersToDelete.map((d) => d.id));
+        if (error) throw error;
+      }
+
+      if (usersToInsert.length > 0) {
+        const { error } = await supabase.from("wiki_category_users" as any).insert(
+          usersToInsert.map((s) => ({
+            category_id: category.id,
+            user_id: s.id,
+            access_level: s.access_level,
+            completion_required: s.completion_required,
+          })) as any,
+        );
+        if (error) throw error;
+      }
+
+      for (const s of usersToUpdate) {
+        const { error } = await supabase
+          .from("wiki_category_users" as any)
+          .update({
+            access_level: s.access_level,
+            completion_required: s.completion_required,
+          } as any)
+          .eq("category_id", category.id)
+          .eq("user_id", s.id);
+        if (error) throw error;
+      }
+
       qc.invalidateQueries({ queryKey: ["wiki-categories"] });
       toast.success("Sharing updated");
       onOpenChange(false);
