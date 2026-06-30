@@ -36,16 +36,16 @@ interface FormState {
   name: string;
   type: GroupType;
   description: string;
-  manager_id: string;
+  manager_ids: string[];
 }
 
-const EMPTY_FORM: FormState = { name: "", type: "Custom", description: "", manager_id: "" };
+const EMPTY_FORM: FormState = { name: "", type: "Custom", description: "", manager_ids: [] };
 
 const AdminWikiGroupsPage = () => {
   const navigate = useNavigate();
   const { categories } = useWikiCategories();
   const { isAdmin } = useUserRole();
-  const { groups, loading, createGroup, updateGroup, deleteGroup, fetchGroups } = useGroups();
+  const { groups, loading, createGroup, updateGroup, deleteGroup, setGroupManagers, fetchGroups } = useGroups();
   const { toast } = useToast();
 
   const [search, setSearch] = useState("");
@@ -99,7 +99,7 @@ const AdminWikiGroupsPage = () => {
       name: g.name,
       type: g.type,
       description: g.description ?? "",
-      manager_id: g.manager_id ?? "",
+      manager_ids: g.manager_ids ?? [],
     });
     setFormOpen(true);
   };
@@ -115,14 +115,26 @@ const AdminWikiGroupsPage = () => {
         name: form.name.trim(),
         type: form.type,
         description: form.description.trim(),
-        manager_id: form.manager_id || null,
+        manager_id: form.manager_ids[0] || null,
       };
+      let groupId: string | undefined;
       if (editing) {
         await updateGroup(editing.id, payload);
+        groupId = editing.id;
         toast({ title: "Group updated" });
       } else {
-        await createGroup(payload);
+        const created: any = await createGroup(payload);
+        // createGroup currently returns void; refetch and find by name as fallback
+        groupId = created?.id;
         toast({ title: "Group created" });
+      }
+      if (groupId) {
+        await setGroupManagers(groupId, form.manager_ids);
+      } else {
+        // fallback: refetch then locate
+        await fetchGroups();
+        const found = (groups || []).find((g) => g.name === payload.name);
+        if (found) await setGroupManagers(found.id, form.manager_ids);
       }
       setFormOpen(false);
     } catch (err: any) {
@@ -237,7 +249,15 @@ const AdminWikiGroupsPage = () => {
                           <TableRow key={g.id} className="hover:bg-muted/50">
                             <TableCell className="font-medium text-foreground">{g.name}</TableCell>
                             <TableCell className="text-muted-foreground">
-                              {g.manager_name ?? <span className="italic">None</span>}
+                              {g.manager_names && g.manager_names.length > 0 ? (
+                                <div className="flex flex-wrap gap-1">
+                                  {g.manager_names.map((n, i) => (
+                                    <Badge key={i} variant="outline" className="font-normal">{n}</Badge>
+                                  ))}
+                                </div>
+                              ) : (
+                                <span className="italic">None</span>
+                              )}
                             </TableCell>
                             <TableCell className="text-muted-foreground">{g.member_count ?? 0}</TableCell>
                             <TableCell>
@@ -312,17 +332,47 @@ const AdminWikiGroupsPage = () => {
               </Select>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="g-manager">Manager (optional)</Label>
+              <Label>Managers (optional, multiple)</Label>
+              {form.manager_ids.length > 0 && (
+                <div className="flex flex-wrap gap-1">
+                  {form.manager_ids.map((id) => {
+                    const p = profileOptions.find((o) => o.id === id);
+                    return (
+                      <Badge key={id} variant="secondary" className="gap-1">
+                        {p?.label ?? "Unknown"}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setForm({
+                              ...form,
+                              manager_ids: form.manager_ids.filter((x) => x !== id),
+                            })
+                          }
+                          className="ml-1 hover:text-destructive"
+                          aria-label="Remove manager"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
+                    );
+                  })}
+                </div>
+              )}
               <Select
-                value={form.manager_id || "__none__"}
-                onValueChange={(v) => setForm({ ...form, manager_id: v === "__none__" ? "" : v })}
+                value=""
+                onValueChange={(v) => {
+                  if (!form.manager_ids.includes(v)) {
+                    setForm({ ...form, manager_ids: [...form.manager_ids, v] });
+                  }
+                }}
               >
-                <SelectTrigger id="g-manager"><SelectValue placeholder="No manager" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Add a manager…" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">No manager</SelectItem>
-                  {profileOptions.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>{p.label}</SelectItem>
-                  ))}
+                  {profileOptions
+                    .filter((p) => !form.manager_ids.includes(p.id))
+                    .map((p) => (
+                      <SelectItem key={p.id} value={p.id}>{p.label}</SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>

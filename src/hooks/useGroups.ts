@@ -10,6 +10,8 @@ export interface Group {
   description: string | null;
   manager_id: string | null;
   manager_name?: string | null;
+  manager_ids?: string[];
+  manager_names?: string[];
   member_count?: number;
   created_at: string;
 }
@@ -47,16 +49,29 @@ export const useGroups = () => {
         counts.set(m.group_id, (counts.get(m.group_id) ?? 0) + 1);
       });
 
-      // Manager names
-      const managerIds = Array.from(
-        new Set(rows.map((g) => g.manager_id).filter(Boolean))
-      ) as string[];
+      // Manager assignments (multi)
+      const { data: gmRows } = await supabase
+        .from("group_managers" as any)
+        .select("group_id, user_id");
+      const managerIdsByGroup = new Map<string, string[]>();
+      (gmRows ?? []).forEach((r: any) => {
+        const arr = managerIdsByGroup.get(r.group_id) ?? [];
+        arr.push(r.user_id);
+        managerIdsByGroup.set(r.group_id, arr);
+      });
+
+      // Legacy single manager + multi managers
+      const allManagerIds = new Set<string>();
+      rows.forEach((g) => {
+        if (g.manager_id) allManagerIds.add(g.manager_id);
+        (managerIdsByGroup.get(g.id) ?? []).forEach((id) => allManagerIds.add(id));
+      });
       let managerMap = new Map<string, string>();
-      if (managerIds.length > 0) {
+      if (allManagerIds.size > 0) {
         const { data: managers } = await supabase
           .from("profiles")
           .select("id, first_name, last_name, email")
-          .in("id", managerIds);
+          .in("id", Array.from(allManagerIds));
         (managers ?? []).forEach((p: any) => {
           managerMap.set(
             p.id,
@@ -65,11 +80,22 @@ export const useGroups = () => {
         });
       }
 
-      const enriched: Group[] = rows.map((g) => ({
-        ...g,
-        manager_name: g.manager_id ? managerMap.get(g.manager_id) ?? null : null,
-        member_count: counts.get(g.id) ?? 0,
-      }));
+      const enriched: Group[] = rows.map((g) => {
+        const ids = Array.from(
+          new Set([
+            ...(managerIdsByGroup.get(g.id) ?? []),
+            ...(g.manager_id ? [g.manager_id] : []),
+          ])
+        );
+        const names = ids.map((id) => managerMap.get(id) ?? "Unknown");
+        return {
+          ...g,
+          manager_name: ids.length > 0 ? names[0] : null,
+          manager_ids: ids,
+          manager_names: names,
+          member_count: counts.get(g.id) ?? 0,
+        };
+      });
       setGroups(enriched);
     } catch (err) {
       console.error("Failed to fetch groups", err);
@@ -85,15 +111,20 @@ export const useGroups = () => {
   const createGroup = useCallback(
     async (input: { name: string; type: GroupType; description?: string; manager_id?: string | null }) => {
       const userRes = await supabase.auth.getUser();
-      const { error } = await supabase.from("groups" as any).insert({
-        name: input.name,
-        type: input.type,
-        description: input.description || null,
-        manager_id: input.manager_id || null,
-        created_by: userRes.data.user?.id ?? null,
-      });
+      const { data, error } = await supabase
+        .from("groups" as any)
+        .insert({
+          name: input.name,
+          type: input.type,
+          description: input.description || null,
+          manager_id: input.manager_id || null,
+          created_by: userRes.data.user?.id ?? null,
+        })
+        .select("id")
+        .single();
       if (error) throw error;
       await fetchGroups();
+      return data as unknown as { id: string } | null;
     },
     [fetchGroups]
   );
@@ -124,7 +155,32 @@ export const useGroups = () => {
     [fetchGroups]
   );
 
-  return { groups, loading, fetchGroups, createGroup, updateGroup, deleteGroup };
+  const setGroupManagers = useCallback(
+    async (groupId: string, userIds: string[]) => {
+      const unique = Array.from(new Set(userIds.filter(Boolean)));
+      const { error: delErr } = await supabase
+        .from("group_managers" as any)
+        .delete()
+        .eq("group_id", groupId);
+      if (delErr) throw delErr;
+      if (unique.length > 0) {
+        const userRes = await supabase.auth.getUser();
+        const rows = unique.map((uid) => ({
+          group_id: groupId,
+          user_id: uid,
+          added_by: userRes.data.user?.id ?? null,
+        }));
+        const { error: insErr } = await supabase.from("group_managers" as any).insert(rows);
+        if (insErr) throw insErr;
+      }
+      // Also clear legacy single field so it doesn't double-count
+      await supabase.from("groups" as any).update({ manager_id: unique[0] ?? null }).eq("id", groupId);
+      await fetchGroups();
+    },
+    [fetchGroups]
+  );
+
+  return { groups, loading, fetchGroups, createGroup, updateGroup, deleteGroup, setGroupManagers };
 };
 
 export const useGroupMembers = (groupId: string | null) => {
