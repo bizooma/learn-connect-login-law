@@ -2514,10 +2514,12 @@ export type Database = {
           created_at: string
           created_by: string
           description: string | null
+          discoverability: string
           icon_name: string | null
           id: string
           is_published: boolean
           owner_id: string | null
+          public_share_enabled: boolean
           sort_order: number
           title: string
           updated_at: string
@@ -2527,10 +2529,12 @@ export type Database = {
           created_at?: string
           created_by: string
           description?: string | null
+          discoverability?: string
           icon_name?: string | null
           id?: string
           is_published?: boolean
           owner_id?: string | null
+          public_share_enabled?: boolean
           sort_order?: number
           title: string
           updated_at?: string
@@ -2540,10 +2544,12 @@ export type Database = {
           created_at?: string
           created_by?: string
           description?: string | null
+          discoverability?: string
           icon_name?: string | null
           id?: string
           is_published?: boolean
           owner_id?: string | null
+          public_share_enabled?: boolean
           sort_order?: number
           title?: string
           updated_at?: string
@@ -2560,19 +2566,25 @@ export type Database = {
       }
       wiki_category_groups: {
         Row: {
+          access_level: string
           category_id: string
+          completion_required: boolean
           created_at: string
           group_id: string
           id: string
         }
         Insert: {
+          access_level?: string
           category_id: string
+          completion_required?: boolean
           created_at?: string
           group_id: string
           id?: string
         }
         Update: {
+          access_level?: string
           category_id?: string
+          completion_required?: boolean
           created_at?: string
           group_id?: string
           id?: string

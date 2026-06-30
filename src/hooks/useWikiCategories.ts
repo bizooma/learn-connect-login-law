@@ -4,6 +4,17 @@ import { toast } from "sonner";
 
 export type WikiSubjectCategory = "policy" | "procedure" | "company";
 
+export type WikiAccessLevel = "view" | "edit" | "full";
+export type WikiDiscoverability = "discoverable" | "restricted";
+
+export interface WikiSharedGroup {
+  id: string;
+  name: string;
+  access_level: WikiAccessLevel;
+  completion_required: boolean;
+  member_count?: number;
+}
+
 export interface WikiCategory {
   id: string;
   title: string;
@@ -16,9 +27,11 @@ export interface WikiCategory {
   created_by: string;
   created_at: string;
   updated_at: string;
+  discoverability: WikiDiscoverability;
+  public_share_enabled: boolean;
   article_count?: number;
   owner?: { id: string; first_name: string | null; last_name: string | null; email: string; profile_image_url: string | null } | null;
-  shared_groups?: { id: string; name: string }[];
+  shared_groups?: WikiSharedGroup[];
 }
 
 export const useWikiCategories = () => {
@@ -57,26 +70,49 @@ export const useWikiCategories = () => {
         ownersMap = Object.fromEntries((owners || []).map((o: any) => [o.id, o]));
       }
 
-      // Get shared groups
+      // Get shared groups (with access level + completion flag + member counts)
       const categoryIds = (data as any[]).map((c) => c.id);
-      const sharesMap: Record<string, { id: string; name: string }[]> = {};
+      const sharesMap: Record<string, WikiSharedGroup[]> = {};
       if (categoryIds.length > 0) {
         const { data: shares } = await supabase
           .from("wiki_category_groups")
-          .select("category_id, group:groups(id, name)")
+          .select("category_id, access_level, completion_required, group:groups(id, name)")
           .in("category_id", categoryIds);
+
+        const groupIds = Array.from(
+          new Set((shares || []).map((s: any) => s.group?.id).filter(Boolean)),
+        ) as string[];
+        const memberCounts: Record<string, number> = {};
+        if (groupIds.length > 0) {
+          const { data: gm } = await supabase
+            .from("group_members" as any)
+            .select("group_id")
+            .in("group_id", groupIds);
+          (gm || []).forEach((m: any) => {
+            memberCounts[m.group_id] = (memberCounts[m.group_id] || 0) + 1;
+          });
+        }
+
         (shares || []).forEach((s: any) => {
           if (!s.group) return;
-          (sharesMap[s.category_id] ||= []).push({ id: s.group.id, name: s.group.name });
+          (sharesMap[s.category_id] ||= []).push({
+            id: s.group.id,
+            name: s.group.name,
+            access_level: (s.access_level as WikiAccessLevel) || "view",
+            completion_required: !!s.completion_required,
+            member_count: memberCounts[s.group.id] || 0,
+          });
         });
       }
 
-      return (data as WikiCategory[]).map((cat) => ({
+      return (data as any[]).map((cat) => ({
         ...cat,
+        discoverability: (cat.discoverability as WikiDiscoverability) || "discoverable",
+        public_share_enabled: !!cat.public_share_enabled,
         article_count: counts[cat.id] || 0,
         owner: cat.owner_id ? ownersMap[cat.owner_id] || null : null,
         shared_groups: sharesMap[cat.id] || [],
-      }));
+      })) as WikiCategory[];
     },
   });
 
@@ -116,7 +152,7 @@ export const useWikiCategories = () => {
   });
 
   const updateCategory = useMutation({
-    mutationFn: async ({ id, ...updates }: { id: string; title?: string; description?: string; icon_name?: string; category?: WikiSubjectCategory; is_published?: boolean; sort_order?: number; owner_id?: string | null }) => {
+    mutationFn: async ({ id, ...updates }: { id: string; title?: string; description?: string; icon_name?: string; category?: WikiSubjectCategory; is_published?: boolean; sort_order?: number; owner_id?: string | null; discoverability?: WikiDiscoverability; public_share_enabled?: boolean }) => {
       const { data, error } = await supabase
         .from("wiki_categories")
         .update(updates as any)
