@@ -135,6 +135,22 @@ export const UserCard = ({
     }
   };
 
+  const saveDepartment = async (value: string) => {
+    const next = value === "__none__" ? null : value;
+    const prev = department;
+    setDepartment(next);
+    const { error } = await supabase
+      .from("profiles")
+      .update({ department: next } as any)
+      .eq("id", user.id);
+    if (error) {
+      setDepartment(prev);
+      toast({ title: "Update failed", description: error.message, variant: "destructive" });
+    } else {
+      toast({ title: next ? `Department set to ${next}` : "Department cleared" });
+    }
+  };
+
 
   const toggleTester = async (next: boolean) => {
     setTesterSaving(true);
