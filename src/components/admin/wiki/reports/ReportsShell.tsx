@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
 import WikiSidebar from "@/components/admin/wiki/WikiSidebar";
+import WikiFooter from "@/components/admin/wiki/WikiFooter";
 import { useWikiCategories } from "@/hooks/useWikiCategories";
 
 interface ReportsShellProps {
