@@ -376,11 +376,19 @@ const ShareSubjectDialog = ({ open, onOpenChange, category }: Props) => {
                   </span>
                 </div>
               </SelectItem>
-              <SelectItem value="restricted">
+              <SelectItem value="request">
                 <div className="flex flex-col">
-                  <span className="font-medium">Not discoverable</span>
+                  <span className="font-medium">Request</span>
                   <span className="text-xs text-muted-foreground">
-                    Only users it's shared with can access.
+                    All users can find and request to view this content.
+                  </span>
+                </div>
+              </SelectItem>
+              <SelectItem value="private">
+                <div className="flex flex-col">
+                  <span className="font-medium">Private</span>
+                  <span className="text-xs text-muted-foreground">
+                    Only Admins and those shared with can view this content.
                   </span>
                 </div>
               </SelectItem>
