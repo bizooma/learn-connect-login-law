@@ -38,7 +38,7 @@ const ReportsShell = ({ title, subtitle, actions, children }: ReportsShellProps)
           />
 
           <div className="flex-1 flex flex-col min-w-0">
-            <div className="border-b border-border bg-background px-6 py-3 flex items-center gap-3">
+            <div className="border-b border-border px-6 py-3 flex items-center gap-3" style={{ backgroundColor: "#FFDA00" }}>
               <SidebarTrigger />
               <div className="flex-1">
                 <h2 className="text-lg font-semibold text-foreground">{title}</h2>
