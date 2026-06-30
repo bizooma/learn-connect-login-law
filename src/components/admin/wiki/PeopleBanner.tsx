@@ -151,7 +151,7 @@ const PeopleBanner = ({
               animation: `person-walk-${p.direction} ${p.speed}s linear ${p.delay}s infinite`,
             }}
           >
-            <div style={{ animation: "person-bob 0.6s ease-in-out infinite" }}>
+            <div style={{ animation: "person-bob 1.1s ease-in-out infinite" }}>
               <PersonSVG
                 size={p.size}
                 skin={p.skin}
