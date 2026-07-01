@@ -126,7 +126,7 @@ const WikiPageEditorPage = () => {
                 onClick={() => setAiOpen(true)}
                 className="gap-2"
               >
-                <Sparkles className="h-4 w-4" /> Write with AI
+                <img src={birdIcon.url} alt="" className="h-4 w-4" /> Write with AI
               </Button>
             )}
             <span className="text-xs text-muted-foreground">
