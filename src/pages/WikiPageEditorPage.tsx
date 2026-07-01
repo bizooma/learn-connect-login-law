@@ -147,6 +147,19 @@ const WikiPageEditorPage = () => {
           }}
         />
       </div>
+
+      {canUseAi && (
+        <AiWritePageDialog
+          open={aiOpen}
+          onOpenChange={setAiOpen}
+          pageTitle={title}
+          currentContent={content}
+          onInsert={(next) => {
+            setContent(next);
+            setDirty(true);
+          }}
+        />
+      )}
     </div>
   );
 };
