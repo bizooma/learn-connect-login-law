@@ -118,6 +118,16 @@ const WikiPageEditorPage = () => {
             />
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            {canUseAi && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setAiOpen(true)}
+                className="gap-2"
+              >
+                <Sparkles className="h-4 w-4" /> Write with AI
+              </Button>
+            )}
             <span className="text-xs text-muted-foreground">
               {dirty ? "Unsaved changes" : "Saved"}
             </span>
