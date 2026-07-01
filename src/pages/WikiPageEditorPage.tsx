@@ -3,10 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import RichTextEditor from "@/components/admin/wiki/RichTextEditor";
+import AiWritePageDialog from "@/components/admin/wiki/AiWritePageDialog";
 import { useWikiPages, WikiPage } from "@/hooks/useWikiPages";
+import { useUserRole } from "@/hooks/useUserRole";
+
 
 // Strip legacy bold so old content renders at normal weight.
 // Removes <strong>/<b> wrappers and inline font-weight styles.
@@ -26,8 +29,11 @@ const WikiPageEditorPage = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
 
   const { updatePage } = useWikiPages(page?.article_id);
+  const { isAdmin, isOwner } = useUserRole();
+  const canUseAi = isAdmin || isOwner;
 
   useEffect(() => {
     let active = true;
@@ -112,6 +118,16 @@ const WikiPageEditorPage = () => {
             />
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            {canUseAi && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setAiOpen(true)}
+                className="gap-2"
+              >
+                <Sparkles className="h-4 w-4" /> Write with AI
+              </Button>
+            )}
             <span className="text-xs text-muted-foreground">
               {dirty ? "Unsaved changes" : "Saved"}
             </span>
@@ -131,6 +147,19 @@ const WikiPageEditorPage = () => {
           }}
         />
       </div>
+
+      {canUseAi && (
+        <AiWritePageDialog
+          open={aiOpen}
+          onOpenChange={setAiOpen}
+          pageTitle={title}
+          currentContent={content}
+          onInsert={(next) => {
+            setContent(next);
+            setDirty(true);
+          }}
+        />
+      )}
     </div>
   );
 };
