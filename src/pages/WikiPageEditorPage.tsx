@@ -3,10 +3,13 @@ import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import RichTextEditor from "@/components/admin/wiki/RichTextEditor";
+import AiWritePageDialog from "@/components/admin/wiki/AiWritePageDialog";
 import { useWikiPages, WikiPage } from "@/hooks/useWikiPages";
+import { useUserRole } from "@/hooks/useUserRole";
+
 
 // Strip legacy bold so old content renders at normal weight.
 // Removes <strong>/<b> wrappers and inline font-weight styles.
