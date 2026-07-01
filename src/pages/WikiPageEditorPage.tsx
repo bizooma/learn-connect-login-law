@@ -121,10 +121,10 @@ const WikiPageEditorPage = () => {
           <div className="flex items-center gap-2 shrink-0">
             {canUseAi && (
               <Button
-                variant="outline"
                 size="sm"
                 onClick={() => setAiOpen(true)}
-                className="gap-2"
+                className="gap-2 text-white hover:opacity-90"
+                style={{ backgroundColor: "#213C82" }}
               >
                 <img src={birdIcon.url} alt="" className="h-7 w-7" /> Write with AI
               </Button>
