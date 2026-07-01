@@ -126,7 +126,7 @@ const WikiPageEditorPage = () => {
                 className="gap-2 text-white hover:opacity-90"
                 style={{ backgroundColor: "#213C82" }}
               >
-                <img src={birdIcon.url} alt="" className="h-7 w-7" /> Write with AI
+                <img src={birdIcon} alt="" className="h-7 w-7" /> Write with AI
               </Button>
             )}
             <span className="text-xs text-muted-foreground">
