@@ -29,8 +29,11 @@ const WikiPageEditorPage = () => {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [aiOpen, setAiOpen] = useState(false);
 
   const { updatePage } = useWikiPages(page?.article_id);
+  const { isAdmin, isOwner } = useUserRole();
+  const canUseAi = isAdmin || isOwner;
 
   useEffect(() => {
     let active = true;
