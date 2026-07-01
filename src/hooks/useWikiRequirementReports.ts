@@ -61,7 +61,8 @@ export const useWikiRequirementReports = () => {
         supabase
           .from("profiles")
           .select("id, first_name, last_name, email, job_title, profile_image_url")
-          .eq("is_deleted", false),
+          .eq("is_deleted", false)
+          .ilike("email", "%@newfrontier.us"),
         supabase
           .from("wiki_categories")
           .select("id, title, icon_name, updated_at, is_published"),
