@@ -49,6 +49,10 @@ const WikiPageEditorPage = () => {
       setTitle(p.title);
       setContent(sanitizeContent(p.content || ""));
       setLoading(false);
+      // Mark page as completed on open (idempotent)
+      supabase.rpc("mark_wiki_page_complete" as any, { page_id: p.id }).then(({ error }) => {
+        if (error) console.warn("mark_wiki_page_complete failed", error);
+      });
     })();
     return () => {
       active = false;
