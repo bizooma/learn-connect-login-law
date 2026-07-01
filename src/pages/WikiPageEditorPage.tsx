@@ -4,7 +4,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ArrowLeft, Loader2 } from "lucide-react";
-import birdIcon from "@/assets/bird.png.asset.json";
+import birdIcon from "@/assets/bird.png";
 import { toast } from "sonner";
 import RichTextEditor from "@/components/admin/wiki/RichTextEditor";
 import AiWritePageDialog from "@/components/admin/wiki/AiWritePageDialog";
@@ -126,7 +126,7 @@ const WikiPageEditorPage = () => {
                 className="gap-2 text-white hover:opacity-90"
                 style={{ backgroundColor: "#213C82" }}
               >
-                <img src={birdIcon.url} alt="" className="h-7 w-7" /> Write with AI
+                <img src={birdIcon} alt="" className="h-7 w-7" /> Write with AI
               </Button>
             )}
             <span className="text-xs text-muted-foreground">
