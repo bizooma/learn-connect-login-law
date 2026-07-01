@@ -2725,6 +2725,45 @@ export type Database = {
           },
         ]
       }
+      wiki_page_completions: {
+        Row: {
+          completed_at: string
+          created_at: string
+          id: string
+          page_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          created_at?: string
+          id?: string
+          page_id: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          created_at?: string
+          id?: string
+          page_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wiki_page_completions_page_id_fkey"
+            columns: ["page_id"]
+            isOneToOne: false
+            referencedRelation: "wiki_pages"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wiki_page_completions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wiki_pages: {
         Row: {
           article_id: string
@@ -2851,6 +2890,66 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "wiki_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wiki_subject_progress: {
+        Row: {
+          category_id: string
+          completed_at: string | null
+          created_at: string
+          id: string
+          last_accessed_at: string | null
+          pages_completed: number
+          pages_total: number
+          progress_pct: number
+          started_at: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category_id: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          last_accessed_at?: string | null
+          pages_completed?: number
+          pages_total?: number
+          progress_pct?: number
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category_id?: string
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          last_accessed_at?: string | null
+          pages_completed?: number
+          pages_total?: number
+          progress_pct?: number
+          started_at?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wiki_subject_progress_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "wiki_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wiki_subject_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -3113,6 +3212,7 @@ export type Database = {
             }
             Returns: boolean
           }
+      mark_wiki_page_complete: { Args: { page_id: string }; Returns: undefined }
       move_content_to_level: {
         Args: {
           p_content_id: string
@@ -3131,6 +3231,10 @@ export type Database = {
       reclassify_unit_to_section: {
         Args: { p_module_id: string; p_unit_id: string }
         Returns: string
+      }
+      recompute_wiki_subject_progress: {
+        Args: { p_category_id: string; p_user_id: string }
+        Returns: undefined
       }
       refresh_leaderboard_cache: { Args: never; Returns: undefined }
       remove_team_member: {
