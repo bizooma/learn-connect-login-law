@@ -148,20 +148,6 @@ const SafeRoleUpdateDialog = ({ user, currentRole, onRoleUpdated }: SafeRoleUpda
             />
           </div>
 
-          {newRole && newRole !== currentRole && (
-            <div>
-              <Label htmlFor="confirm">
-                Type <code className="bg-gray-100 px-1 rounded">{requiredText}</code> to confirm
-              </Label>
-              <Input
-                id="confirm"
-                value={confirmText}
-                onChange={(e) => setConfirmText(e.target.value)}
-                placeholder={requiredText}
-                className="mt-1"
-              />
-            </div>
-          )}
         </div>
 
         <DialogFooter>
