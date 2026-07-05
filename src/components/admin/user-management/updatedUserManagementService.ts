@@ -37,13 +37,16 @@ export const fetchUsersWithStatsSafe = async () => {
       hasCompleteProfile: true
     }));
 
-    // Calculate statistics
+    // Calculate statistics — count roles only for active (non-deleted) users
+    const activeUserIds = new Set(profiles.map(p => p.id));
     const stats = {
       totalUsers: users.length,
-      roleCounts: userRoles.reduce((acc, role) => {
-        acc[role.role] = (acc[role.role] || 0) + 1;
-        return acc;
-      }, {} as Record<string, number>)
+      roleCounts: userRoles
+        .filter(r => activeUserIds.has(r.user_id))
+        .reduce((acc, role) => {
+          acc[role.role] = (acc[role.role] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>)
     };
 
     console.log('Fetched users safely:', { userCount: users.length, stats });
