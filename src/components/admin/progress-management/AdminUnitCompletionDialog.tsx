@@ -106,7 +106,7 @@ const AdminUnitCompletionDialog = ({
     }
   }, [open, userId, unitId, courseId]);
 
-  const canProceed = validationResult?.isValid && reason.trim();
+  const canProceed = validationResult?.isValid;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
