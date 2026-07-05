@@ -1,5 +1,3 @@
-
-import { useState } from "react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -10,8 +8,6 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { AlertTriangle } from "lucide-react";
 
 interface DeleteConfirmationDialogProps {
@@ -29,19 +25,8 @@ const DeleteConfirmationDialog = ({
   quizTitle,
   questionsCount
 }: DeleteConfirmationDialogProps) => {
-  const [confirmationText, setConfirmationText] = useState("");
-  const expectedText = "DELETE";
-
   const handleConfirm = () => {
-    if (confirmationText === expectedText) {
-      onConfirm();
-      setConfirmationText("");
-      onOpenChange(false);
-    }
-  };
-
-  const handleCancel = () => {
-    setConfirmationText("");
+    onConfirm();
     onOpenChange(false);
   };
 
@@ -62,28 +47,14 @@ const DeleteConfirmationDialog = ({
               This quiz contains {questionsCount} question{questionsCount !== 1 ? 's' : ''}.
               This action cannot be undone.
             </p>
-            <div className="mt-4">
-              <Label htmlFor="confirmation" className="text-sm font-medium">
-                Type "DELETE" to confirm:
-              </Label>
-              <Input
-                id="confirmation"
-                value={confirmationText}
-                onChange={(e) => setConfirmationText(e.target.value)}
-                placeholder="Type DELETE here"
-                className="mt-1"
-                autoComplete="off"
-              />
-            </div>
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={handleCancel}>
+          <AlertDialogCancel onClick={() => onOpenChange(false)}>
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleConfirm}
-            disabled={confirmationText !== expectedText}
             className="bg-red-600 hover:bg-red-700"
           >
             Delete Quiz

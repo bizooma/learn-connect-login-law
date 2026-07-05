@@ -22,25 +22,24 @@ interface SafeRoleUpdateDialogProps {
 const SafeRoleUpdateDialog = ({ user, currentRole, onRoleUpdated }: SafeRoleUpdateDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [newRole, setNewRole] = useState<string>("");
-  const [confirmText, setConfirmText] = useState("");
   const [reason, setReason] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
   const { isAdmin, isOwner } = useUserRole();
 
   const availableRoles = getAvailableRoles(isAdmin, isOwner);
-  const requiredText = `CHANGE ROLE TO ${newRole.toUpperCase()}`;
-  const isConfirmValid = confirmText === requiredText && newRole && newRole !== currentRole;
+  const isValid = !!newRole && newRole !== currentRole;
 
   const handleRoleUpdate = async () => {
-    if (!isConfirmValid) {
+    if (!isValid) {
       toast({
         title: "Validation Error",
-        description: "Please type the confirmation text exactly.",
+        description: "Please select a new role.",
         variant: "destructive",
       });
       return;
     }
+
 
     setLoading(true);
 
@@ -70,7 +69,6 @@ const SafeRoleUpdateDialog = ({ user, currentRole, onRoleUpdated }: SafeRoleUpda
       });
 
       setDialogOpen(false);
-      setConfirmText("");
       setReason("");
       setNewRole("");
       
@@ -150,27 +148,12 @@ const SafeRoleUpdateDialog = ({ user, currentRole, onRoleUpdated }: SafeRoleUpda
             />
           </div>
 
-          {newRole && newRole !== currentRole && (
-            <div>
-              <Label htmlFor="confirm">
-                Type <code className="bg-gray-100 px-1 rounded">{requiredText}</code> to confirm
-              </Label>
-              <Input
-                id="confirm"
-                value={confirmText}
-                onChange={(e) => setConfirmText(e.target.value)}
-                placeholder={requiredText}
-                className="mt-1"
-              />
-            </div>
-          )}
         </div>
 
         <DialogFooter>
           <Button 
             variant="outline" 
             onClick={() => {
-              setConfirmText("");
               setReason("");
               setNewRole("");
               setDialogOpen(false);
@@ -180,7 +163,7 @@ const SafeRoleUpdateDialog = ({ user, currentRole, onRoleUpdated }: SafeRoleUpda
           </Button>
           <Button
             onClick={handleRoleUpdate}
-            disabled={loading || !isConfirmValid}
+            disabled={loading || !isValid}
             className="bg-blue-600 text-white hover:bg-blue-700"
           >
             {loading ? "Updating..." : "Update Role"}
