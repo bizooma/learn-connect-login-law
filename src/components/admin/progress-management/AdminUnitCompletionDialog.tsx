@@ -166,7 +166,7 @@ const AdminUnitCompletionDialog = ({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="reason">Reason for Override *</Label>
+            <Label htmlFor="reason">Reason for Override (optional)</Label>
             <Textarea
               id="reason"
               placeholder="Explain why this unit should be marked as complete (e.g., completed offline, technical issue, make-up work, etc.)"
