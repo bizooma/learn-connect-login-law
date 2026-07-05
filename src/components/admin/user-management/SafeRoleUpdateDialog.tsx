@@ -69,7 +69,6 @@ const SafeRoleUpdateDialog = ({ user, currentRole, onRoleUpdated }: SafeRoleUpda
       });
 
       setDialogOpen(false);
-      setConfirmText("");
       setReason("");
       setNewRole("");
       
