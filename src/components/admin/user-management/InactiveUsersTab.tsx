@@ -250,14 +250,13 @@ const InactiveUsersTab = ({ onUserRestored }: InactiveUsersTabProps) => {
           </DialogHeader>
           
           <div className="py-4">
-            <Label htmlFor="restoreReason">Reason for restoration *</Label>
+            <Label htmlFor="restoreReason">Reason for restoration (optional)</Label>
             <Textarea
               id="restoreReason"
-              placeholder="Please provide a reason for restoring this user..."
+              placeholder="Optionally provide a reason for restoring this user..."
               value={restoreReason}
               onChange={(e) => setRestoreReason(e.target.value)}
               className="mt-1"
-              required
             />
           </div>
 
