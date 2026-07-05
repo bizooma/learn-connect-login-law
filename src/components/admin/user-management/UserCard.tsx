@@ -223,7 +223,7 @@ export const UserCard = ({
     return (first + last).toUpperCase() || user.email.charAt(0).toUpperCase();
   };
 
-  const isTeamLeader = userRole === "team_leader" || !!user.team_leader_id;
+  const isTeamLeader = userRole !== "team_leader" && !!user.team_leader_id;
 
   return (
     <>
