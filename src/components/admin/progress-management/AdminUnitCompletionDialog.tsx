@@ -63,18 +63,9 @@ const AdminUnitCompletionDialog = ({
   };
 
   const handleSubmit = async () => {
-    if (!reason.trim()) {
-      toast({
-        title: "Reason Required",
-        description: "Please provide a reason for marking this unit as complete",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setLoading(true);
     try {
-      const result = await safeAdminMarkUnitComplete(userId, unitId, courseId, reason);
+      const result = await safeAdminMarkUnitComplete(userId, unitId, courseId, reason.trim() || 'No reason provided');
       
       if (result.success) {
         toast({
