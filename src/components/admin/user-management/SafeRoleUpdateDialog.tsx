@@ -22,25 +22,24 @@ interface SafeRoleUpdateDialogProps {
 const SafeRoleUpdateDialog = ({ user, currentRole, onRoleUpdated }: SafeRoleUpdateDialogProps) => {
   const [loading, setLoading] = useState(false);
   const [newRole, setNewRole] = useState<string>("");
-  const [confirmText, setConfirmText] = useState("");
   const [reason, setReason] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
   const { isAdmin, isOwner } = useUserRole();
 
   const availableRoles = getAvailableRoles(isAdmin, isOwner);
-  const requiredText = `CHANGE ROLE TO ${newRole.toUpperCase()}`;
-  const isConfirmValid = confirmText === requiredText && newRole && newRole !== currentRole;
+  const isValid = !!newRole && newRole !== currentRole;
 
   const handleRoleUpdate = async () => {
-    if (!isConfirmValid) {
+    if (!isValid) {
       toast({
         title: "Validation Error",
-        description: "Please type the confirmation text exactly.",
+        description: "Please select a new role.",
         variant: "destructive",
       });
       return;
     }
+
 
     setLoading(true);
 
