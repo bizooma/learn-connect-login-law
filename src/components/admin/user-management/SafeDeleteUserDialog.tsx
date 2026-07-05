@@ -111,14 +111,13 @@ const SafeDeleteUserDialog = ({ user, onUserDeleted }: SafeDeleteUserDialogProps
           </div>
 
           <div>
-            <Label htmlFor="reason">Reason for deactivation *</Label>
+            <Label htmlFor="reason">Reason for deactivation (optional)</Label>
             <Textarea
               id="reason"
-              placeholder="Please provide a reason for deactivating this user..."
+              placeholder="Optionally provide a reason for deactivating this user..."
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               className="mt-1"
-              required
             />
           </div>
 
