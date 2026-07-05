@@ -140,14 +140,13 @@ const SafeRoleUpdateDialog = ({ user, currentRole, onRoleUpdated }: SafeRoleUpda
           </div>
 
           <div>
-            <Label htmlFor="reason">Reason for role change *</Label>
+            <Label htmlFor="reason">Reason for role change (optional)</Label>
             <Textarea
               id="reason"
-              placeholder="Please provide a reason for changing this user's role..."
+              placeholder="Optionally provide a reason for changing this user's role..."
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               className="mt-1"
-              required
             />
           </div>
 
