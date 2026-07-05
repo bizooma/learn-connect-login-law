@@ -83,21 +83,14 @@ const InactiveUsersTab = ({ onUserRestored }: InactiveUsersTabProps) => {
   }, []);
 
   const handleRestoreUser = async () => {
-    if (!selectedUser || !restoreReason.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Please provide a reason for restoring this user.",
-        variant: "destructive",
-      });
-      return;
-    }
+    if (!selectedUser) return;
 
     setRestoreLoading(true);
 
     try {
       const { data, error } = await supabase.rpc('restore_user', {
         p_user_id: selectedUser.id,
-        p_reason: restoreReason.trim()
+        p_reason: restoreReason.trim() || 'No reason provided'
       });
 
       if (error) throw error;
@@ -257,14 +250,13 @@ const InactiveUsersTab = ({ onUserRestored }: InactiveUsersTabProps) => {
           </DialogHeader>
           
           <div className="py-4">
-            <Label htmlFor="restoreReason">Reason for restoration *</Label>
+            <Label htmlFor="restoreReason">Reason for restoration (optional)</Label>
             <Textarea
               id="restoreReason"
-              placeholder="Please provide a reason for restoring this user..."
+              placeholder="Optionally provide a reason for restoring this user..."
               value={restoreReason}
               onChange={(e) => setRestoreReason(e.target.value)}
               className="mt-1"
-              required
             />
           </div>
 
@@ -281,7 +273,7 @@ const InactiveUsersTab = ({ onUserRestored }: InactiveUsersTabProps) => {
             </Button>
             <Button
               onClick={handleRestoreUser}
-              disabled={restoreLoading || !restoreReason.trim()}
+              disabled={restoreLoading}
               className="bg-green-600 text-white hover:bg-green-700"
             >
               {restoreLoading ? "Restoring..." : "Restore User"}

@@ -63,18 +63,9 @@ const AdminUnitCompletionDialog = ({
   };
 
   const handleSubmit = async () => {
-    if (!reason.trim()) {
-      toast({
-        title: "Reason Required",
-        description: "Please provide a reason for marking this unit as complete",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setLoading(true);
     try {
-      const result = await safeAdminMarkUnitComplete(userId, unitId, courseId, reason);
+      const result = await safeAdminMarkUnitComplete(userId, unitId, courseId, reason.trim() || 'No reason provided');
       
       if (result.success) {
         toast({
@@ -115,7 +106,7 @@ const AdminUnitCompletionDialog = ({
     }
   }, [open, userId, unitId, courseId]);
 
-  const canProceed = validationResult?.isValid && reason.trim();
+  const canProceed = validationResult?.isValid;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -175,7 +166,7 @@ const AdminUnitCompletionDialog = ({
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="reason">Reason for Override *</Label>
+            <Label htmlFor="reason">Reason for Override (optional)</Label>
             <Textarea
               id="reason"
               placeholder="Explain why this unit should be marked as complete (e.g., completed offline, technical issue, make-up work, etc.)"

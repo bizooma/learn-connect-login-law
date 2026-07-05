@@ -26,10 +26,10 @@ const SafeDeleteUserDialog = ({ user, onUserDeleted }: SafeDeleteUserDialogProps
   const isConfirmValid = confirmText === requiredText;
 
   const handleSoftDelete = async () => {
-    if (!isConfirmValid || !reason.trim()) {
+    if (!isConfirmValid) {
       toast({
         title: "Validation Error",
-        description: "Please provide a reason and type the confirmation text exactly.",
+        description: "Please type the confirmation text exactly.",
         variant: "destructive",
       });
       return;
@@ -43,7 +43,7 @@ const SafeDeleteUserDialog = ({ user, onUserDeleted }: SafeDeleteUserDialogProps
       // Call the new safe soft delete function
       const { data, error } = await supabase.rpc('soft_delete_user', {
         p_user_id: user.id,
-        p_reason: reason.trim()
+        p_reason: reason.trim() || 'No reason provided'
       });
 
       console.log('Soft delete response:', { data, error });
@@ -111,14 +111,13 @@ const SafeDeleteUserDialog = ({ user, onUserDeleted }: SafeDeleteUserDialogProps
           </div>
 
           <div>
-            <Label htmlFor="reason">Reason for deactivation *</Label>
+            <Label htmlFor="reason">Reason for deactivation (optional)</Label>
             <Textarea
               id="reason"
-              placeholder="Please provide a reason for deactivating this user..."
+              placeholder="Optionally provide a reason for deactivating this user..."
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               className="mt-1"
-              required
             />
           </div>
 
@@ -143,7 +142,7 @@ const SafeDeleteUserDialog = ({ user, onUserDeleted }: SafeDeleteUserDialogProps
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleSoftDelete}
-            disabled={loading || !isConfirmValid || !reason.trim()}
+            disabled={loading || !isConfirmValid}
             className="bg-orange-600 text-white hover:bg-orange-700"
           >
             {loading ? "Deactivating..." : "Deactivate User"}
