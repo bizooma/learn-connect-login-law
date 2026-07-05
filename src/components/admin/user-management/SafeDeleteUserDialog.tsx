@@ -26,10 +26,10 @@ const SafeDeleteUserDialog = ({ user, onUserDeleted }: SafeDeleteUserDialogProps
   const isConfirmValid = confirmText === requiredText;
 
   const handleSoftDelete = async () => {
-    if (!isConfirmValid || !reason.trim()) {
+    if (!isConfirmValid) {
       toast({
         title: "Validation Error",
-        description: "Please provide a reason and type the confirmation text exactly.",
+        description: "Please type the confirmation text exactly.",
         variant: "destructive",
       });
       return;
@@ -43,7 +43,7 @@ const SafeDeleteUserDialog = ({ user, onUserDeleted }: SafeDeleteUserDialogProps
       // Call the new safe soft delete function
       const { data, error } = await supabase.rpc('soft_delete_user', {
         p_user_id: user.id,
-        p_reason: reason.trim()
+        p_reason: reason.trim() || 'No reason provided'
       });
 
       console.log('Soft delete response:', { data, error });
