@@ -373,13 +373,6 @@ export const UserCard = ({
           </div>
         </div>
 
-        {/* Protected Strip */}
-        <div className="px-5 py-2 bg-amber-50/60 border-y border-amber-100 flex items-center gap-2">
-          <AlertTriangle className="h-3.5 w-3.5 text-amber-600" />
-          <span className="text-[10px] font-semibold text-amber-700 uppercase tracking-wide">
-            Protected User Management
-          </span>
-        </div>
 
         {/* Platform Actions Split */}
         <div className="grid grid-cols-2 bg-muted/20">
