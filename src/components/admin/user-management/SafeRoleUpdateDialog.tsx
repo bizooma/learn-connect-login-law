@@ -180,7 +180,7 @@ const SafeRoleUpdateDialog = ({ user, currentRole, onRoleUpdated }: SafeRoleUpda
           </Button>
           <Button
             onClick={handleRoleUpdate}
-            disabled={loading || !isConfirmValid || !reason.trim()}
+            disabled={loading || !isConfirmValid}
             className="bg-blue-600 text-white hover:bg-blue-700"
           >
             {loading ? "Updating..." : "Update Role"}
