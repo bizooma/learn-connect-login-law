@@ -83,21 +83,14 @@ const InactiveUsersTab = ({ onUserRestored }: InactiveUsersTabProps) => {
   }, []);
 
   const handleRestoreUser = async () => {
-    if (!selectedUser || !restoreReason.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Please provide a reason for restoring this user.",
-        variant: "destructive",
-      });
-      return;
-    }
+    if (!selectedUser) return;
 
     setRestoreLoading(true);
 
     try {
       const { data, error } = await supabase.rpc('restore_user', {
         p_user_id: selectedUser.id,
-        p_reason: restoreReason.trim()
+        p_reason: restoreReason.trim() || 'No reason provided'
       });
 
       if (error) throw error;
