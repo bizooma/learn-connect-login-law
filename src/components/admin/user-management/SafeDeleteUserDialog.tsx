@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { UserMinus, AlertTriangle } from "lucide-react";
@@ -17,30 +16,16 @@ interface SafeDeleteUserDialogProps {
 
 const SafeDeleteUserDialog = ({ user, onUserDeleted }: SafeDeleteUserDialogProps) => {
   const [loading, setLoading] = useState(false);
-  const [confirmText, setConfirmText] = useState("");
   const [reason, setReason] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
 
-  const requiredText = "DEACTIVATE USER";
-  const isConfirmValid = confirmText === requiredText;
-
   const handleSoftDelete = async () => {
-    if (!isConfirmValid) {
-      toast({
-        title: "Validation Error",
-        description: "Please type the confirmation text exactly.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     setLoading(true);
 
     try {
       console.log('Attempting to soft delete user:', user.id);
-      
-      // Call the new safe soft delete function
+
       const { data, error } = await supabase.rpc('soft_delete_user', {
         p_user_id: user.id,
         p_reason: reason.trim() || 'No reason provided'
@@ -53,15 +38,12 @@ const SafeDeleteUserDialog = ({ user, onUserDeleted }: SafeDeleteUserDialogProps
         throw new Error(error.message || 'Failed to deactivate user');
       }
 
-      console.log('User soft deletion successful:', data);
-
       toast({
         title: "User Deactivated",
         description: `${user.email} has been deactivated successfully. They can be restored from the Inactive Users tab.`,
       });
 
       setDialogOpen(false);
-      setConfirmText("");
       setReason("");
       onUserDeleted();
 
@@ -80,8 +62,8 @@ const SafeDeleteUserDialog = ({ user, onUserDeleted }: SafeDeleteUserDialogProps
   return (
     <AlertDialog open={dialogOpen} onOpenChange={setDialogOpen}>
       <AlertDialogTrigger asChild>
-        <Button 
-          size="sm" 
+        <Button
+          size="sm"
           variant="outline"
           className="border-orange-500 text-orange-600 hover:bg-orange-50"
         >
@@ -98,7 +80,7 @@ const SafeDeleteUserDialog = ({ user, onUserDeleted }: SafeDeleteUserDialogProps
             This will <strong>deactivate</strong> the user account for <strong>{user.email}</strong> ({user.first_name} {user.last_name}).
           </AlertDialogDescription>
         </AlertDialogHeader>
-        
+
         <div className="space-y-4 py-4">
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
             <h4 className="font-medium text-blue-900 mb-2">What happens when you deactivate:</h4>
@@ -120,29 +102,15 @@ const SafeDeleteUserDialog = ({ user, onUserDeleted }: SafeDeleteUserDialogProps
               className="mt-1"
             />
           </div>
-
-          <div>
-            <Label htmlFor="confirm">Type <code className="bg-gray-100 px-1 rounded">{requiredText}</code> to confirm</Label>
-            <Input
-              id="confirm"
-              value={confirmText}
-              onChange={(e) => setConfirmText(e.target.value)}
-              placeholder={requiredText}
-              className="mt-1"
-            />
-          </div>
         </div>
 
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={() => {
-            setConfirmText("");
-            setReason("");
-          }}>
+          <AlertDialogCancel onClick={() => setReason("")}>
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleSoftDelete}
-            disabled={loading || !isConfirmValid}
+            disabled={loading}
             className="bg-orange-600 text-white hover:bg-orange-700"
           >
             {loading ? "Deactivating..." : "Deactivate User"}
