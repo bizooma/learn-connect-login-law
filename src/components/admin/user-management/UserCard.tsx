@@ -423,12 +423,6 @@ export const UserCard = ({
                 accent="slate"
                 disabled={!isAdmin}
               />
-              <ZoneButton
-                icon={<BookMarked className="h-3.5 w-3.5" />}
-                label="Wiki Access"
-                onClick={() => navigate(`/admin/wiki/directory?user=${user.id}`)}
-                accent="slate"
-              />
               {isAdmin && (
                 <div className="flex items-center justify-between gap-2 px-3 py-2 bg-background border border-border rounded-lg shadow-sm">
                   <div className="flex flex-col">
