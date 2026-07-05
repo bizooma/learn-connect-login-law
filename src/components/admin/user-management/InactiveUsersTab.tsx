@@ -273,7 +273,7 @@ const InactiveUsersTab = ({ onUserRestored }: InactiveUsersTabProps) => {
             </Button>
             <Button
               onClick={handleRestoreUser}
-              disabled={restoreLoading || !restoreReason.trim()}
+              disabled={restoreLoading}
               className="bg-green-600 text-white hover:bg-green-700"
             >
               {restoreLoading ? "Restoring..." : "Restore User"}
