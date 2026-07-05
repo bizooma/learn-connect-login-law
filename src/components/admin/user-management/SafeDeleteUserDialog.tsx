@@ -142,7 +142,7 @@ const SafeDeleteUserDialog = ({ user, onUserDeleted }: SafeDeleteUserDialogProps
           </AlertDialogCancel>
           <AlertDialogAction
             onClick={handleSoftDelete}
-            disabled={loading || !isConfirmValid || !reason.trim()}
+            disabled={loading || !isConfirmValid}
             className="bg-orange-600 text-white hover:bg-orange-700"
           >
             {loading ? "Deactivating..." : "Deactivate User"}
