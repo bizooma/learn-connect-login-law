@@ -33,10 +33,10 @@ const SafeRoleUpdateDialog = ({ user, currentRole, onRoleUpdated }: SafeRoleUpda
   const isConfirmValid = confirmText === requiredText && newRole && newRole !== currentRole;
 
   const handleRoleUpdate = async () => {
-    if (!isConfirmValid || !reason.trim()) {
+    if (!isConfirmValid) {
       toast({
         title: "Validation Error",
-        description: "Please provide a reason and type the confirmation text exactly.",
+        description: "Please type the confirmation text exactly.",
         variant: "destructive",
       });
       return;
@@ -51,7 +51,7 @@ const SafeRoleUpdateDialog = ({ user, currentRole, onRoleUpdated }: SafeRoleUpda
       const { data, error } = await supabase.rpc('update_user_role_safe', {
         p_user_id: user.id,
         p_new_role: newRole,
-        p_reason: reason.trim()
+        p_reason: reason.trim() || 'No reason provided'
       });
 
       console.log('Role update response:', { data, error });
