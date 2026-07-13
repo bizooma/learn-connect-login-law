@@ -14,14 +14,17 @@ const DepartmentGrid = () => (
       const isMarketing = dept.id === "marketing";
       const isPeopleCulture = dept.id === "people-culture";
       const isSales = dept.id === "sales";
-      const hasPhotoBackground = isOperations || isMarketing || isPeopleCulture || isSales;
+      const isLegal = dept.id === "legal";
+      const hasPhotoBackground = isOperations || isMarketing || isPeopleCulture || isSales || isLegal;
       const backgroundImage = isOperations
         ? teamPhotoAsset.url
         : isMarketing
           ? marketingPhotoAsset.url
           : isPeopleCulture
             ? peopleCulturePhotoAsset.url
-            : salesPhotoAsset.url;
+            : isSales
+              ? salesPhotoAsset.url
+              : legalPhotoAsset.url;
       return (
         <Link key={dept.id} to={`/hub/${dept.id}`} className="group">
           <Card
