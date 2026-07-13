@@ -6,20 +6,20 @@ import UserAuditTab from "./UserAuditTab";
 import BulkStudentPasswordUpdate from "../BulkStudentPasswordUpdate";
 import RoleUpdateDiagnostics from "./RoleUpdateDiagnostics";
 import UserDataConsistencyChecker from "./UserDataConsistencyChecker";
+import ManagerAssignmentImport from "./ManagerAssignmentImport";
 
 const UserManagementTabs = () => {
   const handleUserRestored = () => {
-    // This will trigger a refresh of the active users list
-    // The individual components handle their own data fetching
     console.log('User restored - components will refresh their data');
   };
 
   return (
     <div className="space-y-6">
       <Tabs defaultValue="active" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="active">Active Users</TabsTrigger>
           <TabsTrigger value="inactive">Inactive Users</TabsTrigger>
+          <TabsTrigger value="assign-managers">Assign Managers</TabsTrigger>
           <TabsTrigger value="audit">Audit Log</TabsTrigger>
           <TabsTrigger value="bulk-password">Bulk Password</TabsTrigger>
           <TabsTrigger value="diagnostics">Diagnostics</TabsTrigger>
@@ -32,6 +32,10 @@ const UserManagementTabs = () => {
         
         <TabsContent value="inactive" className="space-y-4">
           <InactiveUsersTab onUserRestored={handleUserRestored} />
+        </TabsContent>
+
+        <TabsContent value="assign-managers" className="space-y-4">
+          <ManagerAssignmentImport />
         </TabsContent>
         
         <TabsContent value="audit" className="space-y-4">
