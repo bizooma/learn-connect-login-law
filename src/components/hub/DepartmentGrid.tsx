@@ -17,7 +17,7 @@ const DepartmentGrid = () => (
             {isOperations && (
               <>
                 <div
-                  className="absolute inset-0 bg-cover bg-center"
+                  className="absolute inset-0 bg-cover bg-bottom"
                   style={{ backgroundImage: `url(${teamPhotoAsset.url})` }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-[#213C82]/85 via-[#213C82]/35 to-transparent" />
