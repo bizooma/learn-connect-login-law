@@ -46,6 +46,7 @@ import WikiFlowchartEditorPage from "./pages/WikiFlowchartEditorPage";
 import WikiKnowledgeCheckPage from "./pages/WikiKnowledgeCheckPage";
 
 import AuthPage from "./components/AuthPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 import RegisterPage from "./pages/RegisterPage";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
