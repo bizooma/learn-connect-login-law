@@ -5,6 +5,7 @@ import teamPhotoAsset from "@/assets/nueva-frontera-team.jpg.asset.json";
 import marketingPhotoAsset from "@/assets/marketing-team.jpg.asset.json";
 import peopleCulturePhotoAsset from "@/assets/people-culture-team.webp.asset.json";
 import salesPhotoAsset from "@/assets/sales-team.jpg.asset.json";
+import legalPhotoAsset from "@/assets/legal-team.jpg.asset.json";
 
 const DepartmentGrid = () => (
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
