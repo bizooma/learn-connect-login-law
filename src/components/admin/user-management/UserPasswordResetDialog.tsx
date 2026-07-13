@@ -149,13 +149,33 @@ export const UserPasswordResetDialog = ({
             Cancel
           </Button>
           <Button
-            onClick={handlePasswordChange}
+            onClick={handleSubmitClick}
             disabled={isLoading || !password || !confirmPassword}
           >
             {isLoading ? "Updating..." : "Change Password"}
           </Button>
         </DialogFooter>
       </DialogContent>
+
+      <AlertDialog open={confirmOpen} onOpenChange={setConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Change password?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to change the password for <strong>{displayName}</strong>?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isLoading}>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => { e.preventDefault(); handlePasswordChange(); }}
+              disabled={isLoading}
+            >
+              {isLoading ? "Updating..." : "Yes, change it"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 };
