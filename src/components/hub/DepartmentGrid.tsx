@@ -6,7 +6,6 @@ import teamPhotoAsset from "@/assets/nueva-frontera-team.jpg.asset.json";
 const DepartmentGrid = () => (
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
     {departments.map((dept) => {
-      const Icon = dept.icon;
       const isOperations = dept.id === "operations";
       return (
         <Link key={dept.id} to={`/hub/${dept.id}`} className="group">
@@ -24,12 +23,6 @@ const DepartmentGrid = () => (
               </>
             )}
             <CardHeader className="relative z-10">
-              <div
-                className="h-12 w-12 rounded-lg flex items-center justify-center mb-3"
-                style={{ background: "#213C82" }}
-              >
-                <Icon className="h-6 w-6 text-white" />
-              </div>
               <CardTitle
                 className={`group-hover:text-primary transition-colors ${
                   isOperations ? "text-white" : ""
