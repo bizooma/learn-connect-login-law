@@ -15,10 +15,13 @@ const DepartmentGrid = () => (
             style={{ borderTopColor: "#FFDA00" }}
           >
             {isOperations && (
-              <div
-                className="absolute inset-0 bg-cover bg-bottom"
-                style={{ backgroundImage: `url(${teamPhotoAsset.url})` }}
-              />
+              <>
+                <div
+                  className="absolute inset-0 bg-cover bg-bottom"
+                  style={{ backgroundImage: `url(${teamPhotoAsset.url})` }}
+                />
+                <div className="absolute inset-0 bg-gradient-to-b from-[#213C82]/75 via-[#213C82]/30 to-transparent" />
+              </>
             )}
             <CardHeader className="relative z-10">
               <div
