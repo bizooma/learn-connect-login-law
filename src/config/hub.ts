@@ -1,13 +1,11 @@
 import {
   Scale,
   Users,
-  Briefcase,
   Megaphone,
   HeartHandshake,
-  GraduationCap,
-  BookOpen,
-  FileText,
-  LayoutDashboard,
+  Wallet,
+  Settings2,
+  Circle,
   type LucideIcon,
 } from "lucide-react";
 
@@ -30,111 +28,89 @@ export interface Department {
   tiles: Tile[];
 }
 
+// Placeholder target until real LMS/P&P links are provided per tile.
+const placeholder: TileTarget = { kind: "path", to: "/courses" };
+
+const tile = (label: string): Tile => ({
+  label,
+  icon: Circle,
+  target: placeholder,
+});
+
 /**
- * Placeholder department + tile config for the /hub prototype.
- * Replace with the real department list and target links when ready.
+ * Hub structure provided by the client.
+ * Tile targets are placeholders — swap in real LMS course / P&P page links per tile.
  */
 export const departments: Department[] = [
   {
-    id: "intake",
-    name: "Intake",
-    description: "Client onboarding, consultations, and case openings.",
-    icon: HeartHandshake,
-    tiles: [
-      {
-        label: "Intake Training",
-        description: "LMS courses for the intake team.",
-        icon: BookOpen,
-        target: { kind: "path", to: "/courses" },
-      },
-      {
-        label: "Intake Policies",
-        description: "Policies & procedures for intake workflows.",
-        icon: FileText,
-        target: { kind: "path", to: "/admin/wiki" },
-      },
-      {
-        label: "My Dashboard",
-        icon: LayoutDashboard,
-        target: { kind: "path", to: "/student-dashboard" },
-      },
-    ],
-  },
-  {
-    id: "case-managers",
-    name: "Case Managers",
-    description: "Case processing, filings, and client communications.",
-    icon: Briefcase,
-    tiles: [
-      {
-        label: "Case Manager Training",
-        icon: BookOpen,
-        target: { kind: "path", to: "/courses" },
-      },
-      {
-        label: "Case Handling Policies",
-        icon: FileText,
-        target: { kind: "path", to: "/admin/wiki" },
-      },
-    ],
-  },
-  {
-    id: "attorneys",
-    name: "Attorneys",
-    description: "Legal strategy, hearings, and case review.",
+    id: "legal",
+    name: "Legal",
+    description: "Case work across the legal team.",
     icon: Scale,
     tiles: [
-      {
-        label: "Attorney Training",
-        icon: BookOpen,
-        target: { kind: "path", to: "/courses" },
-      },
-      {
-        label: "Legal P&P",
-        icon: FileText,
-        target: { kind: "path", to: "/admin/wiki" },
-      },
+      tile("Onboarding"),
+      tile("Paralegal"),
+      tile("Attorney"),
+      tile("Revision"),
+      tile("Post Filing"),
+      tile("Other"),
     ],
   },
   {
-    id: "admin-hr",
-    name: "Admin / HR",
-    description: "People operations, hiring, and internal administration.",
-    icon: Users,
+    id: "sales",
+    name: "Sales",
+    description: "Intake, reception, and client-facing sales teams.",
+    icon: HeartHandshake,
     tiles: [
-      {
-        label: "HR Training",
-        icon: GraduationCap,
-        target: { kind: "path", to: "/courses" },
-      },
-      {
-        label: "HR Policies",
-        icon: FileText,
-        target: { kind: "path", to: "/admin/wiki" },
-      },
-      {
-        label: "Team Leader Dashboard",
-        icon: LayoutDashboard,
-        target: { kind: "path", to: "/team-leader-dashboard" },
-      },
+      tile("Digital Intake Team"),
+      tile("Intake Team"),
+      tile("Lives Changed Team"),
+      tile("Reception"),
+      tile("Office Management"),
+      tile("Other"),
     ],
   },
   {
     id: "marketing",
     name: "Marketing",
-    description: "Brand, content, and outreach.",
+    description: "Brand, events, and outreach.",
     icon: Megaphone,
     tiles: [
-      {
-        label: "Marketing Training",
-        icon: BookOpen,
-        target: { kind: "path", to: "/courses" },
-      },
-      {
-        label: "Marketing P&P",
-        icon: FileText,
-        target: { kind: "path", to: "/admin/wiki" },
-      },
+      tile("Client Events"),
+      tile("Social Media"),
+      tile("Other"),
+    ],
+  },
+  {
+    id: "people-culture",
+    name: "People & Culture",
+    description: "HR, hiring, and team onboarding.",
+    icon: Users,
+    tiles: [
+      tile("Payroll"),
+      tile("Recruitment"),
+      tile("Onboarding"),
+      tile("Other"),
+    ],
+  },
+  {
+    id: "finance",
+    name: "Finance",
+    description: "Collections and financial operations.",
+    icon: Wallet,
+    tiles: [
+      tile("Collections"),
+      tile("Other"),
+    ],
+  },
+  {
+    id: "operations",
+    name: "Operations",
+    description: "Systems, automation, and internal tooling.",
+    icon: Settings2,
+    tiles: [
+      tile("Legal Automation"),
+      tile("Other"),
     ],
   },
 ];
