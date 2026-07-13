@@ -61,24 +61,6 @@ export const UserPasswordResetDialog = ({
 
   const handlePasswordChange = async () => {
     console.log('🔐 Password reset initiated for user:', user.email, 'by current user');
-    
-    if (password !== confirmPassword) {
-      toast({
-        title: "Error",
-        description: "Passwords do not match",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (password.length < 6) {
-      toast({
-        title: "Error",
-        description: "Password must be at least 6 characters long",
-        variant: "destructive",
-      });
-      return;
-    }
 
     setIsLoading(true);
     
