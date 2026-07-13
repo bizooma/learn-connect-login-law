@@ -29,19 +29,19 @@ const DepartmentGrid = () => (
             <CardHeader className="relative z-10">
               <CardTitle
                 className={`group-hover:text-primary transition-colors ${
-                  isOperations ? "text-white" : ""
+                  hasPhotoBackground ? "text-white" : ""
                 }`}
               >
                 {dept.name}
               </CardTitle>
-              <CardDescription className={isOperations ? "text-white/80" : ""}>
+              <CardDescription className={hasPhotoBackground ? "text-white/80" : ""}>
                 {dept.description}
               </CardDescription>
             </CardHeader>
             <CardContent className="relative z-10">
               <p
                 className={`text-xs ${
-                  isOperations ? "text-white/70" : "text-muted-foreground"
+                  hasPhotoBackground ? "text-white/70" : "text-muted-foreground"
                 }`}
               >
                 {dept.tiles.length} {dept.tiles.length === 1 ? "resource" : "resources"}
