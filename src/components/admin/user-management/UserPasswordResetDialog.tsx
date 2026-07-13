@@ -93,7 +93,7 @@ export const UserPasswordResetDialog = ({
 
       console.log('🔐 Calling onPasswordReset callback...');
       onPasswordReset();
-      console.log('🔐 Closing dialog...');
+      setConfirmOpen(false);
       onOpenChange(false);
       setPassword("");
       setConfirmPassword("");
