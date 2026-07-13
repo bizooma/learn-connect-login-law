@@ -10,7 +10,7 @@ const DepartmentGrid = () => (
       return (
         <Link key={dept.id} to={`/hub/${dept.id}`} className="group">
           <Card
-            className="h-full transition-shadow hover:shadow-lg border-t-4 relative overflow-hidden"
+            className="h-full min-h-[300px] transition-shadow hover:shadow-lg border-t-4 relative overflow-hidden"
             style={{ borderTopColor: "#FFDA00" }}
           >
             {isOperations && (
