@@ -117,8 +117,8 @@ const AppContent = () => {
         <Route path="/immigration-law-training" element={<ImmigrationLawTraining />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/profile" element={<AccountPage />} />
-        <Route path="/hub" element={<Hub />} />
-        <Route path="/hub/:departmentId" element={<Hub />} />
+        <Route path="/hub" element={<ProtectedRoute><Hub /></ProtectedRoute>} />
+        <Route path="/hub/:departmentId" element={<ProtectedRoute><Hub /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <ChatbotWidget />
