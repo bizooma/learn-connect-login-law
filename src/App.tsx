@@ -53,6 +53,7 @@ import PaymentCancelled from "./pages/PaymentCancelled";
 import LawFirmStaffTraining from "./pages/LawFirmStaffTraining";
 import ImmigrationLawTraining from "./pages/ImmigrationLawTraining";
 import AccountPage from "./pages/AccountPage";
+import Hub from "./pages/Hub";
 
 const queryClient = new QueryClient();
 
@@ -115,6 +116,8 @@ const AppContent = () => {
         <Route path="/immigration-law-training" element={<ImmigrationLawTraining />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/profile" element={<AccountPage />} />
+        <Route path="/hub" element={<Hub />} />
+        <Route path="/hub/:departmentId" element={<Hub />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <ChatbotWidget />
