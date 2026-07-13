@@ -6,6 +6,7 @@ import marketingPhotoAsset from "@/assets/marketing-team.jpg.asset.json";
 import peopleCulturePhotoAsset from "@/assets/people-culture-team.webp.asset.json";
 import salesPhotoAsset from "@/assets/sales-team.jpg.asset.json";
 import legalPhotoAsset from "@/assets/legal-team.jpg.asset.json";
+import financePhotoAsset from "@/assets/finance-team.jpg.asset.json";
 
 const DepartmentGrid = () => (
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -15,7 +16,8 @@ const DepartmentGrid = () => (
       const isPeopleCulture = dept.id === "people-culture";
       const isSales = dept.id === "sales";
       const isLegal = dept.id === "legal";
-      const hasPhotoBackground = isOperations || isMarketing || isPeopleCulture || isSales || isLegal;
+      const isFinance = dept.id === "finance";
+      const hasPhotoBackground = isOperations || isMarketing || isPeopleCulture || isSales || isLegal || isFinance;
       const backgroundImage = isOperations
         ? teamPhotoAsset.url
         : isMarketing
@@ -24,7 +26,9 @@ const DepartmentGrid = () => (
             ? peopleCulturePhotoAsset.url
             : isSales
               ? salesPhotoAsset.url
-              : legalPhotoAsset.url;
+              : isLegal
+                ? legalPhotoAsset.url
+                : financePhotoAsset.url;
       return (
         <Link key={dept.id} to={`/hub/${dept.id}`} className="group">
           <Card
