@@ -2,8 +2,6 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { UserMinus, AlertTriangle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,39 +14,32 @@ interface SafeDeleteUserDialogProps {
 
 const SafeDeleteUserDialog = ({ user, onUserDeleted }: SafeDeleteUserDialogProps) => {
   const [loading, setLoading] = useState(false);
-  const [reason, setReason] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
+
+  const displayName = [user.first_name, user.last_name].filter(Boolean).join(" ") || user.email;
 
   const handleSoftDelete = async () => {
     setLoading(true);
 
     try {
-      console.log('Attempting to soft delete user:', user.id);
-
-      const { data, error } = await supabase.rpc('soft_delete_user', {
+      const { error } = await supabase.rpc('soft_delete_user', {
         p_user_id: user.id,
-        p_reason: reason.trim() || 'No reason provided'
+        p_reason: 'Deactivated by admin'
       });
 
-      console.log('Soft delete response:', { data, error });
-
       if (error) {
-        console.error('Soft delete error:', error);
         throw new Error(error.message || 'Failed to deactivate user');
       }
 
       toast({
         title: "User Deactivated",
-        description: `${user.email} has been deactivated successfully. They can be restored from the Inactive Users tab.`,
+        description: `${user.email} has been deactivated. They can be restored from the Inactive Users tab.`,
       });
 
       setDialogOpen(false);
-      setReason("");
       onUserDeleted();
-
     } catch (error: any) {
-      console.error('Error soft deleting user:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to deactivate user",
@@ -77,39 +68,14 @@ const SafeDeleteUserDialog = ({ user, onUserDeleted }: SafeDeleteUserDialogProps
             Deactivate User Account
           </AlertDialogTitle>
           <AlertDialogDescription>
-            This will <strong>deactivate</strong> the user account for <strong>{user.email}</strong> ({user.first_name} {user.last_name}).
+            Are you sure you want to deactivate <strong>{displayName}</strong>? They can be restored later from the Inactive Users tab.
           </AlertDialogDescription>
         </AlertDialogHeader>
 
-        <div className="space-y-4 py-4">
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-            <h4 className="font-medium text-blue-900 mb-2">What happens when you deactivate:</h4>
-            <ul className="text-sm text-blue-800 space-y-1">
-              <li>• User will be unable to log in</li>
-              <li>• Account data is preserved (not deleted)</li>
-              <li>• Can be restored at any time from Inactive Users tab</li>
-              <li>• All audit trails are maintained</li>
-            </ul>
-          </div>
-
-          <div>
-            <Label htmlFor="reason">Reason for deactivation (optional)</Label>
-            <Textarea
-              id="reason"
-              placeholder="Optionally provide a reason for deactivating this user..."
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              className="mt-1"
-            />
-          </div>
-        </div>
-
         <AlertDialogFooter>
-          <AlertDialogCancel onClick={() => setReason("")}>
-            Cancel
-          </AlertDialogCancel>
+          <AlertDialogCancel>Cancel</AlertDialogCancel>
           <AlertDialogAction
-            onClick={handleSoftDelete}
+            onClick={(e) => { e.preventDefault(); handleSoftDelete(); }}
             disabled={loading}
             className="bg-orange-600 text-white hover:bg-orange-700"
           >
@@ -122,3 +88,4 @@ const SafeDeleteUserDialog = ({ user, onUserDeleted }: SafeDeleteUserDialogProps
 };
 
 export default SafeDeleteUserDialog;
+
