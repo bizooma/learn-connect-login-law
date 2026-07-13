@@ -46,6 +46,7 @@ import WikiFlowchartEditorPage from "./pages/WikiFlowchartEditorPage";
 import WikiKnowledgeCheckPage from "./pages/WikiKnowledgeCheckPage";
 
 import AuthPage from "./components/AuthPage";
+import ProtectedRoute from "./components/ProtectedRoute";
 import RegisterPage from "./pages/RegisterPage";
 import PaymentSuccess from "./pages/PaymentSuccess";
 import PaymentCancelled from "./pages/PaymentCancelled";
@@ -116,8 +117,8 @@ const AppContent = () => {
         <Route path="/immigration-law-training" element={<ImmigrationLawTraining />} />
         <Route path="/account" element={<AccountPage />} />
         <Route path="/profile" element={<AccountPage />} />
-        <Route path="/hub" element={<Hub />} />
-        <Route path="/hub/:departmentId" element={<Hub />} />
+        <Route path="/hub" element={<ProtectedRoute><Hub /></ProtectedRoute>} />
+        <Route path="/hub/:departmentId" element={<ProtectedRoute><Hub /></ProtectedRoute>} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <ChatbotWidget />
