@@ -20,7 +20,7 @@ const DepartmentGrid = () => (
                   className="absolute inset-0 bg-cover bg-center"
                   style={{ backgroundImage: `url(${teamPhotoAsset.url})` }}
                 />
-                <div className="absolute inset-0 bg-[#213C82]/60" />
+                <div className="absolute inset-0 bg-gradient-to-b from-[#213C82]/80 via-[#213C82]/45 to-[#213C82]/25" />
               </>
             )}
             <CardHeader className="relative z-10">
