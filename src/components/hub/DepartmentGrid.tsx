@@ -3,14 +3,20 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { departments } from "@/config/hub";
 import teamPhotoAsset from "@/assets/nueva-frontera-team.jpg.asset.json";
 import marketingPhotoAsset from "@/assets/marketing-team.jpg.asset.json";
+import peopleCulturePhotoAsset from "@/assets/people-culture-team.webp.asset.json";
 
 const DepartmentGrid = () => (
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
     {departments.map((dept) => {
       const isOperations = dept.id === "operations";
       const isMarketing = dept.id === "marketing";
-      const hasPhotoBackground = isOperations || isMarketing;
-      const backgroundImage = isOperations ? teamPhotoAsset.url : marketingPhotoAsset.url;
+      const isPeopleCulture = dept.id === "people-culture";
+      const hasPhotoBackground = isOperations || isMarketing || isPeopleCulture;
+      const backgroundImage = isOperations
+        ? teamPhotoAsset.url
+        : isMarketing
+          ? marketingPhotoAsset.url
+          : peopleCulturePhotoAsset.url;
       return (
         <Link key={dept.id} to={`/hub/${dept.id}`} className="group">
           <Card
