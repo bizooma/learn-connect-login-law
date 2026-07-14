@@ -1,12 +1,12 @@
 import { Link } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { departments } from "@/config/hub";
-import teamPhotoAsset from "@/assets/nueva-frontera-team.jpg.asset.json";
-import marketingPhotoAsset from "@/assets/marketing-team.jpg.asset.json";
-import peopleCulturePhotoAsset from "@/assets/people-culture-team.webp.asset.json";
-import salesPhotoAsset from "@/assets/sales-team.jpg.asset.json";
-import legalPhotoAsset from "@/assets/legal-team.jpg.asset.json";
-import financePhotoAsset from "@/assets/finance-team.jpg.asset.json";
+import teamPhoto from "@/assets/nueva-frontera-team.jpg";
+import marketingPhoto from "@/assets/marketing-team.jpg";
+import peopleCulturePhoto from "@/assets/people-culture-team.webp";
+import salesPhoto from "@/assets/sales-team.jpg";
+import legalPhoto from "@/assets/legal-team.jpg";
+import financePhoto from "@/assets/finance-team.jpg";
 
 const DepartmentGrid = () => (
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -19,16 +19,16 @@ const DepartmentGrid = () => (
       const isFinance = dept.id === "finance";
       const hasPhotoBackground = isOperations || isMarketing || isPeopleCulture || isSales || isLegal || isFinance;
       const backgroundImage = isOperations
-        ? teamPhotoAsset.url
+        ? teamPhoto
         : isMarketing
-          ? marketingPhotoAsset.url
+          ? marketingPhoto
           : isPeopleCulture
-            ? peopleCulturePhotoAsset.url
+            ? peopleCulturePhoto
             : isSales
-              ? salesPhotoAsset.url
+              ? salesPhoto
               : isLegal
-                ? legalPhotoAsset.url
-                : financePhotoAsset.url;
+                ? legalPhoto
+                : financePhoto;
       return (
         <Link key={dept.id} to={`/hub/${dept.id}`} className="group">
           <Card
