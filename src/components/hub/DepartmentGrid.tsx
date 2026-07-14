@@ -27,8 +27,8 @@ const DepartmentGrid = () => (
             : isSales
               ? salesPhoto
               : isLegal
-                ? legalAsset.url
-                : financeAsset.url;
+                ? `https://learn-connect-login-law.lovable.app${legalAsset.url}`
+                : `https://learn-connect-login-law.lovable.app${financeAsset.url}`;
       return (
         <Link key={dept.id} to={`/hub/${dept.id}`} className="group">
           <Card
