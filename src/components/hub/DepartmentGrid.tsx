@@ -6,7 +6,7 @@ import marketingPhoto from "@/assets/marketing-team.jpg";
 import peopleCulturePhoto from "@/assets/people-culture-team.webp";
 import salesPhoto from "@/assets/sales-team.jpg";
 import legalAsset from "@/assets/legal-team.jpg.asset.json";
-import financePhoto from "@/assets/finance-team.jpg";
+import financeAsset from "@/assets/finance-team.jpg.asset.json";
 
 const DepartmentGrid = () => (
   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -28,7 +28,7 @@ const DepartmentGrid = () => (
               ? salesPhoto
               : isLegal
                 ? legalAsset.url
-                : financePhoto;
+                : financeAsset.url;
       return (
         <Link key={dept.id} to={`/hub/${dept.id}`} className="group">
           <Card
@@ -38,7 +38,7 @@ const DepartmentGrid = () => (
             {hasPhotoBackground && (
               <>
                 <div
-                  className={`absolute inset-0 bg-cover transition-transform duration-500 group-hover:scale-105 ${isLegal ? "bg-top" : "bg-bottom"}`}
+                  className={`absolute inset-0 bg-cover transition-transform duration-500 group-hover:scale-105 ${isLegal || isFinance ? "bg-top" : "bg-bottom"}`}
                   style={{ backgroundImage: `url(${backgroundImage})` }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-[#213C82]/75 via-[#213C82]/30 to-transparent group-hover:from-[#213C82]/85 transition-colors duration-300" />
