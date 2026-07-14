@@ -124,6 +124,10 @@ const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
                   <TreePine className="h-4 w-4" />
                   <span>LMS Tree</span>
                 </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleHub} className="flex items-center space-x-2">
+                  <LayoutGrid className="h-4 w-4" />
+                  <span>Hub</span>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="flex items-center space-x-2 text-red-600">
                   <LogOut className="h-4 w-4" />
