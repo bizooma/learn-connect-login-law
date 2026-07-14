@@ -38,7 +38,7 @@ const DepartmentGrid = () => (
             {hasPhotoBackground && (
               <>
                 <div
-                  className="absolute inset-0 bg-cover bg-bottom transition-transform duration-500 group-hover:scale-105"
+                  className={`absolute inset-0 bg-cover transition-transform duration-500 group-hover:scale-105 ${isLegal ? "bg-top" : "bg-bottom"}`}
                   style={{ backgroundImage: `url(${backgroundImage})` }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-[#213C82]/75 via-[#213C82]/30 to-transparent group-hover:from-[#213C82]/85 transition-colors duration-300" />
