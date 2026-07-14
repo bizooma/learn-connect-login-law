@@ -32,26 +32,27 @@ const DepartmentGrid = () => (
       return (
         <Link key={dept.id} to={`/hub/${dept.id}`} className="group">
           <Card
-            className="h-full min-h-[300px] transition-shadow hover:shadow-lg border-t-4 relative overflow-hidden"
+            className="h-full min-h-[300px] transition-all duration-300 border-t-4 relative overflow-hidden hover:shadow-[0_0_30px_-8px_rgba(255,218,0,0.7)] hover:-translate-y-0.5"
             style={{ borderTopColor: "#FFDA00" }}
           >
             {hasPhotoBackground && (
               <>
                 <div
-                  className="absolute inset-0 bg-cover bg-bottom"
+                  className="absolute inset-0 bg-cover bg-bottom transition-transform duration-500 group-hover:scale-105"
                   style={{ backgroundImage: `url(${backgroundImage})` }}
                 />
-                <div className="absolute inset-0 bg-gradient-to-b from-[#213C82]/75 via-[#213C82]/30 to-transparent" />
+                <div className="absolute inset-0 bg-gradient-to-b from-[#213C82]/75 via-[#213C82]/30 to-transparent group-hover:from-[#213C82]/85 transition-colors duration-300" />
               </>
             )}
             <CardHeader className="relative z-10">
               <CardTitle
-                className={`group-hover:text-primary transition-colors ${
-                  hasPhotoBackground ? "text-white" : ""
+                className={`transition-colors ${
+                  hasPhotoBackground ? "text-white" : "text-foreground"
                 }`}
               >
                 {dept.name}
               </CardTitle>
+              <div className="h-0.5 w-0 bg-[#FFDA00] group-hover:w-12 transition-all duration-300 mt-2" />
               <CardDescription className={hasPhotoBackground ? "text-white/80" : ""}>
                 {dept.description}
               </CardDescription>
