@@ -52,6 +52,10 @@ const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
     window.open('https://newfrontier.productlift.dev/', '_blank', 'noopener,noreferrer');
   };
 
+  const handleHub = () => {
+    navigate('/hub');
+  };
+
   return (
     <header style={{ background: '#213C82' }} className="shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
