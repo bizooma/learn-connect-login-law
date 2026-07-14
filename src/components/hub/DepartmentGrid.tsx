@@ -5,7 +5,7 @@ import teamPhoto from "@/assets/nueva-frontera-team.jpg";
 import marketingPhoto from "@/assets/marketing-team.jpg";
 import peopleCulturePhoto from "@/assets/people-culture-team.webp";
 import salesPhoto from "@/assets/sales-team.jpg";
-import legalPhoto from "@/assets/legal-team.jpg";
+import legalAsset from "@/assets/legal-team.jpg.asset.json";
 import financePhoto from "@/assets/finance-team.jpg";
 
 const DepartmentGrid = () => (
@@ -27,7 +27,7 @@ const DepartmentGrid = () => (
             : isSales
               ? salesPhoto
               : isLegal
-                ? legalPhoto
+                ? legalAsset.url
                 : financePhoto;
       return (
         <Link key={dept.id} to={`/hub/${dept.id}`} className="group">
