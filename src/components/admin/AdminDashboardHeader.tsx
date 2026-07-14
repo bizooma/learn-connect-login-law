@@ -1,5 +1,5 @@
 
-import { BookOpen, Menu, LogOut, TreePine, HelpCircle, Sparkles, Map, FileText } from "lucide-react";
+import { BookOpen, Menu, LogOut, TreePine, HelpCircle, Sparkles, Map, FileText, LayoutGrid } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate, useLocation } from "react-router-dom";
