@@ -84,10 +84,10 @@ export const useCourse = (courseId: string) => {
           }
         });
 
-        // Enhance modules with proper ordering and filter out draft units
+        // Enhance modules with proper ordering and filter out draft lessons and units
         const enhancedModules = courseData.modules?.map(module => ({
           ...module,
-          lessons: module.lessons?.map(lesson => ({
+          lessons: module.lessons?.filter(lesson => !lesson.is_draft).map(lesson => ({
             ...lesson,
             units: lesson.units?.filter(unit => !unit.is_draft).map(unit => {
               let files: Array<{ url: string; name: string; size: number }> = [];
@@ -120,6 +120,7 @@ export const useCourse = (courseId: string) => {
             })?.sort((a, b) => a.sort_order - b.sort_order) || []
           }))?.sort((a, b) => a.sort_order - b.sort_order) || []
         }))?.sort((a, b) => a.sort_order - b.sort_order) || [];
+
 
         // For backward compatibility, also create a flat lessons array with proper ordering and filter out draft units
         const flatLessons = enhancedModules.flatMap(m => m.lessons || []);
