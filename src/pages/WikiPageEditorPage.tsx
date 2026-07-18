@@ -10,6 +10,8 @@ import RichTextEditor from "@/components/admin/wiki/RichTextEditor";
 import AiWritePageDialog from "@/components/admin/wiki/AiWritePageDialog";
 import { useWikiPages, WikiPage } from "@/hooks/useWikiPages";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useQuery } from "@tanstack/react-query";
+import { FileText, ChevronRight } from "lucide-react";
 
 
 // Strip legacy bold so old content renders at normal weight.
@@ -35,6 +37,53 @@ const WikiPageEditorPage = () => {
   const { pages: siblingPages, updatePage } = useWikiPages(page?.article_id);
   const { isAdmin, isOwner } = useUserRole();
   const canUseAi = isAdmin || isOwner;
+
+  // Fetch the full subject (category) tree: all articles in this category and all their pages
+  const categoryId = (page as any)?.article_id ? undefined : undefined; // placeholder, real value below
+  const { data: subjectTree } = useQuery({
+    queryKey: ["wiki-subject-tree", page?.article_id],
+    enabled: !!page?.article_id,
+    queryFn: async () => {
+      // 1) get current article to find its category_id
+      const { data: currentArticle, error: aErr } = await supabase
+        .from("wiki_articles")
+        .select("id, category_id")
+        .eq("id", page!.article_id)
+        .single();
+      if (aErr) throw aErr;
+      const catId = (currentArticle as any).category_id as string;
+
+      // 2) all articles in category
+      const { data: articles, error: artsErr } = await supabase
+        .from("wiki_articles")
+        .select("id, title, content_type, sort_order, category_id")
+        .eq("category_id", catId)
+        .order("sort_order", { ascending: true });
+      if (artsErr) throw artsErr;
+
+      const articleIds = (articles || []).map((a: any) => a.id);
+      // 3) all pages for those articles
+      let pagesByArticle = new Map<string, WikiPage[]>();
+      if (articleIds.length > 0) {
+        const { data: allPages, error: pErr } = await supabase
+          .from("wiki_pages" as any)
+          .select("*")
+          .in("article_id", articleIds)
+          .order("sort_order", { ascending: true });
+        if (pErr) throw pErr;
+        for (const p of (allPages || []) as any[]) {
+          const arr = pagesByArticle.get(p.article_id) || [];
+          arr.push(p as WikiPage);
+          pagesByArticle.set(p.article_id, arr);
+        }
+      }
+      return {
+        categoryId: catId,
+        articles: (articles || []) as any[],
+        pagesByArticle,
+      };
+    },
+  });
 
   useEffect(() => {
     let active = true;
@@ -105,36 +154,61 @@ const WikiPageEditorPage = () => {
 
   return (
     <div className="flex h-screen bg-background">
-      <aside className="hidden md:flex flex-col w-64 border-r border-border bg-muted/20 shrink-0">
+      <aside className="hidden md:flex flex-col w-72 border-r border-border bg-muted/20 shrink-0">
         <div className="px-4 py-3 border-b border-border">
           <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">
-            Document Pages
+            Document Contents
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            {siblingPages.length} {siblingPages.length === 1 ? "page" : "pages"}
+            {subjectTree?.articles.length ?? 0} {(subjectTree?.articles.length ?? 0) === 1 ? "item" : "items"}
           </p>
         </div>
         <nav className="flex-1 overflow-y-auto py-2">
-          {siblingPages.map((p, idx) => {
-            const isCurrent = p.id === page?.id;
+          {(subjectTree?.articles || []).map((article: any) => {
+            const articlePages = subjectTree?.pagesByArticle.get(article.id) || [];
+            const isCurrentArticle = article.id === page?.article_id;
             return (
-              <button
-                key={p.id}
-                onClick={() => handleNavigateToPage(p.id)}
-                className={`w-full text-left px-4 py-2 text-sm flex items-start gap-2 transition-colors ${
-                  isCurrent
-                    ? "font-semibold text-foreground"
-                    : "text-muted-foreground hover:bg-muted/50"
-                }`}
-                style={isCurrent ? { backgroundColor: "#FFDA00" } : undefined}
-              >
-                <span className="text-xs opacity-70 shrink-0 mt-0.5">{idx + 1}.</span>
-                <span className="line-clamp-2 break-words">{p.title || "Untitled"}</span>
-              </button>
+              <div key={article.id} className="mb-1">
+                <div
+                  className={`px-3 py-2 flex items-center gap-2 text-sm ${
+                    isCurrentArticle ? "text-foreground font-semibold" : "text-foreground/80"
+                  }`}
+                >
+                  <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                  <span className="line-clamp-2 break-words flex-1">{article.title || "Untitled"}</span>
+                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground shrink-0">
+                    {article.content_type}
+                  </span>
+                </div>
+                {articlePages.length > 0 && (
+                  <div className="ml-2 border-l border-border">
+                    {articlePages.map((p, idx) => {
+                      const isCurrent = p.id === page?.id;
+                      return (
+                        <button
+                          key={p.id}
+                          onClick={() => handleNavigateToPage(p.id)}
+                          className={`w-full text-left pl-4 pr-3 py-1.5 text-sm flex items-start gap-2 transition-colors ${
+                            isCurrent
+                              ? "font-semibold text-foreground"
+                              : "text-muted-foreground hover:bg-muted/50"
+                          }`}
+                          style={isCurrent ? { backgroundColor: "#FFDA00" } : undefined}
+                        >
+                          <ChevronRight className="h-3 w-3 shrink-0 mt-1 opacity-60" />
+                          <span className="text-xs opacity-70 shrink-0 mt-0.5">{idx + 1}.</span>
+                          <span className="line-clamp-2 break-words">{p.title || "Untitled"}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>
       </aside>
+
 
       <div className="flex-1 flex flex-col min-w-0">
         <div className="border-b border-border bg-background">
