@@ -1,30 +1,30 @@
-## Problem
+No questions — the expected behavior is clear.
 
-When you click a non-page item in the editor's left sidebar (like the "Overview" video), it navigates to `/admin/wiki/content?article=<id>`, but that page ignores the `article` query param and just shows the All Content list. So the click "loses" you back to the top-level view instead of opening the video.
+Plan:
+1. Create one reusable document navigation sidebar for wiki editing screens.
+   - It will render the selected subject/category exactly like the expanded All Content tree: subject title, article rows, content type labels, and nested pages under document articles.
+   - It will replace the main Wiki sidebar whenever an admin is inside a specific subject item/page instead of browsing All Content.
 
-Different content types open in different places in this app:
-- **Pages** → `/admin/wiki/pages/:pageId` (WikiPageEditorPage)
-- **Flowcharts** → `/admin/wiki/flowchart/:id` (dedicated route)
-- **Documents, Videos, Tests, Checklists, Files** → open inside `AdminWikiPage` by setting its internal `editingArticle` state, which renders `WikiArticleEditor`. There is no standalone URL for these today.
+2. Use that sidebar in every wiki edit/view flow.
+   - Page editor route: `/admin/wiki/pages/:pageId`
+   - Article editor modal/page state: videos, files, tests/checklists, and other non-page article types opened from `/admin/wiki/content?article=...`
+   - Flowchart editor route: `/admin/wiki/flowchart/:articleId`
 
-## Fix
+3. Fix item routing from the sidebar.
+   - Page clicks open the page editor.
+   - Document/article clicks with pages open the first page.
+   - Video/file/test/checklist clicks open the article editor while keeping the document sidebar visible.
+   - Flowchart clicks open the flowchart editor while keeping the document sidebar visible.
 
-### 1. Sidebar click routing (`src/pages/WikiPageEditorPage.tsx`)
-Route each article by its `content_type`:
-- `flowchart` → `/admin/wiki/flowchart/:id`
-- If the article has pages → open its first page: `/admin/wiki/pages/:firstPageId`
-- Everything else (document with no pages, video, test, checklist, file) → `/admin/wiki/content?article=:id` (AdminWikiPage will open it — see step 2)
+4. Add active highlighting so the sidebar shows exactly where the admin is.
+   - Highlight the current article for video/file/test/checklist/flowchart items.
+   - Highlight the current page inside its parent document for page editing.
 
-### 2. Make AdminWikiPage honor `?article=` (`src/pages/AdminWikiPage.tsx`)
-On mount and whenever the query string changes:
-- Read the `article` search param.
-- If present, fetch that article from `wiki_articles` by id.
-- Set `activeCategoryId` to the article's `category_id` (so the surrounding context matches) and set `editingArticle` to the fetched article. This triggers the existing `WikiArticleEditor` render path — the same view you get when you click the item from the All Content tree.
-- If the article is a `flowchart`, redirect to `/admin/wiki/flowchart/:id` instead (matches the existing `openArticle` behavior).
+5. Update back navigation to preserve context.
+   - “Back to Content” should return to the selected subject/category expanded, not dump the admin into the generic All Content view unless they explicitly choose All Content.
 
-### 3. No other changes
-Pages already work correctly. The sidebar tree, highlighting, and unsaved-changes prompt stay as they are.
-
-## Result
-
-Clicking "Overview (Video)" in the sidebar opens that video in the article editor view instead of dumping you back to the All Content list. Same for tests, files, checklists, and empty documents. Flowcharts go straight to the flowchart route.
+6. Verify the flow manually in the preview.
+   - Open a subject from All Content.
+   - Click Overview/video and confirm it opens with the document sidebar, not the main sidebar.
+   - Click a nested page and confirm the same sidebar remains.
+   - Click flowchart/non-page items and confirm navigation stays inside the same document tree.
