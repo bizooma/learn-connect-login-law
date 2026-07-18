@@ -167,10 +167,20 @@ const WikiPageEditorPage = () => {
           {(subjectTree?.articles || []).map((article: any) => {
             const articlePages = subjectTree?.pagesByArticle.get(article.id) || [];
             const isCurrentArticle = article.id === page?.article_id;
+            const handleArticleClick = () => {
+              if (dirty && !window.confirm("You have unsaved changes. Leave without saving?")) return;
+              if (articlePages.length > 0) {
+                navigate(`/admin/wiki/pages/${articlePages[0].id}`);
+              } else {
+                // Non-page article types (video, test, file, etc.) — open in the main content view
+                navigate(`/admin/wiki/content?article=${article.id}`);
+              }
+            };
             return (
               <div key={article.id} className="mb-1">
-                <div
-                  className={`px-3 py-2 flex items-center gap-2 text-sm ${
+                <button
+                  onClick={handleArticleClick}
+                  className={`w-full text-left px-3 py-2 flex items-center gap-2 text-sm transition-colors hover:bg-muted/50 ${
                     isCurrentArticle ? "text-foreground font-semibold" : "text-foreground/80"
                   }`}
                 >
@@ -179,7 +189,7 @@ const WikiPageEditorPage = () => {
                   <span className="text-[10px] uppercase tracking-wide text-muted-foreground shrink-0">
                     {article.content_type}
                   </span>
-                </div>
+                </button>
                 {articlePages.length > 0 && (
                   <div className="ml-2 border-l border-border">
                     {articlePages.map((p, idx) => {
