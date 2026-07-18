@@ -10,6 +10,8 @@ import RichTextEditor from "@/components/admin/wiki/RichTextEditor";
 import AiWritePageDialog from "@/components/admin/wiki/AiWritePageDialog";
 import { useWikiPages, WikiPage } from "@/hooks/useWikiPages";
 import { useUserRole } from "@/hooks/useUserRole";
+import { useQuery } from "@tanstack/react-query";
+import { FileText, ChevronRight } from "lucide-react";
 
 
 // Strip legacy bold so old content renders at normal weight.
