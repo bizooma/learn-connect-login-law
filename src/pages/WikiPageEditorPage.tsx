@@ -169,10 +169,12 @@ const WikiPageEditorPage = () => {
             const isCurrentArticle = article.id === page?.article_id;
             const handleArticleClick = () => {
               if (dirty && !window.confirm("You have unsaved changes. Leave without saving?")) return;
-              if (articlePages.length > 0) {
+              if (article.content_type === "flowchart") {
+                navigate(`/admin/wiki/flowchart/${article.id}`);
+              } else if (articlePages.length > 0) {
                 navigate(`/admin/wiki/pages/${articlePages[0].id}`);
               } else {
-                // Non-page article types (video, test, file, etc.) — open in the main content view
+                // Non-page article types (video, test, file, empty document) — AdminWikiPage opens it via ?article=
                 navigate(`/admin/wiki/content?article=${article.id}`);
               }
             };
