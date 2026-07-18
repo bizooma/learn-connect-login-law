@@ -32,7 +32,7 @@ const WikiPageEditorPage = () => {
   const [dirty, setDirty] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
 
-  const { updatePage } = useWikiPages(page?.article_id);
+  const { pages: siblingPages, updatePage } = useWikiPages(page?.article_id);
   const { isAdmin, isOwner } = useUserRole();
   const canUseAi = isAdmin || isOwner;
 
