@@ -7,6 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Loader2, Plus, Trash2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { useWikiQuestions, WikiQuestion } from "@/hooks/useWikiQuestions";
+import WikiDocumentSidebar from "@/components/admin/wiki/WikiDocumentSidebar";
 
 const letter = (i: number) => String.fromCharCode(65 + i);
 
@@ -124,6 +125,7 @@ const WikiKnowledgeCheckPage = () => {
   const { articleId, categoryId } = useParams<{ articleId?: string; categoryId?: string }>();
   const navigate = useNavigate();
   const [articleTitle, setArticleTitle] = useState("");
+  const [navCategoryId, setNavCategoryId] = useState<string | null>(categoryId ?? null);
   const [loading, setLoading] = useState(true);
   const api = useWikiQuestions(articleId, categoryId);
 
@@ -141,13 +143,14 @@ const WikiKnowledgeCheckPage = () => {
           return;
         }
         setArticleTitle(data.title);
+        setNavCategoryId(categoryId);
         setLoading(false);
         return;
       }
       if (!articleId) return;
       const { data, error } = await supabase
         .from("wiki_articles")
-        .select("title")
+        .select("title, category_id")
         .eq("id", articleId)
         .single();
       if (error) {
@@ -156,6 +159,7 @@ const WikiKnowledgeCheckPage = () => {
         return;
       }
       setArticleTitle(data.title);
+      setNavCategoryId(data.category_id);
       setLoading(false);
     })();
   }, [articleId, categoryId, navigate]);
@@ -169,41 +173,56 @@ const WikiKnowledgeCheckPage = () => {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-background">
-      <div className="border-b border-border bg-background sticky top-0 z-10">
-        <div className="flex items-center justify-between px-6 py-3 max-w-4xl mx-auto w-full">
-          <div className="flex items-center gap-4 min-w-0">
-            <Button variant="ghost" size="sm" onClick={() => navigate("/admin/wiki/content")} className="gap-2">
-              <ArrowLeft className="h-4 w-4" /> Back to Content
-            </Button>
-            <div className="flex items-center gap-2 min-w-0">
-              <span className="truncate text-sm text-muted-foreground">{articleTitle}</span>
-              <span className="text-muted-foreground">/</span>
-              <span className="font-semibold">Knowledge Check</span>
+    <div className="flex h-screen bg-background">
+      <WikiDocumentSidebar
+        categoryId={navCategoryId}
+        activeArticleId={articleId}
+        activeKnowledgeCheck
+      />
+
+      <div className="flex flex-col flex-1 min-w-0">
+        <div className="border-b border-border bg-background sticky top-0 z-10">
+          <div className="flex items-center justify-between px-6 py-3 max-w-4xl mx-auto w-full">
+            <div className="flex items-center gap-4 min-w-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/admin/wiki/content", { state: { activeCategoryId: navCategoryId } })}
+                className="gap-2"
+              >
+                <ArrowLeft className="h-4 w-4" /> Back to Content
+              </Button>
+              <div className="flex items-center gap-2 min-w-0">
+                <span className="truncate text-sm text-muted-foreground">{articleTitle}</span>
+                <span className="text-muted-foreground">/</span>
+                <span className="font-semibold">Knowledge Check</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
 
-      <div className="flex-1 max-w-4xl mx-auto w-full px-6 py-8">
-        {api.questions.length === 0 && (
-          <div className="text-center text-muted-foreground py-12 border border-dashed rounded-lg mb-6">
-            No questions yet. Add your first question below.
+        <div className="flex-1 overflow-auto">
+          <div className="max-w-4xl mx-auto w-full px-6 py-8">
+            {api.questions.length === 0 && (
+              <div className="text-center text-muted-foreground py-12 border border-dashed rounded-lg mb-6">
+                No questions yet. Add your first question below.
+              </div>
+            )}
+
+            {api.questions.map((q, i) => (
+              <QuestionCard key={q.id} question={q} index={i} api={api} />
+            ))}
+
+            <Button
+              onClick={() => api.createQuestion.mutate(articleId || "")}
+              variant="outline"
+              className="w-full gap-2 mt-4"
+              disabled={api.createQuestion.isPending}
+            >
+              <Plus className="h-4 w-4" /> Add question
+            </Button>
           </div>
-        )}
-
-        {api.questions.map((q, i) => (
-          <QuestionCard key={q.id} question={q} index={i} api={api} />
-        ))}
-
-        <Button
-          onClick={() => api.createQuestion.mutate(articleId || "")}
-          variant="outline"
-          className="w-full gap-2 mt-4"
-          disabled={api.createQuestion.isPending}
-        >
-          <Plus className="h-4 w-4" /> Add question
-        </Button>
+        </div>
       </div>
     </div>
   );
