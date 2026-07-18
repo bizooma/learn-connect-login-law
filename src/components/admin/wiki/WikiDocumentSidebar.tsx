@@ -21,6 +21,7 @@ interface WikiDocumentSidebarProps {
   categoryId?: string | null;
   activeArticleId?: string | null;
   activePageId?: string | null;
+  activeKnowledgeCheck?: boolean;
   onBeforeNavigate?: () => boolean;
 }
 
@@ -50,6 +51,7 @@ const WikiDocumentSidebar = ({
   categoryId,
   activeArticleId,
   activePageId,
+  activeKnowledgeCheck,
   onBeforeNavigate,
 }: WikiDocumentSidebarProps) => {
   const navigate = useNavigate();
@@ -228,7 +230,9 @@ const WikiDocumentSidebar = ({
           <button
             type="button"
             onClick={() => requestNavigation(`/admin/wiki/knowledge-check/category/${data.category.id}`)}
+            aria-current={activeKnowledgeCheck ? "page" : undefined}
             className="w-full flex items-center gap-2 px-4 py-2 pl-12 bg-background border-b border-border text-left hover:bg-muted/30 transition-colors"
+            style={activeKnowledgeCheck ? { backgroundColor: "#FFDA00" } : undefined}
           >
             <span className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded">Test</span>
             <HelpCircle className="h-4 w-4 text-muted-foreground" />
