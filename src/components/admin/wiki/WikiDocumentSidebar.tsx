@@ -122,6 +122,11 @@ const WikiDocumentSidebar = ({
     navigate(to, data?.category.id ? { state: { activeCategoryId: data.category.id } } : undefined);
   };
 
+  const openAllContent = () => {
+    if (onBeforeNavigate && !onBeforeNavigate()) return;
+    navigate("/admin/wiki/content");
+  };
+
   const openArticle = (article: WikiArticle) => {
     const pages = data?.pagesByArticle[article.id] || [];
 
@@ -143,7 +148,7 @@ const WikiDocumentSidebar = ({
       <div className="px-4 py-3 border-b border-border" style={{ backgroundColor: "#FFDA00" }}>
         <button
           type="button"
-          onClick={() => requestNavigation("/admin/wiki/content")}
+          onClick={openAllContent}
           className="text-xs font-semibold uppercase tracking-wide text-foreground/80 hover:text-foreground"
         >
           All Content
