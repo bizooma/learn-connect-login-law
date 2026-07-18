@@ -154,36 +154,61 @@ const WikiPageEditorPage = () => {
 
   return (
     <div className="flex h-screen bg-background">
-      <aside className="hidden md:flex flex-col w-64 border-r border-border bg-muted/20 shrink-0">
+      <aside className="hidden md:flex flex-col w-72 border-r border-border bg-muted/20 shrink-0">
         <div className="px-4 py-3 border-b border-border">
           <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">
-            Document Pages
+            Document Contents
           </p>
           <p className="text-xs text-muted-foreground mt-1">
-            {siblingPages.length} {siblingPages.length === 1 ? "page" : "pages"}
+            {subjectTree?.articles.length ?? 0} {(subjectTree?.articles.length ?? 0) === 1 ? "item" : "items"}
           </p>
         </div>
         <nav className="flex-1 overflow-y-auto py-2">
-          {siblingPages.map((p, idx) => {
-            const isCurrent = p.id === page?.id;
+          {(subjectTree?.articles || []).map((article: any) => {
+            const articlePages = subjectTree?.pagesByArticle.get(article.id) || [];
+            const isCurrentArticle = article.id === page?.article_id;
             return (
-              <button
-                key={p.id}
-                onClick={() => handleNavigateToPage(p.id)}
-                className={`w-full text-left px-4 py-2 text-sm flex items-start gap-2 transition-colors ${
-                  isCurrent
-                    ? "font-semibold text-foreground"
-                    : "text-muted-foreground hover:bg-muted/50"
-                }`}
-                style={isCurrent ? { backgroundColor: "#FFDA00" } : undefined}
-              >
-                <span className="text-xs opacity-70 shrink-0 mt-0.5">{idx + 1}.</span>
-                <span className="line-clamp-2 break-words">{p.title || "Untitled"}</span>
-              </button>
+              <div key={article.id} className="mb-1">
+                <div
+                  className={`px-3 py-2 flex items-center gap-2 text-sm ${
+                    isCurrentArticle ? "text-foreground font-semibold" : "text-foreground/80"
+                  }`}
+                >
+                  <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                  <span className="line-clamp-2 break-words flex-1">{article.title || "Untitled"}</span>
+                  <span className="text-[10px] uppercase tracking-wide text-muted-foreground shrink-0">
+                    {article.content_type}
+                  </span>
+                </div>
+                {articlePages.length > 0 && (
+                  <div className="ml-2 border-l border-border">
+                    {articlePages.map((p, idx) => {
+                      const isCurrent = p.id === page?.id;
+                      return (
+                        <button
+                          key={p.id}
+                          onClick={() => handleNavigateToPage(p.id)}
+                          className={`w-full text-left pl-4 pr-3 py-1.5 text-sm flex items-start gap-2 transition-colors ${
+                            isCurrent
+                              ? "font-semibold text-foreground"
+                              : "text-muted-foreground hover:bg-muted/50"
+                          }`}
+                          style={isCurrent ? { backgroundColor: "#FFDA00" } : undefined}
+                        >
+                          <ChevronRight className="h-3 w-3 shrink-0 mt-1 opacity-60" />
+                          <span className="text-xs opacity-70 shrink-0 mt-0.5">{idx + 1}.</span>
+                          <span className="line-clamp-2 break-words">{p.title || "Untitled"}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
             );
           })}
         </nav>
       </aside>
+
 
       <div className="flex-1 flex flex-col min-w-0">
         <div className="border-b border-border bg-background">
