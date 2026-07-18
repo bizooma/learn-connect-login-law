@@ -49,6 +49,39 @@ const AdminWikiPage = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.key]);
 
+  // Open a specific article when navigated with ?article=<id>
+  const [searchParams, setSearchParams] = useSearchParams();
+  const articleParam = searchParams.get("article");
+  useEffect(() => {
+    if (!articleParam) return;
+    let active = true;
+    (async () => {
+      const { data, error } = await supabase
+        .from("wiki_articles")
+        .select("*")
+        .eq("id", articleParam)
+        .single();
+      if (!active) return;
+      if (error || !data) {
+        toast.error("Could not open item");
+        setSearchParams({}, { replace: true });
+        return;
+      }
+      const a = data as unknown as WikiArticle;
+      if (a.content_type === "flowchart") {
+        navigate(`/admin/wiki/flowchart/${a.id}`, { replace: true });
+        return;
+      }
+      setActiveCategoryId(a.category_id);
+      setEditingArticle(a);
+      // clear the param so refresh/back behaves naturally
+      setSearchParams({}, { replace: true });
+    })();
+    return () => {
+      active = false;
+    };
+  }, [articleParam]);
+
   const { categories, isLoading, createCategory, updateCategory, deleteCategory } = useWikiCategories();
   const { updateArticle } = useWikiArticles();
 
