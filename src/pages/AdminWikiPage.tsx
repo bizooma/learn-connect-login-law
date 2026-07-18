@@ -13,6 +13,7 @@ import WikiSearchBar from "@/components/admin/wiki/WikiSearchBar";
 import WikiCategoryList from "@/components/admin/wiki/WikiCategoryList";
 import WikiCategoryDialog from "@/components/admin/wiki/WikiCategoryDialog";
 import WikiArticleEditor from "@/components/admin/wiki/WikiArticleEditor";
+import WikiDocumentSidebar from "@/components/admin/wiki/WikiDocumentSidebar";
 import CreateContentMenu, { type CreateContentChoice } from "@/components/admin/wiki/CreateContentMenu";
 import CreateContentDialog from "@/components/admin/wiki/CreateContentDialog";
 import BubblesBanner from "@/components/admin/wiki/BubblesBanner";
@@ -136,16 +137,23 @@ const AdminWikiPage = () => {
 
       <SidebarProvider>
         <div className="flex flex-1 w-full" style={{ height: 'calc(100vh - 88px)' }}>
-          <WikiSidebar
-            categories={categories.map((c) => ({
-              id: c.id,
-              title: c.title,
-              icon: c.icon_name,
-              article_count: (c as any).article_count,
-            }))}
-            activeCategoryId={activeCategoryId}
-            onCategorySelect={setActiveCategoryId}
-          />
+          {editingArticle ? (
+            <WikiDocumentSidebar
+              categoryId={editingArticle.category_id}
+              activeArticleId={editingArticle.id}
+            />
+          ) : (
+            <WikiSidebar
+              categories={categories.map((c) => ({
+                id: c.id,
+                title: c.title,
+                icon: c.icon_name,
+                article_count: (c as any).article_count,
+              }))}
+              activeCategoryId={activeCategoryId}
+              onCategorySelect={setActiveCategoryId}
+            />
+          )}
 
           <div className="flex-1 flex flex-col min-w-0">
             <div className="border-b border-border px-6 py-3 flex items-center justify-between" style={{ backgroundColor: "#FFDA00" }}>

@@ -23,9 +23,11 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, Loader2, Square, Diamond, Circle, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import ShapeNode, { type Shape } from "@/components/admin/wiki/flowchart/ShapeNode";
+import WikiDocumentSidebar from "@/components/admin/wiki/WikiDocumentSidebar";
 
 interface ArticleRow {
   id: string;
+  category_id: string;
   title: string;
   content: string | null;
   content_type: string;
@@ -71,7 +73,7 @@ const WikiFlowchartEditorInner = () => {
       if (!articleId) return;
       const { data, error } = await supabase
         .from("wiki_articles")
-        .select("id, title, content, content_type")
+        .select("id, category_id, title, content, content_type")
         .eq("id", articleId)
         .single();
       if (!active) return;
@@ -185,79 +187,99 @@ const WikiFlowchartEditorInner = () => {
     );
   }
 
+  const confirmNavigation = () => {
+    if (!dirty) return true;
+    return window.confirm("You have unsaved changes. Leave without saving?");
+  };
+
+  const handleBackToContent = () => {
+    if (!confirmNavigation()) return;
+    navigate("/admin/wiki/content", {
+      state: { activeCategoryId: article?.category_id ?? null },
+    });
+  };
+
   return (
-    <div className="flex flex-col h-screen bg-background">
-      <div className="border-b border-border bg-background">
-        <div className="flex items-center justify-between px-6 py-3 max-w-7xl mx-auto w-full gap-4">
-          <div className="flex items-center gap-4 flex-1 min-w-0">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("/admin/wiki/content")}
-              className="gap-2 shrink-0"
+    <div className="flex h-screen bg-background">
+      <WikiDocumentSidebar
+        categoryId={article?.category_id}
+        activeArticleId={article?.id}
+        onBeforeNavigate={confirmNavigation}
+      />
+
+      <div className="flex flex-col flex-1 min-w-0">
+        <div className="border-b border-border bg-background">
+          <div className="flex items-center justify-between px-6 py-3 max-w-7xl mx-auto w-full gap-4">
+            <div className="flex items-center gap-4 flex-1 min-w-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleBackToContent}
+                className="gap-2 shrink-0"
+              >
+                <ArrowLeft className="h-4 w-4" /> Back to Content
+              </Button>
+              <Input
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  setDirty(true);
+                }}
+                className="text-lg font-semibold border-0 shadow-none focus-visible:ring-0 px-2"
+                placeholder="Flowchart title"
+              />
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="text-xs text-muted-foreground">
+                {saving ? "Saving..." : dirty ? "Unsaved changes" : "Saved"}
+              </span>
+              <Button onClick={handleSave} disabled={saving || !dirty} size="sm">
+                Save
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-1 overflow-hidden">
+          <div className="w-48 border-r border-border bg-muted/30 p-3 space-y-2">
+            <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wide mb-2">
+              Add shape
+            </p>
+            <Button variant="outline" className="w-full justify-start gap-2" onClick={() => addShape("box")}>
+              <Square className="h-4 w-4" /> Box
+            </Button>
+            <Button variant="outline" className="w-full justify-start gap-2" onClick={() => addShape("diamond")}>
+              <Diamond className="h-4 w-4" /> Decision
+            </Button>
+            <Button variant="outline" className="w-full justify-start gap-2" onClick={() => addShape("oval")}>
+              <Circle className="h-4 w-4" /> Oval
+            </Button>
+            <div className="pt-3 border-t border-border" />
+            <Button variant="outline" className="w-full justify-start gap-2 text-destructive" onClick={deleteSelected}>
+              <Trash2 className="h-4 w-4" /> Delete selected
+            </Button>
+            <p className="text-[11px] text-muted-foreground pt-3 leading-relaxed">
+              Double-click a shape to rename. Drag from the right handle to the next shape to connect them.
+            </p>
+          </div>
+
+          <div className="flex-1">
+            <ReactFlow
+              nodes={decoratedNodes}
+              edges={edges}
+              onNodesChange={onNodesChange}
+              onEdgesChange={onEdgesChange}
+              onConnect={onConnect}
+              nodeTypes={nodeTypes}
+              defaultEdgeOptions={{ type: "smoothstep", markerEnd: { type: MarkerType.ArrowClosed } }}
+              fitView
+              fitViewOptions={{ padding: 0.3 }}
             >
-              <ArrowLeft className="h-4 w-4" /> Back to Content
-            </Button>
-            <Input
-              value={title}
-              onChange={(e) => {
-                setTitle(e.target.value);
-                setDirty(true);
-              }}
-              className="text-lg font-semibold border-0 shadow-none focus-visible:ring-0 px-2"
-              placeholder="Flowchart title"
-            />
+              <Background />
+              <Controls />
+              <MiniMap pannable zoomable />
+            </ReactFlow>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <span className="text-xs text-muted-foreground">
-              {saving ? "Saving..." : dirty ? "Unsaved changes" : "Saved"}
-            </span>
-            <Button onClick={handleSave} disabled={saving || !dirty} size="sm">
-              Save
-            </Button>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-1 overflow-hidden">
-        <div className="w-48 border-r border-border bg-muted/30 p-3 space-y-2">
-          <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wide mb-2">
-            Add shape
-          </p>
-          <Button variant="outline" className="w-full justify-start gap-2" onClick={() => addShape("box")}>
-            <Square className="h-4 w-4" /> Box
-          </Button>
-          <Button variant="outline" className="w-full justify-start gap-2" onClick={() => addShape("diamond")}>
-            <Diamond className="h-4 w-4" /> Decision
-          </Button>
-          <Button variant="outline" className="w-full justify-start gap-2" onClick={() => addShape("oval")}>
-            <Circle className="h-4 w-4" /> Oval
-          </Button>
-          <div className="pt-3 border-t border-border" />
-          <Button variant="outline" className="w-full justify-start gap-2 text-destructive" onClick={deleteSelected}>
-            <Trash2 className="h-4 w-4" /> Delete selected
-          </Button>
-          <p className="text-[11px] text-muted-foreground pt-3 leading-relaxed">
-            Double-click a shape to rename. Drag from the right handle to the next shape to connect them.
-          </p>
-        </div>
-
-        <div className="flex-1">
-          <ReactFlow
-            nodes={decoratedNodes}
-            edges={edges}
-            onNodesChange={onNodesChange}
-            onEdgesChange={onEdgesChange}
-            onConnect={onConnect}
-            nodeTypes={nodeTypes}
-            defaultEdgeOptions={{ type: "smoothstep", markerEnd: { type: MarkerType.ArrowClosed } }}
-            fitView
-            fitViewOptions={{ padding: 0.3 }}
-          >
-            <Background />
-            <Controls />
-            <MiniMap pannable zoomable />
-          </ReactFlow>
         </div>
       </div>
     </div>
