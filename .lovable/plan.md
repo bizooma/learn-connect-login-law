@@ -1,27 +1,19 @@
 ## Goal
-Add an obvious secondary navigation control on `/admin/wiki/content` so users can return to the "All Content" list from a selected category view.
+Keep the user's place in a document while editing individual pages by showing all pages of the parent article in a persistent left sidebar on the page editor.
 
-## Current state
-`src/pages/AdminWikiPage.tsx` renders:
-- A yellow breadcrumb bar at the top with an "All Content" link.
-- A `WikiSearchBar`.
-- A `WikiCategoryList` (the document table) when a category is selected.
+## Change
+Update `src/pages/WikiPageEditorPage.tsx`:
 
-The breadcrumb link already clears the selected category, but the client wants a more prominent button below the search bar.
+1. Once the current page loads and we know its `article_id`, use the existing `useWikiPages(article_id)` hook (already imported) to fetch all sibling pages ordered by `sort_order`.
+2. Add a fixed-width left sidebar (~260px) alongside the editor:
+   - Header showing the parent article title (fetch article title via `wiki_articles` in the same load, or show "Document Pages").
+   - Scrollable list of pages. Each item is a button showing the page title with its `sort_order` number.
+   - The current page is highlighted (brand yellow `#FFDA00` background / bold).
+   - Clicking a page calls `navigate(\`/admin/wiki/pages/${p.id}\`)` — the existing `useEffect` on `pageId` reloads the editor state without leaving the layout.
+   - If there are unsaved changes (`dirty`), confirm before navigating away.
+3. Layout: wrap the existing header + editor in a right-hand column so the sidebar sits to the left. On small screens, collapse the sidebar (hidden on `<md`, visible `md:block`).
+4. Leave the existing "Back to Content" button behavior unchanged.
 
-## Changes
-1. In `src/pages/AdminWikiPage.tsx`, insert a "Back to All Content" button between `WikiSearchBar` and the loading/empty/list content.
-2. Show the button only when `activeCategoryId` is set (i.e., a specific category is being viewed).
-3. On click, call `setActiveCategoryId(null)` to return to the full subject list.
-4. Style the button to be noticeable: use an `ArrowLeft` icon + text, with the project deep-blue brand color (`#213C82`) and a subtle hover state.
-5. Ensure the button is hidden when already on "All Content" so it doesn't clutter the default view.
-
-## Files to modify
-- `src/pages/AdminWikiPage.tsx`
-
-## Verification
-- Open `/admin/wiki/content`.
-- Select a category from the sidebar.
-- Confirm the "Back to All Content" button appears under the search bar.
-- Click it and confirm the view returns to the full "All Content" list.
-- Confirm the button is absent on the default "All Content" view.
+## Technical notes
+- No schema or hook changes; `useWikiPages` already returns the sibling list keyed by `article_id`.
+- Only presentational changes to `WikiPageEditorPage.tsx`; no changes to save/AI/completion logic.

@@ -32,7 +32,7 @@ const WikiPageEditorPage = () => {
   const [dirty, setDirty] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
 
-  const { updatePage } = useWikiPages(page?.article_id);
+  const { pages: siblingPages, updatePage } = useWikiPages(page?.article_id);
   const { isAdmin, isOwner } = useUserRole();
   const canUseAi = isAdmin || isOwner;
 
@@ -95,58 +95,99 @@ const WikiPageEditorPage = () => {
     );
   }
 
+  const handleNavigateToPage = (targetId: string) => {
+    if (targetId === page?.id) return;
+    if (dirty && !window.confirm("You have unsaved changes. Leave without saving?")) {
+      return;
+    }
+    navigate(`/admin/wiki/pages/${targetId}`);
+  };
+
   return (
-    <div className="flex flex-col h-screen bg-background">
-      <div className="border-b border-border bg-background">
-        <div className="flex items-center justify-between px-6 py-3 max-w-6xl mx-auto w-full">
-          <div className="flex items-center gap-4 flex-1 min-w-0">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("/admin/wiki/content")}
-              className="gap-2 shrink-0"
-            >
-              <ArrowLeft className="h-4 w-4" /> Back to Content
-            </Button>
-            <Input
-              value={title}
-              onChange={(e) => {
-                setTitle(e.target.value);
-                setDirty(true);
-              }}
-              className="text-lg font-semibold border-0 shadow-none focus-visible:ring-0 px-2"
-              placeholder="Page title"
-            />
-          </div>
-          <div className="flex items-center gap-2 shrink-0">
-            {canUseAi && (
-              <Button
-                size="sm"
-                onClick={() => setAiOpen(true)}
-                className="gap-2 text-white hover:opacity-90"
-                style={{ backgroundColor: "#213C82" }}
+    <div className="flex h-screen bg-background">
+      <aside className="hidden md:flex flex-col w-64 border-r border-border bg-muted/20 shrink-0">
+        <div className="px-4 py-3 border-b border-border">
+          <p className="text-xs uppercase tracking-wide text-muted-foreground font-semibold">
+            Document Pages
+          </p>
+          <p className="text-xs text-muted-foreground mt-1">
+            {siblingPages.length} {siblingPages.length === 1 ? "page" : "pages"}
+          </p>
+        </div>
+        <nav className="flex-1 overflow-y-auto py-2">
+          {siblingPages.map((p, idx) => {
+            const isCurrent = p.id === page?.id;
+            return (
+              <button
+                key={p.id}
+                onClick={() => handleNavigateToPage(p.id)}
+                className={`w-full text-left px-4 py-2 text-sm flex items-start gap-2 transition-colors ${
+                  isCurrent
+                    ? "font-semibold text-foreground"
+                    : "text-muted-foreground hover:bg-muted/50"
+                }`}
+                style={isCurrent ? { backgroundColor: "#FFDA00" } : undefined}
               >
-                <img src={birdIcon} alt="" className="h-7 w-7" /> Write with AI
+                <span className="text-xs opacity-70 shrink-0 mt-0.5">{idx + 1}.</span>
+                <span className="line-clamp-2 break-words">{p.title || "Untitled"}</span>
+              </button>
+            );
+          })}
+        </nav>
+      </aside>
+
+      <div className="flex-1 flex flex-col min-w-0">
+        <div className="border-b border-border bg-background">
+          <div className="flex items-center justify-between px-6 py-3 max-w-6xl mx-auto w-full">
+            <div className="flex items-center gap-4 flex-1 min-w-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => navigate("/admin/wiki/content")}
+                className="gap-2 shrink-0"
+              >
+                <ArrowLeft className="h-4 w-4" /> Back to Content
               </Button>
-            )}
-            <span className="text-xs text-muted-foreground">
-              {dirty ? "Unsaved changes" : "Saved"}
-            </span>
-            <Button onClick={handleSave} disabled={saving || !dirty} size="sm">
-              {saving ? "Saving..." : "Save"}
-            </Button>
+              <Input
+                value={title}
+                onChange={(e) => {
+                  setTitle(e.target.value);
+                  setDirty(true);
+                }}
+                className="text-lg font-semibold border-0 shadow-none focus-visible:ring-0 px-2"
+                placeholder="Page title"
+              />
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              {canUseAi && (
+                <Button
+                  size="sm"
+                  onClick={() => setAiOpen(true)}
+                  className="gap-2 text-white hover:opacity-90"
+                  style={{ backgroundColor: "#213C82" }}
+                >
+                  <img src={birdIcon} alt="" className="h-7 w-7" /> Write with AI
+                </Button>
+              )}
+              <span className="text-xs text-muted-foreground">
+                {dirty ? "Unsaved changes" : "Saved"}
+              </span>
+              <Button onClick={handleSave} disabled={saving || !dirty} size="sm">
+                {saving ? "Saving..." : "Save"}
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="flex-1 overflow-hidden">
-        <RichTextEditor
-          content={content}
-          onChange={(html) => {
-            setContent(html);
-            setDirty(true);
-          }}
-        />
+        <div className="flex-1 overflow-hidden">
+          <RichTextEditor
+            content={content}
+            onChange={(html) => {
+              setContent(html);
+              setDirty(true);
+            }}
+          />
+        </div>
       </div>
 
       {canUseAi && (
