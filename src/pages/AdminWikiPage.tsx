@@ -196,9 +196,8 @@ const AdminWikiPage = () => {
 
                   {activeCategoryId && (
                     <Button
-                      variant="outline"
                       onClick={() => setActiveCategoryId(null)}
-                      className="w-fit gap-2 border-[#213C82] text-[#213C82] hover:bg-[#213C82] hover:text-white transition-colors"
+                      className="w-fit gap-2 bg-[#FFDA00] text-black hover:bg-[#FFDA00]/90 transition-colors"
                     >
                       <ArrowLeft className="h-4 w-4" />
                       Back to All Content
