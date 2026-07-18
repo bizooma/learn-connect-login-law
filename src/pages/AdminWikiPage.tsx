@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { Plus, FileText } from "lucide-react";
+import { Plus, FileText, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useWikiCategories, type WikiSubjectCategory } from "@/hooks/useWikiCategories";
 import { useWikiArticles, WikiArticle, type WikiContentType } from "@/hooks/useWikiArticles";
@@ -193,6 +193,17 @@ const AdminWikiPage = () => {
                   )}
 
                   <WikiSearchBar value={searchQuery} onChange={setSearchQuery} />
+
+                  {activeCategoryId && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setActiveCategoryId(null)}
+                      className="w-fit gap-2 border-[#213C82] text-[#213C82] hover:bg-[#213C82] hover:text-white transition-colors"
+                    >
+                      <ArrowLeft className="h-4 w-4" />
+                      Back to All Content
+                    </Button>
+                  )}
 
                   {isLoading ? (
                     <div className="text-center py-12 text-muted-foreground">Loading...</div>
