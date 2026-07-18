@@ -38,6 +38,53 @@ const WikiPageEditorPage = () => {
   const { isAdmin, isOwner } = useUserRole();
   const canUseAi = isAdmin || isOwner;
 
+  // Fetch the full subject (category) tree: all articles in this category and all their pages
+  const categoryId = (page as any)?.article_id ? undefined : undefined; // placeholder, real value below
+  const { data: subjectTree } = useQuery({
+    queryKey: ["wiki-subject-tree", page?.article_id],
+    enabled: !!page?.article_id,
+    queryFn: async () => {
+      // 1) get current article to find its category_id
+      const { data: currentArticle, error: aErr } = await supabase
+        .from("wiki_articles")
+        .select("id, category_id")
+        .eq("id", page!.article_id)
+        .single();
+      if (aErr) throw aErr;
+      const catId = (currentArticle as any).category_id as string;
+
+      // 2) all articles in category
+      const { data: articles, error: artsErr } = await supabase
+        .from("wiki_articles")
+        .select("id, title, content_type, sort_order, category_id")
+        .eq("category_id", catId)
+        .order("sort_order", { ascending: true });
+      if (artsErr) throw artsErr;
+
+      const articleIds = (articles || []).map((a: any) => a.id);
+      // 3) all pages for those articles
+      let pagesByArticle = new Map<string, WikiPage[]>();
+      if (articleIds.length > 0) {
+        const { data: allPages, error: pErr } = await supabase
+          .from("wiki_pages" as any)
+          .select("*")
+          .in("article_id", articleIds)
+          .order("sort_order", { ascending: true });
+        if (pErr) throw pErr;
+        for (const p of (allPages || []) as any[]) {
+          const arr = pagesByArticle.get(p.article_id) || [];
+          arr.push(p as WikiPage);
+          pagesByArticle.set(p.article_id, arr);
+        }
+      }
+      return {
+        categoryId: catId,
+        articles: (articles || []) as any[],
+        pagesByArticle,
+      };
+    },
+  });
+
   useEffect(() => {
     let active = true;
     (async () => {
