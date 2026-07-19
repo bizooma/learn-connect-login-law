@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDepartment, type Tile } from "@/config/hub";
+import nfilProcessAsset from "@/assets/nfil-process.jpg.asset.json";
 
 const TileLink = ({ tile, children }: { tile: Tile; children: React.ReactNode }) => {
   if (tile.target.kind === "external") {
@@ -94,6 +95,17 @@ const DepartmentDetail = () => {
           );
         })}
       </div>
+
+      {departmentId === "legal" && (
+        <div className="mt-10">
+          <h3 className="text-lg font-semibold mb-4">The New Frontier Way</h3>
+          <img
+            src={nfilProcessAsset.url}
+            alt="The New Frontier Way process flowchart"
+            className="w-full rounded-lg border bg-white"
+          />
+        </div>
+      )}
     </div>
   );
 };
