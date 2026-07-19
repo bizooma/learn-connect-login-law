@@ -14,6 +14,7 @@ interface WikiArticleRowProps {
   onEdit: (article: WikiArticle) => void;
   onDelete: (id: string) => void;
   onTogglePublish: (article: WikiArticle) => void;
+  selectedTags?: string[];
 }
 
 const contentTypeIcons: Record<WikiContentType, typeof FileText> = {
@@ -28,10 +29,11 @@ const contentTypeIcons: Record<WikiContentType, typeof FileText> = {
 };
 
 
-const WikiArticleRow = ({ article, onEdit, onDelete, onTogglePublish }: WikiArticleRowProps) => {
+const WikiArticleRow = ({ article, onEdit, onDelete, onTogglePublish, selectedTags }: WikiArticleRowProps) => {
   const Icon = contentTypeIcons[article.content_type] || FileText;
   const typeLabel = contentTypeLabels[article.content_type] || "Item";
   const isDocument = article.content_type === "document";
+  const dimmed = !!(selectedTags && selectedTags.length > 0 && !(article.tags || []).some((t) => selectedTags.includes(t)));
 
   return (
     <div>
