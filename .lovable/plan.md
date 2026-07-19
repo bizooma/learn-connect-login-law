@@ -1,53 +1,73 @@
-# Wiki Organization Features
 
-All work is UI-only inside `src/pages/AdminWikiPage.tsx`, `src/components/admin/wiki/*`, and `src/components/admin/wiki/WikiArticleEditor.tsx`. No schema changes — uses existing `wiki_categories`, `wiki_articles.tags`, and `wiki_category_groups`/`groups` data already loaded by `useWikiCategories` and `useWikiArticles`.
+# Wiki: Search, Ask this SOP, Browse Mode
 
-## 1. "Browse by Team/Function" view toggle
+Zero schema changes. Reuses existing tables (`wiki_categories`, `wiki_articles`, `wiki_pages`) and the existing `generate-wiki-page-content` edge function's pattern/`OPENAI_API_KEY` for AI. Admin-gated under `/admin/wiki`. Brand yellow `#FFDA00` for active states.
 
-In `AdminWikiPage.tsx`, add a segmented toggle above the search bar (visible only in the All Content view, not when a single subject is opened):
-- **Training order** (default) — current flat `WikiCategoryList`.
-- **By Team** — grouped presentation.
+---
 
-New component `WikiCategoryListByTeam.tsx`:
-- Input: same `filteredCategories` array.
-- Build a `Map<groupId, { name, subjects: WikiCategory[] }>` by iterating each subject's `shared_groups` (already present on `WikiCategory`). Subjects in multiple groups appear in each bucket. Subjects with `shared_groups.length === 0` go into an "Unassigned" bucket rendered last.
-- Render each bucket as a collapsible section (reuse existing chevron pattern) with header `Group name · N subjects`, containing a `WikiCategoryList` of that bucket's subjects. All existing row behavior (expand, edit, share, etc.) is preserved because we're re-rendering the same rows.
-- Sort buckets alphabetically by group name; Unassigned pinned to the end.
-- Active-state highlight uses brand yellow `#FFDA00` on the toggle button.
+## 1. Global P&P Search
 
-View mode stored in local `useState<'training'|'team'>('training')`.
+**New:** `src/hooks/useWikiGlobalSearch.ts` and `src/components/admin/wiki/WikiGlobalSearchBox.tsx`.
 
-## 2. Sort options (Training order view only)
+- Debounced (~250ms) input; queries only when term ≥ 2 chars.
+- Three parallel Supabase queries using `ilike` on existing columns (no tsvector, no new columns):
+  - `wiki_categories`: `title`, `description`
+  - `wiki_articles`: `title` (select `id, title, content_type, category_id`)
+  - `wiki_pages`: `title`, `content` (select `id, title, content, article_id`)
+- Limit each query to 25 rows; merged results capped at ~40.
+- For each page hit, enrich in one follow-up query fetching parent `wiki_articles` (+ `wiki_categories` join) so we can render `Subject › Document › Page` breadcrumbs.
+- Snippet: strip HTML client-side (`div.innerHTML = ...; textContent`), find first case-insensitive match in body, slice ±80 chars, wrap the matched span in `<mark>` (yellow highlight).
+- Ranking: title matches > body matches; within each, subject > article > page; then by `updated_at` desc.
+- Click navigation:
+  - page → `/admin/wiki/pages/:pageId`
+  - flowchart article → `/admin/wiki/flowchart/:articleId`
+  - other article → `/admin/wiki/content?article=:articleId`
+  - subject → `/admin/wiki/content` with `activeCategoryId` via router state
+- Access: relies on existing RLS/`useWikiAccess` (admin-only routes already guard the surface).
+- Placement: replace the existing header search in `AdminWikiPage.tsx` (which currently only filters subject titles) with the new global search dropdown. Keep local title-filter behavior when the input is empty.
 
-Add a `Select` dropdown next to the view toggle with options:
-- Training order (default) — existing `sort_order` asc
-- A–Z — `title` asc (case-insensitive)
-- Recently updated — `updated_at` desc
-- Owner — by `owner.last_name || owner.first_name || owner.email`, unassigned last
+## 2. "Ask this SOP" — AI Q&A per Document
 
-Completion option is omitted (not present on `WikiCategory`).
+**New edge function:** `supabase/functions/ask-wiki-sop/index.ts`
+- Same shape/CORS as `generate-wiki-page-content`. Reads `OPENAI_API_KEY`.
+- Input: `{ articleId, question }`.
+- Server fetches `wiki_articles` row + all `wiki_pages` for that `article_id` (server uses service role; still admin-only through the client route). Strips HTML server-side (regex) and concatenates as `[Page: <title> | id: <pageId>] <text>` blocks.
+- System prompt (strict grounding):
+  - "Answer ONLY from the SOP text below. If not present, reply exactly: 'This isn't covered in this SOP.' Do not use outside knowledge."
+  - "After the answer, on a new line, output `SOURCES: <pageId>, <pageId>` listing the page IDs you drew from."
+- Streams via SSE (`stream: true`) — response piped through with `text/event-stream` headers.
 
-Client-side sort applied to `filteredCategories` before passing to `WikiCategoryList`. Hidden in "By Team" view (buckets have their own alpha order internally).
+**New component:** `src/components/admin/wiki/AskThisSopPanel.tsx`
+- Slide-in side sheet (shadcn `Sheet`) triggered by a persistent floating "Ask this SOP" button (yellow `#FFDA00`, black text, `Sparkles` icon).
+- Quick-action chips: "Summarize this SOP", "Give me the key steps".
+- Textarea + Send; streams tokens into a scrollable answer area.
+- Parses trailing `SOURCES:` line → renders chips linking to `/admin/wiki/pages/:pageId` (resolved against the page list already fetched for context; unknown IDs dropped).
+- Loading state, AI-key-missing handled gracefully (toast + inline message).
+- No persistence; state lives in component.
 
-## 3. Tags on documents
+**Wire-in:**
+- `src/pages/WikiPageEditorPage.tsx`: persistent floating button (bottom-right) + one at the end of the editor.
+- `src/pages/WikiFlowchartEditorPage.tsx` and `WikiArticleEditor` (modal in `AdminWikiPage`): same floating button, scoped to the current `article_id`.
 
-**Editor (`WikiArticleEditor.tsx`)** — the existing comma-separated `Input` is replaced with a proper chip input:
-- Show current `article.tags` as removable chips (yellow `#FFDA00` background, black text, small × button).
-- Text input below; Enter or comma commits a new tag (trimmed, deduped, lowercased for compare but stored as typed).
-- Backspace on empty input removes last chip.
-- `handleSave` continues to pass `tags` array through the existing `onSave` → `updateArticle` mutation (already supports `tags`).
+## 3. Reference / Free-Browse Mode
 
-**Row display (`WikiArticleRow.tsx`)** — already renders `article.tags` as chips; restyle to match the yellow chip design used in the editor for consistency. No logic change.
+- `WikiDocumentSidebar.tsx` already renders the doc tree. Add a "Browse mode" toggle (yellow pill) in the sidebar header that, when active, marks every page/article in the tree as directly clickable regardless of completion gating (current tree is already clickable in admin; add a small "Browse" label for clarity and a `browse=1` URL param so deep-links preserve it).
+- Add a "Browse / Reference" entry button on the Subject card (`WikiCategoryRow.tsx`) shown when the current user has `mark_wiki_page_complete` records for every page in the subject (query aggregated per-subject in `useWikiCategories` if the count is already available; otherwise a lightweight `useSubjectCompletion(categoryId)` hook that counts pages vs. completions). Clicking opens the subject in the content view with `browse=1`.
+- Sequential/training flow and `mark_wiki_page_complete` behavior are untouched.
 
-**Tag filter bar** — new `WikiTagFilterBar.tsx` shown in All Content view above the list:
-- Collect the union of tags from all articles across the currently visible subjects (fetch via a lightweight `useQuery` on `wiki_articles` selecting `id, category_id, tags` — no schema change, standard read).
-- Render each unique tag as a toggleable chip; selecting one or more filters the visible subjects to those whose articles include ANY selected tag (OR semantics). Selected chips use `#FFDA00`.
-- Hidden when there are zero tags anywhere (initial state, since column is currently empty — surfaces automatically once tags are added).
-- A subject with at least one matching tagged article stays visible; in expanded state, `WikiArticleList` receives the selected tags and dims/hides non-matching rows (pass through as a new optional prop, defaulting to no-op).
+---
 
-## Verification checklist
+## Technical Notes
 
-- Toggle switches between flat and grouped views; grouped view shows real group names from `wiki_category_groups`, duplicates across groups, and an Unassigned bucket.
-- Sort dropdown reorders the flat list for all four options; persists while typing in search.
-- Adding a tag in the editor saves it (round-trips through `updateArticle`), appears as a chip on the article row, and appears in the filter bar; toggling the chip narrows the subject list.
-- No migrations created; no changes to `src/integrations/supabase/types.ts`.
+- **No schema changes.** All queries use existing columns; `ilike` on `wiki_pages.content` is acceptable at current scale (~hundreds of pages). If pg_trgm indexes already exist, `ilike` uses them automatically — we won't add any.
+- **Edge function** mirrors the existing OpenAI call pattern (`gpt-4o-mini`, `OPENAI_API_KEY`, same CORS). Adds streaming only.
+- **HTML stripping** server-side uses `.replace(/<[^>]+>/g, ' ')` then whitespace collapse; client snippets use the same approach.
+- **Files touched:**
+  - New: `useWikiGlobalSearch.ts`, `WikiGlobalSearchBox.tsx`, `AskThisSopPanel.tsx`, `supabase/functions/ask-wiki-sop/index.ts`, `useSubjectCompletion.ts` (only if needed).
+  - Modified: `AdminWikiPage.tsx` (header search swap), `WikiPageEditorPage.tsx`, `WikiFlowchartEditorPage.tsx`, `WikiArticleEditor.tsx`, `WikiDocumentSidebar.tsx`, `WikiCategoryRow.tsx`.
+
+## Verification
+
+- Search: create a term appearing only in a page's body → confirm snippet + `<mark>` highlight + correct Subject › Document › Page breadcrumb; click routes to `/admin/wiki/pages/:pageId`.
+- Ask this SOP: ask a question answered in the doc → streams answer with clickable page-source chips. Ask an unrelated question → returns "This isn't covered in this SOP."
+- Browse: on a fully-completed subject, the Browse button opens the sidebar and any page is directly reachable; existing training completion unchanged.
