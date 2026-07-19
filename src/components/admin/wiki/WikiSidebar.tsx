@@ -1,4 +1,4 @@
-import { BookOpen, Home, FolderOpen, Users, UsersRound, BarChart3, UserCheck, Activity, UserCog, Settings, Route as RouteIcon, Network, Briefcase } from "lucide-react";
+import { BookOpen, Home, FolderOpen, Users, UsersRound, BarChart3, UserCheck, Activity, UserCog, Settings, Route as RouteIcon, Network } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useOrgPeopleSettings, useFeatureAccess } from "@/hooks/useOrgPeopleSettings";
 
@@ -148,22 +148,10 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
                 <SidebarMenuItem>
                   <SidebarMenuButton
                     onClick={() => navigate("/admin/wiki/people-chart")}
-                    className={`${onPeopleChart ? 'bg-accent text-accent-foreground font-medium' : ''}`}
+                    className={`${onPeopleChart || onRoleChart ? 'bg-accent text-accent-foreground font-medium' : ''}`}
                   >
                     <Network className="h-4 w-4" />
-                    {!collapsed && <span>People Chart</span>}
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              )}
-
-              {showRoleChart && (
-                <SidebarMenuItem>
-                  <SidebarMenuButton
-                    onClick={() => navigate("/admin/wiki/role-chart")}
-                    className={`${onRoleChart ? 'bg-accent text-accent-foreground font-medium' : ''}`}
-                  >
-                    <Briefcase className="h-4 w-4" />
-                    {!collapsed && <span>Role Chart</span>}
+                    {!collapsed && <span>People</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               )}
@@ -174,9 +162,10 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
                   className={`${onGroups ? 'bg-accent text-accent-foreground font-medium' : ''}`}
                 >
                   <UsersRound className="h-4 w-4" />
-                  {!collapsed && <span>Groups</span>}
+                  {!collapsed && <span>Groups (legacy)</span>}
                 </SidebarMenuButton>
               </SidebarMenuItem>
+
 
             </SidebarMenu>
           </SidebarGroupContent>
