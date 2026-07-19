@@ -293,6 +293,58 @@ const AdminWikiPage = () => {
                     </Button>
                   )}
 
+                  {!activeCategoryId && (
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="inline-flex rounded-md border border-border overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() => setViewMode("training")}
+                          className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium transition-colors ${
+                            viewMode === "training" ? "text-black" : "bg-background text-foreground hover:bg-muted"
+                          }`}
+                          style={viewMode === "training" ? { backgroundColor: "#FFDA00" } : undefined}
+                        >
+                          <LayoutList className="h-4 w-4" /> Training order
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setViewMode("team")}
+                          className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium transition-colors border-l border-border ${
+                            viewMode === "team" ? "text-black" : "bg-background text-foreground hover:bg-muted"
+                          }`}
+                          style={viewMode === "team" ? { backgroundColor: "#FFDA00" } : undefined}
+                        >
+                          <Users className="h-4 w-4" /> By Team
+                        </button>
+                      </div>
+
+                      {viewMode === "training" && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">Sort:</span>
+                          <Select value={sortMode} onValueChange={(v) => setSortMode(v as SortMode)}>
+                            <SelectTrigger className="w-[180px] h-8 text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="training">Training order</SelectItem>
+                              <SelectItem value="az">A–Z</SelectItem>
+                              <SelectItem value="updated">Recently updated</SelectItem>
+                              <SelectItem value="owner">Owner</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {!activeCategoryId && (
+                    <WikiTagFilterBar
+                      articles={allArticleTags}
+                      selected={selectedTags}
+                      onChange={setSelectedTags}
+                    />
+                  )}
+
                   {isLoading ? (
                     <div className="text-center py-12 text-muted-foreground">Loading...</div>
                   ) : filteredCategories.length === 0 ? (
@@ -301,15 +353,26 @@ const AdminWikiPage = () => {
                         <FileText className="h-10 w-10 text-muted-foreground" />
                       </div>
                       <h3 className="text-xl font-semibold text-foreground mb-2">
-                        No policies or procedures yet
+                        No matching content
                       </h3>
                       <p className="text-muted-foreground mb-6 max-w-md">
-                        Create your first category to start organizing your company's policies and process documentation.
+                        Try adjusting your search, tag filter, or create a new subject.
                       </p>
                       <Button onClick={handleCreateCategory} className="gap-2">
                         <Plus className="h-4 w-4" /> Create First Category
                       </Button>
                     </div>
+                  ) : viewMode === "team" && !activeCategoryId ? (
+                    <WikiCategoryListByTeam
+                      categories={filteredCategories}
+                      onEditCategory={handleEditCategory}
+                      onDeleteCategory={(id) => deleteCategory.mutate(id)}
+                      onTogglePublishCategory={(c) =>
+                        updateCategory.mutate({ id: c.id, is_published: !c.is_published })
+                      }
+                      onEditArticle={openArticle}
+                      searchQuery={searchQuery}
+                    />
                   ) : (
                     <WikiCategoryList
                       categories={filteredCategories}
@@ -320,6 +383,7 @@ const AdminWikiPage = () => {
                       }
                       onEditArticle={openArticle}
                       searchQuery={searchQuery}
+                      selectedTags={selectedTags}
                     />
                   )}
                 </div>
