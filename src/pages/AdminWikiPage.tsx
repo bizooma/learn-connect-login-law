@@ -48,6 +48,9 @@ const AdminWikiPage = () => {
   const [editingArticle, setEditingArticle] = useState<WikiArticle | null>(null);
   const [createContentType, setCreateContentType] = useState<WikiContentType | null>(null);
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<WikiSubjectCategory | "all">("all");
+  const [viewMode, setViewMode] = useState<ViewMode>("training");
+  const [sortMode, setSortMode] = useState<SortMode>("training");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
 
   useEffect(() => {
@@ -92,17 +95,53 @@ const AdminWikiPage = () => {
   const { categories, isLoading, createCategory, updateCategory, deleteCategory } = useWikiCategories();
   const { updateArticle } = useWikiArticles();
 
+  const { data: allArticleTags = [] } = useAllArticleTags();
+
+  const categoriesWithMatchingTags = useMemo(() => {
+    if (selectedTags.length === 0) return null;
+    const set = new Set<string>();
+    allArticleTags.forEach((a) => {
+      const has = (a.tags || []).some((t) => selectedTags.includes(t));
+      if (has) set.add(a.category_id);
+    });
+    return set;
+  }, [allArticleTags, selectedTags]);
+
   const baseCategories = activeCategoryId
     ? categories.filter((c) => c.id === activeCategoryId)
     : activeCategoryFilter === "all"
     ? categories
     : categories.filter((c) => c.category === activeCategoryFilter);
 
-  const filteredCategories = searchQuery
+  const searchFiltered = searchQuery
     ? baseCategories.filter((c) => c.title.toLowerCase().includes(searchQuery.toLowerCase()))
     : baseCategories;
 
-  const handleEditCategory = (category: any) => {
+  const tagFiltered = categoriesWithMatchingTags
+    ? searchFiltered.filter((c) => categoriesWithMatchingTags.has(c.id))
+    : searchFiltered;
+
+  const sortedCategories = useMemo(() => {
+    const arr = [...tagFiltered];
+    switch (sortMode) {
+      case "az":
+        return arr.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: "base" }));
+      case "updated":
+        return arr.sort((a, b) => (b.updated_at || "").localeCompare(a.updated_at || ""));
+      case "owner":
+        return arr.sort((a, b) => {
+          const ao = a.owner ? (a.owner.last_name || a.owner.first_name || a.owner.email || "") : "\uffff";
+          const bo = b.owner ? (b.owner.last_name || b.owner.first_name || b.owner.email || "") : "\uffff";
+          return ao.localeCompare(bo, undefined, { sensitivity: "base" });
+        });
+      case "training":
+      default:
+        return arr.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    }
+  }, [tagFiltered, sortMode]);
+
+  const filteredCategories = sortedCategories;
+
     setEditingCategory(category);
     setCategoryDialogOpen(true);
   };
