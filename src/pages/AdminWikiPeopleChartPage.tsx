@@ -9,7 +9,22 @@ import { useOrgPeopleSettings, useFeatureAccess } from "@/hooks/useOrgPeopleSett
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
-import { Lock, Users } from "lucide-react";
+import { Lock, Users, GripVertical } from "lucide-react";
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  useDraggable,
+  useDroppable,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
+import { useState } from "react";
+import { useUpdateUserDepartment } from "@/hooks/useUpdateUserDepartment";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface Profile {
   id: string;
