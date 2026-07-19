@@ -12,6 +12,7 @@ interface WikiCategoryListProps {
   onTogglePublishCategory: (category: WikiCategory) => void;
   onEditArticle: (article: WikiArticle) => void;
   searchQuery?: string;
+  selectedTags?: string[];
 }
 
 const COLUMN_LABELS = ["Name", "Items", "Category", "Status", "Shared with", "Owner", ""];
@@ -23,8 +24,10 @@ const ListInner = ({
   onTogglePublishCategory,
   onEditArticle,
   searchQuery,
+  selectedTags,
 }: WikiCategoryListProps) => {
   const { gridTemplate, onMouseDown, reset } = useWikiColumns();
+  const forceExpand = !!(selectedTags && selectedTags.length > 0);
 
   return (
     <div className="border border-border rounded-lg overflow-hidden bg-background">
@@ -57,7 +60,8 @@ const ListInner = ({
           onTogglePublish={onTogglePublishCategory}
           onEditArticle={onEditArticle}
           searchQuery={searchQuery}
-          defaultExpanded={!!searchQuery || categories.length === 1}
+          defaultExpanded={!!searchQuery || categories.length === 1 || forceExpand}
+          selectedTags={selectedTags}
         />
       ))}
 

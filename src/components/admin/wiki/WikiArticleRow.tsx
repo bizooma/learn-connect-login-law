@@ -14,6 +14,7 @@ interface WikiArticleRowProps {
   onEdit: (article: WikiArticle) => void;
   onDelete: (id: string) => void;
   onTogglePublish: (article: WikiArticle) => void;
+  selectedTags?: string[];
 }
 
 const contentTypeIcons: Record<WikiContentType, typeof FileText> = {
@@ -28,15 +29,16 @@ const contentTypeIcons: Record<WikiContentType, typeof FileText> = {
 };
 
 
-const WikiArticleRow = ({ article, onEdit, onDelete, onTogglePublish }: WikiArticleRowProps) => {
+const WikiArticleRow = ({ article, onEdit, onDelete, onTogglePublish, selectedTags }: WikiArticleRowProps) => {
   const Icon = contentTypeIcons[article.content_type] || FileText;
   const typeLabel = contentTypeLabels[article.content_type] || "Item";
   const isDocument = article.content_type === "document";
+  const dimmed = !!(selectedTags && selectedTags.length > 0 && !(article.tags || []).some((t) => selectedTags.includes(t)));
 
   return (
     <div>
       <div
-        className="flex items-center justify-between px-4 py-3 pl-12 bg-muted/30 border-b border-border hover:bg-muted/50 cursor-pointer transition-colors"
+        className={`flex items-center justify-between px-4 py-3 pl-12 bg-muted/30 border-b border-border hover:bg-muted/50 cursor-pointer transition-colors ${dimmed ? "opacity-40" : ""}`}
         onClick={() => onEdit(article)}
       >
         <div className="flex items-center gap-3">
@@ -50,11 +52,22 @@ const WikiArticleRow = ({ article, onEdit, onDelete, onTogglePublish }: WikiArti
           )}
         </div>
         <div className="flex items-center gap-2">
-          {article.tags?.map((tag) => (
-            <span key={tag} className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-              {tag}
-            </span>
-          ))}
+          {article.tags?.map((tag) => {
+            const active = selectedTags?.includes(tag);
+            return (
+              <span
+                key={tag}
+                className="text-xs px-2 py-0.5 rounded-full font-medium"
+                style={
+                  active
+                    ? { backgroundColor: "#FFDA00", color: "#000", border: "1px solid #000" }
+                    : { backgroundColor: "#FFDA00", color: "#000" }
+                }
+              >
+                {tag}
+              </span>
+            );
+          })}
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
               <Button variant="ghost" size="icon" className="h-8 w-8">

@@ -1,16 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { Plus, FileText, ArrowLeft } from "lucide-react";
+import { Plus, FileText, ArrowLeft, LayoutList, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useWikiCategories, type WikiSubjectCategory } from "@/hooks/useWikiCategories";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useWikiCategories, type WikiSubjectCategory, type WikiCategory } from "@/hooks/useWikiCategories";
 import { useWikiArticles, WikiArticle, type WikiContentType } from "@/hooks/useWikiArticles";
 import { SUBJECT_CATEGORIES, ALL_CONTENT_META } from "@/components/admin/wiki/subjectCategoryMeta";
 import WikiSidebar from "@/components/admin/wiki/WikiSidebar";
 import WikiSearchBar from "@/components/admin/wiki/WikiSearchBar";
 import WikiCategoryList from "@/components/admin/wiki/WikiCategoryList";
+import WikiCategoryListByTeam from "@/components/admin/wiki/WikiCategoryListByTeam";
+import WikiTagFilterBar, { useAllArticleTags } from "@/components/admin/wiki/WikiTagFilterBar";
 import WikiCategoryDialog from "@/components/admin/wiki/WikiCategoryDialog";
 import WikiArticleEditor from "@/components/admin/wiki/WikiArticleEditor";
 import WikiDocumentSidebar from "@/components/admin/wiki/WikiDocumentSidebar";
@@ -22,6 +25,9 @@ import SnowBanner from "@/components/admin/wiki/SnowBanner";
 import BunniesBanner from "@/components/admin/wiki/BunniesBanner";
 import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
 import WikiFooter from "@/components/admin/wiki/WikiFooter";
+
+type ViewMode = "training" | "team";
+type SortMode = "training" | "az" | "updated" | "owner";
 
 
 const AdminWikiPage = () => {
@@ -42,6 +48,9 @@ const AdminWikiPage = () => {
   const [editingArticle, setEditingArticle] = useState<WikiArticle | null>(null);
   const [createContentType, setCreateContentType] = useState<WikiContentType | null>(null);
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<WikiSubjectCategory | "all">("all");
+  const [viewMode, setViewMode] = useState<ViewMode>("training");
+  const [sortMode, setSortMode] = useState<SortMode>("training");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
 
   useEffect(() => {
@@ -86,15 +95,52 @@ const AdminWikiPage = () => {
   const { categories, isLoading, createCategory, updateCategory, deleteCategory } = useWikiCategories();
   const { updateArticle } = useWikiArticles();
 
+  const { data: allArticleTags = [] } = useAllArticleTags();
+
+  const categoriesWithMatchingTags = useMemo(() => {
+    if (selectedTags.length === 0) return null;
+    const set = new Set<string>();
+    allArticleTags.forEach((a) => {
+      const has = (a.tags || []).some((t) => selectedTags.includes(t));
+      if (has) set.add(a.category_id);
+    });
+    return set;
+  }, [allArticleTags, selectedTags]);
+
   const baseCategories = activeCategoryId
     ? categories.filter((c) => c.id === activeCategoryId)
     : activeCategoryFilter === "all"
     ? categories
     : categories.filter((c) => c.category === activeCategoryFilter);
 
-  const filteredCategories = searchQuery
+  const searchFiltered = searchQuery
     ? baseCategories.filter((c) => c.title.toLowerCase().includes(searchQuery.toLowerCase()))
     : baseCategories;
+
+  const tagFiltered = categoriesWithMatchingTags
+    ? searchFiltered.filter((c) => categoriesWithMatchingTags.has(c.id))
+    : searchFiltered;
+
+  const sortedCategories = useMemo(() => {
+    const arr = [...tagFiltered];
+    switch (sortMode) {
+      case "az":
+        return arr.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: "base" }));
+      case "updated":
+        return arr.sort((a, b) => (b.updated_at || "").localeCompare(a.updated_at || ""));
+      case "owner":
+        return arr.sort((a, b) => {
+          const ao = a.owner ? (a.owner.last_name || a.owner.first_name || a.owner.email || "") : "\uffff";
+          const bo = b.owner ? (b.owner.last_name || b.owner.first_name || b.owner.email || "") : "\uffff";
+          return ao.localeCompare(bo, undefined, { sensitivity: "base" });
+        });
+      case "training":
+      default:
+        return arr.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
+    }
+  }, [tagFiltered, sortMode]);
+
+  const filteredCategories = sortedCategories;
 
   const handleEditCategory = (category: any) => {
     setEditingCategory(category);
@@ -247,6 +293,58 @@ const AdminWikiPage = () => {
                     </Button>
                   )}
 
+                  {!activeCategoryId && (
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="inline-flex rounded-md border border-border overflow-hidden">
+                        <button
+                          type="button"
+                          onClick={() => setViewMode("training")}
+                          className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium transition-colors ${
+                            viewMode === "training" ? "text-black" : "bg-background text-foreground hover:bg-muted"
+                          }`}
+                          style={viewMode === "training" ? { backgroundColor: "#FFDA00" } : undefined}
+                        >
+                          <LayoutList className="h-4 w-4" /> Training order
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setViewMode("team")}
+                          className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium transition-colors border-l border-border ${
+                            viewMode === "team" ? "text-black" : "bg-background text-foreground hover:bg-muted"
+                          }`}
+                          style={viewMode === "team" ? { backgroundColor: "#FFDA00" } : undefined}
+                        >
+                          <Users className="h-4 w-4" /> By Team
+                        </button>
+                      </div>
+
+                      {viewMode === "training" && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">Sort:</span>
+                          <Select value={sortMode} onValueChange={(v) => setSortMode(v as SortMode)}>
+                            <SelectTrigger className="w-[180px] h-8 text-sm">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="training">Training order</SelectItem>
+                              <SelectItem value="az">A–Z</SelectItem>
+                              <SelectItem value="updated">Recently updated</SelectItem>
+                              <SelectItem value="owner">Owner</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {!activeCategoryId && (
+                    <WikiTagFilterBar
+                      articles={allArticleTags}
+                      selected={selectedTags}
+                      onChange={setSelectedTags}
+                    />
+                  )}
+
                   {isLoading ? (
                     <div className="text-center py-12 text-muted-foreground">Loading...</div>
                   ) : filteredCategories.length === 0 ? (
@@ -255,15 +353,26 @@ const AdminWikiPage = () => {
                         <FileText className="h-10 w-10 text-muted-foreground" />
                       </div>
                       <h3 className="text-xl font-semibold text-foreground mb-2">
-                        No policies or procedures yet
+                        No matching content
                       </h3>
                       <p className="text-muted-foreground mb-6 max-w-md">
-                        Create your first category to start organizing your company's policies and process documentation.
+                        Try adjusting your search, tag filter, or create a new subject.
                       </p>
                       <Button onClick={handleCreateCategory} className="gap-2">
                         <Plus className="h-4 w-4" /> Create First Category
                       </Button>
                     </div>
+                  ) : viewMode === "team" && !activeCategoryId ? (
+                    <WikiCategoryListByTeam
+                      categories={filteredCategories}
+                      onEditCategory={handleEditCategory}
+                      onDeleteCategory={(id) => deleteCategory.mutate(id)}
+                      onTogglePublishCategory={(c) =>
+                        updateCategory.mutate({ id: c.id, is_published: !c.is_published })
+                      }
+                      onEditArticle={openArticle}
+                      searchQuery={searchQuery}
+                    />
                   ) : (
                     <WikiCategoryList
                       categories={filteredCategories}
@@ -274,6 +383,7 @@ const AdminWikiPage = () => {
                       }
                       onEditArticle={openArticle}
                       searchQuery={searchQuery}
+                      selectedTags={selectedTags}
                     />
                   )}
                 </div>
