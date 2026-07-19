@@ -9,7 +9,22 @@ import { useOrgPeopleSettings, useFeatureAccess } from "@/hooks/useOrgPeopleSett
 import { supabase } from "@/integrations/supabase/client";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card } from "@/components/ui/card";
-import { Lock, Users } from "lucide-react";
+import { Lock, Users, GripVertical } from "lucide-react";
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  useDraggable,
+  useDroppable,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core";
+import { useState } from "react";
+import { useUpdateUserDepartment } from "@/hooks/useUpdateUserDepartment";
+import { useUserRole } from "@/hooks/useUserRole";
 
 interface Profile {
   id: string;
@@ -85,22 +100,69 @@ const initials = (p: Profile) =>
   p.email[0]?.toUpperCase() ||
   "?";
 
-const PersonChip = ({ p }: { p: Profile }) => (
-  <div className="flex items-center gap-2 rounded-md border border-border bg-card px-2 py-1.5">
-    <Avatar className="h-7 w-7">
-      {p.profile_image_url && <AvatarImage src={p.profile_image_url} />}
-      <AvatarFallback className="text-[10px]">{initials(p)}</AvatarFallback>
-    </Avatar>
-    <div className="min-w-0">
-      <div className="text-xs font-medium text-foreground truncate">
-        {p.first_name} {p.last_name}
+const PersonChip = ({ p, draggable = false }: { p: Profile; draggable?: boolean }) => {
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: p.id,
+    data: { profile: p },
+    disabled: !draggable,
+  });
+  return (
+    <div
+      ref={setNodeRef}
+      {...(draggable ? attributes : {})}
+      {...(draggable ? listeners : {})}
+      className={`flex items-center gap-2 rounded-md border border-border bg-card px-2 py-1.5 ${
+        draggable ? "cursor-grab active:cursor-grabbing" : ""
+      } ${isDragging ? "opacity-40" : ""}`}
+    >
+      {draggable && <GripVertical className="h-3 w-3 text-muted-foreground shrink-0" />}
+      <Avatar className="h-7 w-7">
+        {p.profile_image_url && <AvatarImage src={p.profile_image_url} />}
+        <AvatarFallback className="text-[10px]">{initials(p)}</AvatarFallback>
+      </Avatar>
+      <div className="min-w-0">
+        <div className="text-xs font-medium text-foreground truncate">
+          {p.first_name} {p.last_name}
+        </div>
+        {p.job_title && (
+          <div className="text-[10px] text-muted-foreground truncate">{p.job_title}</div>
+        )}
       </div>
-      {p.job_title && (
-        <div className="text-[10px] text-muted-foreground truncate">{p.job_title}</div>
-      )}
     </div>
-  </div>
-);
+  );
+};
+
+const DepartmentDropZone = ({
+  name,
+  count,
+  children,
+  enabled,
+}: {
+  name: string;
+  count: number;
+  children: React.ReactNode;
+  enabled: boolean;
+}) => {
+  const { setNodeRef, isOver } = useDroppable({ id: `dept:${name}`, data: { department: name } });
+  return (
+    <Card
+      ref={enabled ? setNodeRef : undefined}
+      className={`p-4 space-y-3 transition-all ${
+        isOver && enabled ? "ring-2 ring-offset-2" : ""
+      }`}
+      style={isOver && enabled ? { boxShadow: "0 0 0 2px #FFDA00" } : undefined}
+    >
+      <div className="flex items-center justify-between">
+        <div className="font-semibold text-foreground">{name}</div>
+        <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
+          <Users className="h-3 w-3" />
+          {count}
+        </span>
+      </div>
+      {children}
+    </Card>
+  );
+};
 
 const AdminWikiPeopleChartPage = () => {
   const navigate = useNavigate();
@@ -111,11 +173,36 @@ const AdminWikiPeopleChartPage = () => {
     settings.peopleChartRestrictedGroups
   );
   const { data: buckets, isLoading } = usePeopleByDepartment();
+  const { isAdmin } = useUserRole();
+  const updateDept = useUpdateUserDepartment();
+  const [activeDrag, setActiveDrag] = useState<Profile | null>(null);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor)
+  );
 
   const sections: Array<{ name: string; people: Profile[] }> = [
     ...DEPARTMENTS.map((d) => ({ name: d, people: buckets?.[d] ?? [] })),
     { name: "Unassigned", people: buckets?.["Unassigned"] ?? [] },
   ];
+
+  const handleDragStart = (e: DragStartEvent) => {
+    setActiveDrag((e.active.data.current as any)?.profile ?? null);
+  };
+
+  const handleDragEnd = (e: DragEndEvent) => {
+    setActiveDrag(null);
+    const profile = (e.active.data.current as any)?.profile as Profile | undefined;
+    const target = (e.over?.data.current as any)?.department as string | undefined;
+    if (!profile || !target) return;
+    const currentDept = profile.department ?? "Unassigned";
+    if (currentDept === target) return;
+    updateDept.mutate({
+      userId: profile.id,
+      department: target === "Unassigned" ? null : target,
+    });
+  };
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -147,7 +234,9 @@ const AdminWikiPeopleChartPage = () => {
               <div>
                 <h2 className="text-lg font-semibold text-foreground">People by Department</h2>
                 <p className="text-xs text-muted-foreground">
-                  Active New Frontier staff grouped by department
+                  {isAdmin
+                    ? "Drag staff cards between departments to reassign them"
+                    : "Active New Frontier staff grouped by department"}
                 </p>
               </div>
             </div>
@@ -171,30 +260,38 @@ const AdminWikiPeopleChartPage = () => {
                 ) : isLoading ? (
                   <div className="text-center py-12 text-muted-foreground">Loading…</div>
                 ) : (
-                  <div className="space-y-4">
-                    {sections.map((section) => (
-                      <Card key={section.name} className="p-4 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div className="font-semibold text-foreground">{section.name}</div>
-                          <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
-                            <Users className="h-3 w-3" />
-                            {section.people.length}
-                          </span>
-                        </div>
-                        {section.people.length > 0 ? (
-                          <div className="flex flex-wrap gap-1.5">
-                            {section.people.map((p) => (
-                              <PersonChip key={p.id} p={p} />
-                            ))}
-                          </div>
-                        ) : (
-                          <div className="text-xs text-muted-foreground italic">
-                            No one assigned yet
-                          </div>
-                        )}
-                      </Card>
-                    ))}
-                  </div>
+                  <DndContext
+                    sensors={sensors}
+                    onDragStart={handleDragStart}
+                    onDragEnd={handleDragEnd}
+                    onDragCancel={() => setActiveDrag(null)}
+                  >
+                    <div className="space-y-4">
+                      {sections.map((section) => (
+                        <DepartmentDropZone
+                          key={section.name}
+                          name={section.name}
+                          count={section.people.length}
+                          enabled={isAdmin}
+                        >
+                          {section.people.length > 0 ? (
+                            <div className="flex flex-wrap gap-1.5">
+                              {section.people.map((p) => (
+                                <PersonChip key={p.id} p={p} draggable={isAdmin} />
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="text-xs text-muted-foreground italic">
+                              {isAdmin ? "Drop staff here" : "No one assigned yet"}
+                            </div>
+                          )}
+                        </DepartmentDropZone>
+                      ))}
+                    </div>
+                    <DragOverlay>
+                      {activeDrag ? <PersonChip p={activeDrag} /> : null}
+                    </DragOverlay>
+                  </DndContext>
                 )}
               </div>
               <WikiFooter />
