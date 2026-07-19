@@ -38,7 +38,6 @@ const WikiArticleRow = ({ article, onEdit, onDelete, onTogglePublish, selectedTa
   return (
     <div>
       <div
-      <div
         className={`flex items-center justify-between px-4 py-3 pl-12 bg-muted/30 border-b border-border hover:bg-muted/50 cursor-pointer transition-colors ${dimmed ? "opacity-40" : ""}`}
         onClick={() => onEdit(article)}
       >
