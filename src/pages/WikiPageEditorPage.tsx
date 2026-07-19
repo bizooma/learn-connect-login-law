@@ -199,7 +199,6 @@ const WikiPageEditorPage = () => {
           }}
         />
       )}
-      )}
 
       {page?.article_id && (
         <AskThisSopButton articleId={page.article_id} articleTitle={title} />
