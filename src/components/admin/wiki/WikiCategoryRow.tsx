@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, ChevronDown, MoreVertical, Pencil, Trash2, Eye, EyeOff, Copy, Link2, Printer, Archive, Tag, Type } from "lucide-react";
+import { ChevronRight, ChevronDown, MoreVertical, Pencil, Trash2, Eye, EyeOff, Copy, Link2, Printer, Archive, Tag, Type, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -158,7 +158,19 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
           />
         </div>
 
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-end gap-1">
+          <button
+            type="button"
+            title="Browse / Reference — jump to any page"
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate("/admin/wiki/content", { state: { activeCategoryId: category.id, browseMode: true } });
+            }}
+            className="hidden sm:inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md text-black hover:opacity-90 transition-opacity"
+            style={{ backgroundColor: "#FFDA00" }}
+          >
+            <BookOpen className="h-3.5 w-3.5" /> Browse
+          </button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
               <Button variant="ghost" size="icon" className="h-8 w-8">

@@ -10,7 +10,7 @@ import { useWikiCategories, type WikiSubjectCategory, type WikiCategory } from "
 import { useWikiArticles, WikiArticle, type WikiContentType } from "@/hooks/useWikiArticles";
 import { SUBJECT_CATEGORIES, ALL_CONTENT_META } from "@/components/admin/wiki/subjectCategoryMeta";
 import WikiSidebar from "@/components/admin/wiki/WikiSidebar";
-import WikiSearchBar from "@/components/admin/wiki/WikiSearchBar";
+import WikiGlobalSearchBox from "@/components/admin/wiki/WikiGlobalSearchBox";
 import WikiCategoryList from "@/components/admin/wiki/WikiCategoryList";
 import WikiCategoryListByTeam from "@/components/admin/wiki/WikiCategoryListByTeam";
 import WikiTagFilterBar, { useAllArticleTags } from "@/components/admin/wiki/WikiTagFilterBar";
@@ -281,7 +281,7 @@ const AdminWikiPage = () => {
                     : <BubblesBanner />
                   )}
 
-                  <WikiSearchBar value={searchQuery} onChange={setSearchQuery} />
+                  <WikiGlobalSearchBox value={searchQuery} onChange={setSearchQuery} />
 
                   {activeCategoryId && (
                     <Button
