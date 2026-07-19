@@ -281,7 +281,7 @@ const AdminWikiPage = () => {
                     : <BubblesBanner />
                   )}
 
-                  <WikiSearchBar value={searchQuery} onChange={setSearchQuery} />
+                  <WikiGlobalSearchBox value={searchQuery} onChange={setSearchQuery} />
 
                   {activeCategoryId && (
                     <Button
