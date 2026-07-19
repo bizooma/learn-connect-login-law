@@ -3,6 +3,11 @@ import { ChevronDown, ChevronRight, Users } from "lucide-react";
 import { WikiCategory } from "@/hooks/useWikiCategories";
 import { WikiArticle } from "@/hooks/useWikiArticles";
 import WikiCategoryList from "./WikiCategoryList";
+import {
+  DEPARTMENTS,
+  Department,
+  GROUP_TO_DEPARTMENT,
+} from "@/components/hub/departmentMap";
 
 interface WikiCategoryListByTeamProps {
   categories: WikiCategory[];
@@ -13,58 +18,64 @@ interface WikiCategoryListByTeamProps {
   searchQuery?: string;
 }
 
+const UNASSIGNED_KEY = "Unassigned";
+
 interface Bucket {
   key: string;
   name: string;
   subjects: WikiCategory[];
 }
 
-const UNASSIGNED_KEY = "__unassigned__";
-
 const WikiCategoryListByTeam = (props: WikiCategoryListByTeamProps) => {
   const { categories } = props;
 
   const buckets = useMemo<Bucket[]>(() => {
-    const map = new Map<string, Bucket>();
-    const unassigned: WikiCategory[] = [];
+    const deptSubjects: Record<Department, Map<string, WikiCategory>> = {
+      Legal: new Map(),
+      Sales: new Map(),
+      Marketing: new Map(),
+      "People & Culture": new Map(),
+      Finance: new Map(),
+      Operations: new Map(),
+    };
+    const unassigned = new Map<string, WikiCategory>();
 
     categories.forEach((cat) => {
       const groups = cat.shared_groups || [];
-      if (groups.length === 0) {
-        unassigned.push(cat);
+      const depts = new Set<Department>();
+      groups.forEach((g) => {
+        GROUP_TO_DEPARTMENT(g.name).forEach((d) => depts.add(d));
+      });
+      if (depts.size === 0) {
+        unassigned.set(cat.id, cat);
       } else {
-        groups.forEach((g) => {
-          if (!map.has(g.id)) map.set(g.id, { key: g.id, name: g.name, subjects: [] });
-          map.get(g.id)!.subjects.push(cat);
-        });
+        depts.forEach((d) => deptSubjects[d].set(cat.id, cat));
       }
     });
 
-    const sorted = Array.from(map.values()).sort((a, b) => a.name.localeCompare(b.name));
-    if (unassigned.length > 0) {
-      sorted.push({ key: UNASSIGNED_KEY, name: "Unassigned", subjects: unassigned });
-    }
-    return sorted;
+    const ordered: Bucket[] = DEPARTMENTS.map((d) => ({
+      key: d,
+      name: d,
+      subjects: Array.from(deptSubjects[d].values()),
+    }));
+    ordered.push({
+      key: UNASSIGNED_KEY,
+      name: "Unassigned",
+      subjects: Array.from(unassigned.values()),
+    });
+    return ordered;
   }, [categories]);
 
-  const [expanded, setExpanded] = useState<Record<string, boolean>>(() =>
-    Object.fromEntries(buckets.map((b) => [b.key, true])),
-  );
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
 
-  const toggle = (key: string) => setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
-
-  if (buckets.length === 0) {
-    return (
-      <div className="text-center py-12 text-muted-foreground">
-        <p className="text-lg font-medium">No subjects to group</p>
-      </div>
-    );
-  }
+  const toggle = (key: string) =>
+    setExpanded((prev) => ({ ...prev, [key]: prev[key] === false ? true : false }));
 
   return (
     <div className="space-y-4">
       {buckets.map((bucket) => {
         const isOpen = expanded[bucket.key] !== false;
+        const isEmpty = bucket.subjects.length === 0;
         return (
           <div key={bucket.key} className="rounded-lg border border-border overflow-hidden bg-background">
             <button
@@ -88,14 +99,20 @@ const WikiCategoryListByTeam = (props: WikiCategoryListByTeamProps) => {
             </button>
             {isOpen && (
               <div className="p-2">
-                <WikiCategoryList
-                  categories={bucket.subjects}
-                  onEditCategory={props.onEditCategory}
-                  onDeleteCategory={props.onDeleteCategory}
-                  onTogglePublishCategory={props.onTogglePublishCategory}
-                  onEditArticle={props.onEditArticle}
-                  searchQuery={props.searchQuery}
-                />
+                {isEmpty ? (
+                  <div className="text-sm text-muted-foreground italic px-3 py-6 text-center">
+                    No SOPs assigned yet
+                  </div>
+                ) : (
+                  <WikiCategoryList
+                    categories={bucket.subjects}
+                    onEditCategory={props.onEditCategory}
+                    onDeleteCategory={props.onDeleteCategory}
+                    onTogglePublishCategory={props.onTogglePublishCategory}
+                    onEditArticle={props.onEditArticle}
+                    searchQuery={props.searchQuery}
+                  />
+                )}
               </div>
             )}
           </div>
