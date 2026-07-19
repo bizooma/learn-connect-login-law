@@ -142,6 +142,7 @@ const AdminWikiPage = () => {
 
   const filteredCategories = sortedCategories;
 
+  const handleEditCategory = (category: any) => {
     setEditingCategory(category);
     setCategoryDialogOpen(true);
   };
