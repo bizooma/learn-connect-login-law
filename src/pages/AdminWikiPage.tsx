@@ -1,16 +1,19 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { Plus, FileText, ArrowLeft } from "lucide-react";
+import { Plus, FileText, ArrowLeft, LayoutList, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useWikiCategories, type WikiSubjectCategory } from "@/hooks/useWikiCategories";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useWikiCategories, type WikiSubjectCategory, type WikiCategory } from "@/hooks/useWikiCategories";
 import { useWikiArticles, WikiArticle, type WikiContentType } from "@/hooks/useWikiArticles";
 import { SUBJECT_CATEGORIES, ALL_CONTENT_META } from "@/components/admin/wiki/subjectCategoryMeta";
 import WikiSidebar from "@/components/admin/wiki/WikiSidebar";
 import WikiSearchBar from "@/components/admin/wiki/WikiSearchBar";
 import WikiCategoryList from "@/components/admin/wiki/WikiCategoryList";
+import WikiCategoryListByTeam from "@/components/admin/wiki/WikiCategoryListByTeam";
+import WikiTagFilterBar, { useAllArticleTags } from "@/components/admin/wiki/WikiTagFilterBar";
 import WikiCategoryDialog from "@/components/admin/wiki/WikiCategoryDialog";
 import WikiArticleEditor from "@/components/admin/wiki/WikiArticleEditor";
 import WikiDocumentSidebar from "@/components/admin/wiki/WikiDocumentSidebar";
@@ -22,6 +25,9 @@ import SnowBanner from "@/components/admin/wiki/SnowBanner";
 import BunniesBanner from "@/components/admin/wiki/BunniesBanner";
 import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
 import WikiFooter from "@/components/admin/wiki/WikiFooter";
+
+type ViewMode = "training" | "team";
+type SortMode = "training" | "az" | "updated" | "owner";
 
 
 const AdminWikiPage = () => {
