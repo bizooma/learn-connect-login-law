@@ -18,37 +18,64 @@ interface Profile {
   email: string;
   job_title: string | null;
   profile_image_url: string | null;
+  department: string | null;
 }
 
-const usePeopleChartData = () => {
+const DEPARTMENTS = [
+  "Legal",
+  "Sales",
+  "Marketing",
+  "People & Culture",
+  "Finance",
+  "Operations",
+] as const;
+
+type Department = (typeof DEPARTMENTS)[number];
+
+// Normalize incoming profiles.department strings to one of the 6 fixed departments.
+const normalizeDepartment = (raw: string | null | undefined): Department | null => {
+  if (!raw) return null;
+  const k = raw.trim().toLowerCase();
+  if (!k) return null;
+  if (k.includes("legal")) return "Legal";
+  if (k.includes("sales") && k.includes("marketing")) return "Marketing"; // rare hybrid; default group
+  if (k.includes("sales") || k.includes("intake")) return "Sales";
+  if (k.includes("marketing")) return "Marketing";
+  if (k.includes("people") || k.includes("culture") || k.includes("hr")) return "People & Culture";
+  if (k.includes("finance") || k.includes("accounting")) return "Finance";
+  if (k.includes("operation") || k.includes("reception") || k.includes("office")) return "Operations";
+  // Exact matches
+  const exact = DEPARTMENTS.find((d) => d.toLowerCase() === k);
+  return exact ?? null;
+};
+
+const usePeopleByDepartment = () => {
   return useQuery({
-    queryKey: ["people-chart"],
+    queryKey: ["people-by-department"],
     queryFn: async () => {
-      const [{ data: groups }, { data: members }, { data: managers }, { data: profiles }] =
-        await Promise.all([
-          supabase.from("groups").select("id, name, type, description").order("name"),
-          supabase.from("group_members").select("group_id, user_id"),
-          supabase.from("group_managers").select("group_id, user_id"),
-          supabase
-            .from("profiles")
-            .select("id, first_name, last_name, email, job_title, profile_image_url"),
-        ]);
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, first_name, last_name, email, job_title, profile_image_url, department")
+        .ilike("email", "%@newfrontier.us")
+        .eq("is_deleted", false)
+        .order("first_name", { ascending: true });
+      if (error) throw error;
 
-      const profileMap = new Map<string, Profile>(
-        (profiles ?? []).map((p: any) => [p.id, p as Profile])
-      );
-
-      return (groups ?? []).map((g: any) => {
-        const mgrIds = (managers ?? []).filter((m: any) => m.group_id === g.id).map((m: any) => m.user_id);
-        const memberIds = (members ?? [])
-          .filter((m: any) => m.group_id === g.id)
-          .map((m: any) => m.user_id);
-        return {
-          ...g,
-          managers: mgrIds.map((id) => profileMap.get(id)).filter(Boolean) as Profile[],
-          members: memberIds.map((id) => profileMap.get(id)).filter(Boolean) as Profile[],
-        };
+      const buckets: Record<string, Profile[]> = {
+        Legal: [],
+        Sales: [],
+        Marketing: [],
+        "People & Culture": [],
+        Finance: [],
+        Operations: [],
+        Unassigned: [],
+      };
+      (data ?? []).forEach((p: any) => {
+        const dept = normalizeDepartment(p.department);
+        if (dept) buckets[dept].push(p as Profile);
+        else buckets["Unassigned"].push(p as Profile);
       });
+      return buckets;
     },
   });
 };
@@ -83,7 +110,12 @@ const AdminWikiPeopleChartPage = () => {
     settings.peopleChartEnabled,
     settings.peopleChartRestrictedGroups
   );
-  const { data: nodes = [], isLoading } = usePeopleChartData();
+  const { data: buckets, isLoading } = usePeopleByDepartment();
+
+  const sections: Array<{ name: string; people: Profile[] }> = [
+    ...DEPARTMENTS.map((d) => ({ name: d, people: buckets?.[d] ?? [] })),
+    { name: "Unassigned", people: buckets?.["Unassigned"] ?? [] },
+  ];
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -113,81 +145,57 @@ const AdminWikiPeopleChartPage = () => {
             >
               <SidebarTrigger />
               <div>
-                <h2 className="text-lg font-semibold text-foreground">People Chart</h2>
+                <h2 className="text-lg font-semibold text-foreground">People by Department</h2>
                 <p className="text-xs text-muted-foreground">
-                  Groups, managers, and members
+                  Active New Frontier staff grouped by department
                 </p>
               </div>
             </div>
 
             <div className="flex-1 overflow-auto flex flex-col">
               <div className="flex-1 p-6">
-              {!accessLoading && !allowed ? (
-                <div className="flex flex-col items-center justify-center py-20 text-center">
-                  <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
-                    <Lock className="h-8 w-8 text-muted-foreground" />
+                {!accessLoading && !allowed ? (
+                  <div className="flex flex-col items-center justify-center py-20 text-center">
+                    <div className="h-16 w-16 rounded-full bg-muted flex items-center justify-center mb-4">
+                      <Lock className="h-8 w-8 text-muted-foreground" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-foreground mb-1">
+                      People unavailable
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {settings.peopleChartEnabled
+                        ? "Your group does not have access to this view."
+                        : "This view has been disabled by an admin."}
+                    </p>
                   </div>
-                  <h3 className="text-lg font-semibold text-foreground mb-1">
-                    People Chart unavailable
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {settings.peopleChartEnabled
-                      ? "Your group does not have access to the People Chart."
-                      : "The People Chart has been disabled by an admin."}
-                  </p>
-                </div>
-              ) : isLoading ? (
-                <div className="text-center py-12 text-muted-foreground">Loading chart…</div>
-              ) : (
-                <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {nodes.map((g: any) => (
-                    <Card key={g.id} className="p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-semibold text-foreground">{g.name}</div>
-                          {g.description && (
-                            <div className="text-xs text-muted-foreground">{g.description}</div>
-                          )}
+                ) : isLoading ? (
+                  <div className="text-center py-12 text-muted-foreground">Loading…</div>
+                ) : (
+                  <div className="space-y-4">
+                    {sections.map((section) => (
+                      <Card key={section.name} className="p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="font-semibold text-foreground">{section.name}</div>
+                          <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            {section.people.length}
+                          </span>
                         </div>
-                        <span className="text-xs text-muted-foreground inline-flex items-center gap-1">
-                          <Users className="h-3 w-3" />
-                          {g.members.length}
-                        </span>
-                      </div>
-
-                      {g.managers.length > 0 && (
-                        <div>
-                          <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">
-                            Managers
-                          </div>
+                        {section.people.length > 0 ? (
                           <div className="flex flex-wrap gap-1.5">
-                            {g.managers.map((p: Profile) => (
+                            {section.people.map((p) => (
                               <PersonChip key={p.id} p={p} />
                             ))}
                           </div>
-                        </div>
-                      )}
-
-                      {g.members.length > 0 && (
-                        <div>
-                          <div className="text-[10px] uppercase tracking-wide text-muted-foreground mb-1">
-                            Members
+                        ) : (
+                          <div className="text-xs text-muted-foreground italic">
+                            No one assigned yet
                           </div>
-                          <div className="flex flex-wrap gap-1.5">
-                            {g.members.map((p: Profile) => (
-                              <PersonChip key={p.id} p={p} />
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {g.managers.length === 0 && g.members.length === 0 && (
-                        <div className="text-xs text-muted-foreground italic">Empty group</div>
-                      )}
-                    </Card>
-                  ))}
-                </div>
-              )}
+                        )}
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </div>
               <WikiFooter />
             </div>

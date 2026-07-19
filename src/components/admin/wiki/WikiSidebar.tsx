@@ -1,4 +1,4 @@
-import { BookOpen, Home, FolderOpen, Users, UsersRound, BarChart3, UserCheck, Activity, UserCog, Settings, Route as RouteIcon, Network, Briefcase } from "lucide-react";
+import { BookOpen, Home, FolderOpen, Users, UsersRound, BarChart3, UserCheck, Activity, UserCog, Settings, Route as RouteIcon, Network } from "lucide-react";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useOrgPeopleSettings, useFeatureAccess } from "@/hooks/useOrgPeopleSettings";
 
