@@ -29,8 +29,13 @@ const DepartmentGrid = () => (
               : isLegal
                 ? `https://learn-connect-login-law.lovable.app${legalAsset.url}`
                 : `https://learn-connect-login-law.lovable.app${financeAsset.url}`;
+      const bgPosition = isOperations
+        ? "bg-center"
+        : isLegal || isFinance || isSales
+          ? "bg-top"
+          : "bg-bottom";
       return (
-        <Link key={dept.id} to={`/hub/${dept.id}`} className="group">
+        <Link key={dept.id} to={`/hub/${dept.id}`} className="group h-full block">
           <Card
             className="h-full min-h-[300px] transition-all duration-300 border-t-4 relative overflow-hidden hover:shadow-[0_0_30px_-8px_rgba(255,218,0,0.7)] hover:-translate-y-0.5"
             style={{ borderTopColor: "#FFDA00" }}
@@ -38,7 +43,7 @@ const DepartmentGrid = () => (
             {hasPhotoBackground && (
               <>
                 <div
-                  className={`absolute inset-0 bg-cover transition-transform duration-500 group-hover:scale-105 ${isLegal || isFinance || isSales ? "bg-top" : "bg-bottom"}`}
+                  className={`absolute inset-0 bg-cover bg-no-repeat transition-transform duration-500 group-hover:scale-105 ${bgPosition}`}
                   style={{ backgroundImage: `url(${backgroundImage})` }}
                 />
                 <div className="absolute inset-0 bg-gradient-to-b from-[#213C82]/75 via-[#213C82]/30 to-transparent group-hover:from-[#213C82]/85 transition-colors duration-300" />
