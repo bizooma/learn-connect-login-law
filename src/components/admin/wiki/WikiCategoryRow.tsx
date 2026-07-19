@@ -37,9 +37,10 @@ interface WikiCategoryRowProps {
   onEditArticle: (article: WikiArticle) => void;
   searchQuery?: string;
   defaultExpanded?: boolean;
+  selectedTags?: string[];
 }
 
-const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditArticle, searchQuery, defaultExpanded }: WikiCategoryRowProps) => {
+const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditArticle, searchQuery, defaultExpanded, selectedTags }: WikiCategoryRowProps) => {
   const [expanded, setExpanded] = useState(defaultExpanded || false);
   const count = category.article_count || 0;
   const meta = getSubjectCategoryMeta(category.category);
@@ -234,6 +235,7 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
           categoryId={category.id}
           onEditArticle={onEditArticle}
           searchQuery={searchQuery}
+          selectedTags={selectedTags}
         />
       )}
     </div>

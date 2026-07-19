@@ -17,9 +17,10 @@ interface WikiArticleListProps {
   categoryId: string;
   onEditArticle: (article: WikiArticle) => void;
   searchQuery?: string;
+  selectedTags?: string[];
 }
 
-const WikiArticleList = ({ categoryId, onEditArticle, searchQuery }: WikiArticleListProps) => {
+const WikiArticleList = ({ categoryId, onEditArticle, searchQuery, selectedTags }: WikiArticleListProps) => {
   const { articles, isLoading, createArticle, deleteArticle, updateArticle } = useWikiArticles(categoryId);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -93,6 +94,7 @@ const WikiArticleList = ({ categoryId, onEditArticle, searchQuery }: WikiArticle
               onEdit={onEditArticle}
               onDelete={(id) => deleteArticle.mutate(id)}
               onTogglePublish={(a) => updateArticle.mutate({ id: a.id, is_published: !a.is_published })}
+              selectedTags={selectedTags}
             />
           ))}
           <div

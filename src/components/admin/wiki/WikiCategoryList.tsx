@@ -12,6 +12,7 @@ interface WikiCategoryListProps {
   onTogglePublishCategory: (category: WikiCategory) => void;
   onEditArticle: (article: WikiArticle) => void;
   searchQuery?: string;
+  selectedTags?: string[];
 }
 
 const COLUMN_LABELS = ["Name", "Items", "Category", "Status", "Shared with", "Owner", ""];
