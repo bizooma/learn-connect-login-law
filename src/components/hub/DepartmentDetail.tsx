@@ -3,6 +3,7 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { getDepartment, type Tile } from "@/config/hub";
+import nfilProcessAsset from "@/assets/nfil-process.jpg.asset.json";
 
 const TileLink = ({ tile, children }: { tile: Tile; children: React.ReactNode }) => {
   if (tile.target.kind === "external") {
