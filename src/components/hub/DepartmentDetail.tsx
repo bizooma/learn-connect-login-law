@@ -95,6 +95,17 @@ const DepartmentDetail = () => {
           );
         })}
       </div>
+
+      {departmentId === "legal" && (
+        <div className="mt-10">
+          <h3 className="text-lg font-semibold mb-4">The New Frontier Way</h3>
+          <img
+            src={nfilProcessAsset.url}
+            alt="The New Frontier Way process flowchart"
+            className="w-full rounded-lg border bg-white"
+          />
+        </div>
+      )}
     </div>
   );
 };
