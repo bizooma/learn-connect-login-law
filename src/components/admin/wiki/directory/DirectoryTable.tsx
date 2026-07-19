@@ -39,9 +39,11 @@ const fullName = (u: DirectoryUser) =>
 const DirectoryTable = ({ users, onSelect }: Props) => {
   const { toast } = useToast();
   const cols = useResizableColumns({
-    storageKey: "directory-cols",
-    defaults: [320, 140, 240, 320, 60],
+    storageKey: "directory-cols-v2",
+    defaults: [280, 110, 200, 160, 160, 260, 60],
   });
+  const formatRole = (r: string) =>
+    r.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
   return (
     <div className="border border-border rounded-lg overflow-hidden bg-card">
       <Table className="table-fixed w-full">
@@ -50,8 +52,10 @@ const DirectoryTable = ({ users, onSelect }: Props) => {
             <ResizableHead width={cols.widths[0]} onResize={cols.onMouseDown(0)}>Name</ResizableHead>
             <ResizableHead width={cols.widths[1]} onResize={cols.onMouseDown(1)}>Status</ResizableHead>
             <ResizableHead width={cols.widths[2]} onResize={cols.onMouseDown(2)}>Job Title</ResizableHead>
-            <ResizableHead width={cols.widths[3]} onResize={cols.onMouseDown(3)}>Email</ResizableHead>
-            <ResizableHead width={cols.widths[4]} />
+            <ResizableHead width={cols.widths[3]} onResize={cols.onMouseDown(3)}>Role</ResizableHead>
+            <ResizableHead width={cols.widths[4]} onResize={cols.onMouseDown(4)}>Department</ResizableHead>
+            <ResizableHead width={cols.widths[5]} onResize={cols.onMouseDown(5)}>Email</ResizableHead>
+            <ResizableHead width={cols.widths[6]} />
           </TableRow>
         </TableHeader>
 
@@ -83,7 +87,24 @@ const DirectoryTable = ({ users, onSelect }: Props) => {
               <TableCell className="text-muted-foreground">
                 {u.job_title || "—"}
               </TableCell>
+              <TableCell>
+                {u.roles.length ? (
+                  <div className="flex flex-wrap gap-1">
+                    {u.roles.map((r) => (
+                      <Badge key={r} variant="outline" className="text-xs">
+                        {formatRole(r)}
+                      </Badge>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground">—</span>
+                )}
+              </TableCell>
+              <TableCell className="text-muted-foreground">
+                {u.department || "—"}
+              </TableCell>
               <TableCell className="text-muted-foreground">{u.email}</TableCell>
+
               <TableCell onClick={(e) => e.stopPropagation()}>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
