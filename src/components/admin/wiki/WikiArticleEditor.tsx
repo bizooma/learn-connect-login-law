@@ -9,6 +9,7 @@ import MarkdownRenderer from "@/components/ui/markdown-renderer";
 import { WikiArticle, contentTypeLabels } from "@/hooks/useWikiArticles";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import WikiTagChipInput from "./WikiTagChipInput";
 
 interface WikiArticleEditorProps {
   article: WikiArticle;
@@ -19,7 +20,7 @@ interface WikiArticleEditorProps {
 const WikiArticleEditor = ({ article, onSave, onBack }: WikiArticleEditorProps) => {
   const [title, setTitle] = useState(article.title);
   const [content, setContent] = useState(article.content || "");
-  const [tagsInput, setTagsInput] = useState(article.tags?.join(", ") || "");
+  const [tags, setTags] = useState<string[]>(article.tags || []);
   const [isPublished, setIsPublished] = useState(article.is_published);
   const [showPreview, setShowPreview] = useState(false);
   const [fileUrl, setFileUrl] = useState(article.file_url || "");
@@ -33,7 +34,7 @@ const WikiArticleEditor = ({ article, onSave, onBack }: WikiArticleEditorProps) 
   useEffect(() => {
     setTitle(article.title);
     setContent(article.content || "");
-    setTagsInput(article.tags?.join(", ") || "");
+    setTags(article.tags || []);
     setIsPublished(article.is_published);
     setFileUrl(article.file_url || "");
     setFileName(article.file_name || "");
@@ -56,7 +57,6 @@ const WikiArticleEditor = ({ article, onSave, onBack }: WikiArticleEditorProps) 
   }, [article.id]);
 
   const handleSave = () => {
-    const tags = tagsInput.split(",").map((t) => t.trim()).filter(Boolean);
     onSave({ id: article.id, title, content, tags, is_published: isPublished, file_url: fileUrl || undefined, file_name: fileName || undefined });
   };
 
@@ -125,8 +125,8 @@ const WikiArticleEditor = ({ article, onSave, onBack }: WikiArticleEditorProps) 
 
         <div className="flex items-center gap-6">
           <div className="flex-1">
-            <Label htmlFor="article-tags">Tags (comma-separated)</Label>
-            <Input id="article-tags" value={tagsInput} onChange={(e) => setTagsInput(e.target.value)} placeholder="e.g., HR, Onboarding" />
+            <Label htmlFor="article-tags">Tags</Label>
+            <WikiTagChipInput value={tags} onChange={setTags} placeholder="Type a tag and press Enter" />
           </div>
           <div className="flex items-center gap-2 pt-6">
             <Label htmlFor="article-published">Published</Label>
