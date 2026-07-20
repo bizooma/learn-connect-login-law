@@ -3,7 +3,16 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { Plus, FileText, ArrowLeft, LayoutList, Users } from "lucide-react";
+import { Plus, FileText, ArrowLeft, LayoutList, Users, SlidersHorizontal } from "lucide-react";
+import WikiFiltersSheet, {
+  emptyFilters,
+  activeFilterGroupCount,
+  matchesFilters,
+  parseFiltersFromParams,
+  writeFiltersToParams,
+  type WikiFilters,
+} from "@/components/admin/wiki/WikiFiltersSheet";
+import { useWikiAccess } from "@/hooks/useWikiAccess";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useWikiCategories, type WikiSubjectCategory, type WikiCategory } from "@/hooks/useWikiCategories";
