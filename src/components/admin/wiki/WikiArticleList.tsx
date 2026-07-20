@@ -41,6 +41,7 @@ const WikiArticleList = ({ categoryId, onEditArticle, searchQuery, selectedTags 
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
+  const { enabled: previewAsStaff } = usePreviewAsStaff();
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
