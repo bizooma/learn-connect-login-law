@@ -132,16 +132,18 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-3 min-w-0">
-          <button
-            type="button"
-            className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none shrink-0"
-            onClick={(e) => e.stopPropagation()}
-            aria-label="Drag to reorder subject"
-            {...attributes}
-            {...listeners}
-          >
-            <GripVertical className="h-4 w-4" />
-          </button>
+          {!previewAsStaff && (
+            <button
+              type="button"
+              className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none shrink-0"
+              onClick={(e) => e.stopPropagation()}
+              aria-label="Drag to reorder subject"
+              {...attributes}
+              {...listeners}
+            >
+              <GripVertical className="h-4 w-4" />
+            </button>
+          )}
           {expanded ? (
             <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
           ) : (
@@ -165,39 +167,52 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
         <span className={`text-xs px-2 py-0.5 rounded-full border w-fit ${meta.badgeClass}`}>
           {meta.label}
         </span>
-        <span className={`text-xs px-2 py-0.5 rounded w-fit ${category.is_published ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-muted text-muted-foreground'}`}>
-          {category.is_published ? 'Published' : 'Draft'}
-        </span>
-        <div className="min-w-0" onClick={(e) => e.stopPropagation()}>
-          <ShareGroupsPicker category={category} />
-        </div>
-        <div className="min-w-0" onClick={(e) => e.stopPropagation()}>
-          <OwnerPicker
-            value={category.owner_id}
-            ownerDisplay={category.owner}
-            onChange={(id) => updateCategory.mutate({ id: category.id, owner_id: id })}
-          />
-        </div>
+        {previewAsStaff ? (
+          <span />
+        ) : (
+          <span className={`text-xs px-2 py-0.5 rounded w-fit ${category.is_published ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-muted text-muted-foreground'}`}>
+            {category.is_published ? 'Published' : 'Draft'}
+          </span>
+        )}
+        {previewAsStaff ? <span /> : (
+          <div className="min-w-0" onClick={(e) => e.stopPropagation()}>
+            <ShareGroupsPicker category={category} />
+          </div>
+        )}
+        {previewAsStaff ? <span /> : (
+          <div className="min-w-0" onClick={(e) => e.stopPropagation()}>
+            <OwnerPicker
+              value={category.owner_id}
+              ownerDisplay={category.owner}
+              onChange={(id) => updateCategory.mutate({ id: category.id, owner_id: id })}
+            />
+          </div>
+        )}
 
         <div className="flex items-center justify-end gap-1">
-          <button
-            type="button"
-            title="Browse / Reference — jump to any page"
-            onClick={(e) => {
-              e.stopPropagation();
-              navigate("/admin/wiki/content", { state: { activeCategoryId: category.id, browseMode: true } });
-            }}
-            className="hidden sm:inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md text-black hover:opacity-90 transition-opacity"
-            style={{ backgroundColor: "#FFDA00" }}
-          >
-            <BookOpen className="h-3.5 w-3.5" /> Browse
-          </button>
+          {!previewAsStaff && (
+            <button
+              type="button"
+              title="Preview this subject as a non-admin staff member"
+              onClick={(e) => {
+                e.stopPropagation();
+                enablePreview();
+                navigate("/admin/wiki/content", { state: { activeCategoryId: category.id } });
+              }}
+              className="hidden sm:inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md text-black hover:opacity-90 transition-opacity"
+              style={{ backgroundColor: "#FFDA00" }}
+            >
+              <BookOpen className="h-3.5 w-3.5" /> Preview as staff
+            </button>
+          )}
+          {!previewAsStaff && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
               <Button variant="ghost" size="icon" className="h-8 w-8">
                 <MoreVertical className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
+
             <DropdownMenuContent align="end" className="w-48">
               {editable && (
                 <>
