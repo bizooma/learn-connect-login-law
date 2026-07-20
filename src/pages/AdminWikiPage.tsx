@@ -140,9 +140,13 @@ const AdminWikiPage = () => {
     ? searchFiltered.filter((c) => categoriesWithMatchingTags.has(c.id))
     : searchFiltered;
 
-  const advancedFiltered = activeFilterCount > 0
-    ? tagFiltered.filter((c) => matchesFilters(c, filters, getAccess))
+  const accessFiltered = previewAsStaff
+    ? tagFiltered.filter((c) => canView(c))
     : tagFiltered;
+
+  const advancedFiltered = activeFilterCount > 0
+    ? accessFiltered.filter((c) => matchesFilters(c, filters, getAccess))
+    : accessFiltered;
 
 
 
