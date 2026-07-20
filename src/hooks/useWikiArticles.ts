@@ -140,11 +140,44 @@ export const useWikiArticles = (categoryId?: string) => {
     onError: (error) => toast.error("Failed to delete: " + error.message),
   });
 
+  const reorderArticles = useMutation({
+    mutationFn: async (orderedIds: string[]) => {
+      await Promise.all(
+        orderedIds.map((id, index) =>
+          supabase.from("wiki_articles").update({ sort_order: index }).eq("id", id)
+        )
+      );
+    },
+    onMutate: async (orderedIds: string[]) => {
+      await queryClient.cancelQueries({ queryKey: ["wiki-articles", categoryId] });
+      const previous = queryClient.getQueryData<WikiArticle[]>(["wiki-articles", categoryId]);
+      if (previous) {
+        const byId = new Map(previous.map((a) => [a.id, a]));
+        const next = orderedIds
+          .map((id, index) => {
+            const a = byId.get(id);
+            return a ? { ...a, sort_order: index } : null;
+          })
+          .filter(Boolean) as WikiArticle[];
+        queryClient.setQueryData(["wiki-articles", categoryId], next);
+      }
+      return { previous };
+    },
+    onError: (error, _vars, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(["wiki-articles", categoryId], ctx.previous);
+      toast.error("Failed to reorder: " + (error as Error).message);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["wiki-articles"] });
+    },
+  });
+
   return {
     articles: articlesQuery.data || [],
     isLoading: articlesQuery.isLoading,
     createArticle,
     updateArticle,
     deleteArticle,
+    reorderArticles,
   };
 };
