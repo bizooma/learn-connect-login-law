@@ -17,7 +17,15 @@ const read = () => {
 const write = (on: boolean) => {
   if (typeof window === "undefined") return;
   if (on) window.sessionStorage.setItem(KEY, "1");
-  else window.sessionStorage.removeItem(KEY);
+  else {
+    window.sessionStorage.removeItem(KEY);
+
+    const url = new URL(window.location.href);
+    if (url.searchParams.has(URL_PARAM)) {
+      url.searchParams.delete(URL_PARAM);
+      window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+    }
+  }
   window.dispatchEvent(new Event(EVENT));
 };
 
