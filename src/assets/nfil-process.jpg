@@ -1,0 +1,53 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/png" href="/lovable-uploads/3fd9b71e-a87d-4988-a524-be643067a6da.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New Frontier University - Immigration Law Training</title>
+    
+    <!-- Primary Meta Tags -->
+    <meta name="title" content="New Frontier University - Immigration Law Training">
+    <meta name="description" content="Professional immigration law training courses designed for law firms and legal professionals. Expert-led programs to enhance your practice.">
+    <meta name="keywords" content="immigration law training, legal education, law firm training, immigration courses, legal professionals">
+    <meta name="author" content="New Frontier University">
+    <link rel="canonical" href="https://newfrontier.dev/">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://newfrontier.dev/">
+    <meta property="og:title" content="New Frontier University - Immigration Law Training">
+    <meta property="og:description" content="Professional immigration law training courses designed for law firms and legal professionals. Expert-led programs to enhance your practice.">
+    <meta property="og:image" content="https://newfrontier.dev/og-image.png">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="New Frontier University - Immigration Law Firm Training">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://newfrontier.dev/">
+    <meta property="twitter:title" content="New Frontier University - Immigration Law Training">
+    <meta property="twitter:description" content="Professional immigration law training courses designed for law firms and legal professionals. Expert-led programs to enhance your practice.">
+    <meta property="twitter:image" content="https://newfrontier.dev/og-image.png">
+    
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-PEV187W6QH"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-PEV187W6QH');
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+    <script type="module" crossorigin src="/assets/index-CA7bl03-.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-SxlBbIwj.css">
+  </head>
+  <body>
+    <div id="root"></div>
+    <script src="https://cdn.gpteng.co/gptengineer.js" defer></script>
+  </body>
+</html>
