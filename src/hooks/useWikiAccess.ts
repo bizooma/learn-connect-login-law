@@ -36,7 +36,8 @@ export const useWikiAccess = () => {
   const getAccess = (category: WikiCategory | undefined | null): EffectiveAccess => {
     if (!category || !user?.id) return "none";
     if (isAdmin) return "full";
-    if (category.owner_id === user.id) return "full";
+    if (!previewAsStaff && category.owner_id === user.id) return "full";
+
 
     const groupSet = new Set(myGroupIds);
     let best: WikiAccessLevel | null = null;
