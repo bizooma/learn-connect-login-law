@@ -168,6 +168,14 @@ const AdminWikiPage = () => {
 
   const filteredCategories = sortedCategories;
 
+  const handleApplyFilters = (next: WikiFilters) => {
+    setFilters(next);
+    const params = new URLSearchParams(window.location.search);
+    writeFiltersToParams(params, next);
+    setSearchParams(params, { replace: true });
+  };
+
+
   const handleEditCategory = (category: any) => {
     setEditingCategory(category);
     setCategoryDialogOpen(true);
