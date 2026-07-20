@@ -130,15 +130,8 @@ const WikiDocumentSidebar = ({
   };
 
   const openArticle = (article: WikiArticle) => {
-    const pages = data?.pagesByArticle[article.id] || [];
-
     if (article.content_type === "flowchart") {
       requestNavigation(`/admin/wiki/flowchart/${article.id}`);
-      return;
-    }
-
-    if (pages.length > 0) {
-      requestNavigation(`/admin/wiki/pages/${pages[0].id}`);
       return;
     }
 
