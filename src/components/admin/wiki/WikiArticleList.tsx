@@ -12,6 +12,21 @@ import { useWikiArticles, WikiArticle, WikiContentType } from "@/hooks/useWikiAr
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import WikiArticleRow from "./WikiArticleRow";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
 interface WikiArticleListProps {
   categoryId: string;
