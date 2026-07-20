@@ -42,7 +42,23 @@ const ListInner = ({
   selectedTags,
 }: WikiCategoryListProps) => {
   const { gridTemplate, onMouseDown, reset } = useWikiColumns();
+  const { reorderCategories } = useWikiCategories();
   const forceExpand = !!(selectedTags && selectedTags.length > 0);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = categories.findIndex((c) => c.id === active.id);
+    const newIndex = categories.findIndex((c) => c.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    const next = arrayMove(categories, oldIndex, newIndex);
+    reorderCategories.mutate(next.map((c) => c.id));
+  };
 
   return (
     <div className="border border-border rounded-lg overflow-hidden bg-background">
@@ -66,19 +82,24 @@ const ListInner = ({
         ))}
       </div>
 
-      {categories.map((category) => (
-        <WikiCategoryRow
-          key={category.id}
-          category={category}
-          onEdit={onEditCategory}
-          onDelete={onDeleteCategory}
-          onTogglePublish={onTogglePublishCategory}
-          onEditArticle={onEditArticle}
-          searchQuery={searchQuery}
-          defaultExpanded={!!searchQuery || categories.length === 1 || forceExpand}
-          selectedTags={selectedTags}
-        />
-      ))}
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={categories.map((c) => c.id)} strategy={verticalListSortingStrategy}>
+          {categories.map((category) => (
+            <WikiCategoryRow
+              key={category.id}
+              category={category}
+              onEdit={onEditCategory}
+              onDelete={onDeleteCategory}
+              onTogglePublish={onTogglePublishCategory}
+              onEditArticle={onEditArticle}
+              searchQuery={searchQuery}
+              defaultExpanded={!!searchQuery || categories.length === 1 || forceExpand}
+              selectedTags={selectedTags}
+            />
+          ))}
+        </SortableContext>
+      </DndContext>
+
 
       <div className="flex justify-end px-4 py-2 border-t border-border bg-muted/20">
         <Button variant="ghost" size="sm" onClick={reset} className="h-7 text-xs gap-1">
