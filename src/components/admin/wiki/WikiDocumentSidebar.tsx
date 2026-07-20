@@ -120,6 +120,11 @@ const WikiDocumentSidebar = ({
     return data.articles.length + Object.values(data.pagesByArticle).reduce((sum, pages) => sum + pages.length, 0);
   }, [data]);
 
+  const activeArticleTitle = useMemo(() => {
+    if (!data || !activeArticleId) return undefined;
+    return data.articles.find((a) => a.id === activeArticleId)?.title;
+  }, [data, activeArticleId]);
+
   const requestNavigation = (to: string) => {
     if (onBeforeNavigate && !onBeforeNavigate()) return;
     navigate(to, data?.category.id ? { state: { activeCategoryId: data.category.id } } : undefined);
