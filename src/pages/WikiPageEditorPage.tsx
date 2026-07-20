@@ -38,8 +38,11 @@ const WikiPageEditorPage = () => {
 
   const { isAdmin, isOwner } = useUserRole();
   const { enabled: previewAsStaff } = usePreviewAsStaff();
+  // If preview flipped on in another tab while we hold unsaved edits, keep
+  // this tab editable so we don't silently drop work.
+  const [keepEditable, setKeepEditable] = useState(false);
   const canUseAi = (isAdmin || isOwner) && !previewAsStaff;
-  const readOnly = previewAsStaff;
+  const readOnly = previewAsStaff && !keepEditable;
 
 
   const { data: currentArticle } = useQuery({
