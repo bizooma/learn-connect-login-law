@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
+import { usePreviewAsStaff } from "@/hooks/usePreviewAsStaff";
 import { WikiCategory, WikiAccessLevel } from "@/hooks/useWikiCategories";
 
 export type EffectiveAccess = "none" | "view" | "edit" | "full";
@@ -15,7 +16,9 @@ const rank: Record<WikiAccessLevel, number> = { view: 1, edit: 2, full: 3 };
  */
 export const useWikiAccess = () => {
   const { user } = useAuth();
-  const { isAdmin } = useUserRole();
+  const { isAdmin: realIsAdmin } = useUserRole();
+  const { enabled: previewAsStaff } = usePreviewAsStaff();
+  const isAdmin = realIsAdmin && !previewAsStaff;
 
   const { data: myGroupIds = [] } = useQuery({
     queryKey: ["my-group-ids", user?.id],
