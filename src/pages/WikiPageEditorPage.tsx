@@ -9,7 +9,6 @@ import { toast } from "sonner";
 import RichTextEditor from "@/components/admin/wiki/RichTextEditor";
 import AiWritePageDialog from "@/components/admin/wiki/AiWritePageDialog";
 import WikiDocumentSidebar from "@/components/admin/wiki/WikiDocumentSidebar";
-import AskThisSopButton from "@/components/admin/wiki/AskThisSopButton";
 import { WikiPage } from "@/hooks/useWikiPages";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useQuery } from "@tanstack/react-query";
@@ -211,9 +210,6 @@ const WikiPageEditorPage = () => {
         />
       )}
 
-      {page?.article_id && (
-        <AskThisSopButton articleId={page.article_id} articleTitle={title} />
-      )}
     </div>
   );
 };

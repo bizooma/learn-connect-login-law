@@ -16,6 +16,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { WikiPage } from "@/hooks/useWikiPages";
 import { WikiArticle, WikiContentType, contentTypeLabels } from "@/hooks/useWikiArticles";
+import AskThisSopButton from "./AskThisSopButton";
 
 interface WikiDocumentSidebarProps {
   categoryId?: string | null;
@@ -118,6 +119,11 @@ const WikiDocumentSidebar = ({
     if (!data) return 0;
     return data.articles.length + Object.values(data.pagesByArticle).reduce((sum, pages) => sum + pages.length, 0);
   }, [data]);
+
+  const activeArticleTitle = useMemo(() => {
+    if (!data || !activeArticleId) return undefined;
+    return data.articles.find((a) => a.id === activeArticleId)?.title;
+  }, [data, activeArticleId]);
 
   const requestNavigation = (to: string) => {
     if (onBeforeNavigate && !onBeforeNavigate()) return;
@@ -233,6 +239,16 @@ const WikiDocumentSidebar = ({
           </button>
         )}
       </nav>
+
+      {activeArticleId && (
+        <div className="p-4 border-t border-border bg-background shrink-0">
+          <AskThisSopButton
+            variant="nav"
+            articleId={activeArticleId}
+            articleTitle={activeArticleTitle}
+          />
+        </div>
+      )}
     </aside>
   );
 };

@@ -5,7 +5,7 @@ import AskThisSopPanel from "./AskThisSopPanel";
 interface AskThisSopButtonProps {
   articleId: string;
   articleTitle?: string;
-  variant?: "floating" | "inline";
+  variant?: "floating" | "inline" | "nav";
 }
 
 const AskThisSopButton = ({ articleId, articleTitle, variant = "floating" }: AskThisSopButtonProps) => {
@@ -18,6 +18,23 @@ const AskThisSopButton = ({ articleId, articleTitle, variant = "floating" }: Ask
           type="button"
           onClick={() => setOpen(true)}
           className="inline-flex items-center gap-2 px-4 py-2 rounded-md font-semibold text-black hover:opacity-90 transition-opacity"
+          style={{ backgroundColor: "#FFDA00" }}
+        >
+          <Sparkles className="h-4 w-4" /> Ask this SOP
+        </button>
+        <AskThisSopPanel open={open} onOpenChange={setOpen} articleId={articleId} articleTitle={articleTitle} />
+      </>
+    );
+  }
+
+  if (variant === "nav") {
+    return (
+      <>
+        <button
+          type="button"
+          onClick={() => setOpen(true)}
+          aria-label="Ask this SOP"
+          className="w-full flex items-center justify-center gap-2 px-4 py-3 rounded-md font-semibold text-black hover:opacity-90 transition-opacity"
           style={{ backgroundColor: "#FFDA00" }}
         >
           <Sparkles className="h-4 w-4" /> Ask this SOP
