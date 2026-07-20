@@ -117,16 +117,20 @@ const WikiArticleList = ({ categoryId, onEditArticle, searchQuery, selectedTags 
         <div className="px-4 py-3 pl-12 text-sm text-muted-foreground">Loading...</div>
       ) : (
         <>
-          {filtered.map((article) => (
-            <WikiArticleRow
-              key={article.id}
-              article={article}
-              onEdit={onEditArticle}
-              onDelete={(id) => deleteArticle.mutate(id)}
-              onTogglePublish={(a) => updateArticle.mutate({ id: a.id, is_published: !a.is_published })}
-              selectedTags={selectedTags}
-            />
-          ))}
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={filtered.map((a) => a.id)} strategy={verticalListSortingStrategy}>
+              {filtered.map((article) => (
+                <WikiArticleRow
+                  key={article.id}
+                  article={article}
+                  onEdit={onEditArticle}
+                  onDelete={(id) => deleteArticle.mutate(id)}
+                  onTogglePublish={(a) => updateArticle.mutate({ id: a.id, is_published: !a.is_published })}
+                  selectedTags={selectedTags}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
           <div
             className="flex items-center justify-between px-4 py-2 pl-12 bg-background border-b border-border hover:bg-muted/30 group cursor-pointer"
             onClick={(e) => {
