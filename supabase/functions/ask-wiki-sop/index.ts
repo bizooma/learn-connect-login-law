@@ -66,7 +66,9 @@ Deno.serve(async (req) => {
     const pageBlocks = (pages || [])
       .map((p: any) => {
         const text = stripHtml(p.content || "");
-        return `[Page: ${p.title || "Untitled"} | id: ${p.id}]\n${text}`;
+        // Titles are metadata delimiters only — the model is instructed NOT to
+        // reuse them as section headings in its answer.
+        return `<<PAGE id="${p.id}">>\n(title metadata, do not reproduce as a heading: ${p.title || "Untitled"})\n${text}\n<<END PAGE>>`;
       })
       .join("\n\n");
 
@@ -80,14 +82,41 @@ Deno.serve(async (req) => {
       );
     }
 
-    const system = `You are a strict Q&A assistant for a single company SOP (document titled "${article.title}").
-Rules — you MUST follow them:
-- Answer ONLY using the SOP text provided by the user. Do NOT use any outside or general knowledge.
+    const system = `You are a training assistant for a single company SOP (document titled "${article.title}"). Your job is to verify comprehension: tell the reader what they should have LEARNED from this SOP, not what the pages are named.
+
+STRICT GROUNDING RULES (never break these):
+- Answer ONLY from the SOP text provided by the user. Do NOT use any outside or general knowledge.
 - If the answer is not present in the SOP text, reply EXACTLY: "This isn't covered in this SOP."
-- Be concise and specific. Use short paragraphs or bullet points.
-- After the answer, on a NEW line, output: SOURCES: <pageId>, <pageId>
-  listing the page IDs (from the [Page: ... | id: <pageId>] headers) you drew from.
-  If you deflected because the answer isn't in the SOP, output: SOURCES:`;
+- Page titles inside <<PAGE>> blocks are metadata. Do NOT reuse them as section headings and do NOT produce a table of contents / outline of the document.
+
+HOW TO ANSWER SUMMARY / OVERVIEW / "what should I have learned" QUESTIONS:
+Synthesize across all pages and output using EXACTLY these markdown headings, omitting any section for which the SOP truly contains nothing:
+
+**What this SOP is for**
+1–2 plain-language sentences on the purpose and when it applies.
+
+**What you should now be able to do**
+- Action-oriented bullets, each starting with a verb (Identify, Submit, Approve, Escalate, etc.). These are learning outcomes, not page names.
+
+**Key rules, numbers, and names**
+- Pull specific thresholds, deadlines, dollar amounts, tools, form names, approvers, and role owners verbatim from the SOP.
+
+**Steps in order** (only if the SOP prescribes a process)
+1. Numbered steps in the order the SOP gives them.
+
+**Common mistakes / do NOT** (only if the SOP calls them out)
+- What to avoid, per the SOP.
+
+**Who owns it / when to escalate** (only if present in the SOP)
+- Role, person, or team named in the SOP.
+
+HOW TO ANSWER SPECIFIC QUESTIONS (not a summary request):
+Answer directly and concisely in the same grounded style. Prefer concrete rules and numbers from the SOP over paraphrase. Do not force the template above.
+
+CITATIONS (required, unchanged contract):
+After your answer, on a NEW line, output: SOURCES: <pageId>, <pageId>
+listing the page IDs from the <<PAGE id="..."> delimiters you actually drew from.
+If you deflected because the answer isn't in the SOP, output: SOURCES:`;
 
     const user = `SOP CONTENT:\n\n${pageBlocks}\n\nQUESTION: ${question}`;
 
@@ -98,8 +127,11 @@ Rules — you MUST follow them:
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        // If quality is still weak after this prompt change, the next lever is
+        // upgrading the model (e.g. gpt-4o) — the prompt/contract stays the same.
         model: "gpt-4o-mini",
         temperature: 0.1,
+        max_tokens: 1200,
         messages: [
           { role: "system", content: system },
           { role: "user", content: user },

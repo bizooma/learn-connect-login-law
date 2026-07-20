@@ -21,8 +21,10 @@ interface SourcePage {
 }
 
 const QUICK_ACTIONS = [
-  "Summarize this SOP",
-  "Give me the key steps",
+  "What should I have learned from this SOP?",
+  "Key rules, numbers, and deadlines",
+  "Step-by-step process",
+  "Common mistakes to avoid",
 ];
 
 const AskThisSopPanel = ({ open, onOpenChange, articleId, articleTitle }: AskThisSopPanelProps) => {
