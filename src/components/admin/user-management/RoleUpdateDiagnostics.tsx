@@ -73,8 +73,7 @@ const RoleUpdateDiagnostics = ({ userId, userEmail }: RoleUpdateDiagnosticsProps
         supabase
           .from('user_roles')
           .select('role')
-          .eq('user_id', userToCheck)
-          .maybeSingle(),
+          .eq('user_id', userToCheck),
         supabase
           .from('law_firms')
           .select('name')
@@ -83,7 +82,7 @@ const RoleUpdateDiagnostics = ({ userId, userEmail }: RoleUpdateDiagnosticsProps
       ]);
 
       const profile = profileResult.data;
-      const role = roleResult.data;
+      const roleRows = (roleResult.data || []) as Array<{ role: string }>;
       const lawFirm = lawFirmResult.data;
 
       if (!profile) {
@@ -100,7 +99,8 @@ const RoleUpdateDiagnostics = ({ userId, userEmail }: RoleUpdateDiagnosticsProps
 
       // Check for role inconsistencies
       const profileRole = null; // Profiles table doesn't store role directly
-      const databaseRole = role?.role || null;
+      // Primary role excludes the additive 'tester' role
+      const databaseRole = roleRows.find(r => r.role !== 'tester')?.role || null;
       
       // Note: We don't check profile vs database role mismatch since profiles table doesn't store roles
       // Roles are stored in the user_roles table only
