@@ -76,7 +76,7 @@ const AdminWikiPage = () => {
 
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [filters, setFilters] = useState<WikiFilters>(() => parseFiltersFromParams(new URLSearchParams(window.location.search)));
-  const { getAccess } = useWikiAccess();
+  const { getAccess, canView } = useWikiAccess();
   const activeFilterCount = activeFilterGroupCount(filters);
 
 
