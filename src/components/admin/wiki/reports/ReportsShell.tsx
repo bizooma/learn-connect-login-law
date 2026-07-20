@@ -5,6 +5,7 @@ import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
 import WikiSidebar from "@/components/admin/wiki/WikiSidebar";
 import WikiFooter from "@/components/admin/wiki/WikiFooter";
 import { useWikiCategories } from "@/hooks/useWikiCategories";
+import { withPreviewAsStaffParam } from "@/hooks/usePreviewAsStaff";
 
 interface ReportsShellProps {
   title: string;
@@ -34,7 +35,7 @@ const ReportsShell = ({ title, subtitle, actions, children }: ReportsShellProps)
             }))}
             activeCategoryId={null}
             onCategorySelect={(id) =>
-              navigate("/admin/wiki/content", { state: { activeCategoryId: id } })
+              navigate(withPreviewAsStaffParam("/admin/wiki/content"), { state: { activeCategoryId: id } })
             }
           />
 

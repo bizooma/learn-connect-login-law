@@ -82,7 +82,7 @@ const WikiFlowchartEditorInner = () => {
       if (!active) return;
       if (error || !data) {
         toast.error("Failed to load flowchart");
-        navigate("/admin/wiki/content");
+        navigate(withPreviewAsStaffParam("/admin/wiki/content"));
         return;
       }
       const row = data as ArticleRow;

@@ -27,7 +27,7 @@ import OwnerPicker from "./OwnerPicker";
 import ShareGroupsPicker from "./ShareGroupsPicker";
 import { useWikiAccess } from "@/hooks/useWikiAccess";
 import { useOrgContentSettings } from "@/hooks/useOrgContentSettings";
-import { usePreviewAsStaff } from "@/hooks/usePreviewAsStaff";
+import { usePreviewAsStaff, withPreviewAsStaffParam } from "@/hooks/usePreviewAsStaff";
 
 
 
@@ -154,7 +154,7 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
             type="button"
             onClick={(e) => {
               e.stopPropagation();
-              navigate("/admin/wiki/content", { state: { activeCategoryId: category.id } });
+              navigate(withPreviewAsStaffParam("/admin/wiki/content"), { state: { activeCategoryId: category.id } });
             }}
             className="font-medium text-foreground truncate text-left hover:text-primary hover:underline"
           >
@@ -197,7 +197,7 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
               onClick={(e) => {
                 e.stopPropagation();
                 enablePreview();
-                navigate("/admin/wiki/content?staffPreview=1", { state: { activeCategoryId: category.id } });
+                navigate(withPreviewAsStaffParam("/admin/wiki/content?staffPreview=1"), { state: { activeCategoryId: category.id } });
               }}
               className="hidden sm:inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md text-black hover:opacity-90 transition-opacity"
               style={{ backgroundColor: "#FFDA00" }}
