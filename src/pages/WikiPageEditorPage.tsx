@@ -126,7 +126,7 @@ const WikiPageEditorPage = () => {
   }
 
   const confirmNavigation = () => {
-    if (!dirty) return true;
+    if (!dirty || previewAsStaff) return true;
     return window.confirm("You have unsaved changes. Leave without saving?");
   };
 
