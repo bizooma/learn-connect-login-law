@@ -36,13 +36,28 @@ interface WikiArticleListProps {
 }
 
 const WikiArticleList = ({ categoryId, onEditArticle, searchQuery, selectedTags }: WikiArticleListProps) => {
-  const { articles, isLoading, createArticle, deleteArticle, updateArticle } = useWikiArticles(categoryId);
+  const { articles, isLoading, createArticle, deleteArticle, updateArticle, reorderArticles } = useWikiArticles(categoryId);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
-  // Show all articles when expanded; the parent category already matched the search.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
   const filtered = articles;
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = filtered.findIndex((a) => a.id === active.id);
+    const newIndex = filtered.findIndex((a) => a.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    const next = arrayMove(filtered, oldIndex, newIndex);
+    reorderArticles.mutate(next.map((a) => a.id));
+  };
+
 
   const handleCreate = (contentType: WikiContentType) => {
     const title = `New ${contentType.charAt(0).toUpperCase() + contentType.slice(1)}`;
