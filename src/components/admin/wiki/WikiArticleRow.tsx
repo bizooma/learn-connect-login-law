@@ -116,7 +116,7 @@ const WikiArticleRow = ({ article, onEdit, onDelete, onTogglePublish, selectedTa
           )}
         </div>
       </div>
-      {isDocument && <WikiPagesList articleId={article.id} />}
+      {hasPages && <WikiPagesList articleId={article.id} />}
     </div>
   );
 };
