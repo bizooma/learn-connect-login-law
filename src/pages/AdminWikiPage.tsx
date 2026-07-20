@@ -3,7 +3,16 @@ import { useLocation, useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { Plus, FileText, ArrowLeft, LayoutList, Users } from "lucide-react";
+import { Plus, FileText, ArrowLeft, LayoutList, Users, SlidersHorizontal } from "lucide-react";
+import WikiFiltersSheet, {
+  emptyFilters,
+  activeFilterGroupCount,
+  matchesFilters,
+  parseFiltersFromParams,
+  writeFiltersToParams,
+  type WikiFilters,
+} from "@/components/admin/wiki/WikiFiltersSheet";
+import { useWikiAccess } from "@/hooks/useWikiAccess";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useWikiCategories, type WikiSubjectCategory, type WikiCategory } from "@/hooks/useWikiCategories";
@@ -64,6 +73,13 @@ const AdminWikiPage = () => {
 
   // Open a specific article when navigated with ?article=<id>
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filters, setFilters] = useState<WikiFilters>(() => parseFiltersFromParams(new URLSearchParams(window.location.search)));
+  const { getAccess } = useWikiAccess();
+  const activeFilterCount = activeFilterGroupCount(filters);
+
+
   const articleParam = searchParams.get("article");
   useEffect(() => {
     if (!articleParam) return;
@@ -124,8 +140,14 @@ const AdminWikiPage = () => {
     ? searchFiltered.filter((c) => categoriesWithMatchingTags.has(c.id))
     : searchFiltered;
 
+  const advancedFiltered = activeFilterCount > 0
+    ? tagFiltered.filter((c) => matchesFilters(c, filters, getAccess))
+    : tagFiltered;
+
+
+
   const sortedCategories = useMemo(() => {
-    const arr = [...tagFiltered];
+    const arr = [...advancedFiltered];
     switch (sortMode) {
       case "az":
         return arr.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: "base" }));
@@ -141,9 +163,18 @@ const AdminWikiPage = () => {
       default:
         return arr.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
     }
-  }, [tagFiltered, sortMode]);
+  }, [advancedFiltered, sortMode]);
+
 
   const filteredCategories = sortedCategories;
+
+  const handleApplyFilters = (next: WikiFilters) => {
+    setFilters(next);
+    const params = new URLSearchParams(window.location.search);
+    writeFiltersToParams(params, next);
+    setSearchParams(params, { replace: true });
+  };
+
 
   const handleEditCategory = (category: any) => {
     setEditingCategory(category);
@@ -322,24 +353,46 @@ const AdminWikiPage = () => {
                         </button>
                       </div>
 
-                      {viewMode === "training" && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">Sort:</span>
-                          <Select value={sortMode} onValueChange={(v) => setSortMode(v as SortMode)}>
-                            <SelectTrigger className="w-[180px] h-8 text-sm">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="training">Training order</SelectItem>
-                              <SelectItem value="az">A–Z</SelectItem>
-                              <SelectItem value="updated">Recently updated</SelectItem>
-                              <SelectItem value="owner">Owner</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setFiltersOpen(true)}
+                          className="relative h-8 gap-2"
+                        >
+                          <SlidersHorizontal className="h-4 w-4" />
+                          Filter
+                          {activeFilterCount > 0 && (
+                            <span
+                              className="ml-1 inline-flex items-center justify-center text-[10px] font-bold rounded-full h-4 min-w-[16px] px-1 text-black"
+                              style={{ backgroundColor: "#FFDA00" }}
+                            >
+                              {activeFilterCount}
+                            </span>
+                          )}
+                        </Button>
+
+                        {viewMode === "training" && (
+                          <>
+                            <span className="text-xs text-muted-foreground ml-2">Sort:</span>
+                            <Select value={sortMode} onValueChange={(v) => setSortMode(v as SortMode)}>
+                              <SelectTrigger className="w-[180px] h-8 text-sm">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="training">Training order</SelectItem>
+                                <SelectItem value="az">A–Z</SelectItem>
+                                <SelectItem value="updated">Recently updated</SelectItem>
+                                <SelectItem value="owner">Owner</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </>
+                        )}
+                      </div>
                     </div>
                   )}
+
 
                   {!activeCategoryId && (
                     <WikiTagFilterBar
@@ -357,15 +410,28 @@ const AdminWikiPage = () => {
                         <FileText className="h-10 w-10 text-muted-foreground" />
                       </div>
                       <h3 className="text-xl font-semibold text-foreground mb-2">
-                        No matching content
+                        {activeFilterCount > 0 ? "No subjects match these filters" : "No matching content"}
                       </h3>
                       <p className="text-muted-foreground mb-6 max-w-md">
-                        Try adjusting your search, tag filter, or create a new subject.
+                        {activeFilterCount > 0
+                          ? "Try removing a filter or clearing them to see the full list."
+                          : "Try adjusting your search, tag filter, or create a new subject."}
                       </p>
-                      <Button onClick={handleCreateCategory} className="gap-2">
-                        <Plus className="h-4 w-4" /> Create First Category
-                      </Button>
+                      {activeFilterCount > 0 ? (
+                        <Button
+                          variant="link"
+                          onClick={() => handleApplyFilters(emptyFilters())}
+                          style={{ color: "#213C82" }}
+                        >
+                          Clear filters
+                        </Button>
+                      ) : (
+                        <Button onClick={handleCreateCategory} className="gap-2">
+                          <Plus className="h-4 w-4" /> Create First Category
+                        </Button>
+                      )}
                     </div>
+
                   ) : viewMode === "team" && !activeCategoryId ? (
                     <WikiCategoryListByTeam
                       categories={filteredCategories}
@@ -413,6 +479,17 @@ const AdminWikiPage = () => {
         contentType={createContentType}
         categories={categories.map((c) => ({ id: c.id, title: c.title, category: c.category }))}
         defaultCategoryId={activeCategoryId}
+      />
+
+
+      <WikiFiltersSheet
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        categories={categories}
+        isLoading={isLoading}
+        initial={filters}
+        onApply={handleApplyFilters}
+        getAccess={getAccess}
       />
 
     </div>
