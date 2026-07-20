@@ -402,15 +402,28 @@ const AdminWikiPage = () => {
                         <FileText className="h-10 w-10 text-muted-foreground" />
                       </div>
                       <h3 className="text-xl font-semibold text-foreground mb-2">
-                        No matching content
+                        {activeFilterCount > 0 ? "No subjects match these filters" : "No matching content"}
                       </h3>
                       <p className="text-muted-foreground mb-6 max-w-md">
-                        Try adjusting your search, tag filter, or create a new subject.
+                        {activeFilterCount > 0
+                          ? "Try removing a filter or clearing them to see the full list."
+                          : "Try adjusting your search, tag filter, or create a new subject."}
                       </p>
-                      <Button onClick={handleCreateCategory} className="gap-2">
-                        <Plus className="h-4 w-4" /> Create First Category
-                      </Button>
+                      {activeFilterCount > 0 ? (
+                        <Button
+                          variant="link"
+                          onClick={() => handleApplyFilters(emptyFilters())}
+                          style={{ color: "#213C82" }}
+                        >
+                          Clear filters
+                        </Button>
+                      ) : (
+                        <Button onClick={handleCreateCategory} className="gap-2">
+                          <Plus className="h-4 w-4" /> Create First Category
+                        </Button>
+                      )}
                     </div>
+
                   ) : viewMode === "team" && !activeCategoryId ? (
                     <WikiCategoryListByTeam
                       categories={filteredCategories}
