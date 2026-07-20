@@ -4,6 +4,7 @@ import { FileText, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useWikiPages } from "@/hooks/useWikiPages";
+import { usePreviewAsStaff } from "@/hooks/usePreviewAsStaff";
 
 interface WikiPagesListProps {
   articleId: string;
@@ -69,6 +70,7 @@ const WikiPagesList = ({ articleId }: WikiPagesListProps) => {
   const { pages, deletePage } = useWikiPages(articleId);
   const [, force] = useState(0);
   const navigate = useNavigate();
+  const { enabled: previewAsStaff } = usePreviewAsStaff();
 
   const openEditor = (id: string) => navigate(`/admin/wiki/pages/${id}`);
 
@@ -85,33 +87,35 @@ const WikiPagesList = ({ articleId }: WikiPagesListProps) => {
             <FileText className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm text-foreground">{page.title}</span>
           </div>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 opacity-0 group-hover:opacity-100"
-              onClick={(e) => {
-                e.stopPropagation();
-                openEditor(page.id);
-              }}
-            >
-              <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
-            </Button>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-7 w-7 opacity-0 group-hover:opacity-100"
-              onClick={(e) => {
-                e.stopPropagation();
-                deletePage.mutate(page.id);
-              }}
-            >
-              <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
-            </Button>
-          </div>
+          {!previewAsStaff && (
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 opacity-0 group-hover:opacity-100"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  openEditor(page.id);
+                }}
+              >
+                <Pencil className="h-3.5 w-3.5 text-muted-foreground" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 opacity-0 group-hover:opacity-100"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  deletePage.mutate(page.id);
+                }}
+              >
+                <Trash2 className="h-3.5 w-3.5 text-muted-foreground" />
+              </Button>
+            </div>
+          )}
         </div>
       ))}
-      <PageInput articleId={articleId} onCreated={() => force((n) => n + 1)} />
+      {!previewAsStaff && <PageInput articleId={articleId} onCreated={() => force((n) => n + 1)} />}
     </div>
   );
 };
