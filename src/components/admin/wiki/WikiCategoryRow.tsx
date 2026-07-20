@@ -27,6 +27,7 @@ import OwnerPicker from "./OwnerPicker";
 import ShareGroupsPicker from "./ShareGroupsPicker";
 import { useWikiAccess } from "@/hooks/useWikiAccess";
 import { useOrgContentSettings } from "@/hooks/useOrgContentSettings";
+import { usePreviewAsStaff } from "@/hooks/usePreviewAsStaff";
 
 
 
@@ -53,6 +54,7 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
   const { gridTemplate } = useWikiColumns();
   const { canEdit, canDelete } = useWikiAccess();
   const { settings: orgSettings } = useOrgContentSettings();
+  const { enabled: previewAsStaff, enable: enablePreview } = usePreviewAsStaff();
   const editable = canEdit(category);
   const deletable = canDelete(category);
 
