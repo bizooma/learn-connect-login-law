@@ -114,6 +114,7 @@ const ICON_SET = [
 interface RichTextEditorProps {
   content: string;
   onChange: (content: string) => void;
+  readOnly?: boolean;
 }
 
 const ToolbarButton = ({
