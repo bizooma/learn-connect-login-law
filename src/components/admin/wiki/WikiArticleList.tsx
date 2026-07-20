@@ -146,27 +146,29 @@ const WikiArticleList = ({ categoryId, onEditArticle, searchQuery, selectedTags 
               <span className="text-sm text-foreground">Knowledge Check</span>
             </div>
           </div>
-          <div className="px-4 py-2 pl-12">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" disabled={uploading}>
-                  <Plus className="h-4 w-4 mr-1" /> {uploading ? "Uploading..." : "Add new..."}
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start">
-                <DropdownMenuItem onClick={() => handleCreate("document")}>
-                  <Shield className="h-4 w-4 mr-2" /> New Document
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => handleCreate("procedure")}>
-                  <ScrollText className="h-4 w-4 mr-2" /> New Procedure
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleUploadClick}>
-                  <Upload className="h-4 w-4 mr-2" /> Upload File
-                </DropdownMenuItem>
-              </DropdownMenuContent>
+          {!previewAsStaff && (
+            <div className="px-4 py-2 pl-12">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" disabled={uploading}>
+                    <Plus className="h-4 w-4 mr-1" /> {uploading ? "Uploading..." : "Add new..."}
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start">
+                  <DropdownMenuItem onClick={() => handleCreate("document")}>
+                    <Shield className="h-4 w-4 mr-2" /> New Document
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => handleCreate("procedure")}>
+                    <ScrollText className="h-4 w-4 mr-2" /> New Procedure
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={handleUploadClick}>
+                    <Upload className="h-4 w-4 mr-2" /> Upload File
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
 
-            </DropdownMenu>
-          </div>
+              </DropdownMenu>
+            </div>
+          )}
         </>
       )}
     </div>
