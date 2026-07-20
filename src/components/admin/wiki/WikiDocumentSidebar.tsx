@@ -16,6 +16,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { WikiPage } from "@/hooks/useWikiPages";
 import { WikiArticle, WikiContentType, contentTypeLabels } from "@/hooks/useWikiArticles";
+import AskThisSopButton from "./AskThisSopButton";
 
 interface WikiDocumentSidebarProps {
   categoryId?: string | null;
