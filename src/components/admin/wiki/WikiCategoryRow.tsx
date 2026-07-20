@@ -274,6 +274,7 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
               )}
             </DropdownMenuContent>
           </DropdownMenu>
+          )}
         </div>
 
       </div>
