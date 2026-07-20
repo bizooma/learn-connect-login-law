@@ -314,7 +314,7 @@ const AdminWikiPage = () => {
                           }`}
                           style={viewMode === "team" ? { backgroundColor: "#FFDA00" } : undefined}
                         >
-                          <Users className="h-4 w-4" /> By Team
+                          <Users className="h-4 w-4" /> Filter by Department
                         </button>
                       </div>
 
