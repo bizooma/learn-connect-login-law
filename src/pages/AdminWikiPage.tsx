@@ -140,6 +140,12 @@ const AdminWikiPage = () => {
     ? searchFiltered.filter((c) => categoriesWithMatchingTags.has(c.id))
     : searchFiltered;
 
+  const advancedFiltered = activeFilterCount > 0
+    ? tagFiltered.filter((c) => matchesFilters(c, filters, getAccess))
+    : tagFiltered;
+
+
+
   const sortedCategories = useMemo(() => {
     const arr = [...tagFiltered];
     switch (sortMode) {
