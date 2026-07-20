@@ -74,9 +74,11 @@ const WikiPagesList = ({ articleId }: WikiPagesListProps) => {
 
   const openEditor = (id: string) => navigate(withPreviewAsStaffParam(`/admin/wiki/pages/${id}`));
 
+  const visiblePages = previewAsStaff ? pages.filter((p) => p.is_published) : pages;
+
   return (
     <div onClick={(e) => e.stopPropagation()}>
-      {pages.map((page) => (
+      {visiblePages.map((page) => (
         <div
           key={page.id}
           className="flex items-center justify-between px-4 py-2 pl-16 bg-background border-b border-border hover:bg-muted/30 group cursor-pointer"
