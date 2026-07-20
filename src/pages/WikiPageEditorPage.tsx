@@ -10,7 +10,7 @@ import RichTextEditor from "@/components/admin/wiki/RichTextEditor";
 import AiWritePageDialog from "@/components/admin/wiki/AiWritePageDialog";
 import WikiDocumentSidebar from "@/components/admin/wiki/WikiDocumentSidebar";
 import PreviewAsStaffBanner from "@/components/admin/wiki/PreviewAsStaffBanner";
-import { usePreviewAsStaff } from "@/hooks/usePreviewAsStaff";
+import { isPreviewAsStaffActive, usePreviewAsStaff } from "@/hooks/usePreviewAsStaff";
 import { WikiPage } from "@/hooks/useWikiPages";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useQuery } from "@tanstack/react-query";
@@ -117,6 +117,10 @@ const WikiPageEditorPage = () => {
     toast.success("Page saved");
   };
 
+  useEffect(() => {
+    if (previewAsStaff && dirty) setDirty(false);
+  }, [previewAsStaff, dirty]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -126,7 +130,7 @@ const WikiPageEditorPage = () => {
   }
 
   const confirmNavigation = () => {
-    if (!dirty || previewAsStaff) return true;
+    if (!dirty || previewAsStaff || isPreviewAsStaffActive()) return true;
     return window.confirm("You have unsaved changes. Leave without saving?");
   };
 
@@ -205,6 +209,7 @@ const WikiPageEditorPage = () => {
               key={page?.id || pageId}
               content={content}
               onChange={(html) => {
+                if (readOnly) return;
                 setContent(html);
                 setDirty(true);
               }}

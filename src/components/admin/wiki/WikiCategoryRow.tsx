@@ -197,7 +197,7 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
               onClick={(e) => {
                 e.stopPropagation();
                 enablePreview();
-                navigate("/admin/wiki/content", { state: { activeCategoryId: category.id } });
+                navigate("/admin/wiki/content?staffPreview=1", { state: { activeCategoryId: category.id } });
               }}
               className="hidden sm:inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-md text-black hover:opacity-90 transition-opacity"
               style={{ backgroundColor: "#FFDA00" }}

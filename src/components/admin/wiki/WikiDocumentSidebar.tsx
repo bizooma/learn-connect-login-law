@@ -16,6 +16,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { WikiPage } from "@/hooks/useWikiPages";
 import { WikiArticle, WikiContentType, contentTypeLabels } from "@/hooks/useWikiArticles";
+import { isPreviewAsStaffActive, withPreviewAsStaffParam } from "@/hooks/usePreviewAsStaff";
 import AskThisSopButton from "./AskThisSopButton";
 
 interface WikiDocumentSidebarProps {
@@ -126,13 +127,13 @@ const WikiDocumentSidebar = ({
   }, [data, activeArticleId]);
 
   const requestNavigation = (to: string) => {
-    if (onBeforeNavigate && !onBeforeNavigate()) return;
-    navigate(to, data?.category.id ? { state: { activeCategoryId: data.category.id } } : undefined);
+    if (!isPreviewAsStaffActive() && onBeforeNavigate && !onBeforeNavigate()) return;
+    navigate(withPreviewAsStaffParam(to), data?.category.id ? { state: { activeCategoryId: data.category.id } } : undefined);
   };
 
   const openAllContent = () => {
-    if (onBeforeNavigate && !onBeforeNavigate()) return;
-    navigate("/admin/wiki/content");
+    if (!isPreviewAsStaffActive() && onBeforeNavigate && !onBeforeNavigate()) return;
+    navigate(withPreviewAsStaffParam("/admin/wiki/content"));
   };
 
   const openArticle = (article: WikiArticle) => {

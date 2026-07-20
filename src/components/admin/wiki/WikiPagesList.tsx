@@ -4,7 +4,7 @@ import { FileText, Pencil, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useWikiPages } from "@/hooks/useWikiPages";
-import { usePreviewAsStaff } from "@/hooks/usePreviewAsStaff";
+import { usePreviewAsStaff, withPreviewAsStaffParam } from "@/hooks/usePreviewAsStaff";
 
 interface WikiPagesListProps {
   articleId: string;
@@ -72,7 +72,7 @@ const WikiPagesList = ({ articleId }: WikiPagesListProps) => {
   const navigate = useNavigate();
   const { enabled: previewAsStaff } = usePreviewAsStaff();
 
-  const openEditor = (id: string) => navigate(`/admin/wiki/pages/${id}`);
+  const openEditor = (id: string) => navigate(withPreviewAsStaffParam(`/admin/wiki/pages/${id}`));
 
   return (
     <div onClick={(e) => e.stopPropagation()}>
