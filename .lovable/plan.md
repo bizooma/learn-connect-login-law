@@ -1,50 +1,34 @@
-# Fix "Preview as Staff" leakage and related bugs
+## Goal
 
-Four targeted fixes so preview mode actually shows what a non-admin sees, stops polluting completion data, stops eating unsaved edits, and stops feeling "stuck on."
+Mirror the RLS state that's already live in Supabase (applied out-of-band) into a Lovable migration file. Purely defensive — running it against the current DB is a no-op because everything is created with `CREATE OR REPLACE` / `DROP POLICY IF EXISTS` first. This prevents a future deploy from regenerating older policies and re-opening the cross-tenant leak.
 
-## 1. Filter lists to what a staff member could actually see
+## What the migration will (re)declare
 
-Reuse `canView` from `src/hooks/useWikiAccess.ts` (it already forces `isAdmin=false` in preview).
+**Helper function**
+- `public.is_nfu_staff(_user_id uuid) returns boolean` — `STABLE SECURITY DEFINER`, `search_path = public`. Returns true iff the user is a member of the NFU "Everyone" group (`008118df-8da5-4b7d-8fdb-998d3e86f531`).
 
-- `src/pages/AdminWikiPage.tsx`: when `previewAsStaff` is true, filter the category array passed to both the flat list and the By-Team grouping through `canView(category)` before any other sort/filter.
-- `src/components/admin/wiki/WikiCategoryList.tsx` and `WikiCategoryListByTeam.tsx`: no logic change needed if filtering happens upstream, but confirm neither re-injects hidden categories.
-- `src/components/admin/wiki/WikiArticleList.tsx`: when preview is on, hide articles where `is_published === false`.
-- `src/components/admin/wiki/WikiPagesList.tsx` and the sidebar (`WikiDocumentSidebar.tsx`): when preview is on, hide unpublished pages and hide articles whose parent category is not viewable.
-- Admin-only affordances ("Add new…", upload, Knowledge Check admin row) are already gated by `!previewAsStaff` — leave as-is.
+**Three tables** — `wiki_categories`, `wiki_articles`, `wiki_pages`. For each:
 
-No behavior change when preview is off.
+1. Drop the legacy blanket `is_published = true` read policy if present, along with the current NFU-staff read policy and admin-only gate (so the migration is idempotent).
+2. Recreate the NFU-staff-gated permissive SELECT policy: `is_published = true AND public.is_nfu_staff(auth.uid())`. This is the dormant staff-rollout policy — kept in place so removing the gate later restores staff access in one step.
+3. Recreate the RESTRICTIVE admin-only SELECT gate: `public.has_role(auth.uid(), 'admin')`. Because it's RESTRICTIVE, it AND-s with every other SELECT policy and effectively makes the wiki admin-only today.
 
-## 2. Don't record completions for admins / preview
+All existing edit/insert/update/delete policies (`can_edit_wiki_category`, `can_view_wiki_category`, etc.) and the "Admins can manage…" policies are left untouched — the migration will not reference them.
 
-In `src/pages/WikiPageEditorPage.tsx`, wrap the `mark_wiki_page_complete` RPC call so it only fires when `!previewAsStaff && !isAdmin && !isOwner`. Everything else in that effect stays the same.
+## Explicit non-goals (from the answered question)
 
-## 3. Preview must not discard unsaved edits
+- No owner/editor carve-out for non-admin content builders (Dulce, Lauren, etc.). Behavior stays as-is: admin-only reads.
+- No changes to the 9 "always-true" policies, storage buckets, Postgres version, or leaked-password protection.
+- No app/UI code changes.
 
-In `src/pages/WikiPageEditorPage.tsx`:
+## Files
 
-- Remove the effect that clears `dirty` when `previewAsStaff` flips true.
-- Subscribe to the preview state via a wrapper: when preview is about to turn on locally and `dirty` is true, `window.confirm("You have unsaved changes — save before previewing? OK to continue and discard, Cancel to keep editing.")` and only enable preview if the user confirms. If they cancel, revert the toggle.
-- For cross-tab flips (storage event): if `dirty` is true when the incoming event would enable preview, keep this tab editable (ignore the flip locally) and surface a toast: "Preview enabled in another tab — this tab kept editable to protect unsaved changes." Simplest, least destructive; does not try to un-toggle the other tab.
-- Keep read-only rendering when preview is genuinely on with no unsaved edits. Do not wipe `content`.
+- New file (auto-created by the migration tool): a single migration under `supabase/migrations/` containing the SQL above with a clear header comment noting it documents state applied out-of-band on 2026-07-20.
 
-## 4. sessionStorage becomes the single source of truth
+## Verification
 
-In `src/hooks/usePreviewAsStaff.ts`:
+After the migration runs against the current DB, re-check `pg_policies` for the three tables — the set of policies should be unchanged (same names, same quals, same permissive/restrictive flags). No app behavior change expected.
 
-- `read()` returns only `sessionStorage.getItem(KEY) === "1"`.
-- On module init (or in a small `usePreviewAsStaffBootstrap` effect mounted once high in the tree — e.g., `App.tsx`), if the URL has `?staffPreview=1`, write the sessionStorage flag, strip the param from the URL with `history.replaceState`, then dispatch the change event. One-time consumption.
-- `withPreviewAsStaffParam` stays so opening a link in a new tab inherits preview via the one-time URL signal; it just no longer drives `read()` after bootstrap.
-- `disable()` already clears both storage and URL — unchanged.
+## Rollout-to-staff note (not part of this migration)
 
-## Acceptance
-
-- Preview on: admin sees exactly the subjects, articles, and pages a staff member in the same groups would see; no drafts, no unshared, no non-discoverable content.
-- Opening/previewing a page as an admin or owner inserts no `wiki_page_completions` row. Staff completions unchanged.
-- Editing a page then toggling preview prompts before losing work; cross-tab preview flip never wipes local edits.
-- "Exit preview" turns preview off and it stays off across navigation.
-
-## Technical notes
-
-- All filtering is client-side; RLS already enforces the real boundary for actual staff accounts.
-- No schema changes.
-- Files touched: `src/pages/AdminWikiPage.tsx`, `src/components/admin/wiki/WikiArticleList.tsx`, `src/components/admin/wiki/WikiPagesList.tsx`, `src/components/admin/wiki/WikiDocumentSidebar.tsx`, `src/pages/WikiPageEditorPage.tsx`, `src/hooks/usePreviewAsStaff.ts`, and a small bootstrap hook mount in `src/App.tsx`.
+When you're ready to open the wiki to staff, drop the three `*_admin_only_gate` policies. The NFU-staff read policies recreated here will immediately take effect and external firms remain blocked.
