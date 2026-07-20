@@ -93,6 +93,7 @@ const WikiArticleRow = ({ article, onEdit, onDelete, onTogglePublish, selectedTa
               </span>
             );
           })}
+          {!previewAsStaff && (
           <DropdownMenu>
             <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
               <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -112,6 +113,7 @@ const WikiArticleRow = ({ article, onEdit, onDelete, onTogglePublish, selectedTa
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          )}
         </div>
       </div>
       {isDocument && <WikiPagesList articleId={article.id} />}
