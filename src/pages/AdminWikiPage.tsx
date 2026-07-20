@@ -182,6 +182,7 @@ const AdminWikiPage = () => {
       <div className="relative z-50">
         <AdminDashboardHeader triggerDemo={() => {}} />
       </div>
+      <PreviewAsStaffBanner />
 
       <SidebarProvider>
         <div className="flex flex-1 w-full" style={{ height: 'calc(100vh - 88px)' }}>
