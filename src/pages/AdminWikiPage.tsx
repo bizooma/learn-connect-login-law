@@ -481,6 +481,17 @@ const AdminWikiPage = () => {
         defaultCategoryId={activeCategoryId}
       />
 
+
+      <WikiFiltersSheet
+        open={filtersOpen}
+        onOpenChange={setFiltersOpen}
+        categories={categories}
+        isLoading={isLoading}
+        initial={filters}
+        onApply={handleApplyFilters}
+        getAccess={getAccess}
+      />
+
     </div>
   );
 };
