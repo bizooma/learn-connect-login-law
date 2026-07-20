@@ -10,7 +10,7 @@ import RichTextEditor from "@/components/admin/wiki/RichTextEditor";
 import AiWritePageDialog from "@/components/admin/wiki/AiWritePageDialog";
 import WikiDocumentSidebar from "@/components/admin/wiki/WikiDocumentSidebar";
 import PreviewAsStaffBanner from "@/components/admin/wiki/PreviewAsStaffBanner";
-import { isPreviewAsStaffActive, usePreviewAsStaff, withPreviewAsStaffParam } from "@/hooks/usePreviewAsStaff";
+import { isPreviewAsStaffActive, registerPreviewEnableGuard, usePreviewAsStaff, withPreviewAsStaffParam } from "@/hooks/usePreviewAsStaff";
 import { WikiPage } from "@/hooks/useWikiPages";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useQuery } from "@tanstack/react-query";
