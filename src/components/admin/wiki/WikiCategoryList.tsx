@@ -1,9 +1,24 @@
-import { WikiCategory } from "@/hooks/useWikiCategories";
+import { useWikiCategories, WikiCategory } from "@/hooks/useWikiCategories";
 import { WikiArticle } from "@/hooks/useWikiArticles";
 import WikiCategoryRow from "./WikiCategoryRow";
 import { WikiColumnsProvider, useWikiColumns } from "./WikiColumnsContext";
 import { RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
 interface WikiCategoryListProps {
   categories: WikiCategory[];

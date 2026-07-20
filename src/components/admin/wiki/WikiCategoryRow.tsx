@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ChevronRight, ChevronDown, MoreVertical, Pencil, Trash2, Eye, EyeOff, Copy, Link2, Printer, Archive, Tag, Type, BookOpen } from "lucide-react";
+import { ChevronRight, ChevronDown, MoreVertical, Pencil, Trash2, Eye, EyeOff, Copy, Link2, Printer, Archive, Tag, Type, BookOpen, GripVertical } from "lucide-react";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -113,14 +115,31 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
   };
 
 
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: category.id });
+  const dragStyle = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
   return (
-    <div className="border-b border-border">
+    <div ref={setNodeRef} style={dragStyle} className="border-b border-border">
       <div
         className="grid items-center gap-4 px-4 py-3 hover:bg-muted/30 cursor-pointer transition-colors"
         style={{ gridTemplateColumns: gridTemplate }}
         onClick={() => setExpanded(!expanded)}
       >
         <div className="flex items-center gap-3 min-w-0">
+          <button
+            type="button"
+            className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none shrink-0"
+            onClick={(e) => e.stopPropagation()}
+            aria-label="Drag to reorder subject"
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
           {expanded ? (
             <ChevronDown className="h-4 w-4 text-muted-foreground shrink-0" />
           ) : (
