@@ -57,6 +57,7 @@ const WikiDocumentSidebar = ({
   onBeforeNavigate,
 }: WikiDocumentSidebarProps) => {
   const navigate = useNavigate();
+  const { enabled: previewAsStaff } = usePreviewAsStaff();
 
   const { data, isLoading } = useQuery<WikiDocumentTreeData>({
     queryKey: ["wiki-document-sidebar", categoryId, activeArticleId],
