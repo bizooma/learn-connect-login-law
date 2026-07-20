@@ -12,6 +12,21 @@ import { useWikiArticles, WikiArticle, WikiContentType } from "@/hooks/useWikiAr
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import WikiArticleRow from "./WikiArticleRow";
+import {
+  DndContext,
+  closestCenter,
+  PointerSensor,
+  KeyboardSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 
 interface WikiArticleListProps {
   categoryId: string;
@@ -21,13 +36,28 @@ interface WikiArticleListProps {
 }
 
 const WikiArticleList = ({ categoryId, onEditArticle, searchQuery, selectedTags }: WikiArticleListProps) => {
-  const { articles, isLoading, createArticle, deleteArticle, updateArticle } = useWikiArticles(categoryId);
+  const { articles, isLoading, createArticle, deleteArticle, updateArticle, reorderArticles } = useWikiArticles(categoryId);
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const navigate = useNavigate();
 
-  // Show all articles when expanded; the parent category already matched the search.
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
+  );
+
   const filtered = articles;
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = filtered.findIndex((a) => a.id === active.id);
+    const newIndex = filtered.findIndex((a) => a.id === over.id);
+    if (oldIndex < 0 || newIndex < 0) return;
+    const next = arrayMove(filtered, oldIndex, newIndex);
+    reorderArticles.mutate(next.map((a) => a.id));
+  };
+
 
   const handleCreate = (contentType: WikiContentType) => {
     const title = `New ${contentType.charAt(0).toUpperCase() + contentType.slice(1)}`;
@@ -87,16 +117,20 @@ const WikiArticleList = ({ categoryId, onEditArticle, searchQuery, selectedTags 
         <div className="px-4 py-3 pl-12 text-sm text-muted-foreground">Loading...</div>
       ) : (
         <>
-          {filtered.map((article) => (
-            <WikiArticleRow
-              key={article.id}
-              article={article}
-              onEdit={onEditArticle}
-              onDelete={(id) => deleteArticle.mutate(id)}
-              onTogglePublish={(a) => updateArticle.mutate({ id: a.id, is_published: !a.is_published })}
-              selectedTags={selectedTags}
-            />
-          ))}
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={filtered.map((a) => a.id)} strategy={verticalListSortingStrategy}>
+              {filtered.map((article) => (
+                <WikiArticleRow
+                  key={article.id}
+                  article={article}
+                  onEdit={onEditArticle}
+                  onDelete={(id) => deleteArticle.mutate(id)}
+                  onTogglePublish={(a) => updateArticle.mutate({ id: a.id, is_published: !a.is_published })}
+                  selectedTags={selectedTags}
+                />
+              ))}
+            </SortableContext>
+          </DndContext>
           <div
             className="flex items-center justify-between px-4 py-2 pl-12 bg-background border-b border-border hover:bg-muted/30 group cursor-pointer"
             onClick={(e) => {

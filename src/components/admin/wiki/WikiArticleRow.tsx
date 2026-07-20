@@ -1,4 +1,6 @@
-import { FileText, MoreVertical, Eye, EyeOff, Pencil, Trash2, Shield, ScrollText, Upload, GitBranch, Video, FileUp, ListChecks, ClipboardCheck } from "lucide-react";
+import { FileText, MoreVertical, Eye, EyeOff, Pencil, Trash2, Shield, ScrollText, Upload, GitBranch, Video, FileUp, ListChecks, ClipboardCheck, GripVertical } from "lucide-react";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -35,13 +37,30 @@ const WikiArticleRow = ({ article, onEdit, onDelete, onTogglePublish, selectedTa
   const isDocument = article.content_type === "document";
   const dimmed = !!(selectedTags && selectedTags.length > 0 && !(article.tags || []).some((t) => selectedTags.includes(t)));
 
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: article.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
   return (
-    <div>
+    <div ref={setNodeRef} style={style}>
       <div
-        className={`flex items-center justify-between px-4 py-3 pl-12 bg-muted/30 border-b border-border hover:bg-muted/50 cursor-pointer transition-colors ${dimmed ? "opacity-40" : ""}`}
+        className={`flex items-center justify-between px-4 py-3 pl-4 bg-muted/30 border-b border-border hover:bg-muted/50 cursor-pointer transition-colors ${dimmed ? "opacity-40" : ""}`}
         onClick={() => onEdit(article)}
       >
         <div className="flex items-center gap-3">
+          <button
+            type="button"
+            className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none"
+            onClick={(e) => e.stopPropagation()}
+            aria-label="Drag to reorder"
+            {...attributes}
+            {...listeners}
+          >
+            <GripVertical className="h-4 w-4" />
+          </button>
           <Icon className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium text-foreground">{article.title}</span>
           <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
