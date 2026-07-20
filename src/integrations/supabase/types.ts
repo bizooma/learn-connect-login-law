@@ -3160,6 +3160,7 @@ export type Database = {
       is_admin_user: { Args: never; Returns: boolean }
       is_direct_admin: { Args: never; Returns: boolean }
       is_law_firm_owner: { Args: never; Returns: boolean }
+      is_nfu_staff: { Args: { _user_id: string }; Returns: boolean }
       is_owner_user: { Args: never; Returns: boolean }
       log_user_activity: {
         Args: {
