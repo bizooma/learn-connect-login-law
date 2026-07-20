@@ -239,6 +239,16 @@ const WikiDocumentSidebar = ({
           </button>
         )}
       </nav>
+
+      {activeArticleId && (
+        <div className="p-4 border-t border-border bg-background shrink-0">
+          <AskThisSopButton
+            variant="nav"
+            articleId={activeArticleId}
+            articleTitle={activeArticleTitle}
+          />
+        </div>
+      )}
     </aside>
   );
 };
