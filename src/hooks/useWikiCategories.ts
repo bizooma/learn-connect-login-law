@@ -239,11 +239,44 @@ export const useWikiCategories = () => {
     onError: (error) => toast.error("Failed to delete category: " + error.message),
   });
 
+  const reorderCategories = useMutation({
+    mutationFn: async (orderedIds: string[]) => {
+      await Promise.all(
+        orderedIds.map((id, index) =>
+          supabase.from("wiki_categories").update({ sort_order: index } as any).eq("id", id)
+        )
+      );
+    },
+    onMutate: async (orderedIds: string[]) => {
+      await queryClient.cancelQueries({ queryKey: ["wiki-categories"] });
+      const previous = queryClient.getQueryData<WikiCategory[]>(["wiki-categories"]);
+      if (previous) {
+        const byId = new Map(previous.map((c) => [c.id, c]));
+        const next = orderedIds
+          .map((id, index) => {
+            const c = byId.get(id);
+            return c ? { ...c, sort_order: index } : null;
+          })
+          .filter(Boolean) as WikiCategory[];
+        queryClient.setQueryData(["wiki-categories"], next);
+      }
+      return { previous };
+    },
+    onError: (error, _vars, ctx) => {
+      if (ctx?.previous) queryClient.setQueryData(["wiki-categories"], ctx.previous);
+      toast.error("Failed to reorder: " + (error as Error).message);
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: ["wiki-categories"] });
+    },
+  });
+
   return {
     categories: categoriesQuery.data || [],
     isLoading: categoriesQuery.isLoading,
     createCategory,
     updateCategory,
     deleteCategory,
+    reorderCategories,
   };
 };
