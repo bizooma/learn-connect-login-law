@@ -123,9 +123,32 @@ const WikiPageEditorPage = () => {
     toast.success("Page saved");
   };
 
+  // Same-tab guard: if the admin toggles preview while holding unsaved edits,
+  // confirm before flipping. Cancelling aborts the flip and preserves the buffer.
+  const dirtyRef = useRef(dirty);
+  dirtyRef.current = dirty;
   useEffect(() => {
-    if (previewAsStaff && dirty) setDirty(false);
-  }, [previewAsStaff, dirty]);
+    return registerPreviewEnableGuard(() => {
+      if (!dirtyRef.current) return true;
+      return window.confirm(
+        "You have unsaved changes. Enter preview and discard them? OK to continue, Cancel to keep editing."
+      );
+    });
+  }, []);
+
+  // Cross-tab: preview enabled elsewhere while dirty — keep this tab editable.
+  const prevPreviewRef = useRef(previewAsStaff);
+  useEffect(() => {
+    const prev = prevPreviewRef.current;
+    prevPreviewRef.current = previewAsStaff;
+    if (!prev && previewAsStaff && dirty) {
+      setKeepEditable(true);
+      toast.info(
+        "Preview enabled in another tab — this tab kept editable to protect unsaved changes."
+      );
+    }
+    if (!previewAsStaff && keepEditable) setKeepEditable(false);
+  }, [previewAsStaff, dirty, keepEditable]);
 
   if (loading) {
     return (
