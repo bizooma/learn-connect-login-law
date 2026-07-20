@@ -24,6 +24,7 @@ import { ArrowLeft, Loader2, Square, Diamond, Circle, Trash2 } from "lucide-reac
 import { toast } from "sonner";
 import ShapeNode, { type Shape } from "@/components/admin/wiki/flowchart/ShapeNode";
 import WikiDocumentSidebar from "@/components/admin/wiki/WikiDocumentSidebar";
+import { isPreviewAsStaffActive, usePreviewAsStaff, withPreviewAsStaffParam } from "@/hooks/usePreviewAsStaff";
 
 interface ArticleRow {
   id: string;
@@ -48,8 +49,10 @@ const WikiFlowchartEditorInner = () => {
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const saveTimer = useRef<number | null>(null);
+  const { enabled: previewAsStaff } = usePreviewAsStaff();
 
   const handleLabelChange = useCallback((id: string, label: string) => {
+    if (isPreviewAsStaffActive()) return;
     setNodes((nds) =>
       nds.map((n) => (n.id === id ? { ...n, data: { ...n.data, label } } : n)),
     );
@@ -79,7 +82,7 @@ const WikiFlowchartEditorInner = () => {
       if (!active) return;
       if (error || !data) {
         toast.error("Failed to load flowchart");
-        navigate("/admin/wiki/content");
+        navigate(withPreviewAsStaffParam("/admin/wiki/content"));
         return;
       }
       const row = data as ArticleRow;
@@ -101,6 +104,7 @@ const WikiFlowchartEditorInner = () => {
   }, [articleId, navigate]);
 
   const onNodesChange = useCallback((changes: NodeChange[]) => {
+    if (isPreviewAsStaffActive()) return;
     setNodes((nds) => applyNodeChanges(changes, nds));
     if (changes.some((c) => c.type !== "select" && c.type !== "dimensions")) {
       setDirty(true);
@@ -108,11 +112,13 @@ const WikiFlowchartEditorInner = () => {
   }, []);
 
   const onEdgesChange = useCallback((changes: EdgeChange[]) => {
+    if (isPreviewAsStaffActive()) return;
     setEdges((eds) => applyEdgeChanges(changes, eds));
     if (changes.some((c) => c.type !== "select")) setDirty(true);
   }, []);
 
   const onConnect = useCallback((connection: Connection) => {
+    if (isPreviewAsStaffActive()) return;
     setEdges((eds) =>
       addEdge(
         {
@@ -127,6 +133,7 @@ const WikiFlowchartEditorInner = () => {
   }, []);
 
   const addShape = (shape: Shape) => {
+    if (isPreviewAsStaffActive()) return;
     const id = `n_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
     setNodes((nds) => [
       ...nds,
@@ -141,13 +148,14 @@ const WikiFlowchartEditorInner = () => {
   };
 
   const deleteSelected = () => {
+    if (isPreviewAsStaffActive()) return;
     setNodes((nds) => nds.filter((n) => !n.selected));
     setEdges((eds) => eds.filter((e) => !e.selected));
     setDirty(true);
   };
 
   const handleSave = useCallback(async () => {
-    if (!article) return;
+    if (!article || previewAsStaff || isPreviewAsStaffActive()) return;
     setSaving(true);
     const trimmed = title.trim() || "Untitled flowchart";
     // Strip transient handler from data before persisting
@@ -167,17 +175,17 @@ const WikiFlowchartEditorInner = () => {
       return;
     }
     setDirty(false);
-  }, [article, title, nodes, edges]);
+  }, [article, title, nodes, edges, previewAsStaff]);
 
   // Autosave
   useEffect(() => {
-    if (!dirty || loading) return;
+    if (!dirty || loading || previewAsStaff || isPreviewAsStaffActive()) return;
     if (saveTimer.current) window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(() => handleSave(), 1000);
     return () => {
       if (saveTimer.current) window.clearTimeout(saveTimer.current);
     };
-  }, [dirty, loading, handleSave]);
+  }, [dirty, loading, handleSave, previewAsStaff]);
 
   if (loading) {
     return (
@@ -188,13 +196,13 @@ const WikiFlowchartEditorInner = () => {
   }
 
   const confirmNavigation = () => {
-    if (!dirty) return true;
+    if (!dirty || previewAsStaff || isPreviewAsStaffActive()) return true;
     return window.confirm("You have unsaved changes. Leave without saving?");
   };
 
   const handleBackToContent = () => {
     if (!confirmNavigation()) return;
-    navigate("/admin/wiki/content", {
+    navigate(withPreviewAsStaffParam("/admin/wiki/content"), {
       state: { activeCategoryId: article?.category_id ?? null },
     });
   };
@@ -219,29 +227,33 @@ const WikiFlowchartEditorInner = () => {
               >
                 <ArrowLeft className="h-4 w-4" /> Back to Content
               </Button>
-              <Input
-                value={title}
-                onChange={(e) => {
-                  setTitle(e.target.value);
-                  setDirty(true);
-                }}
-                className="text-lg font-semibold border-0 shadow-none focus-visible:ring-0 px-2"
-                placeholder="Flowchart title"
-              />
+              {previewAsStaff ? (
+                <h1 className="text-lg font-semibold truncate px-2">{title}</h1>
+              ) : (
+                <Input
+                  value={title}
+                  onChange={(e) => {
+                    setTitle(e.target.value);
+                    setDirty(true);
+                  }}
+                  className="text-lg font-semibold border-0 shadow-none focus-visible:ring-0 px-2"
+                  placeholder="Flowchart title"
+                />
+              )}
             </div>
-            <div className="flex items-center gap-2 shrink-0">
+            {!previewAsStaff && <div className="flex items-center gap-2 shrink-0">
               <span className="text-xs text-muted-foreground">
                 {saving ? "Saving..." : dirty ? "Unsaved changes" : "Saved"}
               </span>
               <Button onClick={handleSave} disabled={saving || !dirty} size="sm">
                 Save
               </Button>
-            </div>
+            </div>}
           </div>
         </div>
 
         <div className="flex flex-1 overflow-hidden">
-          <div className="w-48 border-r border-border bg-muted/30 p-3 space-y-2">
+          {!previewAsStaff && <div className="w-48 border-r border-border bg-muted/30 p-3 space-y-2">
             <p className="text-xs font-semibold uppercase text-muted-foreground tracking-wide mb-2">
               Add shape
             </p>
@@ -261,7 +273,7 @@ const WikiFlowchartEditorInner = () => {
             <p className="text-[11px] text-muted-foreground pt-3 leading-relaxed">
               Double-click a shape to rename. Drag from the right handle to the next shape to connect them.
             </p>
-          </div>
+          </div>}
 
           <div className="flex-1">
             <ReactFlow
@@ -270,6 +282,9 @@ const WikiFlowchartEditorInner = () => {
               onNodesChange={onNodesChange}
               onEdgesChange={onEdgesChange}
               onConnect={onConnect}
+              nodesDraggable={!previewAsStaff}
+              nodesConnectable={!previewAsStaff}
+              elementsSelectable={!previewAsStaff}
               nodeTypes={nodeTypes}
               defaultEdgeOptions={{ type: "smoothstep", markerEnd: { type: MarkerType.ArrowClosed } }}
               fitView

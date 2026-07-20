@@ -5,6 +5,7 @@ import { FileText, Plus } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { useContentYouOwn } from "@/hooks/useWikiHomeStats";
+import { withPreviewAsStaffParam } from "@/hooks/usePreviewAsStaff";
 
 const ContentYouOwn = () => {
   const { user } = useAuth();
@@ -26,7 +27,7 @@ const ContentYouOwn = () => {
           <p className="text-xs text-muted-foreground mt-1 mb-4">
             Start by creating your first article or subject.
           </p>
-          <Button onClick={() => navigate("/admin/wiki/content")} size="sm" className="gap-2">
+          <Button onClick={() => navigate(withPreviewAsStaffParam("/admin/wiki/content"))} size="sm" className="gap-2">
             <Plus className="h-4 w-4" /> Create
           </Button>
         </div>

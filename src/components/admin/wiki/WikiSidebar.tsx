@@ -17,6 +17,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
+import { withPreviewAsStaffParam } from "@/hooks/usePreviewAsStaff";
 
 
 interface WikiCategory {
@@ -71,7 +72,7 @@ const WikiSidebar = ({ categories, activeCategoryId, onCategorySelect }: WikiSid
     if (onContent) {
       onCategorySelect(id);
     } else {
-      navigate("/admin/wiki/content", { state: { activeCategoryId: id } });
+      navigate(withPreviewAsStaffParam("/admin/wiki/content"), { state: { activeCategoryId: id } });
     }
   };
 

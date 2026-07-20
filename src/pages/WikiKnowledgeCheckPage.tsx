@@ -8,6 +8,7 @@ import { ArrowLeft, Loader2, Plus, Trash2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { useWikiQuestions, WikiQuestion } from "@/hooks/useWikiQuestions";
 import WikiDocumentSidebar from "@/components/admin/wiki/WikiDocumentSidebar";
+import { usePreviewAsStaff, withPreviewAsStaffParam } from "@/hooks/usePreviewAsStaff";
 
 const letter = (i: number) => String.fromCharCode(65 + i);
 
@@ -15,10 +16,12 @@ const QuestionCard = ({
   question,
   index,
   api,
+  readOnly = false,
 }: {
   question: WikiQuestion;
   index: number;
   api: ReturnType<typeof useWikiQuestions>;
+  readOnly?: boolean;
 }) => {
   const [text, setText] = useState(question.question_text);
   useEffect(() => setText(question.question_text), [question.question_text]);
@@ -29,25 +32,28 @@ const QuestionCard = ({
         <div className="flex items-center justify-center w-8 h-8 rounded-full bg-muted text-sm font-semibold">
           {index + 1}
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => {
-            if (confirm("Delete this question?")) api.deleteQuestion.mutate(question.id);
-          }}
-        >
-          <Trash2 className="h-4 w-4" />
-        </Button>
+        {!readOnly && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              if (confirm("Delete this question?")) api.deleteQuestion.mutate(question.id);
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        )}
       </div>
 
       <Textarea
         value={text}
         onChange={(e) => setText(e.target.value)}
         onBlur={() => {
-          if (text !== question.question_text) {
+          if (!readOnly && text !== question.question_text) {
             api.updateQuestion.mutate({ id: question.id, question_text: text });
           }
         }}
+        readOnly={readOnly}
         placeholder="Enter your question..."
         className="text-base font-medium mb-2 border-0 shadow-none focus-visible:ring-0 resize-none p-0"
         rows={2}
@@ -56,19 +62,21 @@ const QuestionCard = ({
 
       <div className="space-y-2">
         {question.choices.map((choice, i) => (
-          <ChoiceRow key={choice.id} choice={choice} letter={letter(i)} questionId={question.id} api={api} />
+          <ChoiceRow key={choice.id} choice={choice} letter={letter(i)} questionId={question.id} api={api} readOnly={readOnly} />
         ))}
       </div>
 
-      <Button
-        variant="link"
-        className="px-0 mt-2"
-        onClick={() =>
-          api.addChoice.mutate({ question_id: question.id, sort_order: question.choices.length })
-        }
-      >
-        Add choice
-      </Button>
+      {!readOnly && (
+        <Button
+          variant="link"
+          className="px-0 mt-2"
+          onClick={() =>
+            api.addChoice.mutate({ question_id: question.id, sort_order: question.choices.length })
+          }
+        >
+          Add choice
+        </Button>
+      )}
     </div>
   );
 };
@@ -78,11 +86,13 @@ const ChoiceRow = ({
   letter,
   questionId,
   api,
+  readOnly = false,
 }: {
   choice: { id: string; choice_text: string; is_correct: boolean };
   letter: string;
   questionId: string;
   api: ReturnType<typeof useWikiQuestions>;
+  readOnly?: boolean;
 }) => {
   const [text, setText] = useState(choice.choice_text);
   useEffect(() => setText(choice.choice_text), [choice.choice_text]);
@@ -94,7 +104,7 @@ const ChoiceRow = ({
       }`}
     >
       <button
-        onClick={() => api.setCorrectChoice.mutate({ question_id: questionId, choice_id: choice.id })}
+        onClick={() => !readOnly && api.setCorrectChoice.mutate({ question_id: questionId, choice_id: choice.id })}
         className={`flex items-center justify-center w-5 h-5 rounded-full border-2 shrink-0 ${
           choice.is_correct ? "border-primary bg-primary" : "border-muted-foreground"
         }`}
@@ -109,14 +119,17 @@ const ChoiceRow = ({
         value={text}
         onChange={(e) => setText(e.target.value)}
         onBlur={() => {
-          if (text !== choice.choice_text) api.updateChoice.mutate({ id: choice.id, choice_text: text });
+          if (!readOnly && text !== choice.choice_text) api.updateChoice.mutate({ id: choice.id, choice_text: text });
         }}
+        readOnly={readOnly}
         placeholder="Choice text"
         className="border-0 shadow-none focus-visible:ring-0"
       />
-      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => api.deleteChoice.mutate(choice.id)}>
-        <Trash2 className="h-4 w-4 text-muted-foreground" />
-      </Button>
+      {!readOnly && (
+        <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => api.deleteChoice.mutate(choice.id)}>
+          <Trash2 className="h-4 w-4 text-muted-foreground" />
+        </Button>
+      )}
     </div>
   );
 };
@@ -128,6 +141,7 @@ const WikiKnowledgeCheckPage = () => {
   const [navCategoryId, setNavCategoryId] = useState<string | null>(categoryId ?? null);
   const [loading, setLoading] = useState(true);
   const api = useWikiQuestions(articleId, categoryId);
+  const { enabled: previewAsStaff } = usePreviewAsStaff();
 
   useEffect(() => {
     (async () => {
@@ -187,7 +201,7 @@ const WikiKnowledgeCheckPage = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => navigate("/admin/wiki/content", { state: { activeCategoryId: navCategoryId } })}
+                onClick={() => navigate(withPreviewAsStaffParam("/admin/wiki/content"), { state: { activeCategoryId: navCategoryId } })}
                 className="gap-2"
               >
                 <ArrowLeft className="h-4 w-4" /> Back to Content
@@ -210,17 +224,19 @@ const WikiKnowledgeCheckPage = () => {
             )}
 
             {api.questions.map((q, i) => (
-              <QuestionCard key={q.id} question={q} index={i} api={api} />
+              <QuestionCard key={q.id} question={q} index={i} api={api} readOnly={previewAsStaff} />
             ))}
 
-            <Button
-              onClick={() => api.createQuestion.mutate(articleId || "")}
-              variant="outline"
-              className="w-full gap-2 mt-4"
-              disabled={api.createQuestion.isPending}
-            >
-              <Plus className="h-4 w-4" /> Add question
-            </Button>
+            {!previewAsStaff && (
+              <Button
+                onClick={() => api.createQuestion.mutate(articleId || "")}
+                variant="outline"
+                className="w-full gap-2 mt-4"
+                disabled={api.createQuestion.isPending}
+              >
+                <Plus className="h-4 w-4" /> Add question
+              </Button>
+            )}
           </div>
         </div>
       </div>

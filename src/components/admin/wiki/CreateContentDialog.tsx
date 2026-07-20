@@ -21,6 +21,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useWikiArticles, contentTypeLabels, type WikiContentType, type WikiSubjectKind } from "@/hooks/useWikiArticles";
+import { withPreviewAsStaffParam } from "@/hooks/usePreviewAsStaff";
 import { SUBJECT_CATEGORIES } from "./subjectCategoryMeta";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -155,7 +156,7 @@ const CreateContentDialog = ({
         onSuccess: (created: any) => {
           onOpenChange(false);
           if (contentType === "flowchart" && created?.id) {
-            navigate(`/admin/wiki/flowchart/${created.id}`);
+            navigate(withPreviewAsStaffParam(`/admin/wiki/flowchart/${created.id}`));
           }
         },
       },

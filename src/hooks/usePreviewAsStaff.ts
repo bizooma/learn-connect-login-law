@@ -2,10 +2,16 @@ import { useEffect, useState, useCallback } from "react";
 
 const KEY = "wiki_preview_as_staff";
 const EVENT = "wiki-preview-as-staff-change";
+const URL_PARAM = "staffPreview";
+
+const readUrlFlag = () => {
+  if (typeof window === "undefined") return false;
+  return new URLSearchParams(window.location.search).get(URL_PARAM) === "1";
+};
 
 const read = () => {
   if (typeof window === "undefined") return false;
-  return window.sessionStorage.getItem(KEY) === "1";
+  return window.sessionStorage.getItem(KEY) === "1" || readUrlFlag();
 };
 
 const write = (on: boolean) => {
@@ -40,3 +46,13 @@ export const usePreviewAsStaff = () => {
 };
 
 export const isPreviewAsStaffActive = read;
+
+export const withPreviewAsStaffParam = (to: string) => {
+  if (!read()) return to;
+  const [path, hash = ""] = to.split("#");
+  const [pathname, search = ""] = path.split("?");
+  const params = new URLSearchParams(search);
+  params.set(URL_PARAM, "1");
+  const query = params.toString();
+  return `${pathname}${query ? `?${query}` : ""}${hash ? `#${hash}` : ""}`;
+};

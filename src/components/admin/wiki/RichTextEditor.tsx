@@ -529,6 +529,12 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
 };
 
 const RichTextEditor = ({ content, onChange, readOnly = false }: RichTextEditorProps) => {
+  const readOnlyRef = useRef(readOnly);
+
+  useEffect(() => {
+    readOnlyRef.current = readOnly;
+  }, [readOnly]);
+
   const editor = useEditor({
     editable: !readOnly,
     extensions: [
@@ -555,7 +561,9 @@ const RichTextEditor = ({ content, onChange, readOnly = false }: RichTextEditorP
       TaskItem.configure({ nested: true, HTMLAttributes: { class: "task-item" } }),
     ],
     content: content || "",
-    onUpdate: ({ editor }) => onChange(editor.getHTML()),
+    onUpdate: ({ editor }) => {
+      if (!readOnlyRef.current) onChange(editor.getHTML());
+    },
     editorProps: {
       attributes: {
         class:

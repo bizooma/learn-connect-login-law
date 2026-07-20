@@ -26,7 +26,7 @@ import BunniesBanner from "@/components/admin/wiki/BunniesBanner";
 import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
 import WikiFooter from "@/components/admin/wiki/WikiFooter";
 import PreviewAsStaffBanner from "@/components/admin/wiki/PreviewAsStaffBanner";
-import { usePreviewAsStaff } from "@/hooks/usePreviewAsStaff";
+import { usePreviewAsStaff, withPreviewAsStaffParam } from "@/hooks/usePreviewAsStaff";
 
 type ViewMode = "training" | "team";
 type SortMode = "training" | "az" | "updated" | "owner";
@@ -37,7 +37,7 @@ const AdminWikiPage = () => {
   const navigate = useNavigate();
   const openArticle = (a: WikiArticle) => {
     if (a.content_type === "flowchart") {
-      navigate(`/admin/wiki/flowchart/${a.id}`);
+      navigate(withPreviewAsStaffParam(`/admin/wiki/flowchart/${a.id}`));
     } else {
       setEditingArticle(a);
     }
@@ -82,7 +82,7 @@ const AdminWikiPage = () => {
       }
       const a = data as unknown as WikiArticle;
       if (a.content_type === "flowchart") {
-        navigate(`/admin/wiki/flowchart/${a.id}`, { replace: true });
+        navigate(withPreviewAsStaffParam(`/admin/wiki/flowchart/${a.id}`), { replace: true });
         return;
       }
       setActiveCategoryId(a.category_id);

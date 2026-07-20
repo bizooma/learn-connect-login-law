@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { withPreviewAsStaffParam } from "@/hooks/usePreviewAsStaff";
 
 interface AskThisSopPanelProps {
   open: boolean;
@@ -134,7 +135,7 @@ const AskThisSopPanel = ({ open, onOpenChange, articleId, articleTitle }: AskThi
                     {sources.map((s) => (
                       <Link
                         key={s.id}
-                        to={`/admin/wiki/pages/${s.id}`}
+                        to={withPreviewAsStaffParam(`/admin/wiki/pages/${s.id}`)}
                         onClick={() => onOpenChange(false)}
                         className="inline-flex items-center gap-1.5 text-xs px-2.5 py-1 rounded-full border border-border hover:border-foreground/40 bg-background transition-colors"
                       >
