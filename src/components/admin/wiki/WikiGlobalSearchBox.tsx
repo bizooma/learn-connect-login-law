@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Search, Loader2, FileText, GitBranch, BookOpen, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Input } from "@/components/ui/input";
+import { withPreviewAsStaffParam } from "@/hooks/usePreviewAsStaff";
 import {
   useWikiGlobalSearch,
   highlightSnippet,
@@ -38,12 +39,12 @@ const WikiGlobalSearchBox = ({ value, onChange, placeholder }: WikiGlobalSearchB
   const go = (r: WikiSearchResult) => {
     setOpen(false);
     if (r.kind === "page") {
-      navigate(`/admin/wiki/pages/${r.id}`);
+      navigate(withPreviewAsStaffParam(`/admin/wiki/pages/${r.id}`));
     } else if (r.kind === "article") {
-      if (r.contentType === "flowchart") navigate(`/admin/wiki/flowchart/${r.id}`);
-      else navigate(`/admin/wiki/content?article=${r.id}`);
+      if (r.contentType === "flowchart") navigate(withPreviewAsStaffParam(`/admin/wiki/flowchart/${r.id}`));
+      else navigate(withPreviewAsStaffParam(`/admin/wiki/content?article=${r.id}`));
     } else {
-      navigate("/admin/wiki/content", { state: { activeCategoryId: r.id } });
+      navigate(withPreviewAsStaffParam("/admin/wiki/content"), { state: { activeCategoryId: r.id } });
     }
   };
 
