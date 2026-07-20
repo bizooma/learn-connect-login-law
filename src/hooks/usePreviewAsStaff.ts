@@ -4,35 +4,68 @@ const KEY = "wiki_preview_as_staff";
 const EVENT = "wiki-preview-as-staff-change";
 const URL_PARAM = "staffPreview";
 
-const readUrlFlag = () => {
-  if (typeof window === "undefined") return false;
-  return new URLSearchParams(window.location.search).get(URL_PARAM) === "1";
+/**
+ * One-time bootstrap: if the URL carries `?staffPreview=1`, promote it to
+ * sessionStorage and strip it from the URL. After this, sessionStorage is the
+ * single source of truth for whether preview mode is active.
+ */
+const bootstrapFromUrl = () => {
+  if (typeof window === "undefined") return;
+  const url = new URL(window.location.href);
+  if (url.searchParams.get(URL_PARAM) === "1") {
+    window.sessionStorage.setItem(KEY, "1");
+    url.searchParams.delete(URL_PARAM);
+    window.history.replaceState(
+      window.history.state,
+      "",
+      `${url.pathname}${url.search ? `?${url.searchParams.toString()}` : ""}${url.hash}`
+    );
+  }
 };
+
+bootstrapFromUrl();
 
 const read = () => {
   if (typeof window === "undefined") return false;
-  return window.sessionStorage.getItem(KEY) === "1" || readUrlFlag();
+  return window.sessionStorage.getItem(KEY) === "1";
 };
 
 const write = (on: boolean) => {
   if (typeof window === "undefined") return;
   if (on) window.sessionStorage.setItem(KEY, "1");
-  else {
-    window.sessionStorage.removeItem(KEY);
-
-    const url = new URL(window.location.href);
-    if (url.searchParams.has(URL_PARAM)) {
-      url.searchParams.delete(URL_PARAM);
-      window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
-    }
-  }
+  else window.sessionStorage.removeItem(KEY);
   window.dispatchEvent(new Event(EVENT));
 };
 
 /**
+ * Guard invoked before flipping preview ON. Return false to abort the flip.
+ * Registered by editors that hold unsaved changes.
+ */
+type EnableGuard = () => boolean;
+const enableGuards = new Set<EnableGuard>();
+
+export const registerPreviewEnableGuard = (guard: EnableGuard) => {
+  enableGuards.add(guard);
+  return () => {
+    enableGuards.delete(guard);
+  };
+};
+
+const runEnableGuards = () => {
+  for (const g of enableGuards) {
+    try {
+      if (!g()) return false;
+    } catch {
+      // ignore guard errors
+    }
+  }
+  return true;
+};
+
+/**
  * Global session flag that lets an admin preview any wiki view exactly as a
- * non-admin staff member would see it. Persists across navigation via
- * sessionStorage so drilling into pages keeps the preview active.
+ * non-admin staff member would see it. sessionStorage is the source of truth;
+ * a `?staffPreview=1` URL param is consumed once on load.
  */
 export const usePreviewAsStaff = () => {
   const [enabled, setEnabled] = useState<boolean>(read);
@@ -47,7 +80,10 @@ export const usePreviewAsStaff = () => {
     };
   }, []);
 
-  const enable = useCallback(() => write(true), []);
+  const enable = useCallback(() => {
+    if (!runEnableGuards()) return;
+    write(true);
+  }, []);
   const disable = useCallback(() => write(false), []);
 
   return { enabled, enable, disable };

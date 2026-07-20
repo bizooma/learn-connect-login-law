@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import RichTextEditor from "@/components/admin/wiki/RichTextEditor";
 import AiWritePageDialog from "@/components/admin/wiki/AiWritePageDialog";
 import WikiDocumentSidebar from "@/components/admin/wiki/WikiDocumentSidebar";
 import PreviewAsStaffBanner from "@/components/admin/wiki/PreviewAsStaffBanner";
-import { isPreviewAsStaffActive, usePreviewAsStaff, withPreviewAsStaffParam } from "@/hooks/usePreviewAsStaff";
+import { registerPreviewEnableGuard, usePreviewAsStaff, withPreviewAsStaffParam } from "@/hooks/usePreviewAsStaff";
 import { WikiPage } from "@/hooks/useWikiPages";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useQuery } from "@tanstack/react-query";
@@ -38,8 +38,11 @@ const WikiPageEditorPage = () => {
 
   const { isAdmin, isOwner } = useUserRole();
   const { enabled: previewAsStaff } = usePreviewAsStaff();
+  // If preview flipped on in another tab while we hold unsaved edits, keep
+  // this tab editable so we don't silently drop work.
+  const [keepEditable, setKeepEditable] = useState(false);
   const canUseAi = (isAdmin || isOwner) && !previewAsStaff;
-  const readOnly = previewAsStaff;
+  const readOnly = previewAsStaff && !keepEditable;
 
 
   const { data: currentArticle } = useQuery({
@@ -86,15 +89,18 @@ const WikiPageEditorPage = () => {
       setTitle(p.title);
       setContent(sanitizeContent(p.content || ""));
       setLoading(false);
-      // Mark page as completed on open (idempotent)
-      supabase.rpc("mark_wiki_page_complete" as any, { page_id: p.id }).then(({ error }) => {
-        if (error) console.warn("mark_wiki_page_complete failed", error);
-      });
+      // Only genuine staff learners should have completions recorded.
+      // Skip for admins/owners (reviewing content) and for staff-preview mode.
+      if (!previewAsStaff && !isAdmin && !isOwner) {
+        supabase.rpc("mark_wiki_page_complete" as any, { page_id: p.id }).then(({ error }) => {
+          if (error) console.warn("mark_wiki_page_complete failed", error);
+        });
+      }
     })();
     return () => {
       active = false;
     };
-  }, [pageId, navigate]);
+  }, [pageId, navigate, previewAsStaff, isAdmin, isOwner]);
 
   const handleSave = async () => {
     if (!page) return;
@@ -117,9 +123,32 @@ const WikiPageEditorPage = () => {
     toast.success("Page saved");
   };
 
+  // Same-tab guard: if the admin toggles preview while holding unsaved edits,
+  // confirm before flipping. Cancelling aborts the flip and preserves the buffer.
+  const dirtyRef = useRef(dirty);
+  dirtyRef.current = dirty;
   useEffect(() => {
-    if (previewAsStaff && dirty) setDirty(false);
-  }, [previewAsStaff, dirty]);
+    return registerPreviewEnableGuard(() => {
+      if (!dirtyRef.current) return true;
+      return window.confirm(
+        "You have unsaved changes. Enter preview and discard them? OK to continue, Cancel to keep editing."
+      );
+    });
+  }, []);
+
+  // Cross-tab: preview enabled elsewhere while dirty — keep this tab editable.
+  const prevPreviewRef = useRef(previewAsStaff);
+  useEffect(() => {
+    const prev = prevPreviewRef.current;
+    prevPreviewRef.current = previewAsStaff;
+    if (!prev && previewAsStaff && dirty) {
+      setKeepEditable(true);
+      toast.info(
+        "Preview enabled in another tab — this tab kept editable to protect unsaved changes."
+      );
+    }
+    if (!previewAsStaff && keepEditable) setKeepEditable(false);
+  }, [previewAsStaff, dirty, keepEditable]);
 
   if (loading) {
     return (
@@ -130,7 +159,7 @@ const WikiPageEditorPage = () => {
   }
 
   const confirmNavigation = () => {
-    if (!dirty || previewAsStaff || isPreviewAsStaffActive()) return true;
+    if (!dirty) return true;
     return window.confirm("You have unsaved changes. Leave without saving?");
   };
 

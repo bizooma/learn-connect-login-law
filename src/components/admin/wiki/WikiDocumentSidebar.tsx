@@ -16,7 +16,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { WikiPage } from "@/hooks/useWikiPages";
 import { WikiArticle, WikiContentType, contentTypeLabels } from "@/hooks/useWikiArticles";
-import { isPreviewAsStaffActive, withPreviewAsStaffParam } from "@/hooks/usePreviewAsStaff";
+import { isPreviewAsStaffActive, usePreviewAsStaff, withPreviewAsStaffParam } from "@/hooks/usePreviewAsStaff";
 import AskThisSopButton from "./AskThisSopButton";
 
 interface WikiDocumentSidebarProps {
@@ -57,6 +57,7 @@ const WikiDocumentSidebar = ({
   onBeforeNavigate,
 }: WikiDocumentSidebarProps) => {
   const navigate = useNavigate();
+  const { enabled: previewAsStaff } = usePreviewAsStaff();
 
   const { data, isLoading } = useQuery<WikiDocumentTreeData>({
     queryKey: ["wiki-document-sidebar", categoryId, activeArticleId],
@@ -169,9 +170,10 @@ const WikiDocumentSidebar = ({
             <Loader2 className="h-4 w-4 animate-spin" /> Loading...
           </div>
         ) : (
-          data?.articles.map((article) => {
+          (previewAsStaff ? data?.articles.filter((a) => a.is_published) : data?.articles)?.map((article) => {
             const Icon = contentTypeIcons[article.content_type] || FileText;
-            const pages = data.pagesByArticle[article.id] || [];
+            const allPages = data!.pagesByArticle[article.id] || [];
+            const pages = previewAsStaff ? allPages.filter((p) => p.is_published) : allPages;
             const isActiveArticle = activeArticleId === article.id && !activePageId;
             const isCurrentArticle = activeArticleId === article.id;
             const typeLabel = contentTypeLabels[article.content_type] || "Item";
