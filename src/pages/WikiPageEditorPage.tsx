@@ -89,15 +89,18 @@ const WikiPageEditorPage = () => {
       setTitle(p.title);
       setContent(sanitizeContent(p.content || ""));
       setLoading(false);
-      // Mark page as completed on open (idempotent)
-      supabase.rpc("mark_wiki_page_complete" as any, { page_id: p.id }).then(({ error }) => {
-        if (error) console.warn("mark_wiki_page_complete failed", error);
-      });
+      // Only genuine staff learners should have completions recorded.
+      // Skip for admins/owners (reviewing content) and for staff-preview mode.
+      if (!previewAsStaff && !isAdmin && !isOwner) {
+        supabase.rpc("mark_wiki_page_complete" as any, { page_id: p.id }).then(({ error }) => {
+          if (error) console.warn("mark_wiki_page_complete failed", error);
+        });
+      }
     })();
     return () => {
       active = false;
     };
-  }, [pageId, navigate]);
+  }, [pageId, navigate, previewAsStaff, isAdmin, isOwner]);
 
   const handleSave = async () => {
     if (!page) return;
