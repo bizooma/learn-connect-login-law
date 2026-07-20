@@ -345,24 +345,46 @@ const AdminWikiPage = () => {
                         </button>
                       </div>
 
-                      {viewMode === "training" && (
-                        <div className="flex items-center gap-2">
-                          <span className="text-xs text-muted-foreground">Sort:</span>
-                          <Select value={sortMode} onValueChange={(v) => setSortMode(v as SortMode)}>
-                            <SelectTrigger className="w-[180px] h-8 text-sm">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="training">Training order</SelectItem>
-                              <SelectItem value="az">A–Z</SelectItem>
-                              <SelectItem value="updated">Recently updated</SelectItem>
-                              <SelectItem value="owner">Owner</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setFiltersOpen(true)}
+                          className="relative h-8 gap-2"
+                        >
+                          <SlidersHorizontal className="h-4 w-4" />
+                          Filter
+                          {activeFilterCount > 0 && (
+                            <span
+                              className="ml-1 inline-flex items-center justify-center text-[10px] font-bold rounded-full h-4 min-w-[16px] px-1 text-black"
+                              style={{ backgroundColor: "#FFDA00" }}
+                            >
+                              {activeFilterCount}
+                            </span>
+                          )}
+                        </Button>
+
+                        {viewMode === "training" && (
+                          <>
+                            <span className="text-xs text-muted-foreground ml-2">Sort:</span>
+                            <Select value={sortMode} onValueChange={(v) => setSortMode(v as SortMode)}>
+                              <SelectTrigger className="w-[180px] h-8 text-sm">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="training">Training order</SelectItem>
+                                <SelectItem value="az">A–Z</SelectItem>
+                                <SelectItem value="updated">Recently updated</SelectItem>
+                                <SelectItem value="owner">Owner</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </>
+                        )}
+                      </div>
                     </div>
                   )}
+
 
                   {!activeCategoryId && (
                     <WikiTagFilterBar
