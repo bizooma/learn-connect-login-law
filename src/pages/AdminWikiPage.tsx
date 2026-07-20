@@ -231,7 +231,7 @@ const AdminWikiPage = () => {
                   </p>
                 </div>
               </div>
-              <CreateContentMenu onSelect={handleCreateChoice} />
+              {!previewAsStaff && <CreateContentMenu onSelect={handleCreateChoice} />}
             </div>
 
 
