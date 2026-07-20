@@ -53,6 +53,7 @@ const AdminWikiPage = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("training");
   const [sortMode, setSortMode] = useState<SortMode>("training");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const { enabled: previewAsStaff } = usePreviewAsStaff();
 
 
   useEffect(() => {
