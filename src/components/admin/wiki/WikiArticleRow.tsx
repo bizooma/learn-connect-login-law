@@ -35,7 +35,7 @@ const contentTypeIcons: Record<WikiContentType, typeof FileText> = {
 const WikiArticleRow = ({ article, onEdit, onDelete, onTogglePublish, selectedTags }: WikiArticleRowProps) => {
   const Icon = contentTypeIcons[article.content_type] || FileText;
   const typeLabel = contentTypeLabels[article.content_type] || "Item";
-  const isDocument = article.content_type === "document";
+  const hasPages = article.content_type === "document" || article.content_type === "procedure" || article.content_type === "policy";
   const dimmed = !!(selectedTags && selectedTags.length > 0 && !(article.tags || []).some((t) => selectedTags.includes(t)));
   const { enabled: previewAsStaff } = usePreviewAsStaff();
 
@@ -116,7 +116,7 @@ const WikiArticleRow = ({ article, onEdit, onDelete, onTogglePublish, selectedTa
           )}
         </div>
       </div>
-      {isDocument && <WikiPagesList articleId={article.id} />}
+      {hasPages && <WikiPagesList articleId={article.id} />}
     </div>
   );
 };
