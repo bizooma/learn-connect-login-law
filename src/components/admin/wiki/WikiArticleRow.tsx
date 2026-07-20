@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { WikiArticle, contentTypeLabels, WikiContentType } from "@/hooks/useWikiArticles";
+import { usePreviewAsStaff } from "@/hooks/usePreviewAsStaff";
 import WikiPagesList from "./WikiPagesList";
 
 interface WikiArticleRowProps {
@@ -36,6 +37,7 @@ const WikiArticleRow = ({ article, onEdit, onDelete, onTogglePublish, selectedTa
   const typeLabel = contentTypeLabels[article.content_type] || "Item";
   const isDocument = article.content_type === "document";
   const dimmed = !!(selectedTags && selectedTags.length > 0 && !(article.tags || []).some((t) => selectedTags.includes(t)));
+  const { enabled: previewAsStaff } = usePreviewAsStaff();
 
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: article.id });
   const style = {
@@ -44,6 +46,8 @@ const WikiArticleRow = ({ article, onEdit, onDelete, onTogglePublish, selectedTa
     opacity: isDragging ? 0.5 : 1,
   };
 
+  if (previewAsStaff && !article.is_published) return null;
+
   return (
     <div ref={setNodeRef} style={style}>
       <div
@@ -51,22 +55,24 @@ const WikiArticleRow = ({ article, onEdit, onDelete, onTogglePublish, selectedTa
         onClick={() => onEdit(article)}
       >
         <div className="flex items-center gap-3">
-          <button
-            type="button"
-            className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none"
-            onClick={(e) => e.stopPropagation()}
-            aria-label="Drag to reorder"
-            {...attributes}
-            {...listeners}
-          >
-            <GripVertical className="h-4 w-4" />
-          </button>
+          {!previewAsStaff && (
+            <button
+              type="button"
+              className="cursor-grab active:cursor-grabbing text-muted-foreground hover:text-foreground touch-none"
+              onClick={(e) => e.stopPropagation()}
+              aria-label="Drag to reorder"
+              {...attributes}
+              {...listeners}
+            >
+              <GripVertical className="h-4 w-4" />
+            </button>
+          )}
           <Icon className="h-4 w-4 text-muted-foreground" />
           <span className="text-sm font-medium text-foreground">{article.title}</span>
           <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded-full">
             {typeLabel}
           </span>
-          {!article.is_published && (
+          {!previewAsStaff && !article.is_published && (
             <span className="text-xs bg-muted text-muted-foreground px-2 py-0.5 rounded">Draft</span>
           )}
         </div>
