@@ -114,6 +114,7 @@ const ICON_SET = [
 interface RichTextEditorProps {
   content: string;
   onChange: (content: string) => void;
+  readOnly?: boolean;
 }
 
 const ToolbarButton = ({
@@ -527,8 +528,9 @@ const Toolbar = ({ editor }: { editor: Editor }) => {
   );
 };
 
-const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
+const RichTextEditor = ({ content, onChange, readOnly = false }: RichTextEditorProps) => {
   const editor = useEditor({
+    editable: !readOnly,
     extensions: [
       StarterKit.configure({
         bold: { HTMLAttributes: { "data-bold": "true" } },
@@ -570,11 +572,15 @@ const RichTextEditor = ({ content, onChange }: RichTextEditorProps) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content]);
 
+  useEffect(() => {
+    if (editor) editor.setEditable(!readOnly);
+  }, [editor, readOnly]);
+
   if (!editor) return null;
 
   return (
     <div className="flex flex-col h-full">
-      <Toolbar editor={editor} />
+      {!readOnly && <Toolbar editor={editor} />}
       <style>{`
         .wiki-editor-surface p,
         .wiki-editor-surface li,

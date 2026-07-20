@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
+import { usePreviewAsStaff } from "@/hooks/usePreviewAsStaff";
 import { WikiCategory, WikiAccessLevel } from "@/hooks/useWikiCategories";
 
 export type EffectiveAccess = "none" | "view" | "edit" | "full";
@@ -15,7 +16,9 @@ const rank: Record<WikiAccessLevel, number> = { view: 1, edit: 2, full: 3 };
  */
 export const useWikiAccess = () => {
   const { user } = useAuth();
-  const { isAdmin } = useUserRole();
+  const { isAdmin: realIsAdmin } = useUserRole();
+  const { enabled: previewAsStaff } = usePreviewAsStaff();
+  const isAdmin = realIsAdmin && !previewAsStaff;
 
   const { data: myGroupIds = [] } = useQuery({
     queryKey: ["my-group-ids", user?.id],
@@ -33,19 +36,23 @@ export const useWikiAccess = () => {
   const getAccess = (category: WikiCategory | undefined | null): EffectiveAccess => {
     if (!category || !user?.id) return "none";
     if (isAdmin) return "full";
-    if (category.owner_id === user.id) return "full";
+    if (!previewAsStaff && category.owner_id === user.id) return "full";
+
 
     const groupSet = new Set(myGroupIds);
     let best: WikiAccessLevel | null = null;
-    for (const sg of category.shared_groups || []) {
-      if (!groupSet.has(sg.id)) continue;
-      if (!best || rank[sg.access_level] > rank[best]) best = sg.access_level;
-    }
-    for (const su of category.shared_users || []) {
-      if (su.id !== user.id) continue;
-      if (!best || rank[su.access_level] > rank[best]) best = su.access_level;
+    if (!previewAsStaff) {
+      for (const sg of category.shared_groups || []) {
+        if (!groupSet.has(sg.id)) continue;
+        if (!best || rank[sg.access_level] > rank[best]) best = sg.access_level;
+      }
+      for (const su of category.shared_users || []) {
+        if (su.id !== user.id) continue;
+        if (!best || rank[su.access_level] > rank[best]) best = su.access_level;
+      }
     }
     if (best) return best;
+
 
     if (category.is_published && category.discoverability === "discoverable") {
       return "view";
