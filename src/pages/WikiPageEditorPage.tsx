@@ -55,7 +55,17 @@ const WikiPageEditorPage = () => {
   useEffect(() => {
     let active = true;
     (async () => {
-      if (!pageId) return;
+      if (!pageId) {
+        setLoading(false);
+        return;
+      }
+
+      setLoading(true);
+      setPage(null);
+      setTitle("");
+      setContent("");
+      setDirty(false);
+
       const { data, error } = await supabase
         .from("wiki_pages" as any)
         .select("*")
@@ -178,6 +188,7 @@ const WikiPageEditorPage = () => {
 
         <div className="flex-1 overflow-hidden">
           <RichTextEditor
+            key={page?.id || pageId}
             content={content}
             onChange={(html) => {
               setContent(html);
