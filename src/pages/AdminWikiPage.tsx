@@ -147,7 +147,7 @@ const AdminWikiPage = () => {
 
 
   const sortedCategories = useMemo(() => {
-    const arr = [...tagFiltered];
+    const arr = [...advancedFiltered];
     switch (sortMode) {
       case "az":
         return arr.sort((a, b) => a.title.localeCompare(b.title, undefined, { sensitivity: "base" }));
@@ -163,7 +163,8 @@ const AdminWikiPage = () => {
       default:
         return arr.sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0));
     }
-  }, [tagFiltered, sortMode]);
+  }, [advancedFiltered, sortMode]);
+
 
   const filteredCategories = sortedCategories;
 
