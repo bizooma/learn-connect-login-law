@@ -37,7 +37,10 @@ const WikiPageEditorPage = () => {
   const [aiOpen, setAiOpen] = useState(false);
 
   const { isAdmin, isOwner } = useUserRole();
-  const canUseAi = isAdmin || isOwner;
+  const { enabled: previewAsStaff } = usePreviewAsStaff();
+  const canUseAi = (isAdmin || isOwner) && !previewAsStaff;
+  const readOnly = previewAsStaff;
+
 
   const { data: currentArticle } = useQuery({
     queryKey: ["wiki-page-current-article", page?.article_id],
@@ -135,69 +138,82 @@ const WikiPageEditorPage = () => {
   };
 
   return (
-    <div className="flex h-screen bg-background">
-      <WikiDocumentSidebar
-        categoryId={currentArticle?.category_id}
-        activeArticleId={page?.article_id}
-        activePageId={page?.id}
-        onBeforeNavigate={confirmNavigation}
-      />
+    <div className="flex flex-col h-screen bg-background">
+      <PreviewAsStaffBanner />
+      <div className="flex flex-1 min-h-0">
+        <WikiDocumentSidebar
+          categoryId={currentArticle?.category_id}
+          activeArticleId={page?.article_id}
+          activePageId={page?.id}
+          onBeforeNavigate={confirmNavigation}
+        />
 
 
-      <div className="flex-1 flex flex-col min-w-0">
-        <div className="border-b border-border bg-background">
-          <div className="flex items-center justify-between px-6 py-3 max-w-6xl mx-auto w-full">
-            <div className="flex items-center gap-4 flex-1 min-w-0">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleBackToContent}
-                className="gap-2 shrink-0"
-              >
-                <ArrowLeft className="h-4 w-4" /> Back to Content
-              </Button>
-              <Input
-                value={title}
-                onChange={(e) => {
-                  setTitle(e.target.value);
-                  setDirty(true);
-                }}
-                className="text-lg font-semibold border-0 shadow-none focus-visible:ring-0 px-2"
-                placeholder="Page title"
-              />
-            </div>
-            <div className="flex items-center gap-2 shrink-0">
-              {canUseAi && (
+        <div className="flex-1 flex flex-col min-w-0">
+          <div className="border-b border-border bg-background">
+            <div className="flex items-center justify-between px-6 py-3 max-w-6xl mx-auto w-full">
+              <div className="flex items-center gap-4 flex-1 min-w-0">
                 <Button
+                  variant="ghost"
                   size="sm"
-                  onClick={() => setAiOpen(true)}
-                  className="gap-2 text-white hover:opacity-90"
-                  style={{ backgroundColor: "#213C82" }}
+                  onClick={handleBackToContent}
+                  className="gap-2 shrink-0"
                 >
-                  <img src={birdIcon} alt="" className="h-7 w-7" /> Write with AI
+                  <ArrowLeft className="h-4 w-4" /> Back to Content
                 </Button>
-              )}
-              <span className="text-xs text-muted-foreground">
-                {dirty ? "Unsaved changes" : "Saved"}
-              </span>
-              <Button onClick={handleSave} disabled={saving || !dirty} size="sm">
-                {saving ? "Saving..." : "Save"}
-              </Button>
+                {readOnly ? (
+                  <h1 className="text-lg font-semibold truncate px-2">{title}</h1>
+                ) : (
+                  <Input
+                    value={title}
+                    onChange={(e) => {
+                      setTitle(e.target.value);
+                      setDirty(true);
+                    }}
+                    className="text-lg font-semibold border-0 shadow-none focus-visible:ring-0 px-2"
+                    placeholder="Page title"
+                  />
+                )}
+              </div>
+              <div className="flex items-center gap-2 shrink-0">
+                {canUseAi && (
+                  <Button
+                    size="sm"
+                    onClick={() => setAiOpen(true)}
+                    className="gap-2 text-white hover:opacity-90"
+                    style={{ backgroundColor: "#213C82" }}
+                  >
+                    <img src={birdIcon} alt="" className="h-7 w-7" /> Write with AI
+                  </Button>
+                )}
+                {!readOnly && (
+                  <>
+                    <span className="text-xs text-muted-foreground">
+                      {dirty ? "Unsaved changes" : "Saved"}
+                    </span>
+                    <Button onClick={handleSave} disabled={saving || !dirty} size="sm">
+                      {saving ? "Saving..." : "Save"}
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="flex-1 overflow-hidden">
-          <RichTextEditor
-            key={page?.id || pageId}
-            content={content}
-            onChange={(html) => {
-              setContent(html);
-              setDirty(true);
-            }}
-          />
+          <div className="flex-1 overflow-hidden">
+            <RichTextEditor
+              key={page?.id || pageId}
+              content={content}
+              onChange={(html) => {
+                setContent(html);
+                setDirty(true);
+              }}
+              readOnly={readOnly}
+            />
+          </div>
         </div>
       </div>
+
 
       {canUseAi && (
         <AiWritePageDialog
