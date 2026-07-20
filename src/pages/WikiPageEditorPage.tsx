@@ -159,7 +159,7 @@ const WikiPageEditorPage = () => {
   }
 
   const confirmNavigation = () => {
-    if (!dirty || previewAsStaff || isPreviewAsStaffActive()) return true;
+    if (!dirty) return true;
     return window.confirm("You have unsaved changes. Leave without saving?");
   };
 
