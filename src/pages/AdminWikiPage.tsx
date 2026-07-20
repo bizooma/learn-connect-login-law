@@ -73,6 +73,13 @@ const AdminWikiPage = () => {
 
   // Open a specific article when navigated with ?article=<id>
   const [searchParams, setSearchParams] = useSearchParams();
+
+  const [filtersOpen, setFiltersOpen] = useState(false);
+  const [filters, setFilters] = useState<WikiFilters>(() => parseFiltersFromParams(new URLSearchParams(window.location.search)));
+  const { getAccess } = useWikiAccess();
+  const activeFilterCount = activeFilterGroupCount(filters);
+
+
   const articleParam = searchParams.get("article");
   useEffect(() => {
     if (!articleParam) return;
