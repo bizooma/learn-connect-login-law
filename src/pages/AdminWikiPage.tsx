@@ -25,6 +25,8 @@ import SnowBanner from "@/components/admin/wiki/SnowBanner";
 import BunniesBanner from "@/components/admin/wiki/BunniesBanner";
 import AdminDashboardHeader from "@/components/admin/AdminDashboardHeader";
 import WikiFooter from "@/components/admin/wiki/WikiFooter";
+import PreviewAsStaffBanner from "@/components/admin/wiki/PreviewAsStaffBanner";
+import { usePreviewAsStaff } from "@/hooks/usePreviewAsStaff";
 
 type ViewMode = "training" | "team";
 type SortMode = "training" | "az" | "updated" | "owner";
