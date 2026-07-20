@@ -155,7 +155,7 @@ const WikiFlowchartEditorInner = () => {
   };
 
   const handleSave = useCallback(async () => {
-    if (!article) return;
+    if (!article || previewAsStaff || isPreviewAsStaffActive()) return;
     setSaving(true);
     const trimmed = title.trim() || "Untitled flowchart";
     // Strip transient handler from data before persisting
@@ -175,7 +175,7 @@ const WikiFlowchartEditorInner = () => {
       return;
     }
     setDirty(false);
-  }, [article, title, nodes, edges]);
+  }, [article, title, nodes, edges, previewAsStaff]);
 
   // Autosave
   useEffect(() => {
@@ -185,7 +185,7 @@ const WikiFlowchartEditorInner = () => {
     return () => {
       if (saveTimer.current) window.clearTimeout(saveTimer.current);
     };
-  }, [dirty, loading, handleSave]);
+  }, [dirty, loading, handleSave, previewAsStaff]);
 
   if (loading) {
     return (
