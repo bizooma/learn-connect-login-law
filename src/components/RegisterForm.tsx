@@ -148,46 +148,11 @@ const RegisterForm = ({ selectedPlan }: RegisterFormProps) => {
           variant: "destructive",
         });
       } else {
-        if (selectedPlan && authData.user) {
-          toast({
-            title: "Registration Successful",
-            description: "Account created! Redirecting to payment...",
-          });
-
-          // If a plan was selected and user is created, immediately redirect to payment
-          // Small delay to ensure auth is settled, then create checkout
-          setTimeout(async () => {
-            try {
-              const { data, error: checkoutError } = await supabase.functions.invoke('create-subscription-checkout', {
-                body: { planId: selectedPlan },
-              });
-
-              if (checkoutError) {
-                console.error('Checkout error:', checkoutError);
-                toast({
-                  title: "Checkout Error",
-                  description: "Failed to create checkout session. Please try again.",
-                  variant: "destructive",
-                });
-              } else if (data?.url) {
-                window.location.href = data.url;
-              }
-            } catch (checkoutError) {
-              console.error('Unexpected checkout error:', checkoutError);
-              toast({
-                title: "Error",
-                description: "Please try selecting your plan again.",
-                variant: "destructive",
-              });
-            }
-          }, 600);
-        } else {
-          toast({
-            title: "Registration Successful",
-            description: "You're signed in! Redirecting...",
-          });
-          navigate('/free-dashboard?signup=1', { replace: true });
-        }
+        toast({
+          title: "Registration Successful",
+          description: "You're signed in! Redirecting...",
+        });
+        navigate('/free-dashboard?signup=1', { replace: true });
       }
     } catch (error) {
       toast({

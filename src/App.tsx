@@ -48,8 +48,6 @@ import WikiKnowledgeCheckPage from "./pages/WikiKnowledgeCheckPage";
 import AuthPage from "./components/AuthPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RegisterPage from "./pages/RegisterPage";
-import PaymentSuccess from "./pages/PaymentSuccess";
-import PaymentCancelled from "./pages/PaymentCancelled";
 
 import LawFirmStaffTraining from "./pages/LawFirmStaffTraining";
 import ImmigrationLawTraining from "./pages/ImmigrationLawTraining";
@@ -110,8 +108,6 @@ const AppContent = () => {
 
 
         <Route path="/auth" element={<AuthPage />} />
-        <Route path="/payment-success" element={<PaymentSuccess />} />
-        <Route path="/payment-cancelled" element={<PaymentCancelled />} />
         <Route path="/law-firm-training" element={<Navigate to="/" replace />} />
         <Route path="/law-firm-staff-training" element={<LawFirmStaffTraining />} />
         <Route path="/immigration-law-training" element={<ImmigrationLawTraining />} />
