@@ -153,13 +153,17 @@ export const UserCard = ({
 
 
   const toggleTester = async (next: boolean) => {
+    const prev = isTester;
     setTesterSaving(true);
     try {
       if (next) {
         const { error } = await supabase
           .from("user_roles")
-          .insert({ user_id: user.id, role: "tester" });
-        if (error && !`${error.message}`.includes("duplicate")) throw error;
+          .upsert(
+            { user_id: user.id, role: "tester" as any },
+            { onConflict: "user_id,role", ignoreDuplicates: true }
+          );
+        if (error) throw error;
       } else {
         const { error } = await supabase
           .from("user_roles")
@@ -168,6 +172,20 @@ export const UserCard = ({
           .eq("role", "tester");
         if (error) throw error;
       }
+
+      // Verify the write actually landed before flipping UI state
+      const { data: verify, error: verifyError } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", user.id)
+        .eq("role", "tester")
+        .maybeSingle();
+      if (verifyError) throw verifyError;
+      const actuallyTester = !!verify;
+      if (actuallyTester !== next) {
+        throw new Error("Tester state did not persist. Please try again.");
+      }
+
       setIsTester(next);
       toast({
         title: next ? "Tester access granted" : "Tester access removed",
@@ -176,6 +194,7 @@ export const UserCard = ({
           : "User no longer has Policies & Procedures access.",
       });
     } catch (err: any) {
+      setIsTester(prev);
       toast({
         title: "Update failed",
         description: err.message || "Could not update tester access.",
