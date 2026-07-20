@@ -1,4 +1,6 @@
-import { FileText, MoreVertical, Eye, EyeOff, Pencil, Trash2, Shield, ScrollText, Upload, GitBranch, Video, FileUp, ListChecks, ClipboardCheck } from "lucide-react";
+import { FileText, MoreVertical, Eye, EyeOff, Pencil, Trash2, Shield, ScrollText, Upload, GitBranch, Video, FileUp, ListChecks, ClipboardCheck, GripVertical } from "lucide-react";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
