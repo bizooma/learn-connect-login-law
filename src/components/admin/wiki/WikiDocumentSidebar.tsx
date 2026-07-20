@@ -16,7 +16,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { WikiPage } from "@/hooks/useWikiPages";
 import { WikiArticle, WikiContentType, contentTypeLabels } from "@/hooks/useWikiArticles";
-import { isPreviewAsStaffActive, withPreviewAsStaffParam } from "@/hooks/usePreviewAsStaff";
+import { isPreviewAsStaffActive, usePreviewAsStaff, withPreviewAsStaffParam } from "@/hooks/usePreviewAsStaff";
 import AskThisSopButton from "./AskThisSopButton";
 
 interface WikiDocumentSidebarProps {
