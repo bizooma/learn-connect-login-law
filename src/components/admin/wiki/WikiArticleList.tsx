@@ -11,7 +11,7 @@ import {
 import { useWikiArticles, WikiArticle, WikiContentType } from "@/hooks/useWikiArticles";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { usePreviewAsStaff } from "@/hooks/usePreviewAsStaff";
+import { usePreviewAsStaff, withPreviewAsStaffParam } from "@/hooks/usePreviewAsStaff";
 import WikiArticleRow from "./WikiArticleRow";
 import {
   DndContext,
@@ -137,7 +137,7 @@ const WikiArticleList = ({ categoryId, onEditArticle, searchQuery, selectedTags 
             className="flex items-center justify-between px-4 py-2 pl-12 bg-background border-b border-border hover:bg-muted/30 group cursor-pointer"
             onClick={(e) => {
               e.stopPropagation();
-              navigate(`/admin/wiki/knowledge-check/category/${categoryId}`);
+              navigate(withPreviewAsStaffParam(`/admin/wiki/knowledge-check/category/${categoryId}`));
             }}
           >
             <div className="flex items-center gap-2">
