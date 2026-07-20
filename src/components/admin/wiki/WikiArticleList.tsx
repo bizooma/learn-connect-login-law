@@ -11,6 +11,7 @@ import {
 import { useWikiArticles, WikiArticle, WikiContentType } from "@/hooks/useWikiArticles";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { usePreviewAsStaff } from "@/hooks/usePreviewAsStaff";
 import WikiArticleRow from "./WikiArticleRow";
 import {
   DndContext,
