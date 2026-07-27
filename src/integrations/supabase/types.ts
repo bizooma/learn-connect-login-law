@@ -2808,6 +2808,41 @@ export type Database = {
           },
         ]
       }
+      wiki_permissions: {
+        Row: {
+          created_at: string
+          granted_by: string | null
+          id: string
+          level: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          level: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          granted_by?: string | null
+          id?: string
+          level?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wiki_permissions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wiki_question_choices: {
         Row: {
           choice_text: string
@@ -3162,6 +3197,7 @@ export type Database = {
       is_law_firm_owner: { Args: never; Returns: boolean }
       is_nfu_staff: { Args: { _user_id: string }; Returns: boolean }
       is_owner_user: { Args: never; Returns: boolean }
+      is_pnp_admin: { Args: { _user_id: string }; Returns: boolean }
       log_user_activity: {
         Args: {
           p_activity_type: Database["public"]["Enums"]["activity_type"]
@@ -3224,6 +3260,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      pnp_permission_level: { Args: { _user_id: string }; Returns: string }
       recalculate_law_firm_seat_counts: { Args: never; Returns: undefined }
       reclassify_section_to_module: {
         Args: { p_course_id: string; p_section_id: string }

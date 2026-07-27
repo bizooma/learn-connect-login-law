@@ -1,4 +1,4 @@
-import { MoreVertical, User, Copy, Mail } from "lucide-react";
+import { MoreVertical, User, Copy, Mail, Shield } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +26,11 @@ import { ResizableHead } from "@/components/admin/wiki/ResizableHead";
 import { useResizableColumns } from "@/hooks/useResizableColumns";
 
 import { DirectoryUser } from "@/hooks/useDirectoryUsers";
+import PnpPermissionPicker from "@/components/admin/wiki/directory/PnpPermissionPicker";
+import {
+  PNP_LEVEL_OPTIONS,
+  useSetWikiPermission,
+} from "@/hooks/useWikiPermission";
 
 interface Props {
   users: DirectoryUser[];
@@ -38,9 +48,10 @@ const fullName = (u: DirectoryUser) =>
 
 const DirectoryTable = ({ users, onSelect }: Props) => {
   const { toast } = useToast();
+  const setPerm = useSetWikiPermission();
   const cols = useResizableColumns({
-    storageKey: "directory-cols-v2",
-    defaults: [280, 110, 200, 160, 160, 260, 60],
+    storageKey: "directory-cols-v3",
+    defaults: [260, 100, 180, 140, 140, 150, 240, 60],
   });
   const formatRole = (r: string) =>
     r.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
@@ -53,9 +64,10 @@ const DirectoryTable = ({ users, onSelect }: Props) => {
             <ResizableHead width={cols.widths[1]} onResize={cols.onMouseDown(1)}>Status</ResizableHead>
             <ResizableHead width={cols.widths[2]} onResize={cols.onMouseDown(2)}>Job Title</ResizableHead>
             <ResizableHead width={cols.widths[3]} onResize={cols.onMouseDown(3)}>Role</ResizableHead>
-            <ResizableHead width={cols.widths[4]} onResize={cols.onMouseDown(4)}>Department</ResizableHead>
-            <ResizableHead width={cols.widths[5]} onResize={cols.onMouseDown(5)}>Email</ResizableHead>
-            <ResizableHead width={cols.widths[6]} />
+            <ResizableHead width={cols.widths[4]} onResize={cols.onMouseDown(4)}>P&amp;P Access</ResizableHead>
+            <ResizableHead width={cols.widths[5]} onResize={cols.onMouseDown(5)}>Department</ResizableHead>
+            <ResizableHead width={cols.widths[6]} onResize={cols.onMouseDown(6)}>Email</ResizableHead>
+            <ResizableHead width={cols.widths[7]} />
           </TableRow>
         </TableHeader>
 
@@ -100,6 +112,13 @@ const DirectoryTable = ({ users, onSelect }: Props) => {
                   <span className="text-muted-foreground">—</span>
                 )}
               </TableCell>
+              <TableCell onClick={(e) => e.stopPropagation()}>
+                <PnpPermissionPicker
+                  userId={u.id}
+                  level={u.pnp_level}
+                  locked={u.pnp_level_locked}
+                />
+              </TableCell>
               <TableCell className="text-muted-foreground">
                 {u.department || "—"}
               </TableCell>
@@ -112,7 +131,7 @@ const DirectoryTable = ({ users, onSelect }: Props) => {
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuItem onClick={() => onSelect?.(u)}>
                       <User className="h-4 w-4 mr-2" /> View profile
                     </DropdownMenuItem>
@@ -131,6 +150,39 @@ const DirectoryTable = ({ users, onSelect }: Props) => {
                     >
                       <Mail className="h-4 w-4 mr-2" /> Send email
                     </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger disabled={u.pnp_level_locked}>
+                        <Shield className="h-4 w-4 mr-2" />
+                        Set P&amp;P permission
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent className="w-80">
+                        <DropdownMenuLabel className="text-xs text-muted-foreground">
+                          {u.pnp_level_locked
+                            ? "Inherited from LMS role"
+                            : "Permission level"}
+                        </DropdownMenuLabel>
+                        {PNP_LEVEL_OPTIONS.map((opt) => (
+                          <DropdownMenuItem
+                            key={opt.value}
+                            className="items-start gap-2 py-2"
+                            disabled={u.pnp_level_locked}
+                            onSelect={() => {
+                              if (!u.pnp_level_locked && opt.value !== u.pnp_level) {
+                                setPerm.mutate({ userId: u.id, level: opt.value });
+                              }
+                            }}
+                          >
+                            <div className="flex-1">
+                              <div className="font-medium">{opt.label}</div>
+                              <div className="text-xs text-muted-foreground mt-0.5">
+                                {opt.description}
+                              </div>
+                            </div>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
