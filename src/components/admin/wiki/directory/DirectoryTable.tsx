@@ -64,9 +64,10 @@ const DirectoryTable = ({ users, onSelect }: Props) => {
             <ResizableHead width={cols.widths[1]} onResize={cols.onMouseDown(1)}>Status</ResizableHead>
             <ResizableHead width={cols.widths[2]} onResize={cols.onMouseDown(2)}>Job Title</ResizableHead>
             <ResizableHead width={cols.widths[3]} onResize={cols.onMouseDown(3)}>Role</ResizableHead>
-            <ResizableHead width={cols.widths[4]} onResize={cols.onMouseDown(4)}>Department</ResizableHead>
-            <ResizableHead width={cols.widths[5]} onResize={cols.onMouseDown(5)}>Email</ResizableHead>
-            <ResizableHead width={cols.widths[6]} />
+            <ResizableHead width={cols.widths[4]} onResize={cols.onMouseDown(4)}>P&amp;P Access</ResizableHead>
+            <ResizableHead width={cols.widths[5]} onResize={cols.onMouseDown(5)}>Department</ResizableHead>
+            <ResizableHead width={cols.widths[6]} onResize={cols.onMouseDown(6)}>Email</ResizableHead>
+            <ResizableHead width={cols.widths[7]} />
           </TableRow>
         </TableHeader>
 
