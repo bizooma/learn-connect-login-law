@@ -112,6 +112,13 @@ const DirectoryTable = ({ users, onSelect }: Props) => {
                   <span className="text-muted-foreground">—</span>
                 )}
               </TableCell>
+              <TableCell onClick={(e) => e.stopPropagation()}>
+                <PnpPermissionPicker
+                  userId={u.id}
+                  level={u.pnp_level}
+                  locked={u.pnp_level_locked}
+                />
+              </TableCell>
               <TableCell className="text-muted-foreground">
                 {u.department || "—"}
               </TableCell>
@@ -124,7 +131,7 @@ const DirectoryTable = ({ users, onSelect }: Props) => {
                       <MoreVertical className="h-4 w-4" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
+                  <DropdownMenuContent align="end" className="w-56">
                     <DropdownMenuItem onClick={() => onSelect?.(u)}>
                       <User className="h-4 w-4 mr-2" /> View profile
                     </DropdownMenuItem>
@@ -143,6 +150,39 @@ const DirectoryTable = ({ users, onSelect }: Props) => {
                     >
                       <Mail className="h-4 w-4 mr-2" /> Send email
                     </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuSub>
+                      <DropdownMenuSubTrigger disabled={u.pnp_level_locked}>
+                        <Shield className="h-4 w-4 mr-2" />
+                        Set P&amp;P permission
+                      </DropdownMenuSubTrigger>
+                      <DropdownMenuSubContent className="w-80">
+                        <DropdownMenuLabel className="text-xs text-muted-foreground">
+                          {u.pnp_level_locked
+                            ? "Inherited from LMS role"
+                            : "Permission level"}
+                        </DropdownMenuLabel>
+                        {PNP_LEVEL_OPTIONS.map((opt) => (
+                          <DropdownMenuItem
+                            key={opt.value}
+                            className="items-start gap-2 py-2"
+                            disabled={u.pnp_level_locked}
+                            onSelect={() => {
+                              if (!u.pnp_level_locked && opt.value !== u.pnp_level) {
+                                setPerm.mutate({ userId: u.id, level: opt.value });
+                              }
+                            }}
+                          >
+                            <div className="flex-1">
+                              <div className="font-medium">{opt.label}</div>
+                              <div className="text-xs text-muted-foreground mt-0.5">
+                                {opt.description}
+                              </div>
+                            </div>
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuSubContent>
+                    </DropdownMenuSub>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </TableCell>
