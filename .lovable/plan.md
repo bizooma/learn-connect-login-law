@@ -1,60 +1,86 @@
 
-## Goal
-When a user asks "Summarize this SOP" (or similar), the AI should return **what you should have learned** — concrete rules, steps, decisions, thresholds, and do/don'ts — not a table of contents echoing page titles.
+# P&P Permission Levels
 
-## Why it happens today
-In `supabase/functions/ask-wiki-sop/index.ts`:
-- The system prompt is generic ("concise and specific… short paragraphs or bullet points"). It doesn't tell the model to extract learning outcomes, so on a summary request it defaults to mirroring the page structure it sees in the `[Page: Title | id: …]` headers.
-- Page titles are included inline in the context, which nudges the model to reuse them as an outline.
-- `temperature: 0.1` + `gpt-4o-mini` is fine, but the instructions are the bottleneck.
-- The frontend Quick Action is literally "Summarize this SOP", reinforcing outline-style output.
+Scope: Policies & Procedures (wiki) only. Does not affect LMS access, LMS roles, admin dashboard, or any existing `app_role` values (admin/owner/student/etc.).
 
-## Changes
+## The 4 levels (P&P-only)
 
-### 1. Rewrite the system prompt (biggest lever)
-Replace the current system prompt in `ask-wiki-sop/index.ts` with one that:
-- Frames the assistant as a **trainer verifying comprehension**, not a summarizer.
-- For summary/overview-style questions, requires output in a fixed learning-outcome shape:
-  - **What this SOP is for** (1–2 sentences, plain language)
-  - **What you should now be able to do** (action-oriented bullets, each starting with a verb)
-  - **Key rules & thresholds** (specific numbers, names, deadlines, approvers, tools — pulled verbatim where they exist)
-  - **Steps in order** (only if the SOP prescribes a process)
-  - **Common mistakes / do NOT** (only if the SOP calls them out)
-  - **When to escalate / who owns it** (only if present)
-- Bans copying page titles as headings; requires synthesis across pages.
-- Keeps the strict grounding rule ("only from this SOP", deflect line unchanged) and the `SOURCES:` trailer contract so citations keep working.
-- For non-summary questions, answers directly in the same grounded style (no forced template).
+| Level | What they can do in P&P |
+|---|---|
+| **Admin** | Manage entire P&P: create/edit/delete any subject, manage settings, manage other users' P&P permissions. Does NOT grant LMS admin. |
+| **Author** | Create new subjects; publish, share, and edit any subject shared with them. |
+| **Contributor** | Edit subjects they're assigned to. Edits to unpublished content require review/publish by Author or Admin. |
+| **General** (default) | View subjects they're assigned to. |
 
-### 2. Reshape the context we send
-Still send every page, but:
-- Drop the `[Page: <title> | id: <id>]` header format that encourages outline mimicry. Use `<<PAGE id="…">>` delimiters with the title on a separate de-emphasized line, and instruct the model to treat titles as metadata, not as section headings to reproduce.
-- Keep the page-id mapping so the `SOURCES:` parser and citation chips keep working unchanged.
+A real LMS admin (existing `user_roles.role = 'admin'` or `'owner'`) is automatically treated as P&P Admin — we don't need to double-assign them.
 
-### 3. Update Quick Actions in the panel
-In `src/components/admin/wiki/AskThisSopPanel.tsx`, change `QUICK_ACTIONS` to prompts that match the new behavior:
-- "What should I have learned from this SOP?"
-- "Key rules, numbers, and deadlines"
-- "Step-by-step process"
-- "Common mistakes to avoid"
+## Where admins set it
 
-("Give me the key steps" stays in spirit as "Step-by-step process".)
+**1. Directory column (primary)**
+- New "P&P Access" column on `/admin/wiki/directory` between Role and Department.
+- Renders as a colored pill showing the user's current level ("General" by default).
+- Clicking the pill opens the exact dropdown from your screenshot (label + description per option, checkmark on current).
+- Selection saves inline with a toast. No modal.
+- LMS admins/owners show a locked "Admin (LMS)" pill with tooltip "Inherited from LMS role" — not editable here.
 
-### 4. Small model/params tune
-In the same edge function:
-- Bump `max_tokens` (currently unset → provider default can truncate longer learning-outcome answers). Set an explicit cap (e.g. 1200).
-- Keep `temperature: 0.1`. Keep `gpt-4o-mini` for cost; note in a code comment that upgrading the model is the next lever if quality is still weak.
+**2. Row hamburger menu (secondary)**
+- Add "Set P&P permission →" item to the existing row `...` menu, opens the same dropdown.
+- Covers admins already deep in a row's actions.
 
-## Out of scope
-- No schema changes.
-- No changes to `wiki_pages` content, chunking/embeddings, or a new retrieval layer — full-SOP context still fits and is simpler. If SOPs grow past the context window later, we'd add retrieval then.
-- No changes to the citation UI or `SOURCES:` contract.
+**3. Bulk (small addition)**
+- The Directory already has row checkboxes; add a "Set P&P permission" action to the existing bulk action bar. Same dropdown, applied to all selected non-LMS-admin users.
+
+## Where the levels take effect
+
+Only the P&P UI reads this — no LMS surface changes.
+
+- **`useWikiAccess.ts`** — new `getPnpLevel()` helper. If level is Admin → treat like current admin (full on everything). Author/Contributor/General → keep existing per-category share logic on top; the level only raises the floor:
+  - General: unchanged from today (view discoverable + explicitly shared).
+  - Contributor: can edit shared items; edits to unpublished content don't publish (surface a "Submit for review" state — deferred, tracked as follow-up).
+  - Author: can create new subjects (new-subject button gated on `level >= author`), plus current share behavior.
+  - Admin: same as current wiki admin gate (`is_nfu_staff`-style bypass).
+- **Wiki header/sidebar tab visibility** — anyone with level ≥ General sees the "Policies & Procedures" tab (replaces the current `isTester` hack we've been using to grant access). Existing testers get migrated to General.
+- **"New Subject" / category create buttons** — gated on level ≥ Author.
+- **Manage Users / Settings pages under `/admin/wiki/account/*`** — gated on level = Admin (P&P Admin or LMS admin).
+
+## Data model
+
+New table `public.wiki_permissions` (no changes to `user_roles`, no changes to `app_role` enum):
+
+```
+id uuid pk
+user_id uuid unique references profiles(id)
+level text check (level in ('admin','author','contributor','general'))
+granted_by uuid
+created_at, updated_at
+```
+
+- Absence of a row = "general" (implicit default), so we don't need to backfill every user.
+- New security-definer helper `public.pnp_permission_level(_user_id uuid)` returns:
+  - `'admin'` if user has LMS role `admin` or `owner`, OR row in `wiki_permissions` with level `'admin'`
+  - Otherwise the row's level, or `'general'` as fallback.
+- Wiki RLS policies (`wiki_categories/_articles/_pages`) get updated to use `pnp_permission_level(auth.uid()) >= 'general'` for the tab-visibility gate (replacing today's tester gate).
+- Full/Edit/View on individual subjects still flows through the existing `wiki_category_users` / `wiki_category_groups` share rows — the level is orthogonal to per-subject sharing.
+
+## Migration of existing state
+
+- All current `tester`-role users → seed a `wiki_permissions` row at `'general'`. Tester role itself remains for other uses.
+- The 7 @newfrontier.us users I just added yesterday are covered by this.
+- No changes to who can see what today; this only adds the ability to grant Author/Contributor going forward.
+
+## Out of scope (call out for later)
+
+- Contributor "Submit for review" workflow (draft edits queued for Author approval) — needs its own design pass.
+- Per-subject overrides UI already exists in the subject share dialog; not changing it.
+- No LMS role changes, no changes to `AdminDashboardHeader`, `StudentMainHeader`, or `useUserRole`.
 
 ## Files touched
-- `supabase/functions/ask-wiki-sop/index.ts` — new system prompt, new page delimiter format, `max_tokens`.
-- `src/components/admin/wiki/AskThisSopPanel.tsx` — updated `QUICK_ACTIONS`.
 
-## Verification
-After deploy, on a known SOP:
-1. Click "What should I have learned from this SOP?" → expect outcome bullets with specific rules/numbers, not the page outline.
-2. Ask something clearly not in the SOP → still returns the exact deflection line.
-3. Confirm source chips still render (SOURCES parser unchanged).
+- New migration: `wiki_permissions` table + `pnp_permission_level()` fn + RLS updates on wiki tables + seed tester → general
+- New: `src/hooks/useWikiPermission.ts`
+- Edit: `src/hooks/useUserRole.tsx` — `canAccessWiki` reads `wiki_permissions` (falls back to today's admin/owner/tester)
+- Edit: `src/pages/AdminWikiDirectoryPage.tsx` — new column, pill dropdown, bulk action, row-menu item
+- Edit: `src/hooks/useWikiAccess.ts` — merge P&P level into `getAccess`
+- Edit: wiki category/subject "New" buttons — gate on `level >= author`
+
+Rough size: 1 migration, ~5 file edits, no visual changes outside the Directory + wiki create buttons.
