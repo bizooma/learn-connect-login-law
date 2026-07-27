@@ -8,6 +8,7 @@ export const useUserRole = () => {
   const { user, loading: authLoading } = useAuth();
   const [role, setRole] = useState<string | null>(null);
   const [extraRoles, setExtraRoles] = useState<string[]>([]);
+  const [hasPnpPermission, setHasPnpPermission] = useState(false);
   const [loading, setLoading] = useState(true);
 
 
