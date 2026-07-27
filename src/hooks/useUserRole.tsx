@@ -59,6 +59,7 @@ export const useUserRole = () => {
       logger.log('useUserRole: User is direct admin, setting admin role');
       setRole('admin');
       setExtraRoles(['admin']);
+      setHasPnpPermission(true);
       setLoading(false);
 
       return;
@@ -68,15 +69,17 @@ export const useUserRole = () => {
     setLoading(true);
     
     try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', user.id);
+      const [rolesRes, permRes] = await Promise.all([
+        supabase.from('user_roles').select('role').eq('user_id', user.id),
+        supabase.from('wiki_permissions').select('level').eq('user_id', user.id).maybeSingle(),
+      ]);
 
-      logger.log('useUserRole: Database query result', { 
-        data, 
-        error, 
-        userId: user.id 
+      const { data, error } = rolesRes;
+
+      logger.log('useUserRole: Database query result', {
+        data,
+        error,
+        userId: user.id
       });
 
       if (error) {
@@ -87,18 +90,21 @@ export const useUserRole = () => {
         const allRoles = (data || []).map((r: any) => r.role);
         // Primary role excludes 'tester' (which is an additive add-on role)
         const primary = allRoles.find((r) => r !== 'tester') || 'free';
-        logger.log('useUserRole: Setting role from database', { 
-          role: primary, 
+        logger.log('useUserRole: Setting role from database', {
+          role: primary,
           allRoles,
-          userId: user.id 
+          userId: user.id
         });
         setRole(primary);
         setExtraRoles(allRoles);
       }
+
+      setHasPnpPermission(!!permRes.data);
     } catch (error) {
       logger.error('useUserRole: Exception during role fetch, defaulting to free', error);
       setRole('free');
       setExtraRoles([]);
+      setHasPnpPermission(false);
     } finally {
       setLoading(false);
     }
@@ -152,8 +158,8 @@ export const useUserRole = () => {
   const isTester = useMemo(() => extraRoles.includes('tester'), [extraRoles]);
   const hasAdminPrivileges = useMemo(() => isAdmin || isOwner, [isAdmin, isOwner]);
   const canAccessWiki = useMemo(
-    () => isAdmin || isOwner || isTester,
-    [isAdmin, isOwner, isTester]
+    () => isAdmin || isOwner || isTester || hasPnpPermission,
+    [isAdmin, isOwner, isTester, hasPnpPermission]
   );
 
   // Simplified loading state - only loading if auth is loading OR we're loading roles
