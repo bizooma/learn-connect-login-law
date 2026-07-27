@@ -1,4 +1,4 @@
-import { MoreVertical, User, Copy, Mail } from "lucide-react";
+import { MoreVertical, User, Copy, Mail, Shield } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -6,6 +6,11 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +26,11 @@ import { ResizableHead } from "@/components/admin/wiki/ResizableHead";
 import { useResizableColumns } from "@/hooks/useResizableColumns";
 
 import { DirectoryUser } from "@/hooks/useDirectoryUsers";
+import PnpPermissionPicker from "@/components/admin/wiki/directory/PnpPermissionPicker";
+import {
+  PNP_LEVEL_OPTIONS,
+  useSetWikiPermission,
+} from "@/hooks/useWikiPermission";
 
 interface Props {
   users: DirectoryUser[];
@@ -38,9 +48,10 @@ const fullName = (u: DirectoryUser) =>
 
 const DirectoryTable = ({ users, onSelect }: Props) => {
   const { toast } = useToast();
+  const setPerm = useSetWikiPermission();
   const cols = useResizableColumns({
-    storageKey: "directory-cols-v2",
-    defaults: [280, 110, 200, 160, 160, 260, 60],
+    storageKey: "directory-cols-v3",
+    defaults: [260, 100, 180, 140, 140, 150, 240, 60],
   });
   const formatRole = (r: string) =>
     r.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
