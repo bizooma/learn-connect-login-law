@@ -662,6 +662,10 @@ const RichTextEditor = ({ content, onChange, readOnly = false }: RichTextEditorP
         .wiki-editor-surface li [data-bold="true"] {
           font-weight: 700 !important;
         }
+        .wiki-editor-surface ol { list-style: decimal outside; padding-left: 1.5rem; margin: 0.5rem 0; }
+        .wiki-editor-surface ul:not(.task-list) { list-style: disc outside; padding-left: 1.5rem; margin: 0.5rem 0; }
+        .wiki-editor-surface ol ol { list-style: lower-alpha outside; }
+        .wiki-editor-surface ol ol ol { list-style: lower-roman outside; }
         .wiki-editor-surface ul.task-list { list-style: none; padding-left: 0; }
         .wiki-editor-surface ul.task-list li.task-item { display: flex; align-items: flex-start; gap: 0.5rem; margin: 0.25rem 0; }
         .wiki-editor-surface ul.task-list li.task-item > label { flex: 0 0 auto; margin-top: 0.35rem; display: inline-flex; align-items: center; user-select: none; }
