@@ -7,7 +7,46 @@ import Underline from "@tiptap/extension-underline";
 import { Color } from "@tiptap/extension-color";
 import { TextStyle } from "@tiptap/extension-text-style";
 import FontFamily from "@tiptap/extension-font-family";
-import { Extension } from "@tiptap/core";
+import { Extension, Node, mergeAttributes } from "@tiptap/core";
+
+const Iframe = Node.create({
+  name: "iframe",
+  group: "block",
+  atom: true,
+  selectable: true,
+  draggable: true,
+  addOptions() {
+    return {
+      HTMLAttributes: {
+        class: "w-full aspect-video rounded-md my-4",
+        frameborder: "0",
+        allowfullscreen: "true",
+        webkitallowfullscreen: "true",
+        mozallowfullscreen: "true",
+        allow: "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen",
+      },
+    };
+  },
+  addAttributes() {
+    return {
+      src: { default: null },
+      width: { default: null },
+      height: { default: null },
+      frameborder: { default: "0" },
+      allowfullscreen: { default: "true" },
+      allow: { default: null },
+      class: { default: null },
+      style: { default: null },
+      title: { default: null },
+    };
+  },
+  parseHTML() {
+    return [{ tag: "iframe" }];
+  },
+  renderHTML({ HTMLAttributes }) {
+    return ["iframe", mergeAttributes(this.options.HTMLAttributes, HTMLAttributes)];
+  },
+});
 
 const FontSize = Extension.create({
   name: "fontSize",
@@ -559,6 +598,7 @@ const RichTextEditor = ({ content, onChange, readOnly = false }: RichTextEditorP
       TableCell.configure({ HTMLAttributes: { class: "border border-border p-2" } }),
       TaskList.configure({ HTMLAttributes: { class: "task-list not-prose" } }),
       TaskItem.configure({ nested: true, HTMLAttributes: { class: "task-item" } }),
+      Iframe,
     ],
     content: content || "",
     onUpdate: ({ editor }) => {
