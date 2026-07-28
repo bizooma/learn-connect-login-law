@@ -598,6 +598,7 @@ const RichTextEditor = ({ content, onChange, readOnly = false }: RichTextEditorP
       TableCell.configure({ HTMLAttributes: { class: "border border-border p-2" } }),
       TaskList.configure({ HTMLAttributes: { class: "task-list not-prose" } }),
       TaskItem.configure({ nested: true, HTMLAttributes: { class: "task-item" } }),
+      Iframe,
     ],
     content: content || "",
     onUpdate: ({ editor }) => {
