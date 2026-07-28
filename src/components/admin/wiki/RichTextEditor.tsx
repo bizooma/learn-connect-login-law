@@ -610,6 +610,24 @@ const RichTextEditor = ({ content, onChange, readOnly = false }: RichTextEditorP
           "prose prose-sm sm:prose-base max-w-none focus:outline-none min-h-[600px] py-8 prose-p:font-normal prose-li:font-normal prose-p:text-foreground",
 
       },
+      handlePaste: (view, event) => {
+        const text = event.clipboardData?.getData("text/plain")?.trim();
+        if (!text) return false;
+        const loomMatch = text.match(/^https?:\/\/(?:www\.)?loom\.com\/(?:share|embed)\/([a-zA-Z0-9]+)/);
+        if (loomMatch) {
+          event.preventDefault();
+          const id = loomMatch[1];
+          editor
+            ?.chain()
+            .focus()
+            .insertContent(
+              `<div class="my-4"><iframe src="https://www.loom.com/embed/${id}" class="w-full aspect-video rounded-md" frameborder="0" allowfullscreen webkitallowfullscreen mozallowfullscreen></iframe></div>`
+            )
+            .run();
+          return true;
+        }
+        return false;
+      },
     },
   });
 
