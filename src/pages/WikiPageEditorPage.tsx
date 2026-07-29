@@ -47,14 +47,16 @@ const WikiPageEditorPage = () => {
   const routeCategoryId = (location.state as { activeCategoryId?: string } | null)?.activeCategoryId || null;
 
 
+  const currentArticleId = page?.article_id || null;
   const { data: currentArticle } = useQuery({
-    queryKey: ["wiki-page-current-article", page?.article_id],
-    enabled: !!page?.article_id,
+    queryKey: ["wiki-page-current-article", currentArticleId],
+    enabled: !!currentArticleId,
     queryFn: async () => {
+      if (!currentArticleId) throw new Error("Missing article id");
       const { data, error } = await supabase
         .from("wiki_articles")
         .select("id, category_id")
-        .eq("id", page!.article_id)
+        .eq("id", currentArticleId)
         .single();
       if (error) throw error;
       return data as { id: string; category_id: string };
@@ -151,7 +153,7 @@ const WikiPageEditorPage = () => {
     if (!previewAsStaff && keepEditable) setKeepEditable(false);
   }, [previewAsStaff, dirty, keepEditable]);
 
-  if (loading && !page) {
+  if (loading && !page && !sidebarCategoryId) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
