@@ -68,10 +68,11 @@ const WikiDocumentSidebar = ({
     queryKey: ["wiki-article-category-lookup", activeArticleId],
     enabled: !!activeArticleId && !categoryId && !stateCategoryId,
     queryFn: async () => {
+      if (!activeArticleId) return null;
       const { data: currentArticle, error } = await supabase
         .from("wiki_articles")
         .select("category_id")
-        .eq("id", activeArticleId!)
+        .eq("id", activeArticleId)
         .single();
       if (error) throw error;
       return (currentArticle as { category_id: string }).category_id;
@@ -86,12 +87,13 @@ const WikiDocumentSidebar = ({
     enabled: !!resolvedCategoryId,
     placeholderData: (prev) => prev,
     queryFn: async () => {
+      if (!resolvedCategoryId) throw new Error("Missing category id");
       const [{ data: category, error: categoryError }, { data: articles, error: articlesError }] = await Promise.all([
-        supabase.from("wiki_categories").select("id, title").eq("id", resolvedCategoryId!).single(),
+        supabase.from("wiki_categories").select("id, title").eq("id", resolvedCategoryId).single(),
         supabase
           .from("wiki_articles")
           .select("*")
-          .eq("category_id", resolvedCategoryId!)
+          .eq("category_id", resolvedCategoryId)
           .order("sort_order", { ascending: true }),
       ]);
 
@@ -173,7 +175,7 @@ const WikiDocumentSidebar = ({
       </div>
 
       <nav className="flex-1 overflow-y-auto py-2">
-        {isLoading ? (
+        {isLoading && !data ? (
           <div className="flex items-center gap-2 px-4 py-3 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" /> Loading...
           </div>
