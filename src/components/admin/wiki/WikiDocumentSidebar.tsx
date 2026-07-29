@@ -57,33 +57,41 @@ const WikiDocumentSidebar = ({
   onBeforeNavigate,
 }: WikiDocumentSidebarProps) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { enabled: previewAsStaff } = usePreviewAsStaff();
 
-  const { data, isLoading } = useQuery<WikiDocumentTreeData>({
-    queryKey: ["wiki-document-sidebar", categoryId, activeArticleId],
-    enabled: !!categoryId || !!activeArticleId,
+  const stateCategoryId = (location.state as { activeCategoryId?: string } | null)?.activeCategoryId || null;
+
+  // Resolve category id from activeArticleId only when we don't already have one.
+  // Cached by article id so it runs at most once per article.
+  const { data: lookedUpCategoryId } = useQuery<string | null>({
+    queryKey: ["wiki-article-category-lookup", activeArticleId],
+    enabled: !!activeArticleId && !categoryId && !stateCategoryId,
     queryFn: async () => {
-      let resolvedCategoryId = categoryId || null;
+      const { data: currentArticle, error } = await supabase
+        .from("wiki_articles")
+        .select("category_id")
+        .eq("id", activeArticleId!)
+        .single();
+      if (error) throw error;
+      return (currentArticle as { category_id: string }).category_id;
+    },
+    staleTime: 5 * 60 * 1000,
+  });
 
-      if (!resolvedCategoryId && activeArticleId) {
-        const { data: currentArticle, error: currentArticleError } = await supabase
-          .from("wiki_articles")
-          .select("category_id")
-          .eq("id", activeArticleId)
-          .single();
+  const resolvedCategoryId = categoryId || stateCategoryId || lookedUpCategoryId || null;
 
-        if (currentArticleError) throw currentArticleError;
-        resolvedCategoryId = (currentArticle as { category_id: string }).category_id;
-      }
-
-      if (!resolvedCategoryId) throw new Error("Missing subject");
-
+  const { data, isLoading } = useQuery<WikiDocumentTreeData>({
+    queryKey: ["wiki-document-sidebar", resolvedCategoryId],
+    enabled: !!resolvedCategoryId,
+    placeholderData: (prev) => prev,
+    queryFn: async () => {
       const [{ data: category, error: categoryError }, { data: articles, error: articlesError }] = await Promise.all([
-        supabase.from("wiki_categories").select("id, title").eq("id", resolvedCategoryId).single(),
+        supabase.from("wiki_categories").select("id, title").eq("id", resolvedCategoryId!).single(),
         supabase
           .from("wiki_articles")
           .select("*")
-          .eq("category_id", resolvedCategoryId)
+          .eq("category_id", resolvedCategoryId!)
           .order("sort_order", { ascending: true }),
       ]);
 
