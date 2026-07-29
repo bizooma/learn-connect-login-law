@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +28,7 @@ const sanitizeContent = (html: string): string => {
 const WikiPageEditorPage = () => {
   const { pageId } = useParams<{ pageId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const [page, setPage] = useState<WikiPage | null>(null);
   const [title, setTitle] = useState("");
   const [content, setContent] = useState("");
@@ -43,6 +44,8 @@ const WikiPageEditorPage = () => {
   const [keepEditable, setKeepEditable] = useState(false);
   const canUseAi = (isAdmin || isOwner) && !previewAsStaff;
   const readOnly = previewAsStaff && !keepEditable;
+  const routeCategoryId = (location.state as { activeCategoryId?: string } | null)?.activeCategoryId || null;
+  const sidebarCategoryId = currentArticle?.category_id || routeCategoryId || null;
 
 
   const { data: currentArticle } = useQuery({
@@ -68,9 +71,6 @@ const WikiPageEditorPage = () => {
       }
 
       setLoading(true);
-      setPage(null);
-      setTitle("");
-      setContent("");
       setDirty(false);
 
       const { data, error } = await supabase
@@ -150,7 +150,7 @@ const WikiPageEditorPage = () => {
     if (!previewAsStaff && keepEditable) setKeepEditable(false);
   }, [previewAsStaff, dirty, keepEditable]);
 
-  if (loading) {
+  if (loading && !page) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
@@ -166,7 +166,7 @@ const WikiPageEditorPage = () => {
   const handleBackToContent = () => {
     if (!confirmNavigation()) return;
     navigate(withPreviewAsStaffParam("/admin/wiki/content"), {
-      state: { activeCategoryId: currentArticle?.category_id ?? null },
+      state: { activeCategoryId: sidebarCategoryId },
     });
   };
 
@@ -175,9 +175,9 @@ const WikiPageEditorPage = () => {
       <PreviewAsStaffBanner />
       <div className="flex flex-1 min-h-0">
         <WikiDocumentSidebar
-          categoryId={currentArticle?.category_id}
+          categoryId={sidebarCategoryId}
           activeArticleId={page?.article_id}
-          activePageId={page?.id}
+          activePageId={pageId}
           onBeforeNavigate={confirmNavigation}
         />
 
@@ -233,16 +233,21 @@ const WikiPageEditorPage = () => {
             </div>
           </div>
 
-          <div className="flex-1 overflow-hidden">
+          <div className="flex-1 overflow-hidden relative">
+            {loading && (
+              <div className="absolute inset-0 z-10 flex items-center justify-center bg-background/80">
+                <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+              </div>
+            )}
             <RichTextEditor
               key={page?.id || pageId}
               content={content}
               onChange={(html) => {
-                if (readOnly) return;
+                if (readOnly || loading) return;
                 setContent(html);
                 setDirty(true);
               }}
-              readOnly={readOnly}
+              readOnly={readOnly || loading}
             />
           </div>
         </div>
