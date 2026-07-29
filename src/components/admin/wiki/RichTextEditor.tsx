@@ -633,7 +633,7 @@ const RichTextEditor = ({ content, onChange, readOnly = false }: RichTextEditorP
 
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
-      editor.commands.setContent(content || "", { emitUpdate: false });
+      editor.commands.setContent(content || "", false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [content]);
