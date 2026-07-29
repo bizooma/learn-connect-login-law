@@ -639,7 +639,7 @@ const RichTextEditor = ({ content, onChange, readOnly = false }: RichTextEditorP
   }, [content]);
 
   useEffect(() => {
-    if (editor) editor.setEditable(!readOnly);
+    if (editor) editor.setEditable(!readOnly, false);
   }, [editor, readOnly]);
 
   if (!editor) return null;
