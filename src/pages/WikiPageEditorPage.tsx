@@ -45,7 +45,6 @@ const WikiPageEditorPage = () => {
   const canUseAi = (isAdmin || isOwner) && !previewAsStaff;
   const readOnly = previewAsStaff && !keepEditable;
   const routeCategoryId = (location.state as { activeCategoryId?: string } | null)?.activeCategoryId || null;
-  const sidebarCategoryId = currentArticle?.category_id || routeCategoryId || null;
 
 
   const { data: currentArticle } = useQuery({
@@ -61,6 +60,8 @@ const WikiPageEditorPage = () => {
       return data as { id: string; category_id: string };
     },
   });
+
+  const sidebarCategoryId = currentArticle?.category_id || routeCategoryId || null;
 
   useEffect(() => {
     let active = true;
