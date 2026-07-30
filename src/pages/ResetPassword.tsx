@@ -21,16 +21,43 @@ const ResetPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isValidSession, setIsValidSession] = useState(false);
   const [isInvite, setIsInvite] = useState(false);
+  const [failure, setFailure] = useState<string | null>(null);
 
   useEffect(() => {
+    let settled = false;
+    let mounted = true;
+    let graceTimer: ReturnType<typeof setTimeout> | undefined;
+
     const failWith = (description: string) => {
+      if (!mounted || settled) return;
+      settled = true;
+      setFailure(description);
       toast({
         title: "Link no longer valid",
         description,
         variant: "destructive",
       });
-      navigate("/");
     };
+
+    const succeed = () => {
+      if (!mounted || settled) return;
+      settled = true;
+      setFailure(null);
+      setIsValidSession(true);
+    };
+
+    // Catch sessions that supabase-js resolves asynchronously from the URL fragment
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (
+        session &&
+        (event === "SIGNED_IN" ||
+          event === "PASSWORD_RECOVERY" ||
+          event === "INITIAL_SESSION" ||
+          event === "USER_UPDATED")
+      ) {
+        succeed();
+      }
+    });
 
     const validateResetSession = async () => {
       const hashParams = new URLSearchParams(
@@ -56,7 +83,7 @@ const ResetPassword = () => {
         return;
       }
 
-      // Invite / recovery links both establish a session we can update the password with
+      // Deterministic path: token_hash in the query/hash
       if (tokenHash && (type === "recovery" || invite)) {
         try {
           const { data, error: verifyError } = await supabase.auth.verifyOtp({
@@ -74,7 +101,7 @@ const ResetPassword = () => {
             return;
           }
 
-          setIsValidSession(true);
+          succeed();
           return;
         } catch (err) {
           console.error("ResetPassword: Unexpected error during verification:", err);
@@ -83,24 +110,35 @@ const ResetPassword = () => {
         }
       }
 
-      // Some links deliver tokens directly in the hash — Supabase picks these up
-      // automatically, so wait for the session to resolve before deciding.
+      // Fragment-token path: supabase-js parses the URL asynchronously.
       const { data: sessionData } = await supabase.auth.getSession();
       if (sessionData?.session) {
-        setIsValidSession(true);
+        succeed();
         return;
       }
 
-      failWith(
-        invite
-          ? "This invite link has expired. Ask your administrator to resend it."
-          : "This password reset link is missing required parameters or has expired."
-      );
+      // Give the client a grace period to finish parsing before deciding.
+      graceTimer = setTimeout(async () => {
+        const { data: retry } = await supabase.auth.getSession();
+        if (retry?.session) {
+          succeed();
+          return;
+        }
+        failWith(
+          "We couldn't verify your link. Try clicking it again, or ask your administrator to resend it."
+        );
+      }, 3000);
     };
 
-    
     validateResetSession();
+
+    return () => {
+      mounted = false;
+      if (graceTimer) clearTimeout(graceTimer);
+      sub.subscription.unsubscribe();
+    };
   }, [searchParams, navigate, toast]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
