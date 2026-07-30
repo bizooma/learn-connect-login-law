@@ -197,12 +197,31 @@ const ResetPassword = () => {
 
   if (!isValidSession) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Verifying your invite…</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 p-4">
+        {failure ? (
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle className="text-center">
+                {isInvite ? "Invite link problem" : "Reset link problem"}
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-center">
+              <p className="text-sm text-gray-600">{failure}</p>
+              <Button className="w-full" onClick={() => navigate("/")}>
+                Back to Login
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-gray-600">
+              {isInvite ? "Verifying your invite…" : "Verifying your link…"}
+            </p>
+          </div>
+        )}
       </div>
+
     );
   }
 
