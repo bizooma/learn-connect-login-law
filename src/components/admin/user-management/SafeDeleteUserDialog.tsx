@@ -68,7 +68,7 @@ const SafeDeleteUserDialog = ({ user, onUserDeleted }: SafeDeleteUserDialogProps
             Deactivate User Account
           </AlertDialogTitle>
           <AlertDialogDescription>
-            Are you sure you want to deactivate <strong>{displayName}</strong>? They can be restored later from the Inactive Users tab.
+            Are you sure you want to deactivate <strong>{displayName}</strong>? They will no longer be able to sign in. All training progress and certificates are kept in case they return, and they can be restored later from the Inactive Users tab.
           </AlertDialogDescription>
         </AlertDialogHeader>
 

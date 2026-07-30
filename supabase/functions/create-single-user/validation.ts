@@ -3,11 +3,10 @@ export interface CreateUserRequest {
   email: string;
   firstName: string;
   lastName: string;
-  password?: string;
 }
 
 export function validateCreateUserRequest(body: any): { isValid: boolean; error?: string; data?: CreateUserRequest } {
-  const { email, firstName, lastName, password } = body;
+  const { email, firstName, lastName } = body;
 
   // Input sanitization and validation
   if (!email || typeof email !== 'string' || !firstName || typeof firstName !== 'string' || !lastName || typeof lastName !== 'string') {
@@ -43,37 +42,12 @@ export function validateCreateUserRequest(body: any): { isValid: boolean; error?
     };
   }
 
-  // Password validation
-  if (password) {
-    if (typeof password !== 'string') {
-      return {
-        isValid: false,
-        error: 'Password must be a string'
-      };
-    }
-    
-    if (password.length < 8) {
-      return {
-        isValid: false,
-        error: 'Password must be at least 8 characters long'
-      };
-    }
-
-    if (password.length > 128) {
-      return {
-        isValid: false,
-        error: 'Password exceeds maximum length'
-      };
-    }
-  }
-
   return {
     isValid: true,
     data: { 
       email: email.trim().toLowerCase(), 
       firstName: firstName.trim(), 
-      lastName: lastName.trim(), 
-      password 
+      lastName: lastName.trim()
     }
   };
 }

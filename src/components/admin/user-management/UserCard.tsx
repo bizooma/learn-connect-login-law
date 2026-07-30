@@ -37,6 +37,7 @@ import {
   Pencil,
   Check,
   X,
+  Send,
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { formatUserJoinDate } from "@/utils/dateUtils";
@@ -77,8 +78,47 @@ export const UserCard = ({
   const [department, setDepartment] = useState<string | null>((user as any).department ?? null);
   const { isAdmin } = useUserRole();
 
+  const [resendingInvite, setResendingInvite] = useState(false);
+
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  const handleResendInvite = async () => {
+    setResendingInvite(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) throw new Error("You must be logged in");
+
+      const { data, error } = await supabase.functions.invoke("create-single-user", {
+        body: { mode: "resend", email: user.email },
+        headers: { Authorization: `Bearer ${session.access_token}` },
+      });
+
+      let serverMessage: string | undefined = data?.error;
+      if (error) {
+        const ctx: any = (error as any).context;
+        try {
+          if (ctx?.json) serverMessage = (await ctx.json())?.error;
+          else if (ctx?.text) serverMessage = JSON.parse(await ctx.text())?.error;
+        } catch (_) { /* ignore */ }
+      }
+      if (error || serverMessage) {
+        throw new Error(serverMessage || error?.message || "Failed to resend invite");
+      }
+
+      toast({ title: "Invite resent", description: `Invite resent to ${user.email}` });
+    } catch (err: any) {
+      toast({
+        title: "Could not resend invite",
+        description: err.message,
+        variant: "destructive",
+      });
+    } finally {
+      setResendingInvite(false);
+    }
+  };
+
+
 
 
   useEffect(() => {
@@ -500,6 +540,16 @@ export const UserCard = ({
               >
                 <Lock className="h-3 w-3" />
                 Reset PWD
+              </button>
+            )}
+            {isAdmin && (
+              <button
+                onClick={handleResendInvite}
+                disabled={resendingInvite}
+                className="flex-1 min-w-[90px] px-3 py-1.5 text-[11px] font-bold text-foreground bg-background border border-border rounded shadow-sm hover:bg-muted/50 disabled:opacity-60 inline-flex items-center justify-center gap-1"
+              >
+                <Send className="h-3 w-3" />
+                {resendingInvite ? "Sending..." : "Resend Invite"}
               </button>
             )}
           </div>
