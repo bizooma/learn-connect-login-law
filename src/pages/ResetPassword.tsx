@@ -182,7 +182,7 @@ const ResetPassword = () => {
             : "Your password has been successfully updated.",
         });
         // The session from the link is already active, so land them signed in
-        navigate("/", { replace: true });
+        navigate("/index", { replace: true });
       }
     } catch (error) {
       toast({
