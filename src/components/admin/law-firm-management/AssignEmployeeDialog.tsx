@@ -40,11 +40,8 @@ const AssignEmployeeDialog = ({
     email: "",
     firstName: "",
     lastName: "",
-    password: "",
-    confirmPassword: "",
     role: "student"
   });
-  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   // Check if law firm has available seats (using dynamic employee count)
@@ -66,28 +63,10 @@ const AssignEmployeeDialog = ({
       return;
     }
 
-    if (!formData.email.trim() || !formData.firstName.trim() || !formData.lastName.trim() || !formData.password.trim()) {
+    if (!formData.email.trim() || !formData.firstName.trim() || !formData.lastName.trim()) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      toast({
-        title: "Error",
-        description: "Passwords do not match",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    if (formData.password.length < 8) {
-      toast({
-        title: "Error",
-        description: "Password must be at least 8 characters long",
         variant: "destructive",
       });
       return;
@@ -143,8 +122,7 @@ const AssignEmployeeDialog = ({
           body: {
             email: formData.email,
             firstName: formData.firstName,
-            lastName: formData.lastName,
-            password: formData.password
+            lastName: formData.lastName
           },
           headers: {
             Authorization: `Bearer ${session.access_token}`,
@@ -221,8 +199,7 @@ const AssignEmployeeDialog = ({
 
       toast({
         title: "Success",
-        description: `${formData.firstName} ${formData.lastName} has been created and assigned to ${lawFirm.name}. Password: ${formData.password}`,
-        duration: 10000, // Show longer so owner can copy password
+        description: `Invite sent to ${formData.email}. They've been assigned to ${lawFirm.name} and will choose their own password.`,
       });
       
       onEmployeeAdded();
@@ -233,8 +210,6 @@ const AssignEmployeeDialog = ({
         email: "",
         firstName: "",
         lastName: "",
-        password: "",
-        confirmPassword: "",
         role: "student"
       });
     } catch (error: any) {
@@ -314,48 +289,10 @@ const AssignEmployeeDialog = ({
             </div>
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="password">Password *</Label>
-            <div className="relative">
-              <Input
-                id="password"
-                type={showPassword ? "text" : "password"}
-                value={formData.password}
-                onChange={(e) => handleChange("password", e.target.value)}
-                placeholder="At least 8 characters"
-                required
-                disabled={loading || !canAddEmployee}
-                className="pr-10"
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                onClick={() => setShowPassword(!showPassword)}
-                disabled={loading || !canAddEmployee}
-              >
-                {showPassword ? (
-                  <EyeOff className="h-4 w-4" />
-                ) : (
-                  <Eye className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="confirmPassword">Confirm Password *</Label>
-            <Input
-              id="confirmPassword"
-              type={showPassword ? "text" : "password"}
-              value={formData.confirmPassword}
-              onChange={(e) => handleChange("confirmPassword", e.target.value)}
-              placeholder="Confirm password"
-              required
-              disabled={loading || !canAddEmployee}
-            />
-          </div>
+          <p className="text-sm text-muted-foreground">
+            We'll email them an invite link. They choose their own password — no
+            password is set or shared by an admin.
+          </p>
 
           <div className="space-y-2">
             <Label htmlFor="role">Role</Label>

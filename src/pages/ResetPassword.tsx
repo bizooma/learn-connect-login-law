@@ -20,84 +20,84 @@ const ResetPassword = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isValidSession, setIsValidSession] = useState(false);
+  const [isInvite, setIsInvite] = useState(false);
 
   useEffect(() => {
+    const failWith = (description: string) => {
+      toast({
+        title: "Link no longer valid",
+        description,
+        variant: "destructive",
+      });
+      navigate("/");
+    };
+
     const validateResetSession = async () => {
-      console.log('ResetPassword: Checking URL parameters');
-      
-      // Supabase password reset uses these parameters
-      const tokenHash = searchParams.get('token_hash');
-      const type = searchParams.get('type');
-      const error = searchParams.get('error');
-      const errorDescription = searchParams.get('error_description');
-      
-      console.log('ResetPassword: URL params:', { tokenHash, type, error, errorDescription });
-      
-      // Check for error parameters first
+      const hashParams = new URLSearchParams(
+        window.location.hash.startsWith("#") ? window.location.hash.slice(1) : ""
+      );
+
+      const tokenHash = searchParams.get("token_hash") || hashParams.get("token_hash");
+      const type = searchParams.get("type") || hashParams.get("type");
+      const error = searchParams.get("error") || hashParams.get("error");
+      const errorDescription =
+        searchParams.get("error_description") || hashParams.get("error_description");
+
+      const invite = type === "invite" || type === "signup";
+      setIsInvite(invite);
+
       if (error) {
-        console.error('ResetPassword: Error in URL:', error, errorDescription);
-        toast({
-          title: "Reset Link Error",
-          description: errorDescription || "The password reset link contains an error.",
-          variant: "destructive",
-        });
-        navigate("/");
+        console.error("ResetPassword: Error in URL:", error, errorDescription);
+        failWith(
+          invite
+            ? "This invite link has expired. Ask your administrator to resend it."
+            : errorDescription || "This password reset link is invalid or has expired."
+        );
         return;
       }
-      
-      // Check if we have the required parameters for password reset
-      if (tokenHash && type === 'recovery') {
-        console.log('ResetPassword: Valid reset parameters found, verifying OTP');
-        
+
+      // Invite / recovery links both establish a session we can update the password with
+      if (tokenHash && (type === "recovery" || invite)) {
         try {
-          // Verify the OTP token and establish the session
           const { data, error: verifyError } = await supabase.auth.verifyOtp({
             token_hash: tokenHash,
-            type: 'recovery'
+            type: invite ? "invite" : "recovery",
           });
-          
-          if (verifyError) {
-            console.error('ResetPassword: OTP verification failed:', verifyError);
-            toast({
-              title: "Invalid Reset Link",
-              description: verifyError.message || "This password reset link is invalid or has expired.",
-              variant: "destructive",
-            });
-            navigate("/");
+
+          if (verifyError || !data?.session) {
+            console.error("ResetPassword: OTP verification failed:", verifyError);
+            failWith(
+              invite
+                ? "This invite link has expired. Ask your administrator to resend it."
+                : verifyError?.message || "This password reset link is invalid or has expired."
+            );
             return;
           }
-          
-          if (data.user && data.session) {
-            console.log('ResetPassword: Session established successfully');
-            setIsValidSession(true);
-          } else {
-            console.error('ResetPassword: No user or session after OTP verification');
-            toast({
-              title: "Session Error",
-              description: "Unable to establish a valid session for password reset.",
-              variant: "destructive",
-            });
-            navigate("/");
-          }
-        } catch (error) {
-          console.error('ResetPassword: Unexpected error during OTP verification:', error);
-          toast({
-            title: "Verification Error",
-            description: "An unexpected error occurred while verifying the reset link.",
-            variant: "destructive",
-          });
-          navigate("/");
+
+          setIsValidSession(true);
+          return;
+        } catch (err) {
+          console.error("ResetPassword: Unexpected error during verification:", err);
+          failWith("An unexpected error occurred while verifying your link.");
+          return;
         }
-      } else {
-        console.error('ResetPassword: Missing required parameters');
-        toast({
-          title: "Invalid Reset Link",
-          description: "This password reset link is missing required parameters or has expired.",
-          variant: "destructive",
-        });
-        navigate("/");
       }
+
+      // Some links deliver tokens directly in the hash — Supabase picks these up
+      // automatically, so wait for the session to resolve before deciding.
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (sessionData?.session) {
+        setIsValidSession(true);
+        return;
+      }
+
+      failWith(
+        invite
+          ? "This invite link has expired. Ask your administrator to resend it."
+          : "This password reset link is missing required parameters or has expired."
+      );
     };
+
     
     validateResetSession();
   }, [searchParams, navigate, toast]);
@@ -138,10 +138,13 @@ const ResetPassword = () => {
         });
       } else {
         toast({
-          title: "Password Updated",
-          description: "Your password has been successfully updated. You can now sign in.",
+          title: isInvite ? "Welcome aboard" : "Password Updated",
+          description: isInvite
+            ? "Your password is set and you're signed in."
+            : "Your password has been successfully updated.",
         });
-        navigate("/");
+        // The session from the link is already active, so land them signed in
+        navigate("/", { replace: true });
       }
     } catch (error) {
       toast({
@@ -159,7 +162,7 @@ const ResetPassword = () => {
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Validating reset link...</p>
+          <p className="text-gray-600">Verifying your invite…</p>
         </div>
       </div>
     );
@@ -169,7 +172,11 @@ const ResetPassword = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-center">Reset Your Password</CardTitle>
+          <CardTitle className="text-center">
+            {isInvite
+              ? "Welcome to New Frontier University — choose your password"
+              : "Reset Your Password"}
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">

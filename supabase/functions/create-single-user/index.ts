@@ -4,13 +4,19 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateCreateUserRequest } from './validation.ts';
 import { authenticateRequest } from './auth.ts';
 import { checkUserPermissions } from './permissions.ts';
-import { createUserAccount } from './userCreation.ts';
+import { createUserAccount, resendInvite, resolveSiteUrl } from './userCreation.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
 };
+
+const json = (body: unknown, status = 200) =>
+  new Response(JSON.stringify(body), {
+    status,
+    headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+  });
 
 serve(async (req) => {
   console.log('Create single user request received:', req.method);
@@ -20,35 +26,17 @@ serve(async (req) => {
   }
 
   if (req.method !== 'POST') {
-    return new Response(
-      JSON.stringify({ error: 'Method not allowed' }),
-      { status: 405, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return json({ error: 'Method not allowed' }, 405);
   }
 
   try {
-    // Parse and validate request body
     const body = await req.json();
-    const validation = validateCreateUserRequest(body);
-    
-    if (!validation.isValid) {
-      console.error('Missing required fields');
-      return new Response(
-        JSON.stringify({ error: validation.error }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-
-    const userData = validation.data!;
-    console.log('Creating user:', userData);
+    const siteUrl = resolveSiteUrl(req);
 
     // Authenticate the requesting user
     const authResult = await authenticateRequest(req.headers.get('Authorization'));
     if (!authResult.success) {
-      return new Response(
-        JSON.stringify({ error: authResult.error }),
-        { status: authResult.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return json({ error: authResult.error }, authResult.status);
     }
 
     console.log('Authenticated user:', authResult.user!.id);
@@ -56,47 +44,52 @@ serve(async (req) => {
     // Check permissions
     const permissionResult = await checkUserPermissions(authResult.user!.id, authResult.user!.email || '');
     if (!permissionResult.allowed) {
-      return new Response(
-        JSON.stringify({ error: permissionResult.error }),
-        { status: permissionResult.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return json({ error: permissionResult.error }, permissionResult.status);
     }
 
-    console.log('User authorized to create users, proceeding...');
+    // --- Resend invite mode -------------------------------------------------
+    if (body?.mode === 'resend') {
+      const email = typeof body.email === 'string' ? body.email : '';
+      if (!email) {
+        return json({ error: 'An email address is required' }, 400);
+      }
 
-    // Create the user account
-    const createResult = await createUserAccount(userData);
+      const resendResult = await resendInvite(email, siteUrl);
+      if (!resendResult.success) {
+        return json({ error: resendResult.error, success: false }, 400);
+      }
+
+      return json({
+        success: true,
+        message: `Invite resent to ${resendResult.email}. They'll set their own password from the link.`,
+      });
+    }
+
+    // --- Create (invite) mode ----------------------------------------------
+    const validation = validateCreateUserRequest(body);
+    if (!validation.isValid) {
+      console.error('Invalid create user request:', validation.error);
+      return json({ error: validation.error }, 400);
+    }
+
+    const userData = validation.data!;
+    console.log('Inviting user:', userData.email);
+
+    const createResult = await createUserAccount(userData, siteUrl);
     if (!createResult.success) {
-      return new Response(
-        JSON.stringify({ error: createResult.error }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      return json({ error: createResult.error }, 400);
     }
 
-    console.log('User created successfully:', createResult.email);
+    console.log('User invited successfully:', createResult.email);
 
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        message: `User ${createResult.email} has been created successfully. You can assign a role manually.`,
-        userId: createResult.userId,
-        tempPassword: createResult.tempPassword
-      }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    );
+    return json({
+      success: true,
+      message: `Invite sent to ${createResult.email}. They'll set their own password from the link.`,
+      userId: createResult.userId,
+    });
 
   } catch (error: any) {
     console.error('Error creating user:', error);
-    
-    return new Response(
-      JSON.stringify({ 
-        error: error.message || 'Failed to create user',
-        success: false 
-      }),
-      { 
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    );
+    return json({ error: error.message || 'Failed to create user', success: false }, 500);
   }
 });

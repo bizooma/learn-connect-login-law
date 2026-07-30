@@ -19,20 +19,6 @@ export const useUserRole = () => {
     roleLoading: loading 
   });
 
-  // Direct admin check function
-  const isDirectAdmin = useCallback((email: string | undefined) => {
-    if (!email) return false;
-    const directAdmins = [
-      'joe@bizooma.com', 
-      'admin@newfrontieruniversity.com', 
-      'erin.walsh@newfrontier.us', 
-      'carolina@newfrontieruniversity.com'
-    ];
-    const isAdmin = directAdmins.includes(email);
-    logger.log('useUserRole: Direct admin check', { email, isAdmin });
-    return isAdmin;
-  }, []);
-
   const fetchUserRole = useCallback(async () => {
     logger.log('useUserRole: fetchUserRole called', { 
       authLoading, 
@@ -54,16 +40,7 @@ export const useUserRole = () => {
       return;
     }
 
-    // Check if user is a direct admin first - this is the highest priority
-    if (isDirectAdmin(user.email)) {
-      logger.log('useUserRole: User is direct admin, setting admin role');
-      setRole('admin');
-      setExtraRoles(['admin']);
-      setHasPnpPermission(true);
-      setLoading(false);
 
-      return;
-    }
 
     logger.log('useUserRole: Fetching role from database for user:', user.id);
     setLoading(true);
@@ -108,7 +85,7 @@ export const useUserRole = () => {
     } finally {
       setLoading(false);
     }
-  }, [user?.id, user?.email, authLoading, isDirectAdmin]);
+  }, [user?.id, authLoading]);
 
 
   useEffect(() => {
