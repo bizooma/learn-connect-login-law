@@ -73,3 +73,6 @@ verify_jwt = true
 
 [functions.fetch-podcast-episodes]
 verify_jwt = false
+
+[functions.log-login-attempt]
+verify_jwt = false

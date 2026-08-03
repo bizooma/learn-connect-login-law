@@ -78,7 +78,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         if (!mounted) return;
         
         if (error) {
-          logger.error('Auth: Error getting session', error);
+          // A stale/expired refresh token is not an error worth surfacing —
+          // clear the dead session locally and let the user sign in again.
+          if (isRefreshTokenError(error)) {
+            logger.log('Auth: Stale refresh token detected, clearing local auth storage');
+            clearAuthStorage();
+          } else {
+            logger.error('Auth: Error getting session', error);
+          }
           setSession(null);
           setUser(null);
         } else if (session) {
@@ -96,7 +103,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         }
       } catch (error) {
         if (!mounted) return;
-        logger.error('Auth: Unexpected initialization error:', error);
+        if (isRefreshTokenError(error)) {
+          logger.log('Auth: Stale refresh token during init, clearing local auth storage');
+          clearAuthStorage();
+        } else {
+          logger.error('Auth: Unexpected initialization error:', error);
+        }
         setSession(null);
         setUser(null);
       } finally {

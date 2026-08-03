@@ -171,6 +171,21 @@ const LoginForm = () => {
         ? getMobileErrorMessage(lastError)
         : getDetailedErrorMessage(lastError);
       logger.error('LoginForm: All login attempts failed', { error: lastError, isMobile: isMobileDevice() });
+
+      // Durable breadcrumb: auth logs only retain ~1 hour, so record the
+      // failed attempt against the account for later diagnosis.
+      void supabase.functions
+        .invoke('log-login-attempt', {
+          body: {
+            email: email.trim(),
+            errorCode: (lastError as any)?.code ?? (lastError as any)?.status ?? null,
+            errorMessage: (lastError as any)?.message ?? null,
+          },
+        })
+        .catch(() => {
+          /* logging must never block the user */
+        });
+      
       
       toast({
         title: "Login Failed",
@@ -239,9 +254,17 @@ const LoginForm = () => {
           {isLoading ? "Signing in..." : "Sign In"}
         </Button>
 
-        <div className="text-center mt-4">
-          <p className="text-sm text-gray-600">
-            If you forgot your password, contact sales@newfrontieruniversity.com to have it reset.
+        <div className="text-center mt-4 space-y-2">
+          <button
+            type="button"
+            onClick={() => setShowForgotPassword(true)}
+            className="text-sm font-medium text-primary hover:underline"
+            disabled={isLoading}
+          >
+            Forgot your password?
+          </button>
+          <p className="text-xs text-gray-500">
+            Still stuck? Contact your administrator to have your access reset.
           </p>
         </div>
       </form>
