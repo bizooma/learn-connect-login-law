@@ -15,7 +15,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { email, errorCode, errorMessage } = await req.json();
+    const { email, errorCode, errorMessage, eventType } = await req.json();
 
     if (!email || typeof email !== 'string') {
       return new Response(JSON.stringify({ logged: false }), {
@@ -42,12 +42,17 @@ Deno.serve(async (req) => {
       });
     }
 
+    const safeEventType = eventType === 'reset_link_verification'
+      ? 'reset_link_verification'
+      : 'login';
+
     const { error } = await admin.from('user_activity_log').insert({
       user_id: profile.id,
       activity_type: 'login',
       user_agent: req.headers.get('user-agent'),
       metadata: {
         success: false,
+        event_type: safeEventType,
         error_code: errorCode ?? null,
         error_message: errorMessage ?? null,
         attempted_email: email.trim(),

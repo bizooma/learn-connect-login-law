@@ -61,7 +61,7 @@ serve(async (req) => {
 
       return json({
         success: true,
-        message: `Invite resent to ${resendResult.email}. They'll set their own password from the link.`,
+        message: `A new link was sent to ${resendResult.email}. Only the newest email will work; earlier links are now unusable.`,
       });
     }
 

@@ -106,7 +106,10 @@ export const UserCard = ({
         throw new Error(serverMessage || error?.message || "Failed to resend invite");
       }
 
-      toast({ title: "Invite resent", description: `Invite resent to ${user.email}` });
+      toast({
+        title: "New link sent",
+        description: `Sent to ${user.email}. Only the newest email will work; earlier links are now unusable.`,
+      });
     } catch (err: any) {
       toast({
         title: "Could not resend invite",

@@ -108,6 +108,8 @@ export async function resendInvite(email: string, siteUrl: string) {
 
   // A recovery email produces the same kind of session as an invite link and
   // lands on the same /reset-password screen, so it safely re-issues access.
+  // Issuing it invalidates older one-time links; the UI tells admins to have
+  // the user open only the newest message.
   const supabaseAnon = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_ANON_KEY') ?? ''

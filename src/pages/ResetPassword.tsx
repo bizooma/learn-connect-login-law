@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Lock, Eye, EyeOff } from "lucide-react";
+import { Lock, Eye, EyeOff, Mail } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 
@@ -22,15 +22,19 @@ const ResetPassword = () => {
   const [isValidSession, setIsValidSession] = useState(false);
   const [isInvite, setIsInvite] = useState(false);
   const [failure, setFailure] = useState<string | null>(null);
+  const [recoveryEmail, setRecoveryEmail] = useState("");
+  const [isSendingRecovery, setIsSendingRecovery] = useState(false);
+  const [failureCode, setFailureCode] = useState<string | null>(null);
 
   useEffect(() => {
     let settled = false;
     let mounted = true;
     let graceTimer: ReturnType<typeof setTimeout> | undefined;
 
-    const failWith = (description: string) => {
+    const failWith = (description: string, code = "link_verification_failed") => {
       if (!mounted || settled) return;
       settled = true;
+      setFailureCode(code);
       setFailure(description);
       toast({
         title: "Link no longer valid",
@@ -77,8 +81,9 @@ const ResetPassword = () => {
         console.error("ResetPassword: Error in URL:", error, errorDescription);
         failWith(
           invite
-            ? "This invite link has expired. Ask your administrator to resend it."
-            : errorDescription || "This password reset link is invalid or has expired."
+            ? "This invite link is no longer usable. It may have expired, already been opened, or been replaced by a newer link."
+            : errorDescription || "This password reset link is no longer usable. It may have expired, already been opened, or been replaced by a newer link.",
+          error
         );
         return;
       }
@@ -95,8 +100,9 @@ const ResetPassword = () => {
             console.error("ResetPassword: OTP verification failed:", verifyError);
             failWith(
               invite
-                ? "This invite link has expired. Ask your administrator to resend it."
-                : verifyError?.message || "This password reset link is invalid or has expired."
+                ? "This invite link is no longer usable. It may have expired, already been opened, or been replaced by a newer link."
+                : "This password reset link is no longer usable. It may have expired, already been opened, or been replaced by a newer link.",
+              verifyError?.code || "otp_verification_failed"
             );
             return;
           }
@@ -105,7 +111,7 @@ const ResetPassword = () => {
           return;
         } catch (err) {
           console.error("ResetPassword: Unexpected error during verification:", err);
-          failWith("An unexpected error occurred while verifying your link.");
+          failWith("We couldn't verify this link. Request a new password-setting email below.", "unexpected_verification_error");
           return;
         }
       }
@@ -124,9 +130,7 @@ const ResetPassword = () => {
           succeed();
           return;
         }
-        failWith(
-          "We couldn't verify your link. Try clicking it again, or ask your administrator to resend it."
-        );
+        failWith("We couldn't verify this link. It may have already been opened by email security software. Request a new password-setting email below.", "session_not_established");
       }, 3000);
     };
 
@@ -138,6 +142,43 @@ const ResetPassword = () => {
       sub.subscription.unsubscribe();
     };
   }, [searchParams, navigate, toast]);
+
+  const requestFreshLink = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const email = recoveryEmail.trim().toLowerCase();
+    if (!email) return;
+
+    setIsSendingRecovery(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (error) throw error;
+
+      void supabase.functions.invoke("log-login-attempt", {
+        body: {
+          email,
+          eventType: "reset_link_verification",
+          errorCode: failureCode,
+          errorMessage: failure,
+        },
+      });
+
+      toast({
+        title: "New link sent",
+        description: "Use only the newest email. Older links will no longer work.",
+      });
+      setRecoveryEmail("");
+    } catch (error) {
+      toast({
+        title: "Could not send a new link",
+        description: error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSendingRecovery(false);
+    }
+  };
 
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -207,6 +248,25 @@ const ResetPassword = () => {
             </CardHeader>
             <CardContent className="space-y-4 text-center">
               <p className="text-sm text-gray-600">{failure}</p>
+              <form onSubmit={requestFreshLink} className="space-y-3 text-left">
+                <Label htmlFor="recovery-email">Email Address</Label>
+                <div className="relative">
+                  <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+                  <Input
+                    id="recovery-email"
+                    type="email"
+                    value={recoveryEmail}
+                    onChange={(event) => setRecoveryEmail(event.target.value)}
+                    placeholder="you@newfrontier.us"
+                    className="pl-10"
+                    required
+                    disabled={isSendingRecovery}
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={isSendingRecovery}>
+                  {isSendingRecovery ? "Sending…" : "Send Me a New Link"}
+                </Button>
+              </form>
               <Button className="w-full" onClick={() => navigate("/")}>
                 Back to Login
               </Button>
