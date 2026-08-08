@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/components/ui/use-toast';
 
@@ -234,7 +234,7 @@ export const useAdminTeams = () => {
     }
   };
 
-  const getTeamProgressSummary = async (teamId: string): Promise<TeamProgressSummary | null> => {
+  const getTeamProgressSummary = useCallback(async (teamId: string): Promise<TeamProgressSummary | null> => {
     try {
       const { data, error } = await supabase.rpc('get_team_progress_summary', {
         p_team_id: teamId
@@ -246,7 +246,7 @@ export const useAdminTeams = () => {
       console.error('Error fetching team progress:', err);
       throw err;
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchTeams();
