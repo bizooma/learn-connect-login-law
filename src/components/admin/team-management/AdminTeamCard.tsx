@@ -37,7 +37,10 @@ const AdminTeamCard = ({ team }: AdminTeamCardProps) => {
     };
 
     fetchProgress();
-  }, [team.id, getTeamProgressSummary]);
+    // Only refetch when the team changes — getTeamProgressSummary is recreated
+    // on every render and including it here caused an infinite request loop.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [team.id]);
 
   const handleDelete = async () => {
     if (confirm('Are you sure you want to delete this team? This action cannot be undone.')) {
