@@ -1,4 +1,4 @@
-# Make Shawn an admin
+# Make Shawn an admin (keep team leader)
 
 ## What I found
 
@@ -6,11 +6,11 @@
 
 ## Change
 
-- Replace his `team_leader` role with **admin** in `user_roles`.
+- Add the **admin** role in `user_roles` alongside his existing **team_leader** role (both kept).
 - No P&P permission row is needed: LMS admins automatically get P&P admin rights.
 
 ## Notes
 
-- This is a data change only, no schema or code changes.
+- Data change only, no schema or code changes.
+- Role display picks the highest-priority role, so he will show as Admin while retaining team leader access.
 - He will need to refresh/re-login for the role to take effect.
-- If he should keep team leader duties as well, say so and I will keep both roles instead of replacing.
