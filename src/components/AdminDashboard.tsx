@@ -14,6 +14,7 @@ import { useFirstTimeUser } from "@/hooks/useFirstTimeUser";
 import { useAuth } from "@/hooks/useAuth";
 import { logger } from "@/utils/logger";
 import HealthCheckCards from "./admin/HealthCheckCards";
+import MyTeamSummaryCard from "./admin/MyTeamSummaryCard";
 
 const AdminDashboard = () => {
   const [searchParams] = useSearchParams();
