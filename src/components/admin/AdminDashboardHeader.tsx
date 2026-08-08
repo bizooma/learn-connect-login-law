@@ -1,7 +1,8 @@
 
-import { BookOpen, Menu, LogOut, TreePine, HelpCircle, Sparkles, Map, FileText, LayoutGrid } from "lucide-react";
+import { BookOpen, Menu, LogOut, TreePine, HelpCircle, Sparkles, Map, FileText, LayoutGrid, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
+import { useUserRole } from "@/hooks/useUserRole";
 import { useNavigate, useLocation } from "react-router-dom";
 import {
   DropdownMenu,
@@ -19,6 +20,7 @@ interface AdminDashboardHeaderProps {
 
 const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
   const { signOut } = useAuth();
+  const { isTeamLeader } = useUserRole();
   const navigate = useNavigate();
   const location = useLocation();
   const isWikiPage = location.pathname.startsWith("/admin/wiki");
@@ -128,6 +130,12 @@ const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
                   <LayoutGrid className="h-4 w-4" />
                   <span>Hub</span>
                 </DropdownMenuItem>
+                {isTeamLeader && (
+                  <DropdownMenuItem onClick={() => navigate('/team-leader-dashboard')} className="flex items-center space-x-2">
+                    <Users className="h-4 w-4" />
+                    <span>My Team</span>
+                  </DropdownMenuItem>
+                )}
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut} className="flex items-center space-x-2 text-red-600">
                   <LogOut className="h-4 w-4" />
