@@ -1,5 +1,5 @@
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 
 interface UsePaginationProps<T> {
   data: T[];
@@ -17,28 +17,27 @@ export const usePagination = <T,>({ data, itemsPerPage }: UsePaginationProps<T>)
     return data.slice(startIndex, endIndex);
   }, [data, currentPage, itemsPerPage]);
 
-  const goToPage = (page: number) => {
-    if (page >= 1 && page <= totalPages) {
-      setCurrentPage(page);
-    }
-  };
+  const goToPage = useCallback((page: number) => {
+    setCurrentPage((prev) => (page >= 1 && page <= totalPages ? page : prev));
+  }, [totalPages]);
 
-  const goToNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(currentPage + 1);
-    }
-  };
+  const goToNextPage = useCallback(() => {
+    setCurrentPage((prev) => (prev < totalPages ? prev + 1 : prev));
+  }, [totalPages]);
 
-  const goToPreviousPage = () => {
-    if (currentPage > 1) {
-      setCurrentPage(currentPage - 1);
-    }
-  };
+  const goToPreviousPage = useCallback(() => {
+    setCurrentPage((prev) => (prev > 1 ? prev - 1 : prev));
+  }, []);
 
   // Reset to page 1 when data changes
-  const resetPagination = () => {
+  const resetPagination = useCallback(() => {
     setCurrentPage(1);
-  };
+  }, []);
+
+  // Clamp the current page if the data shrinks below it
+  useEffect(() => {
+    setCurrentPage((prev) => (totalPages > 0 && prev > totalPages ? totalPages : prev));
+  }, [totalPages]);
 
   return {
     currentPage,
