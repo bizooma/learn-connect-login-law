@@ -122,7 +122,11 @@ export const useUserRole = () => {
   }, [role]);
   
   const isOwner = useMemo(() => role === 'owner', [role]);
-  const isTeamLeader = useMemo(() => role === 'team_leader', [role]);
+  // team_leader is additive: a user can be an admin AND a team leader
+  const isTeamLeader = useMemo(
+    () => role === 'team_leader' || extraRoles.includes('team_leader'),
+    [role, extraRoles]
+  );
   
   const isStudent = useMemo(() => {
     const result = role === 'student';
