@@ -14,6 +14,7 @@ import { useFirstTimeUser } from "@/hooks/useFirstTimeUser";
 import { useAuth } from "@/hooks/useAuth";
 import { logger } from "@/utils/logger";
 import HealthCheckCards from "./admin/HealthCheckCards";
+import MyTeamSummaryCard from "./admin/MyTeamSummaryCard";
 
 const AdminDashboard = () => {
   const [searchParams] = useSearchParams();
@@ -112,7 +113,9 @@ const AdminDashboard = () => {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <NotificationBanner />
           <AdminStatsCards stats={stats} />
+          <MyTeamSummaryCard />
           <HealthCheckCards />
+
           
           <div className="mb-8">
             <RecentActivity />
