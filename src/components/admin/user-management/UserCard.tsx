@@ -310,14 +310,75 @@ export const UserCard = ({
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0">
-                <button
-                  type="button"
-                  onClick={() => onOpenDetail?.(user.id)}
-                  className="text-left text-base font-bold text-foreground leading-tight truncate hover:text-primary hover:underline"
-                  disabled={!onOpenDetail}
-                >
-                  {displayName}
-                </button>
+                {editingName ? (
+                  <div className="flex items-center gap-1">
+                    <Input
+                      autoFocus
+                      value={firstDraft}
+                      onChange={(e) => setFirstDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") saveName();
+                        if (e.key === "Escape") cancelNameEdit();
+                      }}
+                      placeholder="First name"
+                      className="h-7 text-sm"
+                      disabled={nameSaving}
+                    />
+                    <Input
+                      value={lastDraft}
+                      onChange={(e) => setLastDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") saveName();
+                        if (e.key === "Escape") cancelNameEdit();
+                      }}
+                      placeholder="Last name"
+                      className="h-7 text-sm"
+                      disabled={nameSaving}
+                    />
+                    <button
+                      onClick={saveName}
+                      disabled={nameSaving}
+                      className="p-1 rounded hover:bg-muted text-green-600"
+                      aria-label="Save name"
+                    >
+                      <Check className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={cancelNameEdit}
+                      disabled={nameSaving}
+                      className="p-1 rounded hover:bg-muted text-muted-foreground"
+                      aria-label="Cancel"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="group flex items-center gap-1 min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => onOpenDetail?.(user.id)}
+                      className="text-left text-base font-bold text-foreground leading-tight truncate hover:text-primary hover:underline"
+                      disabled={!onOpenDetail}
+                    >
+                      {displayName}
+                    </button>
+                    {isAdmin && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFirstDraft(firstName);
+                          setLastDraft(lastName);
+                          setEditingName(true);
+                        }}
+                        className="p-0.5 rounded hover:bg-muted text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                        aria-label="Edit name"
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 <p className="text-sm text-muted-foreground truncate">{user.email}</p>
                 {editingTitle ? (
                   <div className="mt-1 flex items-center gap-1">
