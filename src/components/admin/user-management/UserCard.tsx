@@ -281,9 +281,7 @@ export const UserCard = ({
   const userRole = getUserRole(user);
   const roleBadgeColor = getRoleBadgeColor(userRole);
   const displayName =
-    user.first_name && user.last_name
-      ? `${user.first_name} ${user.last_name}`
-      : user.email;
+    [firstName, lastName].filter(Boolean).join(" ").trim() || user.email;
 
   const getInitials = () => {
     const first = user.first_name?.charAt(0) || "";
