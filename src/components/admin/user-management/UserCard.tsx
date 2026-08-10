@@ -69,6 +69,12 @@ export const UserCard = ({
   const [showGroupsDialog, setShowGroupsDialog] = useState(false);
   const [isTester, setIsTester] = useState(false);
   const [testerSaving, setTesterSaving] = useState(false);
+  const [firstName, setFirstName] = useState(user.first_name || "");
+  const [lastName, setLastName] = useState(user.last_name || "");
+  const [firstDraft, setFirstDraft] = useState(user.first_name || "");
+  const [lastDraft, setLastDraft] = useState(user.last_name || "");
+  const [editingName, setEditingName] = useState(false);
+  const [nameSaving, setNameSaving] = useState(false);
   const [jobTitle, setJobTitle] = useState(user.job_title || "");
   const [editingTitle, setEditingTitle] = useState(false);
   const [titleDraft, setTitleDraft] = useState(user.job_title || "");
@@ -247,6 +253,39 @@ export const UserCard = ({
       setTesterSaving(false);
     }
   };
+  const cancelNameEdit = () => {
+    setEditingName(false);
+    setFirstDraft(firstName);
+    setLastDraft(lastName);
+  };
+
+  const saveName = async () => {
+    const newFirst = firstDraft.trim();
+    const newLast = lastDraft.trim();
+    setNameSaving(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ first_name: newFirst || null, last_name: newLast || null })
+        .eq("id", user.id);
+      if (error) throw error;
+      setFirstName(newFirst);
+      setLastName(newLast);
+      setEditingName(false);
+      toast({ title: "Name updated", description: [newFirst, newLast].filter(Boolean).join(" ") || "Name cleared." });
+    } catch (err: any) {
+      setFirstDraft(firstName);
+      setLastDraft(lastName);
+      toast({
+        title: "Update failed",
+        description: err.message || "Could not update name.",
+        variant: "destructive",
+      });
+    } finally {
+      setNameSaving(false);
+    }
+  };
+
   const saveTitle = async () => {
     const newTitle = titleDraft.trim();
     setTitleSaving(true);
@@ -275,9 +314,7 @@ export const UserCard = ({
   const userRole = getUserRole(user);
   const roleBadgeColor = getRoleBadgeColor(userRole);
   const displayName =
-    user.first_name && user.last_name
-      ? `${user.first_name} ${user.last_name}`
-      : user.email;
+    [firstName, lastName].filter(Boolean).join(" ").trim() || user.email;
 
   const getInitials = () => {
     const first = user.first_name?.charAt(0) || "";
@@ -310,14 +347,75 @@ export const UserCard = ({
                 </AvatarFallback>
               </Avatar>
               <div className="min-w-0">
-                <button
-                  type="button"
-                  onClick={() => onOpenDetail?.(user.id)}
-                  className="text-left text-base font-bold text-foreground leading-tight truncate hover:text-primary hover:underline"
-                  disabled={!onOpenDetail}
-                >
-                  {displayName}
-                </button>
+                {editingName ? (
+                  <div className="flex items-center gap-1">
+                    <Input
+                      autoFocus
+                      value={firstDraft}
+                      onChange={(e) => setFirstDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") saveName();
+                        if (e.key === "Escape") cancelNameEdit();
+                      }}
+                      placeholder="First name"
+                      className="h-7 text-sm"
+                      disabled={nameSaving}
+                    />
+                    <Input
+                      value={lastDraft}
+                      onChange={(e) => setLastDraft(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") saveName();
+                        if (e.key === "Escape") cancelNameEdit();
+                      }}
+                      placeholder="Last name"
+                      className="h-7 text-sm"
+                      disabled={nameSaving}
+                    />
+                    <button
+                      onClick={saveName}
+                      disabled={nameSaving}
+                      className="p-1 rounded hover:bg-muted text-green-600"
+                      aria-label="Save name"
+                    >
+                      <Check className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={cancelNameEdit}
+                      disabled={nameSaving}
+                      className="p-1 rounded hover:bg-muted text-muted-foreground"
+                      aria-label="Cancel"
+                    >
+                      <X className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="group flex items-center gap-1 min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => onOpenDetail?.(user.id)}
+                      className="text-left text-base font-bold text-foreground leading-tight truncate hover:text-primary hover:underline"
+                      disabled={!onOpenDetail}
+                    >
+                      {displayName}
+                    </button>
+                    {isAdmin && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFirstDraft(firstName);
+                          setLastDraft(lastName);
+                          setEditingName(true);
+                        }}
+                        className="p-0.5 rounded hover:bg-muted text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity"
+                        aria-label="Edit name"
+                      >
+                        <Pencil className="h-3 w-3" />
+                      </button>
+                    )}
+                  </div>
+                )}
+
                 <p className="text-sm text-muted-foreground truncate">{user.email}</p>
                 {editingTitle ? (
                   <div className="mt-1 flex items-center gap-1">
