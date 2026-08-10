@@ -253,6 +253,39 @@ export const UserCard = ({
       setTesterSaving(false);
     }
   };
+  const cancelNameEdit = () => {
+    setEditingName(false);
+    setFirstDraft(firstName);
+    setLastDraft(lastName);
+  };
+
+  const saveName = async () => {
+    const newFirst = firstDraft.trim();
+    const newLast = lastDraft.trim();
+    setNameSaving(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ first_name: newFirst || null, last_name: newLast || null })
+        .eq("id", user.id);
+      if (error) throw error;
+      setFirstName(newFirst);
+      setLastName(newLast);
+      setEditingName(false);
+      toast({ title: "Name updated", description: [newFirst, newLast].filter(Boolean).join(" ") || "Name cleared." });
+    } catch (err: any) {
+      setFirstDraft(firstName);
+      setLastDraft(lastName);
+      toast({
+        title: "Update failed",
+        description: err.message || "Could not update name.",
+        variant: "destructive",
+      });
+    } finally {
+      setNameSaving(false);
+    }
+  };
+
   const saveTitle = async () => {
     const newTitle = titleDraft.trim();
     setTitleSaving(true);
