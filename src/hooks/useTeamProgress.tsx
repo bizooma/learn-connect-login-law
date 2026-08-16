@@ -96,7 +96,8 @@ export const useTeamProgress = () => {
               category
             )
           `)
-          .in('user_id', memberIds),
+          .in('user_id', memberIds)
+          .eq('courses.is_draft', false),
         supabase
           .from('user_course_progress')
           .select(`
@@ -104,9 +105,11 @@ export const useTeamProgress = () => {
             course_id,
             progress_percentage,
             status,
-            completed_at
+            completed_at,
+            courses!inner(is_draft)
           `)
           .in('user_id', memberIds)
+          .eq('courses.is_draft', false)
       ]);
 
       if (assignmentsResponse.error) throw assignmentsResponse.error;

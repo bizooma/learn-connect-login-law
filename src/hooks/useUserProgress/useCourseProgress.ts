@@ -26,9 +26,10 @@ export const useCourseProgress = (userId?: string) => {
         .from('user_course_progress')
         .select(`
           *,
-          courses (*)
+          courses!inner (*)
         `)
-        .eq('user_id', userId);
+        .eq('user_id', userId)
+        .eq('courses.is_draft', false);
 
       if (progressError) {
         console.error('Error fetching user progress:', progressError);
