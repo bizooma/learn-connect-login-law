@@ -46,7 +46,8 @@ export const useCourseAssignments = () => {
         courseIds.length > 0 ? supabase
           .from('courses')
           .select('id, title, category, level')
-          .in('id', courseIds) : { data: [], error: null }
+          .in('id', courseIds)
+          .eq('is_draft', false) : { data: [], error: null }
       ]);
 
       if (profilesResponse.error) {
@@ -57,12 +58,15 @@ export const useCourseAssignments = () => {
         logger.error('Error fetching courses:', coursesResponse.error);
       }
 
-      // Map the data together
-      const assignmentsWithDetails = assignmentsData?.map(assignment => ({
-        ...assignment,
-        profiles: profilesResponse.data?.find(p => p.id === assignment.user_id) || null,
-        courses: coursesResponse.data?.find(c => c.id === assignment.course_id) || null
-      })) || [];
+      // Map the data together, dropping assignments for draft (hidden) courses
+      const visibleCourseIds = new Set((coursesResponse.data || []).map(c => c.id));
+      const assignmentsWithDetails = (assignmentsData || [])
+        .filter(assignment => visibleCourseIds.has(assignment.course_id))
+        .map(assignment => ({
+          ...assignment,
+          profiles: profilesResponse.data?.find(p => p.id === assignment.user_id) || null,
+          courses: coursesResponse.data?.find(c => c.id === assignment.course_id) || null
+        }));
 
       setAssignments(assignmentsWithDetails);
     } catch (error) {

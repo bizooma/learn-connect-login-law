@@ -196,11 +196,12 @@ export const useLeaderboards = () => {
         .select(`
           user_id,
           course_id,
-          courses!inner(category),
+          courses!inner(category, is_draft),
           profiles!inner(first_name, last_name, email, is_deleted),
           user_course_progress(status)
         `)
         .eq('courses.category', category)
+        .eq('courses.is_draft', false)
         .eq('profiles.is_deleted', false);
 
       if (categoryError || !categoryData) {

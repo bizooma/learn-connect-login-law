@@ -71,21 +71,23 @@ export const useTeamLeaderProgress = () => {
         .select(`
           user_id,
           course_id,
-          courses (
+          courses!inner (
             id,
             title,
             category
           )
         `)
-        .in('user_id', memberIds);
+        .in('user_id', memberIds)
+        .eq('courses.is_draft', false);
 
       if (assignmentsError) throw assignmentsError;
 
       // Fetch user progress for all team members
       const { data: progressData, error: progressError } = await supabase
         .from('user_course_progress')
-        .select('*')
-        .in('user_id', memberIds);
+        .select('*, courses!inner(is_draft)')
+        .in('user_id', memberIds)
+        .eq('courses.is_draft', false);
 
       if (progressError) throw progressError;
 

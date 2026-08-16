@@ -50,9 +50,9 @@ export const useDashboardStats = () => {
       if (isAdmin || isOwner) {
         // Admin/Owner stats - system-wide
         const [coursesResult, usersResult, progressResult] = await Promise.all([
-          supabase.from('courses').select('id', { count: 'exact', head: true }),
+          supabase.from('courses').select('id', { count: 'exact', head: true }).eq('is_draft', false),
           supabase.from('profiles').select('id', { count: 'exact', head: true }),
-          supabase.from('user_course_progress').select('status, progress_percentage', { count: 'exact' })
+          supabase.from('user_course_progress').select('status, progress_percentage, courses!inner(is_draft)', { count: 'exact' }).eq('courses.is_draft', false)
         ]);
 
         const totalCourses = coursesResult.count || 0;
@@ -79,8 +79,9 @@ export const useDashboardStats = () => {
         // Student/Client stats - personal
         const { data: progressData } = await supabase
           .from('user_course_progress')
-          .select('*')
-          .eq('user_id', user.id);
+          .select('*, courses!inner(is_draft)')
+          .eq('user_id', user.id)
+          .eq('courses.is_draft', false);
 
         const assignedCourses = progressData?.length || 0;
         const completedCourses = progressData?.filter(p => p.status === 'completed').length || 0;
@@ -91,7 +92,8 @@ export const useDashboardStats = () => {
         // Get total available courses
         const { count: totalCourses } = await supabase
           .from('courses')
-          .select('*', { count: 'exact', head: true });
+          .select('*', { count: 'exact', head: true })
+          .eq('is_draft', false);
 
         setStats({
           totalCourses: totalCourses || 0,
@@ -106,7 +108,8 @@ export const useDashboardStats = () => {
         // Default user stats
         const { count: totalCourses } = await supabase
           .from('courses')
-          .select('*', { count: 'exact', head: true });
+          .select('*', { count: 'exact', head: true })
+          .eq('is_draft', false);
 
         setStats({
           totalCourses: totalCourses || 0,
