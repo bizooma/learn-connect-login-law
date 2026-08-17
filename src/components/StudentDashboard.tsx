@@ -34,7 +34,7 @@ const StudentDashboard = () => {
   const [activeTab, setActiveTab] = useState("assigned");
   const [mainTab, setMainTab] = useState("dashboard");
   const [quickStartOpen, setQuickStartOpen] = useState(false);
-  const { stats, loading: statsLoading, refetch: refetchStats } = useDashboardStats();
+  const { stats, loading: statsLoading, refetch: refetchStats } = useDashboardStats({ personal: true });
   
   // First-time user experience
   const {
@@ -93,14 +93,8 @@ const StudentDashboard = () => {
   }
 
   // Show fallback if stats are still loading but we can show basic UI
-  if (statsLoading && user && isStudent) {
+  if (statsLoading && user) {
     return <StudentDashboardFallback onRetry={refetchStats} />;
-  }
-
-  // Don't render anything if user is not a student (redirect will happen in useEffect)
-  if (!isStudent) {
-    logger.debug('StudentDashboard: User is not a student, returning null');
-    return null;
   }
 
   logger.debug('StudentDashboard: Rendering dashboard for student');
