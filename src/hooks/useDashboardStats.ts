@@ -15,9 +15,10 @@ interface DashboardStats {
   activeUsers?: number;
 }
 
-export const useDashboardStats = () => {
+export const useDashboardStats = (options?: { personal?: boolean }) => {
   const { user } = useAuth();
   const { isAdmin, isOwner, isStudent, isClient } = useUserRole();
+  const personal = options?.personal;
   const [stats, setStats] = useState<DashboardStats>({
     totalCourses: 0,
     assignedCourses: 0,
