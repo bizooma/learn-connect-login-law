@@ -40,22 +40,13 @@ const UserCsvExport = () => {
         throw rolesError;
       }
 
-      // Last sign-in derived from user_sessions (max session_start per user)
-      const { data: sessions, error: sessionsError } = await supabase
-        .from('user_sessions')
-        .select('user_id, session_start');
-
-      if (sessionsError) {
-        throw sessionsError;
-      }
+      // Last sign-in aggregated in the database (one row per user)
+      const { data: lastSignIns, error: signInError } = await supabase.rpc('get_user_last_sign_ins');
+      if (signInError) throw signInError;
 
       const lastSignInMap = new Map<string, string>();
-      sessions?.forEach(s => {
-        if (!s.user_id || !s.session_start) return;
-        const existing = lastSignInMap.get(s.user_id);
-        if (!existing || new Date(s.session_start) > new Date(existing)) {
-          lastSignInMap.set(s.user_id, s.session_start);
-        }
+      lastSignIns?.forEach((r: { user_id: string; last_sign_in: string | null }) => {
+        if (r.user_id && r.last_sign_in) lastSignInMap.set(r.user_id, r.last_sign_in);
       });
 
       // Create a map of user_id to role for quick lookup

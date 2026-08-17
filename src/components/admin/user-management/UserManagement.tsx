@@ -74,11 +74,7 @@ const UserManagement = () => {
   const fetchMeta = useCallback(async () => {
     try {
       const [sessions, groupMembers, testerRoles, courseAssigns] = await Promise.all([
-        supabase
-          .from("user_sessions")
-          .select("user_id, session_start")
-          .order("session_start", { ascending: false })
-          .limit(5000),
+        supabase.rpc("get_user_last_sign_ins"),
         supabase.from("group_members" as any).select("user_id, group_id"),
         supabase.from("user_roles").select("user_id").eq("role", "tester" as any),
         supabase.from("course_assignments").select("user_id"),
@@ -88,9 +84,7 @@ const UserManagement = () => {
 
       (sessions.data || []).forEach((row: any) => {
         const cur = meta[row.user_id] || {};
-        if (!cur.lastLoginAt || row.session_start > cur.lastLoginAt) {
-          cur.lastLoginAt = row.session_start;
-        }
+        cur.lastLoginAt = row.last_sign_in;
         meta[row.user_id] = cur;
       });
 

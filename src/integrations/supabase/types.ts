@@ -3155,6 +3155,13 @@ export type Database = {
           total_members: number
         }[]
       }
+      get_user_last_sign_ins: {
+        Args: never
+        Returns: {
+          last_sign_in: string
+          user_id: string
+        }[]
+      }
       get_user_law_firm_id: { Args: never; Returns: string }
       get_user_management_history: {
         Args: { p_limit?: number; p_user_id?: string }
