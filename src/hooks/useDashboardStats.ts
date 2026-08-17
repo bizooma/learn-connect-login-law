@@ -15,9 +15,10 @@ interface DashboardStats {
   activeUsers?: number;
 }
 
-export const useDashboardStats = () => {
+export const useDashboardStats = (options?: { personal?: boolean }) => {
   const { user } = useAuth();
   const { isAdmin, isOwner, isStudent, isClient } = useUserRole();
+  const personal = options?.personal;
   const [stats, setStats] = useState<DashboardStats>({
     totalCourses: 0,
     assignedCourses: 0,
@@ -45,9 +46,9 @@ export const useDashboardStats = () => {
 
     try {
       setLoading(true);
-      console.log('useDashboardStats: Fetching stats for user', user.id, { isAdmin, isOwner, isStudent, isClient });
+      console.log('useDashboardStats: Fetching stats for user', user.id, { isAdmin, isOwner, isStudent, isClient, personal });
 
-      if (isAdmin || isOwner) {
+      if (!personal && (isAdmin || isOwner)) {
         // Admin/Owner stats - system-wide
         const [coursesResult, usersResult, progressResult] = await Promise.all([
           supabase.from('courses').select('id', { count: 'exact', head: true }).eq('is_draft', false),
@@ -75,7 +76,7 @@ export const useDashboardStats = () => {
           activeUsers: totalUsers // Simplified for now
         });
 
-      } else if (isStudent || isClient) {
+      } else if (personal || isStudent || isClient) {
         // Student/Client stats - personal
         const { data: progressData } = await supabase
           .from('user_course_progress')
@@ -161,7 +162,7 @@ export const useDashboardStats = () => {
       });
       // Keep loading while role is being determined - don't guess or timeout
     }
-  }, [user?.id, isAdmin, isOwner, isStudent, isClient]);
+  }, [user?.id, isAdmin, isOwner, isStudent, isClient, personal]);
 
   return { stats, loading, refetch: fetchStats };
 };
