@@ -1,5 +1,5 @@
 
-import { BookOpen, Menu, LogOut, TreePine, HelpCircle, Sparkles, Map, FileText, LayoutGrid, Users } from "lucide-react";
+import { BookOpen, Menu, LogOut, TreePine, HelpCircle, Sparkles, Map, FileText, LayoutGrid, Users, GraduationCap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useUserRole } from "@/hooks/useUserRole";
@@ -129,6 +129,10 @@ const AdminDashboardHeader = ({ triggerDemo }: AdminDashboardHeaderProps) => {
                 <DropdownMenuItem onClick={handleHub} className="flex items-center space-x-2">
                   <LayoutGrid className="h-4 w-4" />
                   <span>Hub</span>
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate('/student-dashboard')} className="flex items-center space-x-2">
+                  <GraduationCap className="h-4 w-4" />
+                  <span>My Courses</span>
                 </DropdownMenuItem>
                 {isTeamLeader && (
                   <DropdownMenuItem onClick={() => navigate('/team-leader-dashboard')} className="flex items-center space-x-2">
