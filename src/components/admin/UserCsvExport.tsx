@@ -12,11 +12,10 @@ const UserCsvExport = () => {
   const exportUsers = async () => {
     setIsExporting(true);
     try {
-      // First, get all users
+      // First, get all users (active and inactive)
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
-        .select('id, email, first_name, last_name, created_at, is_deleted')
-        .eq('is_deleted', false)
+        .select('id, email, first_name, last_name, created_at, is_deleted, deleted_at')
         .order('created_at', { ascending: false });
 
       if (profilesError) {
@@ -41,6 +40,24 @@ const UserCsvExport = () => {
         throw rolesError;
       }
 
+      // Last sign-in derived from user_sessions (max session_start per user)
+      const { data: sessions, error: sessionsError } = await supabase
+        .from('user_sessions')
+        .select('user_id, session_start');
+
+      if (sessionsError) {
+        throw sessionsError;
+      }
+
+      const lastSignInMap = new Map<string, string>();
+      sessions?.forEach(s => {
+        if (!s.user_id || !s.session_start) return;
+        const existing = lastSignInMap.get(s.user_id);
+        if (!existing || new Date(s.session_start) > new Date(existing)) {
+          lastSignInMap.set(s.user_id, s.session_start);
+        }
+      });
+
       // Create a map of user_id to role for quick lookup
       const roleMap = new Map();
       userRoles?.forEach(ur => {
@@ -51,15 +68,21 @@ const UserCsvExport = () => {
       const csvData = profiles.map(user => {
         const role = roleMap.get(user.id) || 'no_role';
         const fullName = [user.first_name, user.last_name].filter(Boolean).join(' ') || 'N/A';
-        
+        const isNfil = (user.email || '').toLowerCase().endsWith('@newfrontier.us');
+        const lastSignIn = lastSignInMap.get(user.id);
+
         return {
           'Full Name': fullName,
           'Email Address': user.email || 'N/A',
           'Role': role,
+          'User Type': isNfil ? 'NFIL Staff' : 'External Client',
           'Created Date': formatDateForCSV(user.created_at),
-          'Status': user.is_deleted ? 'Deleted' : 'Active'
+          'Last Sign In': lastSignIn ? formatDateForCSV(lastSignIn) : '',
+          'Status': user.is_deleted ? 'Inactive' : 'Active',
+          'Inactive Since': user.is_deleted && user.deleted_at ? formatDateForCSV(user.deleted_at) : ''
         };
       });
+
 
       // Sort by role hierarchy
       const roleOrder = {
