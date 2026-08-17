@@ -153,6 +153,21 @@ const UserFiltersBar = ({
         </DropdownMenuContent>
       </DropdownMenu>
 
+      {/* Domain */}
+      <Select
+        value={filters.domain}
+        onValueChange={(v) => onChange({ ...filters, domain: v as UserFilters["domain"] })}
+      >
+        <SelectTrigger className="h-8 w-[165px]">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="any">Domain: Any</SelectItem>
+          <SelectItem value="nfil">NFIL Staff</SelectItem>
+          <SelectItem value="external">External Clients</SelectItem>
+        </SelectContent>
+      </Select>
+
       {/* Activity */}
       <Select
         value={filters.activity}
