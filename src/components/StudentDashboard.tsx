@@ -66,18 +66,6 @@ const StudentDashboard = () => {
       return;
     }
 
-    // Only redirect if role loading is complete AND user is definitely not a student
-    // Add extra validation to prevent false redirects
-    if (!roleLoading && user && role && !isStudent) {
-      logger.debug('StudentDashboard: User is not a student after loading complete', { 
-        role, 
-        isStudent, 
-        userId: user.id,
-        email: user.email 
-      });
-      navigate("/", { replace: true });
-      return;
-    }
 
     // If we have a user and they are a student, stay on dashboard
     if (user && isStudent) {
