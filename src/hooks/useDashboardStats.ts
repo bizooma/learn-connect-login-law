@@ -46,9 +46,9 @@ export const useDashboardStats = (options?: { personal?: boolean }) => {
 
     try {
       setLoading(true);
-      console.log('useDashboardStats: Fetching stats for user', user.id, { isAdmin, isOwner, isStudent, isClient });
+      console.log('useDashboardStats: Fetching stats for user', user.id, { isAdmin, isOwner, isStudent, isClient, personal });
 
-      if (isAdmin || isOwner) {
+      if (!personal && (isAdmin || isOwner)) {
         // Admin/Owner stats - system-wide
         const [coursesResult, usersResult, progressResult] = await Promise.all([
           supabase.from('courses').select('id', { count: 'exact', head: true }).eq('is_draft', false),
@@ -76,7 +76,7 @@ export const useDashboardStats = (options?: { personal?: boolean }) => {
           activeUsers: totalUsers // Simplified for now
         });
 
-      } else if (isStudent || isClient) {
+      } else if (personal || isStudent || isClient) {
         // Student/Client stats - personal
         const { data: progressData } = await supabase
           .from('user_course_progress')
