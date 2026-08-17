@@ -54,7 +54,7 @@ export const handleCourseSubmission = async (
     level: data.level,
     duration: data.duration,
     image_url: imageUrl || null,
-    is_draft: false,
+    is_draft: true,
   });
 
   console.log('Prepared course data:', courseData);

@@ -4,7 +4,7 @@ import { CourseFormData } from "../types";
 import { uploadImageFile } from "../fileUploadUtils";
 // Removed automatic calendar event import
 
-export const createCourse = async (courseData: CourseFormData, isDraft: boolean = false) => {
+export const createCourse = async (courseData: CourseFormData, isDraft: boolean = true) => {
   console.log('Creating course with data:', courseData);
 
   let imageUrl = '';

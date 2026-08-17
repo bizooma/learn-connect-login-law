@@ -208,7 +208,7 @@ export const useCourseForm = (courseId?: string) => {
     }
   };
 
-  const saveCourse = async (isDraft: boolean = false) => {
+  const saveCourse = async (isDraft: boolean = true) => {
     try {
       setSaving(true);
       

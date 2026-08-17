@@ -1,0 +1,1 @@
+ALTER TABLE public.courses ALTER COLUMN is_draft SET DEFAULT true;
