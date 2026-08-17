@@ -7,7 +7,7 @@ import { createMultipleFileUpload } from "./fileUploadService";
 export const createCourseWithContent = async (
   courseData: CourseFormData, 
   modules: ModuleData[], 
-  isDraft: boolean = false
+  isDraft: boolean = true
 ) => {
   console.log('🆕 Creating course with content...', { courseData, modulesCount: modules.length });
 

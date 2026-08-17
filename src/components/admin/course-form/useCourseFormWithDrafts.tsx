@@ -151,7 +151,7 @@ export const useCourseFormWithDrafts = (onSuccess: () => void) => {
 
       toast({
         title: "Success",
-        description: "Course created successfully",
+        description: "Course created as a draft. Publish it from the course list when you're ready for students to see it.",
       });
 
       form.reset();
