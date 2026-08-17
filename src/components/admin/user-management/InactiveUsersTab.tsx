@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { UserPlus, Search, Calendar, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -22,6 +23,7 @@ const InactiveUsersTab = ({ onUserRestored }: InactiveUsersTabProps) => {
   const [inactiveUsers, setInactiveUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
+  const [domainFilter, setDomainFilter] = useState<"any" | "nfil" | "external">("any");
   const [restoreDialogOpen, setRestoreDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<UserProfile | null>(null);
   const [restoreReason, setRestoreReason] = useState("");
@@ -118,10 +120,19 @@ const InactiveUsersTab = ({ onUserRestored }: InactiveUsersTabProps) => {
     }
   };
 
-  const filteredUsers = inactiveUsers.filter(user =>
-    user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredUsers = inactiveUsers.filter(user => {
+    const matchesSearch =
+      user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      `${user.first_name} ${user.last_name}`.toLowerCase().includes(searchTerm.toLowerCase());
+    if (!matchesSearch) return false;
+
+    if (domainFilter !== "any") {
+      const isNfil = user.email.toLowerCase().endsWith("@newfrontier.us");
+      if (domainFilter === "nfil" && !isNfil) return false;
+      if (domainFilter === "external" && isNfil) return false;
+    }
+    return true;
+  });
 
   const getInitials = (firstName?: string, lastName?: string, email?: string) => {
     if (firstName && lastName) {
@@ -152,14 +163,26 @@ const InactiveUsersTab = ({ onUserRestored }: InactiveUsersTabProps) => {
         </Badge>
       </div>
 
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-        <Input
-          placeholder="Search inactive users..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-9"
-        />
+      <div className="flex items-center gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+          <Input
+            placeholder="Search inactive users..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Select value={domainFilter} onValueChange={(v) => setDomainFilter(v as typeof domainFilter)}>
+          <SelectTrigger className="w-[175px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="any">Domain: Any</SelectItem>
+            <SelectItem value="nfil">NFIL Staff</SelectItem>
+            <SelectItem value="external">External Clients</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {filteredUsers.length === 0 ? (

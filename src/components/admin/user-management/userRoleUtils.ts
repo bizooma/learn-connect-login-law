@@ -51,6 +51,7 @@ export interface UserFilters {
   roles: string[];
   tester: "any" | "yes" | "no";
   groupIds: string[];
+  domain: "any" | "nfil" | "external";
   activity: "any" | "7d" | "30d" | "90d" | "never";
   assignment: "any" | "no_group" | "no_course";
 }
@@ -59,6 +60,7 @@ export const emptyFilters: UserFilters = {
   roles: [],
   tester: "any",
   groupIds: [],
+  domain: "any",
   activity: "any",
   assignment: "any",
 };
@@ -67,6 +69,7 @@ export const hasActiveFilters = (f: UserFilters): boolean =>
   f.roles.length > 0 ||
   f.tester !== "any" ||
   f.groupIds.length > 0 ||
+  f.domain !== "any" ||
   f.activity !== "any" ||
   f.assignment !== "any";
 
@@ -105,6 +108,13 @@ export const filterUsers = (
       const ids = m.groupIds || [];
       if (!filters.groupIds.some((g) => ids.includes(g))) return false;
     }
+
+    if (filters.domain !== "any") {
+      const isNfil = user.email.toLowerCase().endsWith("@newfrontier.us");
+      if (filters.domain === "nfil" && !isNfil) return false;
+      if (filters.domain === "external" && isNfil) return false;
+    }
+
 
     if (filters.activity !== "any") {
       const last = m.lastLoginAt ? new Date(m.lastLoginAt).getTime() : 0;
