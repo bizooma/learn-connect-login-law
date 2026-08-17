@@ -162,7 +162,7 @@ export const useDashboardStats = (options?: { personal?: boolean }) => {
       });
       // Keep loading while role is being determined - don't guess or timeout
     }
-  }, [user?.id, isAdmin, isOwner, isStudent, isClient]);
+  }, [user?.id, isAdmin, isOwner, isStudent, isClient, personal]);
 
   return { stats, loading, refetch: fetchStats };
 };
