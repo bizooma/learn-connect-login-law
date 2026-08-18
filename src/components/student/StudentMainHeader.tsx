@@ -1,5 +1,5 @@
 
-import { BookOpen, Menu, LogOut, HelpCircle, FileText } from "lucide-react";
+import { BookOpen, Menu, LogOut, HelpCircle, FileText, LayoutDashboard, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
