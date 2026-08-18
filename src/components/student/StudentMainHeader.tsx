@@ -1,5 +1,5 @@
 
-import { BookOpen, Menu, LogOut, HelpCircle, FileText } from "lucide-react";
+import { BookOpen, Menu, LogOut, HelpCircle, FileText, LayoutDashboard, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
@@ -15,7 +15,7 @@ import {
 const StudentMainHeader = () => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
-  const { canAccessWiki } = useUserRole();
+  const { canAccessWiki, isAdmin, isOwner, isTeamLeader } = useUserRole();
 
   const handleSignOut = async () => {
     try {
@@ -71,6 +71,25 @@ const StudentMainHeader = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48">
+                {isAdmin && (
+                  <DropdownMenuItem onClick={() => navigate('/admin-dashboard')} className="flex items-center space-x-2">
+                    <LayoutDashboard className="h-4 w-4" />
+                    <span>Admin Dashboard</span>
+                  </DropdownMenuItem>
+                )}
+                {isOwner && (
+                  <DropdownMenuItem onClick={() => navigate('/owner-dashboard')} className="flex items-center space-x-2">
+                    <LayoutDashboard className="h-4 w-4" />
+                    <span>Owner Dashboard</span>
+                  </DropdownMenuItem>
+                )}
+                {isTeamLeader && (
+                  <DropdownMenuItem onClick={() => navigate('/team-leader-dashboard')} className="flex items-center space-x-2">
+                    <Users className="h-4 w-4" />
+                    <span>My Team</span>
+                  </DropdownMenuItem>
+                )}
+                {(isAdmin || isOwner || isTeamLeader) && <DropdownMenuSeparator />}
                 <DropdownMenuItem onClick={handleKnowledgeBase} className="flex items-center space-x-2">
                   <HelpCircle className="h-4 w-4" />
                   <span>Help & Knowledge Base</span>
