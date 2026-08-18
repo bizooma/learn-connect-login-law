@@ -15,7 +15,7 @@ import {
 const StudentMainHeader = () => {
   const { signOut } = useAuth();
   const navigate = useNavigate();
-  const { canAccessWiki } = useUserRole();
+  const { canAccessWiki, isAdmin, isOwner, isTeamLeader } = useUserRole();
 
   const handleSignOut = async () => {
     try {
