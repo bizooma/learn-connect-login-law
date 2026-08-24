@@ -113,13 +113,20 @@ const WikiPageEditorPage = () => {
       return;
     }
     setSaving(true);
-    const { error } = await supabase
+    const { data, error } = await supabase
       .from("wiki_pages" as any)
       .update({ title: trimmed, content: sanitizeContent(content) })
-      .eq("id", page.id);
+      .eq("id", page.id)
+      .select("id");
     setSaving(false);
     if (error) {
       toast.error("Failed to save: " + error.message);
+      return;
+    }
+    if (!data || data.length === 0) {
+      toast.error(
+        "Your changes were not saved — you don't have edit access to this SOP. Ask an admin for edit access, then save again. Your edits are still here."
+      );
       return;
     }
     setDirty(false);
