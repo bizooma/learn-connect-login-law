@@ -32,13 +32,29 @@ const UserEmailEditDialog = ({ user, open, onOpenChange, onEmailUpdated }: UserE
     setLoading(true);
 
     try {
-      // Update the profile table
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .update({ email })
-        .eq('id', user.id);
+      // Update both auth.users.email (the actual login) and profiles.email
+      // through the privileged edge function. Never short-circuit on an
+      // unchanged value — re-saving the displayed email is how an account
+      // whose auth/profile emails have drifted gets repaired.
+      const { data, error } = await supabase.functions.invoke('admin-change-email', {
+        body: { userId: user.id, email }
+      });
 
-      if (profileError) throw profileError;
+      if (error) {
+        // Surface the function's own message (e.g. "already in use") when available
+        let message = error.message;
+        try {
+          if (error.context && typeof error.context.json === 'function') {
+            const body = await error.context.json();
+            if (body?.error) message = body.error;
+          }
+        } catch { /* fall back to generic message */ }
+        throw new Error(message);
+      }
+
+      if (data?.error) {
+        throw new Error(data.error);
+      }
 
       toast({
         title: "Success",

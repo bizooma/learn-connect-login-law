@@ -76,3 +76,6 @@ verify_jwt = false
 
 [functions.log-login-attempt]
 verify_jwt = false
+
+[functions.admin-change-email]
+verify_jwt = false
