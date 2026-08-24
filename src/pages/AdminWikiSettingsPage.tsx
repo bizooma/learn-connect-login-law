@@ -57,6 +57,7 @@ const AdminWikiSettingsPage = () => {
   const [esignaturePermission, setEsignaturePermission] = useState("billing_admin");
   const [feedbackEnabled, setFeedbackEnabled] = useState(true);
   const [defaultDiscoverability, setDefaultDiscoverability] = useState<"discoverable" | "request" | "private">("discoverable");
+  const [quizPassPercent, setQuizPassPercent] = useState<string>("80");
   const [savingContent, setSavingContent] = useState(false);
 
   // People tab
@@ -106,6 +107,7 @@ const AdminWikiSettingsPage = () => {
         setEsignaturePermission(row.content_esignature_permission ?? "billing_admin");
         setFeedbackEnabled(row.content_feedback_enabled ?? true);
         setDefaultDiscoverability((row.content_default_discoverability ?? "discoverable") as any);
+        setQuizPassPercent(String(row.wiki_quiz_pass_percent ?? 80));
         setDirectoryEnabled(row.people_directory_enabled ?? true);
         setDirectoryRestricted(row.people_directory_restricted_groups ?? []);
         setPeopleChartEnabled(row.people_chart_enabled ?? true);
