@@ -8,7 +8,9 @@ import { ArrowLeft, Loader2, Plus, Trash2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { useWikiQuestions, WikiQuestion } from "@/hooks/useWikiQuestions";
 import WikiDocumentSidebar from "@/components/admin/wiki/WikiDocumentSidebar";
+import WikiQuizRunner from "@/components/admin/wiki/WikiQuizRunner";
 import { usePreviewAsStaff, withPreviewAsStaffParam } from "@/hooks/usePreviewAsStaff";
+import { useUserRole } from "@/hooks/useUserRole";
 
 const letter = (i: number) => String.fromCharCode(65 + i);
 
