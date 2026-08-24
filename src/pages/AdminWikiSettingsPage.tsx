@@ -57,6 +57,7 @@ const AdminWikiSettingsPage = () => {
   const [esignaturePermission, setEsignaturePermission] = useState("billing_admin");
   const [feedbackEnabled, setFeedbackEnabled] = useState(true);
   const [defaultDiscoverability, setDefaultDiscoverability] = useState<"discoverable" | "request" | "private">("discoverable");
+  const [quizPassPercent, setQuizPassPercent] = useState<string>("80");
   const [savingContent, setSavingContent] = useState(false);
 
   // People tab
@@ -106,6 +107,7 @@ const AdminWikiSettingsPage = () => {
         setEsignaturePermission(row.content_esignature_permission ?? "billing_admin");
         setFeedbackEnabled(row.content_feedback_enabled ?? true);
         setDefaultDiscoverability((row.content_default_discoverability ?? "discoverable") as any);
+        setQuizPassPercent(String(row.wiki_quiz_pass_percent ?? 80));
         setDirectoryEnabled(row.people_directory_enabled ?? true);
         setDirectoryRestricted(row.people_directory_restricted_groups ?? []);
         setPeopleChartEnabled(row.people_chart_enabled ?? true);
@@ -204,22 +206,37 @@ const AdminWikiSettingsPage = () => {
   const handleSaveContent = async () => {
     setSavingContent(true);
     try {
+      const passPercent = Math.round(Number(quizPassPercent));
+      if (!Number.isFinite(passPercent) || passPercent < 1 || passPercent > 100) {
+        toast({
+          title: "Invalid passing score",
+          description: "Passing score must be a whole number between 1 and 100.",
+          variant: "destructive",
+        });
+        return;
+      }
       const payload = {
         content_public_share_enabled: publicShareEnabled,
         content_pdf_downloads_enabled: pdfDownloadsEnabled,
         content_esignature_permission: esignaturePermission,
         content_feedback_enabled: feedbackEnabled,
         content_default_discoverability: defaultDiscoverability,
+        wiki_quiz_pass_percent: passPercent,
         updated_by: (await supabase.auth.getUser()).data.user?.id,
       };
       const { error } = settingsId
         ? await supabase.from("organization_settings" as any).update(payload).eq("id", settingsId)
         : await supabase.from("organization_settings" as any).insert({ ...payload, singleton: true });
       if (error) throw error;
+      setQuizPassPercent(String(passPercent));
       toast({ title: "Content settings saved" });
     } catch (err: any) {
       console.error(err);
-      toast({ title: "Save failed", description: err.message, variant: "destructive" });
+      toast({
+        title: "Save failed",
+        description: err.message || "Could not save settings. Passing score must be between 1 and 100.",
+        variant: "destructive",
+      });
     } finally {
       setSavingContent(false);
     }
@@ -533,6 +550,25 @@ const AdminWikiSettingsPage = () => {
                                 </SelectContent>
                               </Select>
                             </div>
+                          </div>
+                        </div>
+
+                        <div>
+                          <h3 className="text-lg font-semibold mb-4">Knowledge checks</h3>
+                          <div className="space-y-2 max-w-md">
+                            <Label htmlFor="quizPass" className="text-base font-semibold">Passing score (%)</Label>
+                            <Input
+                              id="quizPass"
+                              type="number"
+                              min={1}
+                              max={100}
+                              step={1}
+                              value={quizPassPercent}
+                              onChange={(e) => setQuizPassPercent(e.target.value)}
+                            />
+                            <p className="text-sm text-muted-foreground">
+                              Staff must score at least this to pass a knowledge check.
+                            </p>
                           </div>
                         </div>
 

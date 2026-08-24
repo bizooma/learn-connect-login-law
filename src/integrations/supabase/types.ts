@@ -1157,6 +1157,7 @@ export type Database = {
           updated_at: string
           updated_by: string | null
           website: string | null
+          wiki_quiz_pass_percent: number
         }
         Insert: {
           accent_color?: string | null
@@ -1186,6 +1187,7 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
           website?: string | null
+          wiki_quiz_pass_percent?: number
         }
         Update: {
           accent_color?: string | null
@@ -1215,6 +1217,7 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
           website?: string | null
+          wiki_quiz_pass_percent?: number
         }
         Relationships: []
       }
@@ -2929,6 +2932,89 @@ export type Database = {
           },
         ]
       }
+      wiki_quiz_answers: {
+        Row: {
+          attempt_id: string
+          id: string
+          is_correct: boolean
+          question_id: string
+          selected_choice_ids: string[]
+        }
+        Insert: {
+          attempt_id: string
+          id?: string
+          is_correct: boolean
+          question_id: string
+          selected_choice_ids?: string[]
+        }
+        Update: {
+          attempt_id?: string
+          id?: string
+          is_correct?: boolean
+          question_id?: string
+          selected_choice_ids?: string[]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wiki_quiz_answers_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "wiki_quiz_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "wiki_quiz_answers_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "wiki_questions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wiki_quiz_attempts: {
+        Row: {
+          category_id: string
+          id: string
+          pass_threshold: number
+          passed: boolean
+          questions_correct: number
+          questions_total: number
+          score_percent: number
+          submitted_at: string
+          user_id: string
+        }
+        Insert: {
+          category_id: string
+          id?: string
+          pass_threshold: number
+          passed: boolean
+          questions_correct: number
+          questions_total: number
+          score_percent: number
+          submitted_at?: string
+          user_id: string
+        }
+        Update: {
+          category_id?: string
+          id?: string
+          pass_threshold?: number
+          passed?: boolean
+          questions_correct?: number
+          questions_total?: number
+          score_percent?: number
+          submitted_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wiki_quiz_attempts_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "wiki_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       wiki_subject_progress: {
         Row: {
           category_id: string
@@ -3192,6 +3278,16 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_wiki_quiz: {
+        Args: { _category_id: string }
+        Returns: {
+          choices: Json
+          question_id: string
+          question_text: string
+          question_type: string
+          sort_order: number
+        }[]
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -3324,6 +3420,10 @@ export type Database = {
           p_user_id: string
         }
         Returns: string
+      }
+      submit_wiki_quiz: {
+        Args: { _answers: Json; _category_id: string }
+        Returns: Json
       }
       sync_video_completion_safe:
         | {
