@@ -221,25 +221,33 @@ const WikiKnowledgeCheckPage = () => {
 
         <div className="flex-1 overflow-auto">
           <div className="max-w-4xl mx-auto w-full px-6 py-8">
-            {api.questions.length === 0 && (
-              <div className="text-center text-muted-foreground py-12 border border-dashed rounded-lg mb-6">
-                No questions yet. Add your first question below.
+            {!authorMode && navCategoryId ? (
+              <WikiQuizRunner categoryId={navCategoryId} />
+            ) : !authorMode ? (
+              <div className="text-center text-muted-foreground py-12 border border-dashed rounded-lg">
+                No knowledge check is available for this subject yet.
               </div>
-            )}
+            ) : (
+              <>
+                {api.questions.length === 0 && (
+                  <div className="text-center text-muted-foreground py-12 border border-dashed rounded-lg mb-6">
+                    No questions yet. Add your first question below.
+                  </div>
+                )}
 
-            {api.questions.map((q, i) => (
-              <QuestionCard key={q.id} question={q} index={i} api={api} readOnly={previewAsStaff} />
-            ))}
+                {api.questions.map((q, i) => (
+                  <QuestionCard key={q.id} question={q} index={i} api={api} readOnly={false} />
+                ))}
 
-            {!previewAsStaff && (
-              <Button
-                onClick={() => api.createQuestion.mutate(articleId || "")}
-                variant="outline"
-                className="w-full gap-2 mt-4"
-                disabled={api.createQuestion.isPending}
-              >
-                <Plus className="h-4 w-4" /> Add question
-              </Button>
+                <Button
+                  onClick={() => api.createQuestion.mutate(articleId || "")}
+                  variant="outline"
+                  className="w-full gap-2 mt-4"
+                  disabled={api.createQuestion.isPending}
+                >
+                  <Plus className="h-4 w-4" /> Add question
+                </Button>
+              </>
             )}
           </div>
         </div>
