@@ -27,7 +27,7 @@ interface QuizResult {
   questions_correct: number;
   pass_threshold: number;
   passed: boolean;
-  wrong_question_ids?: string[];
+  missed_question_ids?: string[];
 }
 
 const WikiQuizRunner = ({ categoryId }: { categoryId: string }) => {
@@ -123,16 +123,13 @@ const WikiQuizRunner = ({ categoryId }: { categoryId: string }) => {
   }
 
   if (result) {
-    const wrongSet = new Set(result.wrong_question_ids ?? []);
-    const wrongQuestions =
-      wrongSet.size > 0
-        ? questions.filter((q) => wrongSet.has(q.question_id))
-        : questions.length - result.questions_correct > 0
-          ? []
-          : [];
+    const missedSet = new Set(result.missed_question_ids ?? []);
+    // Map missed IDs against the questions already loaded — question text only,
+    // no correct answers ever reach the client.
+    const missedQuestions = questions
+      .map((q, i) => ({ ...q, number: i + 1 }))
+      .filter((q) => missedSet.has(q.question_id));
     const missedCount = result.questions_total - result.questions_correct;
-    // If the server didn't return ids, we can't map misses to questions — list
-    // nothing rather than guessing.
     return (
       <div>
         <div className="rounded-lg border border-border bg-card p-8 mb-6 text-center">
@@ -161,17 +158,18 @@ const WikiQuizRunner = ({ categoryId }: { categoryId: string }) => {
           </Button>
         </div>
 
-        {missedCount > 0 && wrongQuestions.length > 0 && (
+        {missedCount > 0 && missedQuestions.length > 0 && (
           <div className="rounded-lg border border-border bg-card p-6">
             <h3 className="font-semibold mb-3">
               Questions to review ({missedCount})
             </h3>
             <ul className="space-y-2">
-              {wrongQuestions.map((q) => (
+              {missedQuestions.map((q) => (
                 <li
                   key={q.question_id}
                   className="text-sm text-muted-foreground border-b border-border last:border-0 pb-2"
                 >
+                  <span className="font-medium text-foreground">Q{q.number}.</span>{" "}
                   {q.question_text}
                 </li>
               ))}
