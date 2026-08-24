@@ -144,6 +144,8 @@ const WikiKnowledgeCheckPage = () => {
   const [loading, setLoading] = useState(true);
   const api = useWikiQuestions(articleId, categoryId);
   const { enabled: previewAsStaff } = usePreviewAsStaff();
+  const { isAdmin } = useUserRole();
+  const authorMode = isAdmin && !previewAsStaff;
 
   useEffect(() => {
     (async () => {
