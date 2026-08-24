@@ -158,17 +158,18 @@ const WikiQuizRunner = ({ categoryId }: { categoryId: string }) => {
           </Button>
         </div>
 
-        {missedCount > 0 && wrongQuestions.length > 0 && (
+        {missedCount > 0 && missedQuestions.length > 0 && (
           <div className="rounded-lg border border-border bg-card p-6">
             <h3 className="font-semibold mb-3">
               Questions to review ({missedCount})
             </h3>
             <ul className="space-y-2">
-              {wrongQuestions.map((q) => (
+              {missedQuestions.map((q) => (
                 <li
                   key={q.question_id}
                   className="text-sm text-muted-foreground border-b border-border last:border-0 pb-2"
                 >
+                  <span className="font-medium text-foreground">Q{q.number}.</span>{" "}
                   {q.question_text}
                 </li>
               ))}
