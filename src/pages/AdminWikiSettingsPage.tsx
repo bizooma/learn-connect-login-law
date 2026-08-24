@@ -553,6 +553,25 @@ const AdminWikiSettingsPage = () => {
                           </div>
                         </div>
 
+                        <div>
+                          <h3 className="text-lg font-semibold mb-4">Knowledge checks</h3>
+                          <div className="space-y-2 max-w-md">
+                            <Label htmlFor="quizPass" className="text-base font-semibold">Passing score (%)</Label>
+                            <Input
+                              id="quizPass"
+                              type="number"
+                              min={1}
+                              max={100}
+                              step={1}
+                              value={quizPassPercent}
+                              onChange={(e) => setQuizPassPercent(e.target.value)}
+                            />
+                            <p className="text-sm text-muted-foreground">
+                              Staff must score at least this to pass a knowledge check.
+                            </p>
+                          </div>
+                        </div>
+
                         <div className="flex justify-end pt-4 border-t border-border">
                           <Button onClick={handleSaveContent} disabled={savingContent}>
                             {savingContent ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Saving...</> : "Save"}
