@@ -206,22 +206,37 @@ const AdminWikiSettingsPage = () => {
   const handleSaveContent = async () => {
     setSavingContent(true);
     try {
+      const passPercent = Math.round(Number(quizPassPercent));
+      if (!Number.isFinite(passPercent) || passPercent < 1 || passPercent > 100) {
+        toast({
+          title: "Invalid passing score",
+          description: "Passing score must be a whole number between 1 and 100.",
+          variant: "destructive",
+        });
+        return;
+      }
       const payload = {
         content_public_share_enabled: publicShareEnabled,
         content_pdf_downloads_enabled: pdfDownloadsEnabled,
         content_esignature_permission: esignaturePermission,
         content_feedback_enabled: feedbackEnabled,
         content_default_discoverability: defaultDiscoverability,
+        wiki_quiz_pass_percent: passPercent,
         updated_by: (await supabase.auth.getUser()).data.user?.id,
       };
       const { error } = settingsId
         ? await supabase.from("organization_settings" as any).update(payload).eq("id", settingsId)
         : await supabase.from("organization_settings" as any).insert({ ...payload, singleton: true });
       if (error) throw error;
+      setQuizPassPercent(String(passPercent));
       toast({ title: "Content settings saved" });
     } catch (err: any) {
       console.error(err);
-      toast({ title: "Save failed", description: err.message, variant: "destructive" });
+      toast({
+        title: "Save failed",
+        description: err.message || "Could not save settings. Passing score must be between 1 and 100.",
+        variant: "destructive",
+      });
     } finally {
       setSavingContent(false);
     }
