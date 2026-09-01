@@ -40,13 +40,14 @@ const SessionsPagination = ({
             onValueChange={(value) => onPageSizeChange(parseInt(value))}
             disabled={loading}
           >
-            <SelectTrigger className="w-16">
+            <SelectTrigger className="w-20">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="25">25</SelectItem>
               <SelectItem value="50">50</SelectItem>
               <SelectItem value="100">100</SelectItem>
+              <SelectItem value="250">250</SelectItem>
             </SelectContent>
           </Select>
         </div>
