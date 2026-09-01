@@ -14,13 +14,15 @@ interface ActivityFiltersProps {
   onFiltersChange: (filters: ActivityFilters) => void;
   onExportCSV: () => void;
   loading?: boolean;
+  exporting?: boolean;
 }
 
 const ActivityFiltersComponent = ({ 
   filters, 
   onFiltersChange, 
   onExportCSV,
-  loading = false 
+  loading = false,
+  exporting = false
 }: ActivityFiltersProps) => {
   const [localFilters, setLocalFilters] = useState<ActivityFilters>(filters);
 

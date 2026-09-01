@@ -49,6 +49,7 @@ const UserActivityManagement = () => {
         onFiltersChange={setFilters}
         onExportCSV={handleExportSessionsCSV}
         loading={loading}
+        exporting={exporting}
       />
 
       <Tabs defaultValue="sessions" className="w-full">
