@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Search, Filter, Download } from "lucide-react";
+import { Search, Filter, Download, Loader2 } from "lucide-react";
 import TimeFilterPresets from "./TimeFilterPresets";
 import type { ActivityFilters } from "./types";
 
@@ -147,9 +147,13 @@ const ActivityFiltersComponent = ({
           <Button variant="outline" onClick={clearFilters}>
             Clear Filters
           </Button>
-          <Button variant="outline" onClick={onExportCSV} disabled={loading}>
-            <Download className="h-4 w-4 mr-2" />
-            Export CSV
+          <Button variant="outline" onClick={onExportCSV} disabled={loading || exporting}>
+            {exporting ? (
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+            ) : (
+              <Download className="h-4 w-4 mr-2" />
+            )}
+            {exporting ? "Preparing export..." : "Export CSV"}
           </Button>
         </div>
       </CardContent>
