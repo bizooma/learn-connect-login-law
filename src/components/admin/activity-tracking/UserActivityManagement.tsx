@@ -14,14 +14,18 @@ const UserActivityManagement = () => {
     sessions, 
     stats, 
     loading, 
+    exporting,
     pagination, 
     changePage, 
     changePageSize, 
+    fetchAllSessionsForExport,
     refetch 
   } = useUserSessions(filters);
 
-  const handleExportSessionsCSV = () => {
-    exportSessionsToCSV(sessions, filters);
+  const handleExportSessionsCSV = async () => {
+    const allSessions = await fetchAllSessionsForExport();
+    if (allSessions.length === 0) return;
+    exportSessionsToCSV(allSessions, filters);
   };
 
   const handleExportStatsCSV = () => {
