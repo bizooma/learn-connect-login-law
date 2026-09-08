@@ -688,7 +688,7 @@ const RichTextEditor = ({ content, onChange, readOnly = false }: RichTextEditorP
       }),
       Underline,
       Link.configure({ openOnClick: false, HTMLAttributes: { class: "text-primary underline" } }),
-      Image,
+      withMediaNodeView(Image),
       TextAlign.configure({ types: ["heading", "paragraph"] }),
       TextStyle,
       FontFamily,
