@@ -59,7 +59,7 @@ const AdminWikiPage = () => {
   const [editingArticle, setEditingArticle] = useState<WikiArticle | null>(null);
   const [createContentType, setCreateContentType] = useState<WikiContentType | null>(null);
   const [activeCategoryFilter, setActiveCategoryFilter] = useState<WikiSubjectCategory | "all">("all");
-  const [viewMode, setViewMode] = useState<ViewMode>("training");
+  const [viewMode, setViewMode] = useState<ViewMode>("team");
   const [sortMode, setSortMode] = useState<SortMode>("training");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const { enabled: previewAsStaff } = usePreviewAsStaff();
@@ -337,23 +337,23 @@ const AdminWikiPage = () => {
                       <div className="inline-flex rounded-md border border-border overflow-hidden">
                         <button
                           type="button"
-                          onClick={() => setViewMode("training")}
-                          className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium transition-colors ${
-                            viewMode === "training" ? "text-black" : "bg-background text-foreground hover:bg-muted"
-                          }`}
-                          style={viewMode === "training" ? { backgroundColor: "#FFDA00" } : undefined}
-                        >
-                          <LayoutList className="h-4 w-4" /> Training order
-                        </button>
-                        <button
-                          type="button"
                           onClick={() => setViewMode("team")}
-                          className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium transition-colors border-l border-border ${
+                          className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium transition-colors ${
                             viewMode === "team" ? "text-black" : "bg-background text-foreground hover:bg-muted"
                           }`}
                           style={viewMode === "team" ? { backgroundColor: "#FFDA00" } : undefined}
                         >
                           <Users className="h-4 w-4" /> Filter by Department
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setViewMode("training")}
+                          className={`inline-flex items-center gap-2 px-3 py-1.5 text-sm font-medium transition-colors border-l border-border ${
+                            viewMode === "training" ? "text-black" : "bg-background text-foreground hover:bg-muted"
+                          }`}
+                          style={viewMode === "training" ? { backgroundColor: "#FFDA00" } : undefined}
+                        >
+                          <LayoutList className="h-4 w-4" /> Training order
                         </button>
                       </div>
 

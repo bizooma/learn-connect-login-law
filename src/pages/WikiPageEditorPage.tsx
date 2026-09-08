@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, Trash2 } from "lucide-react";
 import birdIcon from "@/assets/bird.png";
 import { toast } from "sonner";
 import RichTextEditor from "@/components/admin/wiki/RichTextEditor";
@@ -26,6 +26,7 @@ const WikiPageEditorPage = () => {
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const { isAdmin, isOwner } = useUserRole();
   const { enabled: previewAsStaff } = usePreviewAsStaff();
@@ -123,6 +124,33 @@ const WikiPageEditorPage = () => {
     toast.success("Page saved");
   };
 
+  const handleDelete = async () => {
+    if (!page) return;
+    const confirmed = window.confirm(`Delete "${page.title}"? This cannot be undone.`);
+    if (!confirmed) return;
+
+    setDeleting(true);
+    const { data, error } = await supabase
+      .from("wiki_pages" as any)
+      .delete()
+      .eq("id", page.id)
+      .select("id");
+    setDeleting(false);
+
+    if (error) {
+      toast.error("Failed to delete: " + error.message);
+      return;
+    }
+    if (!data || data.length === 0) {
+      toast.error(
+        "This page was not deleted — you don't have edit access to this SOP. Ask an admin for edit access."
+      );
+      return;
+    }
+    toast.success("Page deleted");
+    handleBackToContent(true);
+  };
+
   // Same-tab guard: if the admin toggles preview while holding unsaved edits,
   // confirm before flipping. Cancelling aborts the flip and preserves the buffer.
   const dirtyRef = useRef(dirty);
@@ -163,8 +191,8 @@ const WikiPageEditorPage = () => {
     return window.confirm("You have unsaved changes. Leave without saving?");
   };
 
-  const handleBackToContent = () => {
-    if (!confirmNavigation()) return;
+  const handleBackToContent = (force?: boolean) => {
+    if (!force && !confirmNavigation()) return;
     navigate(withPreviewAsStaffParam("/admin/wiki/content"), {
       state: { activeCategoryId: sidebarCategoryId },
     });
@@ -221,10 +249,22 @@ const WikiPageEditorPage = () => {
                 )}
                 {!readOnly && (
                   <>
+                    {!previewAsStaff && (
+                      <Button
+                        variant="destructive"
+                        size="sm"
+                        onClick={handleDelete}
+                        disabled={deleting || saving}
+                        className="gap-2"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        {deleting ? "Deleting..." : "Delete page"}
+                      </Button>
+                    )}
                     <span className="text-xs text-muted-foreground">
                       {dirty ? "Unsaved changes" : "Saved"}
                     </span>
-                    <Button onClick={handleSave} disabled={saving || !dirty} size="sm">
+                    <Button onClick={handleSave} disabled={saving || !dirty || deleting} size="sm">
                       {saving ? "Saving..." : "Save"}
                     </Button>
                   </>
