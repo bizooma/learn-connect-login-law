@@ -180,19 +180,6 @@ const WikiPageEditorPage = () => {
     if (!previewAsStaff && keepEditable) setKeepEditable(false);
   }, [previewAsStaff, dirty, keepEditable]);
 
-  const blocker = useBlocker(dirty);
-
-  useEffect(() => {
-    if (blocker.state === "blocked") {
-      const confirmed = window.confirm("You have unsaved changes. Leave without saving?");
-      if (confirmed) {
-        blocker.proceed();
-      } else {
-        blocker.reset();
-      }
-    }
-  }, [blocker]);
-
   if (loading && !page && !sidebarCategoryId) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -201,7 +188,13 @@ const WikiPageEditorPage = () => {
     );
   }
 
+  const confirmNavigation = () => {
+    if (!dirty) return true;
+    return window.confirm("You have unsaved changes. Leave without saving?");
+  };
+
   const handleBackToContent = (force?: boolean) => {
+    if (!force && !confirmNavigation()) return;
     navigate(withPreviewAsStaffParam("/admin/wiki/content"), {
       state: { activeCategoryId: sidebarCategoryId },
     });
