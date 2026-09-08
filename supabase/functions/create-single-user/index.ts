@@ -82,9 +82,22 @@ serve(async (req) => {
 
     console.log('User invited successfully:', createResult.email);
 
+    // Non-blocking: never fail account creation over group membership.
+    let groupNote = '';
+    if (isNfilEmail(createResult.email!)) {
+      const groupResult = await addToEveryoneGroup(
+        createResult.userId!,
+        createResult.email!,
+        authResult.user!.id
+      );
+      groupNote = groupResult.added
+        ? " They've also been added to the Everyone group."
+        : " Warning: they could not be added to the Everyone group - add them manually so they can see Policies & Procedures.";
+    }
+
     return json({
       success: true,
-      message: `Invite sent to ${createResult.email}. They'll set their own password from the link.`,
+      message: `Invite sent to ${createResult.email}. They'll set their own password from the link.${groupNote}`,
       userId: createResult.userId,
     });
 
