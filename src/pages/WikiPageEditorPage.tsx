@@ -15,16 +15,6 @@ import { WikiPage } from "@/hooks/useWikiPages";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useQuery } from "@tanstack/react-query";
 
-
-// Strip legacy bold so old content renders at normal weight.
-// Removes <strong>/<b> wrappers and inline font-weight styles.
-const sanitizeContent = (html: string): string => {
-  if (!html) return "";
-  return html
-    .replace(/<\/?(strong|b)(\s[^>]*)?>/gi, "")
-    .replace(/font-weight\s*:\s*[^;"']+;?/gi, "");
-};
-
 const WikiPageEditorPage = () => {
   const { pageId } = useParams<{ pageId: string }>();
   const navigate = useNavigate();
@@ -90,7 +80,7 @@ const WikiPageEditorPage = () => {
       const p = data as unknown as WikiPage;
       setPage(p);
       setTitle(p.title);
-      setContent(sanitizeContent(p.content || ""));
+      setContent(p.content || "");
       setLoading(false);
       // Only genuine staff learners should have completions recorded.
       // Skip for admins/owners (reviewing content) and for staff-preview mode.
@@ -115,7 +105,7 @@ const WikiPageEditorPage = () => {
     setSaving(true);
     const { data, error } = await supabase
       .from("wiki_pages" as any)
-      .update({ title: trimmed, content: sanitizeContent(content) })
+      .update({ title: trimmed, content })
       .eq("id", page.id)
       .select("id");
     setSaving(false);
