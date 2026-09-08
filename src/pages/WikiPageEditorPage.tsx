@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useParams, useNavigate, useLocation, useBlocker } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import RichTextEditor from "@/components/admin/wiki/RichTextEditor";
 import AiWritePageDialog from "@/components/admin/wiki/AiWritePageDialog";
 import WikiDocumentSidebar from "@/components/admin/wiki/WikiDocumentSidebar";
+import WikiGlobalSearchBox from "@/components/admin/wiki/WikiGlobalSearchBox";
 import PreviewAsStaffBanner from "@/components/admin/wiki/PreviewAsStaffBanner";
 import { registerPreviewEnableGuard, usePreviewAsStaff, withPreviewAsStaffParam } from "@/hooks/usePreviewAsStaff";
 import { WikiPage } from "@/hooks/useWikiPages";
@@ -27,6 +28,7 @@ const WikiPageEditorPage = () => {
   const [dirty, setDirty] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { isAdmin, isOwner } = useUserRole();
   const { enabled: previewAsStaff } = usePreviewAsStaff();
@@ -178,6 +180,19 @@ const WikiPageEditorPage = () => {
     if (!previewAsStaff && keepEditable) setKeepEditable(false);
   }, [previewAsStaff, dirty, keepEditable]);
 
+  const blocker = useBlocker(dirty);
+
+  useEffect(() => {
+    if (blocker.state === "blocked") {
+      const confirmed = window.confirm("You have unsaved changes. Leave without saving?");
+      if (confirmed) {
+        blocker.proceed();
+      } else {
+        blocker.reset();
+      }
+    }
+  }, [blocker]);
+
   if (loading && !page && !sidebarCategoryId) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -186,13 +201,7 @@ const WikiPageEditorPage = () => {
     );
   }
 
-  const confirmNavigation = () => {
-    if (!dirty) return true;
-    return window.confirm("You have unsaved changes. Leave without saving?");
-  };
-
   const handleBackToContent = (force?: boolean) => {
-    if (!force && !confirmNavigation()) return;
     navigate(withPreviewAsStaffParam("/admin/wiki/content"), {
       state: { activeCategoryId: sidebarCategoryId },
     });
@@ -206,13 +215,12 @@ const WikiPageEditorPage = () => {
           categoryId={sidebarCategoryId}
           activeArticleId={page?.article_id}
           activePageId={pageId}
-          onBeforeNavigate={confirmNavigation}
         />
 
 
         <div className="flex-1 flex flex-col min-w-0">
           <div className="border-b border-border bg-background">
-            <div className="flex items-center justify-between px-6 py-3 max-w-6xl mx-auto w-full">
+            <div className="flex items-center justify-between px-6 py-3 max-w-6xl mx-auto w-full gap-4">
               <div className="flex items-center gap-4 flex-1 min-w-0">
                 <Button
                   variant="ghost"
@@ -235,6 +243,15 @@ const WikiPageEditorPage = () => {
                     placeholder="Page title"
                   />
                 )}
+              </div>
+              <div className="hidden md:flex flex-1 items-center justify-center min-w-0">
+                <div className="w-full max-w-[360px]">
+                  <WikiGlobalSearchBox
+                    value={searchQuery}
+                    onChange={setSearchQuery}
+                    placeholder="Search all SOPs…"
+                  />
+                </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 {canUseAi && (
