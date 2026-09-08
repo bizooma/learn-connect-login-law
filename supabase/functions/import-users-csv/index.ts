@@ -127,7 +127,7 @@ serve(async (req) => {
       
       try {
         // Add timeout to prevent hanging
-        const createUserPromise = createUser(supabaseAdmin, userData);
+        const createUserPromise = createUser(supabaseAdmin, userData, user.id);
         const timeoutPromise = new Promise((_, reject) => 
           setTimeout(() => reject(new Error('User creation timeout')), 30000)
         );

@@ -69,7 +69,7 @@ const AddUserDialog = ({ onUserAdded }: AddUserDialogProps) => {
 
       toast({
         title: "Invite sent",
-        description: `Invite sent to ${formData.email}`,
+        description: data?.message || `Invite sent to ${formData.email}`,
       });
 
       // Reset form and close dialog

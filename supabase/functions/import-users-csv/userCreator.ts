@@ -16,9 +16,37 @@ interface CreateUserResult {
   isDuplicate?: boolean;
 }
 
+// Membership in this group grants Policies & Procedures access.
+// Only @newfrontier.us addresses may ever be added - security boundary.
+const EVERYONE_GROUP_ID = '008118df-8da5-4b7d-8fdb-998d3e86f531';
+
+function isNfilEmail(email: string): boolean {
+  return (email || '').trim().toLowerCase().endsWith('@newfrontier.us');
+}
+
+async function addToEveryoneGroup(
+  supabaseAdmin: any,
+  userId: string,
+  email: string,
+  addedBy?: string
+) {
+  if (!isNfilEmail(email)) return;
+  const { error } = await supabaseAdmin
+    .from('group_members')
+    .upsert(
+      { group_id: EVERYONE_GROUP_ID, user_id: userId, added_by: addedBy ?? null },
+      { onConflict: 'group_id,user_id', ignoreDuplicates: true }
+    );
+  if (error) {
+    // Non-blocking: the account is still valid without the group.
+    console.error(`Everyone group membership failed for ${email}:`, error);
+  }
+}
+
 export async function createUser(
   supabaseAdmin: ReturnType<typeof createClient>,
-  userData: UserData
+  userData: UserData,
+  addedBy?: string
 ): Promise<CreateUserResult> {
   try {
     console.log(`Creating user: ${userData.email}`);
@@ -136,6 +164,8 @@ export async function createUser(
     } else {
       console.log(`Role ${normalizedRole} assigned to ${userData.email}`);
     }
+
+    await addToEveryoneGroup(supabaseAdmin, authData.user.id, userData.email, addedBy);
 
     return {
       success: true,

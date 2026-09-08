@@ -31,6 +31,34 @@ function isAlreadyExistsError(message: string): boolean {
     m.includes('duplicate key');
 }
 
+// Membership in this group is what grants Policies & Procedures access.
+// Only @newfrontier.us addresses may ever be added - this is a security boundary.
+export const EVERYONE_GROUP_ID = '008118df-8da5-4b7d-8fdb-998d3e86f531';
+const NFIL_DOMAIN = '@newfrontier.us';
+
+export function isNfilEmail(email: string): boolean {
+  return (email || '').trim().toLowerCase().endsWith(NFIL_DOMAIN);
+}
+
+export async function addToEveryoneGroup(userId: string, email: string, addedBy?: string) {
+  if (!isNfilEmail(email)) return { added: false };
+
+  const supabaseAdmin = adminClient();
+  const { error } = await supabaseAdmin
+    .from('group_members')
+    .upsert(
+      { group_id: EVERYONE_GROUP_ID, user_id: userId, added_by: addedBy ?? null },
+      { onConflict: 'group_id,user_id', ignoreDuplicates: true }
+    );
+
+  if (error) {
+    console.error('Everyone group membership failed for', email, error);
+    return { added: false, error: error.message };
+  }
+
+  return { added: true };
+}
+
 export async function createUserAccount(userData: CreateUserRequest, siteUrl: string) {
   const supabaseAdmin = adminClient();
   const redirectTo = `${siteUrl}/reset-password`;
