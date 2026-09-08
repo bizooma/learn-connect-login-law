@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { NFIL_EMAIL_DOMAIN } from "@/lib/nfilStaff";
+
 
 export interface ContentReportRow {
   article_id: string;
