@@ -165,6 +165,8 @@ export async function createUser(
       console.log(`Role ${normalizedRole} assigned to ${userData.email}`);
     }
 
+    await addToEveryoneGroup(supabaseAdmin, authData.user.id, userData.email, addedBy);
+
     return {
       success: true,
       user_id: authData.user.id
