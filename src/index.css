@@ -115,3 +115,11 @@
     @apply font-montserrat font-normal;
   }
 }
+
+/* Visible selection state for images, embeds and iframes in the editor */
+.ProseMirror-selectednode {
+  outline: 2px solid hsl(var(--primary));
+  outline-offset: 2px;
+  border-radius: 0.375rem;
+}
+
