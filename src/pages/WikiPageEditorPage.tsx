@@ -180,14 +180,6 @@ const WikiPageEditorPage = () => {
     if (!previewAsStaff && keepEditable) setKeepEditable(false);
   }, [previewAsStaff, dirty, keepEditable]);
 
-  if (loading && !page && !sidebarCategoryId) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
-      </div>
-    );
-  }
-
   const blocker = useBlocker(dirty);
 
   useEffect(() => {
@@ -200,6 +192,14 @@ const WikiPageEditorPage = () => {
       }
     }
   }, [blocker]);
+
+  if (loading && !page && !sidebarCategoryId) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+      </div>
+    );
+  }
 
   const handleBackToContent = (force?: boolean) => {
     navigate(withPreviewAsStaffParam("/admin/wiki/content"), {
