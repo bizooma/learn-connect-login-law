@@ -185,22 +185,23 @@ export const useActivityReport = (limit = 100) => {
         (categoriesRes.data || []).map((c: any) => [c.id, c.title])
       );
 
-      return (viewsRes.data || []).map((v: any) => {
-        const p: any = profileMap.get(v.user_id);
-        const a: any = articleMap.get(v.article_id);
-        return {
-          id: v.id,
-          viewed_at: v.viewed_at,
-          user_id: v.user_id,
-          user_name: p
-            ? `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || p.email
-            : "Unknown",
-          user_email: p?.email ?? "",
-          article_id: v.article_id,
-          article_title: a?.title ?? "Deleted article",
-          category_title: a?.category_id ? catMap.get(a.category_id) ?? null : null,
-        };
-      });
+      return (viewsRes.data || [])
+        .filter((v: any) => profileMap.has(v.user_id))
+        .map((v: any) => {
+          const p: any = profileMap.get(v.user_id);
+          const a: any = articleMap.get(v.article_id);
+          return {
+            id: v.id,
+            viewed_at: v.viewed_at,
+            user_id: v.user_id,
+            user_name: `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || p.email,
+            user_email: p.email ?? "",
+            article_id: v.article_id,
+            article_title: a?.title ?? "Deleted article",
+            category_title: a?.category_id ? catMap.get(a.category_id) ?? null : null,
+          };
+        });
+
     },
   });
 };
