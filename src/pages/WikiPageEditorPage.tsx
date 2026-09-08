@@ -15,8 +15,6 @@ import { WikiPage } from "@/hooks/useWikiPages";
 import { useUserRole } from "@/hooks/useUserRole";
 import { useQuery } from "@tanstack/react-query";
 
-
-
 const WikiPageEditorPage = () => {
   const { pageId } = useParams<{ pageId: string }>();
   const navigate = useNavigate();
