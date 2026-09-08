@@ -6,6 +6,14 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+// Membership in this group grants Policies & Procedures access.
+// Only @newfrontier.us addresses may ever be added - security boundary.
+const EVERYONE_GROUP_ID = '008118df-8da5-4b7d-8fdb-998d3e86f531';
+
+function isNfilEmail(email: string): boolean {
+  return (email || '').trim().toLowerCase().endsWith('@newfrontier.us');
+}
+
 interface UserData {
   email: string;
   first_name: string;
@@ -100,7 +108,7 @@ serve(async (req) => {
       const batch = users.slice(i, i + BATCH_SIZE);
       console.log(`Processing batch ${Math.floor(i / BATCH_SIZE) + 1}/${Math.ceil(users.length / BATCH_SIZE)}`);
       
-      await processBatch(supabaseAdmin, batch, i, stats, updateExisting);
+      await processBatch(supabaseAdmin, batch, i, stats, updateExisting, user.id);
     }
 
     // Log the import batch
@@ -157,7 +165,8 @@ async function processBatch(
   batch: UserData[],
   startIndex: number,
   stats: ImportResult,
-  updateExisting: boolean
+  updateExisting: boolean,
+  addedBy?: string
 ) {
   // Check for existing profiles
   const emails = batch.map(user => user.email);
@@ -314,6 +323,25 @@ async function processBatch(
         if (rolesError) {
           console.error('Roles batch insert error:', rolesError);
           // Don't fail the entire operation if role assignment fails
+        }
+
+        // Everyone-group membership for New Frontier staff only (P&P access).
+        // Non-blocking: failures never fail the import.
+        const nfilMemberships = successfulAuthUsers
+          .filter(({ user }) => isNfilEmail(user.email))
+          .map(({ authId }) => ({
+            group_id: EVERYONE_GROUP_ID,
+            user_id: authId,
+            added_by: addedBy ?? null
+          }));
+
+        if (nfilMemberships.length > 0) {
+          const { error: groupError } = await supabase
+            .from('group_members')
+            .upsert(nfilMemberships, { onConflict: 'group_id,user_id', ignoreDuplicates: true });
+          if (groupError) {
+            console.error('Everyone group membership batch failed:', groupError);
+          }
         }
 
         // Mark successful imports
