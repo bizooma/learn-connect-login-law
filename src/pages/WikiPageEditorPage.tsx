@@ -215,7 +215,6 @@ const WikiPageEditorPage = () => {
           categoryId={sidebarCategoryId}
           activeArticleId={page?.article_id}
           activePageId={pageId}
-          onBeforeNavigate={confirmNavigation}
         />
 
 
