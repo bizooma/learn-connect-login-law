@@ -697,7 +697,9 @@ const RichTextEditor = ({ content, onChange, readOnly = false }: RichTextEditorP
       Highlight,
       Subscript,
       Superscript,
-      Youtube.configure({ controls: true, nocookie: true, HTMLAttributes: { class: "rounded-md my-4 mx-auto" } }),
+      withMediaNodeView(
+        Youtube.configure({ controls: true, nocookie: true, HTMLAttributes: { class: "rounded-md my-4 mx-auto" } })
+      ),
       Table.configure({ resizable: true, HTMLAttributes: { class: "border-collapse table-auto w-full my-4" } }),
       TableRow,
       TableHeader.configure({ HTMLAttributes: { class: "border border-border bg-muted p-2 font-semibold text-left" } }),
