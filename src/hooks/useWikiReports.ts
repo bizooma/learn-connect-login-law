@@ -42,8 +42,10 @@ const countActiveStaff = async () => {
   const { count } = await supabase
     .from("profiles")
     .select("id", { count: "exact", head: true })
-    .eq("is_deleted", false);
+    .eq("is_deleted", false)
+    .ilike("email", `%${NFIL_EMAIL_DOMAIN}`);
   return count ?? 0;
+
 };
 
 export const useContentReport = () => {
@@ -99,7 +101,9 @@ export const usePeopleReport = () => {
         supabase
           .from("profiles")
           .select("id, first_name, last_name, email, job_title")
-          .eq("is_deleted", false),
+          .eq("is_deleted", false)
+          .ilike("email", `%${NFIL_EMAIL_DOMAIN}`),
+
         supabase
           .from("wiki_article_views")
           .select("user_id, article_id, viewed_at")
