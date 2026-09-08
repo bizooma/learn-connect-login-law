@@ -156,7 +156,7 @@ const WikiCategoryRow = ({ category, onEdit, onDelete, onTogglePublish, onEditAr
               e.stopPropagation();
               navigate(withPreviewAsStaffParam("/admin/wiki/content"), { state: { activeCategoryId: category.id } });
             }}
-            className="font-medium text-foreground truncate text-left hover:text-primary hover:underline"
+            className="font-medium text-foreground truncate text-left hover:text-primary hover:underline cursor-pointer -mx-1 px-1 py-1"
           >
             {category.title}
           </button>
