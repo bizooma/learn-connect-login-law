@@ -220,7 +220,7 @@ const WikiPageEditorPage = () => {
 
         <div className="flex-1 flex flex-col min-w-0">
           <div className="border-b border-border bg-background">
-            <div className="flex items-center justify-between px-6 py-3 max-w-6xl mx-auto w-full">
+            <div className="flex items-center justify-between px-6 py-3 max-w-6xl mx-auto w-full gap-4">
               <div className="flex items-center gap-4 flex-1 min-w-0">
                 <Button
                   variant="ghost"
@@ -243,6 +243,15 @@ const WikiPageEditorPage = () => {
                     placeholder="Page title"
                   />
                 )}
+              </div>
+              <div className="hidden md:flex flex-1 items-center justify-center min-w-0">
+                <div className="w-full max-w-[360px]">
+                  <WikiGlobalSearchBox
+                    value={searchQuery}
+                    onChange={setSearchQuery}
+                    placeholder="Search all SOPs…"
+                  />
+                </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
                 {canUseAi && (
