@@ -162,7 +162,12 @@ export const useActivityReport = (limit = 100) => {
 
       const [profilesRes, articlesRes, categoriesRes] = await Promise.all([
         userIds.length
-          ? supabase.from("profiles").select("id, first_name, last_name, email").in("id", userIds)
+          ? supabase
+              .from("profiles")
+              .select("id, first_name, last_name, email")
+              .in("id", userIds)
+              .ilike("email", `%${NFIL_EMAIL_DOMAIN}`)
+
           : Promise.resolve({ data: [], error: null } as any),
         articleIds.length
           ? supabase.from("wiki_articles").select("id, title, category_id").in("id", articleIds)
