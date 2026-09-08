@@ -1,4 +1,11 @@
-import { useEditor, EditorContent, Editor } from "@tiptap/react";
+import {
+  useEditor,
+  EditorContent,
+  Editor,
+  ReactNodeViewRenderer,
+  NodeViewWrapper,
+  NodeViewProps,
+} from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Link from "@tiptap/extension-link";
 import Image from "@tiptap/extension-image";
