@@ -1,5 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { NFIL_EMAIL_DOMAIN } from "@/lib/nfilStaff";
+
+const fetchNfilStaffIds = async (): Promise<Set<string>> => {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id")
+    .eq("is_deleted", false)
+    .ilike("email", `%${NFIL_EMAIL_DOMAIN}`);
+  if (error) throw error;
+  return new Set((data || []).map((p: any) => p.id));
+};
+
 
 export interface TeamPulseItem {
   id: string;
