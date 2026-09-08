@@ -82,7 +82,7 @@ const WikiPageEditorPage = () => {
       const p = data as unknown as WikiPage;
       setPage(p);
       setTitle(p.title);
-      setContent(sanitizeContent(p.content || ""));
+      setContent(p.content || "");
       setLoading(false);
       // Only genuine staff learners should have completions recorded.
       // Skip for admins/owners (reviewing content) and for staff-preview mode.
@@ -107,7 +107,7 @@ const WikiPageEditorPage = () => {
     setSaving(true);
     const { data, error } = await supabase
       .from("wiki_pages" as any)
-      .update({ title: trimmed, content: sanitizeContent(content) })
+      .update({ title: trimmed, content })
       .eq("id", page.id)
       .select("id");
     setSaving(false);
