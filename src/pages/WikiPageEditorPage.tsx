@@ -28,6 +28,7 @@ const WikiPageEditorPage = () => {
   const [dirty, setDirty] = useState(false);
   const [aiOpen, setAiOpen] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const { isAdmin, isOwner } = useUserRole();
   const { enabled: previewAsStaff } = usePreviewAsStaff();
