@@ -1,5 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { NFIL_EMAIL_DOMAIN } from "@/lib/nfilStaff";
+
 
 export interface ContentReportRow {
   article_id: string;
@@ -40,8 +42,10 @@ const countActiveStaff = async () => {
   const { count } = await supabase
     .from("profiles")
     .select("id", { count: "exact", head: true })
-    .eq("is_deleted", false);
+    .eq("is_deleted", false)
+    .ilike("email", `%${NFIL_EMAIL_DOMAIN}`);
   return count ?? 0;
+
 };
 
 export const useContentReport = () => {
@@ -97,7 +101,9 @@ export const usePeopleReport = () => {
         supabase
           .from("profiles")
           .select("id, first_name, last_name, email, job_title")
-          .eq("is_deleted", false),
+          .eq("is_deleted", false)
+          .ilike("email", `%${NFIL_EMAIL_DOMAIN}`),
+
         supabase
           .from("wiki_article_views")
           .select("user_id, article_id, viewed_at")
@@ -156,7 +162,12 @@ export const useActivityReport = (limit = 100) => {
 
       const [profilesRes, articlesRes, categoriesRes] = await Promise.all([
         userIds.length
-          ? supabase.from("profiles").select("id, first_name, last_name, email").in("id", userIds)
+          ? supabase
+              .from("profiles")
+              .select("id, first_name, last_name, email")
+              .in("id", userIds)
+              .ilike("email", `%${NFIL_EMAIL_DOMAIN}`)
+
           : Promise.resolve({ data: [], error: null } as any),
         articleIds.length
           ? supabase.from("wiki_articles").select("id, title, category_id").in("id", articleIds)
@@ -174,22 +185,23 @@ export const useActivityReport = (limit = 100) => {
         (categoriesRes.data || []).map((c: any) => [c.id, c.title])
       );
 
-      return (viewsRes.data || []).map((v: any) => {
-        const p: any = profileMap.get(v.user_id);
-        const a: any = articleMap.get(v.article_id);
-        return {
-          id: v.id,
-          viewed_at: v.viewed_at,
-          user_id: v.user_id,
-          user_name: p
-            ? `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || p.email
-            : "Unknown",
-          user_email: p?.email ?? "",
-          article_id: v.article_id,
-          article_title: a?.title ?? "Deleted article",
-          category_title: a?.category_id ? catMap.get(a.category_id) ?? null : null,
-        };
-      });
+      return (viewsRes.data || [])
+        .filter((v: any) => profileMap.has(v.user_id))
+        .map((v: any) => {
+          const p: any = profileMap.get(v.user_id);
+          const a: any = articleMap.get(v.article_id);
+          return {
+            id: v.id,
+            viewed_at: v.viewed_at,
+            user_id: v.user_id,
+            user_name: `${p.first_name ?? ""} ${p.last_name ?? ""}`.trim() || p.email,
+            user_email: p.email ?? "",
+            article_id: v.article_id,
+            article_title: a?.title ?? "Deleted article",
+            category_title: a?.category_id ? catMap.get(a.category_id) ?? null : null,
+          };
+        });
+
     },
   });
 };
