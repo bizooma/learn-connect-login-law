@@ -151,11 +151,16 @@ export const useHomeInsights = () => {
     queryFn: async (): Promise<HomeInsights> => {
       const weeks = buildWeeks(4);
       const earliest = weeks[0].start.toISOString();
-      const { data, error } = await supabase
-        .from("wiki_article_views")
-        .select("user_id, viewed_at")
-        .gte("viewed_at", earliest);
+      const [{ data, error }, staffIds] = await Promise.all([
+        supabase
+          .from("wiki_article_views")
+          .select("user_id, viewed_at")
+          .gte("viewed_at", earliest),
+        fetchNfilStaffIds(),
+      ]);
       if (error) throw error;
+
+      const views = (data || []).filter((v: any) => staffIds.has(v.user_id));
 
       const activeUsersByWeek: WeeklyBucket[] = weeks.map((w) => ({
         label: w.label,
@@ -169,7 +174,7 @@ export const useHomeInsights = () => {
       }));
       const usersPerWeek = weeks.map(() => new Set<string>());
 
-      for (const v of data || []) {
+      for (const v of views) {
         const t = new Date(v.viewed_at).getTime();
         const idx = weeks.findIndex((w) => t >= w.start.getTime() && t <= w.end.getTime() + 86399999);
         if (idx === -1) continue;
@@ -179,14 +184,15 @@ export const useHomeInsights = () => {
       usersPerWeek.forEach((s, i) => (activeUsersByWeek[i].count = s.size));
 
       const allUsers = new Set<string>();
-      (data || []).forEach((v: any) => allUsers.add(v.user_id));
+      views.forEach((v: any) => allUsers.add(v.user_id));
 
       return {
         activeUsersByWeek,
         viewsByWeek,
         searchesByWeek: weeks.map((w) => ({ label: w.label, start: w.start.toISOString(), count: 0 })),
         activeUsersTotal: allUsers.size,
-        viewsTotal: data?.length ?? 0,
+        viewsTotal: views.length,
+
         searchesTotal: 0,
       };
     },
