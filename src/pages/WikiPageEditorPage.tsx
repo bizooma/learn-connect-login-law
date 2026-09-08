@@ -217,7 +217,7 @@ const WikiPageEditorPage = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={handleBackToContent}
+                  onClick={() => handleBackToContent()}
                   className="gap-2 shrink-0"
                 >
                   <ArrowLeft className="h-4 w-4" /> Back to Content
