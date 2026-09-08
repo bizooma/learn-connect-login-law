@@ -4,7 +4,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { validateCreateUserRequest } from './validation.ts';
 import { authenticateRequest } from './auth.ts';
 import { checkUserPermissions } from './permissions.ts';
-import { createUserAccount, resendInvite, resolveSiteUrl } from './userCreation.ts';
+import { addToEveryoneGroup, createUserAccount, isNfilEmail, resendInvite, resolveSiteUrl } from './userCreation.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
