@@ -7,7 +7,7 @@ import QuizManagement from "./QuizManagement";
 import NotificationManagement from "./NotificationManagement";
 import UserProgressManagement from "./UserProgressManagement";
 import GlobalEventManagement from "./GlobalEventManagement";
-import AdminTeamManagement from "./team-management/AdminTeamManagement";
+
 import ProfileManagement from "./ProfileManagement";
 import UserActivityManagement from "./activity-tracking/UserActivityManagement";
 import Leaderboards from "../../pages/Leaderboards";
@@ -49,8 +49,6 @@ const AdminManagementTabs = ({
         return <UserManagementTabs />;
       case "lawfirms":
         return <LawFirmManagement />;
-      case "teams":
-        return <AdminTeamManagement />;
       case "team-report":
         return <TeamLeadersProgressReport />;
       case "progress":
