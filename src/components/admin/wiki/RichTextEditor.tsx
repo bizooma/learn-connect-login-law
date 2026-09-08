@@ -55,6 +55,105 @@ const Iframe = Node.create({
   },
 });
 
+const youtubeEmbedUrl = (src: string) => {
+  if (!src) return src;
+  if (src.includes("/embed/")) return src;
+  const id =
+    src.match(/[?&]v=([^&]+)/)?.[1] ||
+    src.match(/youtu\.be\/([^?&/]+)/)?.[1] ||
+    src.match(/\/shorts\/([^?&/]+)/)?.[1];
+  return id ? `https://www.youtube-nocookie.com/embed/${id}` : src;
+};
+
+const MediaNodeView = (props: NodeViewProps) => {
+  const { node, editor, getPos, selected, deleteNode } = props;
+  const attrs = node.attrs as Record<string, any>;
+  const editable = editor.isEditable;
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const pos = typeof getPos === "function" ? getPos() : null;
+      if (typeof pos === "number") {
+        const $pos = editor.state.doc.resolve(pos);
+        const parent = $pos.parent;
+        // Loom-style <a><img></a>: drop the wrapping link mark / empty paragraph too.
+        const isOnlyChild = parent.childCount === 1;
+        if (isOnlyChild && parent.type.name === "paragraph") {
+          const from = $pos.before();
+          const to = from + parent.nodeSize;
+          editor.chain().focus().deleteRange({ from, to }).run();
+          return;
+        }
+        editor
+          .chain()
+          .focus()
+          .setNodeSelection(pos)
+          .unsetMark("link")
+          .deleteSelection()
+          .run();
+        return;
+      }
+    } catch {
+      /* fall through */
+    }
+    deleteNode();
+  };
+
+  const isImage = node.type.name === "image";
+
+  return (
+    <NodeViewWrapper
+      className={`relative group inline-block max-w-full my-2 ${selected ? "ProseMirror-selectednode" : ""}`}
+      data-drag-handle
+    >
+      {isImage ? (
+        <img
+          src={attrs.src}
+          alt={attrs.alt || ""}
+          title={attrs.title || undefined}
+          className="max-w-full h-auto rounded-md"
+        />
+      ) : (
+        <iframe
+          src={node.type.name === "youtube" ? youtubeEmbedUrl(attrs.src) : attrs.src}
+          title={attrs.title || "Embedded media"}
+          width={attrs.width || undefined}
+          height={attrs.height || undefined}
+          allowFullScreen
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen"
+          className="w-full aspect-video rounded-md"
+        />
+      )}
+      {editable && (
+        <button
+          type="button"
+          aria-label="Remove media"
+          onMouseDown={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+          }}
+          onClick={handleDelete}
+          className="absolute top-2 right-2 z-10 hidden group-hover:flex data-[visible=true]:flex items-center justify-center h-7 w-7 rounded-md bg-background/90 border border-border text-destructive shadow-sm hover:bg-destructive hover:text-destructive-foreground transition-colors"
+          data-visible={selected ? "true" : "false"}
+        >
+          <Trash2 className="h-4 w-4" />
+        </button>
+      )}
+    </NodeViewWrapper>
+  );
+};
+
+const withMediaNodeView = <T extends { extend: (config: any) => any }>(ext: T) =>
+  (ext as any).extend({
+    addNodeView() {
+      return ReactNodeViewRenderer(MediaNodeView);
+    },
+  });
+
+
+
 const FontSize = Extension.create({
   name: "fontSize",
   addOptions() {
