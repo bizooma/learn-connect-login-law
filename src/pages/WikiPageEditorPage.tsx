@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import RichTextEditor from "@/components/admin/wiki/RichTextEditor";
 import AiWritePageDialog from "@/components/admin/wiki/AiWritePageDialog";
 import WikiDocumentSidebar from "@/components/admin/wiki/WikiDocumentSidebar";
+import WikiGlobalSearchBox from "@/components/admin/wiki/WikiGlobalSearchBox";
 import PreviewAsStaffBanner from "@/components/admin/wiki/PreviewAsStaffBanner";
 import { registerPreviewEnableGuard, usePreviewAsStaff, withPreviewAsStaffParam } from "@/hooks/usePreviewAsStaff";
 import { WikiPage } from "@/hooks/useWikiPages";
