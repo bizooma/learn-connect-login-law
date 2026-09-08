@@ -188,13 +188,20 @@ const WikiPageEditorPage = () => {
     );
   }
 
-  const confirmNavigation = () => {
-    if (!dirty) return true;
-    return window.confirm("You have unsaved changes. Leave without saving?");
-  };
+  const blocker = useBlocker(dirty);
+
+  useEffect(() => {
+    if (blocker.state === "blocked") {
+      const confirmed = window.confirm("You have unsaved changes. Leave without saving?");
+      if (confirmed) {
+        blocker.proceed();
+      } else {
+        blocker.reset();
+      }
+    }
+  }, [blocker]);
 
   const handleBackToContent = (force?: boolean) => {
-    if (!force && !confirmNavigation()) return;
     navigate(withPreviewAsStaffParam("/admin/wiki/content"), {
       state: { activeCategoryId: sidebarCategoryId },
     });
